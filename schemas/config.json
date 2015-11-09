@@ -62,6 +62,31 @@
     },
     "amqp": {
       "type": "object"
+    },
+    "redis": {
+      "type": "object",
+      "required": [ "hosts" ],
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [ "host", "port" ],
+            "properties": {
+              "host": {
+                "type": "string",
+                "format": "ipv4"
+              },
+              "port": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "options": {
+          "type": "object"
+        }
+      }
     }
   }
 }

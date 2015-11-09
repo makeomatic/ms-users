@@ -4,10 +4,11 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const EventEmitter = require('eventemitter3');
 const ld = require('lodash');
+const redis = require('ioredis');
 const { format: fmt } = require('util');
 
 // validator configuration
-const { validate } = new Validation('./schemas');
+const { validate, validateSync } = new Validation('./schemas');
 
 /**
  * @namespace Users
@@ -83,6 +84,11 @@ module.exports = class Users extends EventEmitter {
     config.amqp.listen = ld.map(config.postfix, function assignPostfix(postfix) {
       return `${prefix}.${postfix}`;
     });
+
+    const err = validateSync('config', config);
+    if (err) {
+      throw err;
+    }
   }
 
   /**
@@ -122,26 +128,79 @@ module.exports = class Users extends EventEmitter {
     return promise;
   }
 
-  connect() {
-    if (this._amqp) {
-      return Promise.reject(new Errors.NotPermittedError('service was already started'));
+  /**
+   * @private
+   * @return {Promise}
+   */
+  _connectRedis() {
+    if (this._redis) {
+      return Promise.reject(new Errors.NotPermittedError('redis was already started'));
     }
 
-    const config = this._config;
+    const config = this._config.redis;
+    return new Promise(function redisClusterConnected(resolve, reject) {
+      let onReady;
+      let onError;
 
-    return validate('config', config)
-      .then(() => {
-        return AMQPTransport.connect(config, this.router)
-        .tap((amqp) => {
-          this._amqp = amqp;
-        });
-      })
-      .return(this);
+      const instance = new redis.Cluster(config.hosts, config.options || {});
+
+      onReady = function redisConnect() {
+        instance.removeListener('error', onError);
+        resolve(instance);
+      };
+
+      onError = function redisError(err) {
+        instance.removeListener('ready', onReady);
+        reject(err);
+      };
+
+      instance.once('ready', onReady);
+      instance.once('error', onError);
+    })
+    .tap((instance) => {
+      this._redis = instance;
+    });
   }
 
-  close() {
+  /**
+   * @private
+   * @return {Promise}
+   */
+  _closeRedis() {
+    if (!this._redis) {
+      return Promise.reject(new Errors.NotPermittedError('redis was not started'));
+    }
+
+    return this._redis
+      .quit()
+      .tap(() => {
+        this._redis = null;
+      });
+  }
+
+  /**
+   * @private
+   * @return {Promise}
+   */
+  _connectAMQP() {
+    if (this._amqp) {
+      return Promise.reject(new Errors.NotPermittedError('amqp was already started'));
+    }
+
+    return AMQPTransport
+      .connect(this._config, this.router)
+      .tap((amqp) => {
+        this._amqp = amqp;
+      });
+  }
+
+  /**
+   * @private
+   * @return {Promise}
+   */
+  _closeAMQP() {
     if (!this._amqp) {
-      return Promise.reject(new Errors.NotPermittedError('service is not online'));
+      return Promise.reject(new Errors.NotPermittedError('amqp was not started'));
     }
 
     return this._amqp
@@ -149,6 +208,27 @@ module.exports = class Users extends EventEmitter {
       .tap(() => {
         this._amqp = null;
       });
+  }
+
+  /**
+   * @return {Promise}
+   */
+  connect() {
+    return Promise.all([
+      this._connectAMQP(),
+      this._connectRedis(),
+    ])
+    .return(this);
+  }
+
+  /**
+   * @return {Promise}
+   */
+  close() {
+    return Promise.all([
+      this._closeAMQP(),
+      this._closeRedis(),
+    ]);
   }
 
 };

@@ -1,0 +1,70 @@
+{
+  "type": "object",
+  "required": [
+    "username",
+    "audience",
+    "metadata"
+  ],
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 50
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "$set": {
+          "type": "object",
+          "minProperties": 1,
+          "patternProperties": {
+            "^.+$": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "array"
+                },
+                {
+                  "type": "object"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          }
+        },
+        "$remove": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "$set"
+          ]
+        },
+        {
+          "required": [
+            "$remove"
+          ]
+        }
+      ]
+    }
+  }
+}

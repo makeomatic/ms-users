@@ -4,12 +4,14 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const EventEmitter = require('eventemitter3');
 const ld = require('lodash');
-const path = require('path');
 const { format: fmt } = require('util');
 
 // validator configuration
-const { validate } = new Validation(path.resolve(__dirname, './schemas'));
+const { validate } = new Validation('./schemas');
 
+/**
+ * @namespace Users
+ */
 module.exports = class Users extends EventEmitter {
 
   /**

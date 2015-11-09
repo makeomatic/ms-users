@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-NODE_VERSIONS := 5 4 0.10
+NODE_VERSIONS := 5.0.0 4.12 0.10
 
 test: $(NODE_VERSIONS)
 

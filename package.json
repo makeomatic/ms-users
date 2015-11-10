@@ -22,13 +22,20 @@
   "dependencies": {
     "bluebird": "^3.0.5",
     "bunyan": "^1.5.1",
+    "bytes": "^2.1.0",
     "common-errors": "^0.5.3",
     "eventemitter3": "^1.1.1",
+    "flake-idgen": "^1.0.0",
     "ioredis": "^1.10.0",
     "lodash": "^3.10.1",
     "ms-amqp-conf": "^0.1.0",
     "ms-amqp-transport": "^0.2.5",
-    "ms-amqp-validation": "^0.2.1"
+    "ms-amqp-validation": "^0.2.2",
+    "ms-mailer-client": "^0.1.0",
+    "node-uuid": "^1.4.3",
+    "request-promise": "^1.0.2",
+    "scrypt": "^5.4.1",
+    "urlsafe-base64": "^1.0.0"
   },
   "devDependencies": {
     "babel-core": "^5.8.33",

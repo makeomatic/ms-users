@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict';
+
 // accepts conf through .env file
 // suitable for configuring this in the docker env
 var configuration = require('ms-amqp-conf');

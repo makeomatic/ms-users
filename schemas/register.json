@@ -1,10 +1,6 @@
 {
   "type": "object",
-  "required": [
-    "username",
-    "password",
-    "audience"
-  ],
+  "required": [ "username", "password", "audience" ],
   "properties": {
     "username": {
       "type": "string",
@@ -18,10 +14,7 @@
     },
     "captcha": {
       "type": "object",
-      "required": [
-        "response",
-        "remoteip"
-      ],
+      "required": [ "response", "remoteip" ],
       "properties": {
         "response": {
           "type": "string",

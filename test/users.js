@@ -36,24 +36,34 @@ const config = {
 describe('Users suite', function UserClassSuite() {
   const Users = require('../src');
 
-  describe('configuration suite', function ConfigurationSuite() {
-    beforeEach(function startup() {
-      const slotTable = [
-        [0, 5460, ['127.0.0.1', 30001]],
-        [5461, 10922, ['127.0.0.1', 30002]],
-        [10923, 16383, ['127.0.0.1', 30003]],
-      ];
+  // inits redis mock cluster
+  function redisMock() {
+    const slotTable = [
+      [0, 5460, ['127.0.0.1', 30001]],
+      [5461, 10922, ['127.0.0.1', 30002]],
+      [10923, 16383, ['127.0.0.1', 30003]],
+    ];
 
-      function argvHandler(argv) {
-        if (argv[0] === 'cluster' && argv[1] === 'slots') {
-          return slotTable;
-        }
+    function argvHandler(argv) {
+      if (argv[0] === 'cluster' && argv[1] === 'slots') {
+        return slotTable;
       }
+    }
 
-      this.server_1 = new MockServer(30001, argvHandler);
-      this.server_2 = new MockServer(30002, argvHandler);
-      this.server_3 = new MockServer(30003, argvHandler);
-    });
+    this.server_1 = new MockServer(30001, argvHandler);
+    this.server_2 = new MockServer(30002, argvHandler);
+    this.server_3 = new MockServer(30003, argvHandler);
+  }
+
+  // teardown cluster
+  function tearDownRedisMock() {
+    this.server_1.disconnect();
+    this.server_2.disconnect();
+    this.server_3.disconnect();
+  }
+
+  describe('configuration suite', function ConfigurationSuite() {
+    beforeEach(redisMock);
 
     it('must throw on invalid configuration', function test() {
       expect(function throwOnInvalidConfiguration() {
@@ -82,17 +92,46 @@ describe('Users suite', function UserClassSuite() {
       });
     });
 
-    afterEach(function tearDown() {
-      this.server_1.disconnect();
-      this.server_2.disconnect();
-      this.server_3.disconnect();
-    });
+    afterEach(tearDownRedisMock);
   });
 
   describe('unit tests', function UnitSuite() {
+    beforeEach(redisMock);
+
+    beforeEach(function startService() {
+      this.users = new Users(config);
+    });
+
     describe('#register', function registerSuite() {
-      it('must reject invalid registration params and return detailed error');
-      it('must be able to create user without validations and return user object and jwt token');
+      const headers = { routingKey: 'register' };
+
+      it('must reject invalid registration params and return detailed error', function test() {
+        return this.users.router({}, headers)
+          .reflect()
+          .then((registered) => {
+            expect(registered.isRejected()).to.be.eq(true);
+            expect(registered.reason().name).to.be.eq('ValidationError');
+            expect(registered.reason().errors).to.have.length.of(3);
+          });
+      });
+
+      it('must be able to create user without validations and return user object and jwt token', function test() {
+        const opts = {
+          username: 'v@makeomatic.ru',
+          password: 'mynicepassword',
+          audience: 'matic.ninja',
+        };
+        return this.users.router(opts, headers)
+          .reflect()
+          .then((registered) => {
+            expect(registered.isFulfilled()).to.be.eq(true);
+            expect(registered.value()).to.have.ownProperty('jwt');
+            expect(registered.value()).to.have.ownProperty('user');
+            expect(registered.value().user.username).to.be.eq(opts.username);
+            expect(registered.value().user).to.have.ownProperty('audience');
+            expect(registered.value().user).to.not.have.ownProperty('password');
+          });
+      });
       it('must be able to create user with validation and return success');
       it('must reject more than 3 registration a day per ipaddress if it is specified');
       it('must reject registration for an already existing user');
@@ -173,6 +212,8 @@ describe('Users suite', function UserClassSuite() {
       it('must fail to unban not banned user');
       it('must fail to ban already banned user');
     });
+
+    afterEach(tearDownRedisMock);
   });
 
   describe('integration tests', function integrationSuite() {

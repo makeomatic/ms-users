@@ -1,10 +1,6 @@
 {
   "type": "object",
-  "required": [
-    "prefix",
-    "amqp",
-    "redis"
-  ],
+  "required": [ "prefix", "amqp", "redis", "deleteInactiveAccounts", "jwt", "validation", "server", "mailer" ],
   "properties": {
     "debug": {
       "type": "boolean"
@@ -12,6 +8,10 @@
     "prefix": {
       "type": "string",
       "minLength": 1
+    },
+    "deleteInactiveAccounts": {
+      "type": "integer",
+      "min": 0
     },
     "postfix": {
       "type": "object",
@@ -67,7 +67,7 @@
     },
     "redis": {
       "type": "object",
-      "required": [ "hosts" ],
+      "required": [ "hosts", "options" ],
       "properties": {
         "hosts": {
           "type": "array",
@@ -89,7 +89,14 @@
           }
         },
         "options": {
-          "type": "object"
+          "type": "object",
+          "required": [ "keyPrefix" ],
+          "properties": {
+            "keyPrefix": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         }
       }
     },
@@ -98,6 +105,135 @@
         { "type": "boolean" },
         { "type": "object" }
       ]
+    },
+    "captcha": {
+      "required": [ "prefix", "secret", "uri" ],
+      "type": "object",
+      "properties": {
+        "secret": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ttl": {
+          "type": "integer",
+          "min": 1
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "jwt": {
+      "type": "object",
+      "required": [ "hashingFunction", "secret" ],
+      "properties": {
+        "hashingFunction": {
+          "type": "string"
+        },
+        "secret": {
+          "type": "string",
+          "minLength": 32
+        },
+        "maxAge": {
+          "type": "integer",
+          "min": 0
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [ "secret", "algorithm", "ttl", "paths", "subjects", "email" ],
+      "properties": {
+        "secret": {
+          "type": "string",
+          "minLength": 32
+        },
+        "algorithm": {
+          "type": "string"
+        },
+        "ttl": {
+          "type": "integer",
+          "min": 0
+        },
+        "paths": {
+          "type": "object",
+          "required": [ "activate", "reset" ],
+          "properties": {
+            "activate": {
+              "type": "string"
+            },
+            "reset": {
+              "type": "string"
+            }
+          }
+        },
+        "subjects": {
+          "required": [ "activate", "reset" ],
+          "type": "object",
+          "properties": {
+            "activate": {
+              "type": "string"
+            },
+            "reset": {
+              "type": "string"
+            }
+          }
+        },
+        "email": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "object"
+            }
+          ]
+        }
+      }
+    },
+    "server": {
+      "required": [ "proto", "host", "port" ],
+      "type": "object",
+      "properties": {
+        "proto": {
+          "type": "string",
+          "enum": [ "http", "https" ]
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "integer" }
+          ]
+        }
+      }
+    },
+    "mailer": {
+      "type": "object",
+      "required": [ "prefix", "routes" ],
+      "properties": {
+        "prefix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "adhoc": {
+              "type": "string",
+              "minLength": 1
+            },
+            "predefined": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
     }
   }
 }

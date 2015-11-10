@@ -1,5 +1,6 @@
 const AMQPTransport = require('ms-amqp-transport');
 const Validation = require('ms-amqp-validation');
+const Mailer = require('ms-mailer-client');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const EventEmitter = require('eventemitter3');
@@ -10,6 +11,11 @@ const bunyan = require('bunyan');
 
 // validator configuration
 const { validate, validateSync } = new Validation('./schemas');
+
+// actions
+const register = require('./actions/register.js');
+const getMetadata = require('./actions/getMetadata.js');
+const updateMetadata = require('./actions/updateMetadata.js');
 
 /**
  * @namespace Users
@@ -23,6 +29,9 @@ module.exports = class Users extends EventEmitter {
   static defaultOpts = {
     debug: process.env.NODE_ENV === 'development',
     prefix: 'users',
+    // keep inactive accounts for 30 days
+    deleteInactiveAccounts: 30 * 24 * 60 * 60,
+    // postfixes for routes that we support
     postfix: {
       // ban, supports both unban/ban actions
       ban: 'ban',
@@ -68,6 +77,47 @@ module.exports = class Users extends EventEmitter {
     },
     amqp: {
       queue: 'ms-users',
+    },
+    captcha: {
+      secret: 'put-your-real-gcaptcha-secret-here',
+      ttl: 3600, // 1 hour - 3600 seconds
+      uri: 'https://www.google.com/recaptcha/api/siteverify',
+    },
+    redis: {
+      options: {
+        keyPrefix: '{ms-users}',
+      },
+    },
+    jwt: {
+      hashingFunction: 'HS256',
+      secret: 'i-hope-that-you-change-this-long-default-secret-in-your-app',
+      ttl: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
+    },
+    validation: {
+      secret: 'please-replace-this-as-a-long-nice-secret',
+      algorithm: 'aes-256-ctr',
+      ttl: 2 * 60 * 60, // dont send emails more than once in 2 hours
+      paths: {
+        activate: '/activate',
+        reset: '/reset',
+      },
+      subjects: {
+        activate: 'Activate your account',
+        reset: 'Reset your password',
+      },
+      email: 'support@example.com',
+    },
+    server: {
+      proto: 'http',
+      host: 'localhost',
+      port: 8080,
+    },
+    mailer: {
+      prefix: 'mailer',
+      routes: {
+        adhoc: 'adhoc',
+        predefined: 'predefined',
+      },
     },
   };
 
@@ -140,19 +190,26 @@ module.exports = class Users extends EventEmitter {
    */
   router = (message, headers, actions, next) => {
     const route = headers.routingKey.split('.').pop();
+    const defaultRoutes = Users.defaultOpts.postfix;
     const { postfix } = this._config;
 
     let promise;
     switch (route) {
+    case postfix.verify:
+    case postfix.register:
+      promise = this._validate(defaultRoutes.register, message).then(this._register);
+      break;
     case postfix.ban:
     case postfix.challenge:
     case postfix.activate:
-    case postfix.verify:
     case postfix.login:
     case postfix.logout:
-    case postfix.register:
     case postfix.getMetadata:
+      promise = this._validate(defaultRoutes.getMetadata, message).then(this._getMetadata);
+      break;
     case postfix.updateMetadata:
+      promise = this._validate(defaultRoutes.getMetadata, message).then(this._setMetadata);
+      break;
     case postfix.requestPassword:
     case postfix.updatePassword:
     default:
@@ -165,6 +222,42 @@ module.exports = class Users extends EventEmitter {
     }
 
     return promise;
+  }
+
+  _validate(route, message) {
+    return validate(route, message)
+      .bind(this)
+      .catch(function validationError(error) {
+        this.log.warn('Validation error:', error.toJSON());
+        throw error;
+      });
+  }
+
+  /**
+   * @private
+   * @param  {Object} message
+   * @return {Promise}
+   */
+  _register(message) {
+    return register.call(this, message);
+  }
+
+  /**
+   * @private
+   * @param  {Object} message
+   * @return {Promise}
+   */
+  _getMetadata(message) {
+    return getMetadata.call(this, message.username, message.audience);
+  }
+
+  /**
+   * @private
+   * @param  {Object}  message
+   * @return {Promise}
+   */
+  _updateMetadata(message) {
+    return updateMetadata.call(this, message);
   }
 
   /**
@@ -230,6 +323,7 @@ module.exports = class Users extends EventEmitter {
       .connect(this._config, this.router)
       .tap((amqp) => {
         this._amqp = amqp;
+        this._mailer = new Mailer(amqp, this._config.mailer);
       });
   }
 
@@ -246,6 +340,7 @@ module.exports = class Users extends EventEmitter {
       .close()
       .tap(() => {
         this._amqp = null;
+        this._mailer = null;
       });
   }
 

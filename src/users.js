@@ -6,6 +6,7 @@ const EventEmitter = require('eventemitter3');
 const ld = require('lodash');
 const redis = require('ioredis');
 const { format: fmt } = require('util');
+const bunyan = require('bunyan');
 
 // validator configuration
 const { validate, validateSync } = new Validation('./schemas');
@@ -77,7 +78,7 @@ module.exports = class Users extends EventEmitter {
    */
   constructor(opts = {}) {
     super();
-    const config = this._config = ld.merge({}, Users.defaultOptions, opts);
+    const config = this._config = ld.merge({}, Users.defaultOpts, opts);
 
     // map routes we listen to
     const { prefix } = config;
@@ -85,9 +86,47 @@ module.exports = class Users extends EventEmitter {
       return `${prefix}.${postfix}`;
     });
 
+    // define logger
+    this.setLogger();
+
     const err = validateSync('config', config);
     if (err) {
+      this.log.fatal('Invalid configuration:', err.toJSON());
       throw err;
+    }
+  }
+
+  /**
+   * Set logger
+   */
+  setLogger() {
+    const config = this._config;
+    let { logger } = config;
+    if (!config.hasOwnProperty('logger')) {
+      logger = config.debug;
+    }
+
+    // define logger
+    if (logger && logger instanceof bunyan) {
+      this.log = logger;
+    } else {
+      let stream;
+      if (logger) {
+        stream = {
+          stream: process.stdout,
+          level: config.debug ? 'debug' : 'info',
+        };
+      } else {
+        stream = {
+          level: 'trace',
+          type: 'raw',
+          stream: new bunyan.RingBuffer({ limit: 100 }),
+        };
+      }
+      this.log = bunyan.createLogger({
+        name: 'ms-users',
+        streams: [ stream ],
+      });
     }
   }
 

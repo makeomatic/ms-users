@@ -1,7 +1,9 @@
 {
   "type": "object",
   "required": [
-    "prefix"
+    "prefix",
+    "amqp",
+    "redis"
   ],
   "properties": {
     "debug": {
@@ -78,7 +80,10 @@
                 "format": "ipv4"
               },
               "port": {
-                "type": "integer"
+                "oneOf": [
+                  { "type": "integer" },
+                  { "type": "string" }
+                ]
               }
             }
           }
@@ -87,6 +92,12 @@
           "type": "object"
         }
       }
+    },
+    "logger": {
+      "oneOf": [
+        { "type": "boolean" },
+        { "type": "object" }
+      ]
     }
   }
 }

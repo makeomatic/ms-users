@@ -15,7 +15,7 @@ const flakeIdGen = new FlakeId();
 exports.login = function login(username, _audience) {
   const { _redis: redis } = this;
   const { hashingFunction: algorithm, defaultAudience, secret } = this._config.jwt;
-  const audience = _audience || defaultAudience;
+  let audience = _audience || defaultAudience;
 
   // will have iat field, which is when this token was issued
   // we can check last access and verify the expiration date based on it
@@ -25,6 +25,7 @@ exports.login = function login(username, _audience) {
   };
 
   const token = jwt.sign(payload, secret, { algorithm, audience, issuer: 'ms-users' });
+
   if (audience !== defaultAudience) {
     audience = [ audience, defaultAudience ];
   } else {
@@ -32,11 +33,19 @@ exports.login = function login(username, _audience) {
   }
 
   return Promise.props({
-    success: true,
     lastAccessUpdated: redis.zadd(redisKey(username, 'tokens'), Date.now(), token),
     jwt: token,
-    username: username,
-    metadata: getMetadata(username, audience),
+    username,
+    metadata: getMetadata.call(this, username, audience),
+  })
+  .then(function remap(props) {
+    return {
+      jwt: props.jwt,
+      user: {
+        username: props.username,
+        metadata: props.metadata,
+      },
+    };
   });
 };
 

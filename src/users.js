@@ -10,7 +10,7 @@ const { format: fmt } = require('util');
 const bunyan = require('bunyan');
 
 // validator configuration
-const { validate, validateSync } = new Validation('./schemas');
+const { validate, validateSync } = new Validation('../schemas');
 
 // actions
 const register = require('./actions/register.js');
@@ -89,6 +89,7 @@ module.exports = class Users extends EventEmitter {
       },
     },
     jwt: {
+      defaultAudience: '*.localhost',
       hashingFunction: 'HS256',
       secret: 'i-hope-that-you-change-this-long-default-secret-in-your-app',
       ttl: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
@@ -217,6 +218,11 @@ module.exports = class Users extends EventEmitter {
       break;
     }
 
+    // if we have an error
+    promise.catch(function reportError(err) {
+      this.log.error('Error performing %s operation', route, err);
+    });
+
     if (typeof next === 'function') {
       return promise.asCallback(next);
     }
@@ -320,10 +326,14 @@ module.exports = class Users extends EventEmitter {
     }
 
     return AMQPTransport
-      .connect(this._config, this.router)
+      .connect(this._config.amqp, this.router)
       .tap((amqp) => {
         this._amqp = amqp;
         this._mailer = new Mailer(amqp, this._config.mailer);
+      })
+      .catch((err) => {
+        this.log.fatal('Error connecting to AMQP', err.toJSON());
+        throw err;
       });
   }
 

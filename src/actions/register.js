@@ -62,12 +62,15 @@ module.exports = function registerUser(message) {
     });
   }
 
+  // shared user key
+  const userDataKey = redisKey(username, 'data');
+
   // step 2, verify that user _still_ does not exist
   promise = promise.then(function userDoesntExist() {
     logger.debug('Verifying user existance');
 
     return redis
-      .hexists(username, 'password')
+      .hexists(userDataKey, 'password')
       .then(function userExists(exists) {
         if (exists) {
           throw new Errors.HttpStatusError(403, `"${username}" already exists`);
@@ -89,7 +92,6 @@ module.exports = function registerUser(message) {
   promise = promise.then(function createUser(hash) {
     logger.debug('inserting user');
 
-    const userDataKey = redisKey(username, 'data');
     const pipeline = redis.pipeline();
 
     pipeline.hsetnx(userDataKey, 'password', hash);
@@ -111,12 +113,11 @@ module.exports = function registerUser(message) {
 
   // step 5 - save metadata if present
   promise = promise.then(function insertMetadata() {
-    logger.debug('inserting metadata');
-
     if (!metadata) {
       return null;
     }
 
+    logger.debug('inserting metadata');
     return setMetadata.call(this, {
       username,
       audience,
@@ -134,7 +135,6 @@ module.exports = function registerUser(message) {
       emailValidation.send.call(this, username);
 
       return {
-        success: true,
         requiresActivation: true,
       };
     }

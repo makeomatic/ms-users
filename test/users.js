@@ -1,6 +1,6 @@
+const Promise = require('bluebird');
 const chai = require('chai');
 const sinon = require('sinon');
-const stub = sinon.stub.bind(sinon);
 const { expect } = chai;
 const MockServer = require('ioredis/test/helpers/mock_server.js');
 const Errors = require('common-errors');
@@ -12,22 +12,22 @@ const config = {
   amqp: {
     connection: {
       host: process.env.RABBITMQ_PORT_5672_TCP_ADDR || '127.0.0.1',
-      port: process.env.RABBITMQ_PORT_5672_TCP_PORT || 5672,
+      port: +process.env.RABBITMQ_PORT_5672_TCP_PORT || 5672,
     },
   },
   redis: {
     hosts: [
       {
         host: process.env.REDIS_1_PORT_6379_TCP_ADDR || '127.0.0.1',
-        port: process.env.REDIS_1_PORT_6379_TCP_PORT || 30001,
+        port: +process.env.REDIS_1_PORT_6379_TCP_PORT || 30001,
       },
       {
         host: process.env.REDIS_2_PORT_6379_TCP_ADDR || '127.0.0.1',
-        port: process.env.REDIS_2_PORT_6379_TCP_PORT || 30002,
+        port: +process.env.REDIS_2_PORT_6379_TCP_PORT || 30002,
       },
       {
         host: process.env.REDIS_3_PORT_6379_TCP_ADDR || '127.0.0.1',
-        port: process.env.REDIS_3_PORT_6379_TCP_PORT || 30003,
+        port: +process.env.REDIS_3_PORT_6379_TCP_PORT || 30003,
       },
     ],
   },
@@ -99,10 +99,19 @@ describe('Users suite', function UserClassSuite() {
     beforeEach(redisMock);
 
     beforeEach(function startService() {
+      function emptyStub() {}
+
       this.users = new Users(config);
+      this.users._mailer = {
+        send: emptyStub,
+      };
+      this.users._redis = {};
+      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set' ].forEach(prop => {
+        this.users._redis[prop] = emptyStub;
+      });
     });
 
-    describe('#register', function registerSuite() {
+    describe.only('#register', function registerSuite() {
       const headers = { routingKey: 'register' };
 
       it('must reject invalid registration params and return detailed error', function test() {
@@ -121,6 +130,20 @@ describe('Users suite', function UserClassSuite() {
           password: 'mynicepassword',
           audience: 'matic.ninja',
         };
+
+        const pipeline = { hsetnx: sinon.stub(), exec: sinon.stub() };
+        pipeline.exec.returns(Promise.resolve([
+          [ null, 1 ],
+          [ null, 1 ],
+        ]));
+
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(false));
+        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
+        sinon.stub(this.users._redis, 'zadd').returns(1);
+        sinon.stub(this.users._redis, 'hgetallBuffer')
+          .onFirstCall().returns({})
+          .onSecondCall().returns({});
+
         return this.users.router(opts, headers)
           .reflect()
           .then((registered) => {
@@ -128,11 +151,50 @@ describe('Users suite', function UserClassSuite() {
             expect(registered.value()).to.have.ownProperty('jwt');
             expect(registered.value()).to.have.ownProperty('user');
             expect(registered.value().user.username).to.be.eq(opts.username);
-            expect(registered.value().user).to.have.ownProperty('audience');
+            expect(registered.value().user).to.have.ownProperty('metadata');
+            expect(registered.value().user.metadata).to.have.ownProperty('matic.ninja');
+            expect(registered.value().user.metadata).to.have.ownProperty('*.localhost');
             expect(registered.value().user).to.not.have.ownProperty('password');
+            expect(registered.value().user).to.not.have.ownProperty('audience');
           });
       });
-      it('must be able to create user with validation and return success');
+
+      it('must be able to create user with validation and return success', function test() {
+        const opts = {
+          username: 'v@makeomatic.ru',
+          password: 'mynicepassword',
+          audience: 'matic.ninja',
+          activate: false,
+        };
+
+        const pipeline = { hsetnx: sinon.stub(), exec: sinon.stub() };
+        pipeline.exec.returns(Promise.resolve([
+          [ null, 1 ],
+          [ null, 1 ],
+        ]));
+
+        const stub = sinon.stub().returns(Promise.resolve());
+        this.users._mailer.send = stub;
+
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(false));
+        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
+        sinon.stub(this.users._redis, 'get')
+          .onFirstCall().returns(Promise.resolve());
+        sinon.stub(this.users._redis, 'set')
+          .onFirstCall().returns(1);
+
+        return this.users.router(opts, headers)
+          .delay(50)
+          .reflect()
+          .then((registered) => {
+            expect(registered.isFulfilled()).to.be.eq(true);
+            expect(registered.value()).to.be.deep.eq({
+              requiresActivation: true,
+            });
+            expect(stub.calledOnce).to.be.eq(true);
+          });
+      });
+
       it('must reject more than 3 registration a day per ipaddress if it is specified');
       it('must reject registration for an already existing user');
       it('must reject registration for disposable email addresses');

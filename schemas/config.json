@@ -107,7 +107,7 @@
       ]
     },
     "captcha": {
-      "required": [ "prefix", "secret", "uri" ],
+      "required": [ "secret", "uri", "ttl" ],
       "type": "object",
       "properties": {
         "secret": {
@@ -126,7 +126,7 @@
     },
     "jwt": {
       "type": "object",
-      "required": [ "hashingFunction", "secret" ],
+      "required": [ "hashingFunction", "secret", "ttl", "defaultAudience" ],
       "properties": {
         "hashingFunction": {
           "type": "string"
@@ -135,9 +135,13 @@
           "type": "string",
           "minLength": 32
         },
-        "maxAge": {
+        "ttl": {
           "type": "integer",
           "min": 0
+        },
+        "defaultAudience": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },

@@ -124,7 +124,7 @@ exports.send = function sendEmail(email, type = 'activate') {
         html: emailTemplate,
       };
 
-      mailer.send(mailingAccount, mail)
+      return mailer.send(mailingAccount, mail)
         .catch(function mailingFailed(err) {
           logger.warn('couldn\'t send email', err);
         });
@@ -149,10 +149,10 @@ function safeDecode(algorithm, secret, string) {
 
 /**
  * Verifies token
- * @param  {String} string    [description]
- * @param  {String} namespace [description]
- * @param  {[type]} expire    [description]
- * @return {[type]}           [description]
+ * @param  {String}  string
+ * @param  {String}  namespace
+ * @param  {Boolean} expire
+ * @return {Promise}
  */
 exports.verify = function verifyToken(string, namespace = 'activate', expire) {
   const { _redis: redis, _config: config } = this;

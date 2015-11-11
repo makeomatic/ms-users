@@ -40,6 +40,10 @@
     "audience": {
       "type": "string",
       "minLength": 1
+    },
+    "ipaddress": {
+      "type": "string",
+      "format": "ipv4"
     }
   }
 }

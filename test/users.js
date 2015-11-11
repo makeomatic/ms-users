@@ -195,10 +195,32 @@ describe('Users suite', function UserClassSuite() {
           });
       });
 
+      it('must reject registration for an already existing user', function test() {
+        const opts = {
+          username: 'v@makeomatic.ru',
+          password: 'mynicepassword',
+          audience: 'matic.ninja',
+          activate: false,
+        };
+
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
+
+        return this.users.router(opts, headers)
+          .delay(50)
+          .reflect()
+          .then((registered) => {
+            expect(registered.isRejected()).to.be.eq(true);
+            expect(registered.reason().name).to.be.eq('HttpStatusError');
+            expect(registered.reason().statusCode).to.be.eq(403);
+            expect(registered.reason().message).to.match(/"v@makeomatic\.ru" already exists/);
+          });
+      });
+
       it('must reject more than 3 registration a day per ipaddress if it is specified');
-      it('must reject registration for an already existing user');
       it('must reject registration for disposable email addresses');
       it('must reject registration for a domain name, which lacks MX record');
+      it('must reject registration when captcha is specified and its invalid');
+      it('must register user when captcha is specified and its valid');
     });
 
     describe('#challenge', function challengeSuite() {

@@ -19,7 +19,7 @@ module.exports = function registerUser(message) {
   const { secret, ttl, uri } = config.captcha;
 
   // message
-  const { username, password, audience } = message;
+  const { username, password, audience, ipaddress } = message;
   const activate = message.hasOwnProperty('activate') ? message.activate : true;
   const captcha = message.hasOwnProperty('captcha') ? message.captcha : false;
   const metadata = message.hasOwnProperty('metadata') ? message.metadata : false;
@@ -60,6 +60,11 @@ module.exports = function registerUser(message) {
             });
         });
     });
+  }
+
+  if (ipaddress) {
+    // TODO:
+    // add reg per ip address limits
   }
 
   // shared user key

@@ -32,6 +32,7 @@
     "ms-amqp-transport": "^0.2.5",
     "ms-amqp-validation": "^0.2.2",
     "ms-mailer-client": "^0.1.0",
+    "ms-mailer-templates": "0.0.1",
     "node-uuid": "^1.4.3",
     "request-promise": "^1.0.2",
     "scrypt": "^5.4.1",

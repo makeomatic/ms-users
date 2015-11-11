@@ -4,6 +4,7 @@ const uuid = require('node-uuid');
 const redisKey = require('../utils/key.js');
 const crypto = require('crypto');
 const URLSafeBase64 = require('urlsafe-base64');
+const render = require('ms-mailer-templates');
 
 /**
  * Encrypts buffer using alg and secret
@@ -92,11 +93,7 @@ exports.send = function sendEmail(email, type = 'activate') {
         throw new Errors.InvalidOperationError(`${type} action is not supported`);
       }
 
-      // get template
-      return Promise.fromNode(function generateBody(next) {
-        // FIXME: CHANGE TEMPLATING
-        emailTemplates(type, context, null, next);
-      });
+      return render(type, context);
     })
     .then(function storeSecrets(emailTemplate) {
       return Promise.props({

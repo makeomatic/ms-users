@@ -18,6 +18,7 @@ const getMetadata = require('./actions/getMetadata.js');
 const updateMetadata = require('./actions/updateMetadata.js');
 const challenge = require('./actions/challenge.js');
 const activate = require('./actions/activate.js');
+const login = require('./actions/login.js');
 
 /**
  * @namespace Users
@@ -95,6 +96,8 @@ module.exports = class Users extends EventEmitter {
       hashingFunction: 'HS256',
       secret: 'i-hope-that-you-change-this-long-default-secret-in-your-app',
       ttl: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
+      lockAfterAttempts: 5,
+      keepLoginAttempts: 60 * 60, // 1 hour
     },
     validation: {
       secret: 'please-replace-this-as-a-long-nice-secret',
@@ -211,6 +214,8 @@ module.exports = class Users extends EventEmitter {
       promise = this._validate(defaultRoutes.activate, message).then(this._activate);
       break;
     case postfix.login:
+      promise = this._validate(defaultRoutes.login, message).then(this._login);
+      break;
     case postfix.logout:
     case postfix.getMetadata:
       promise = this._validate(defaultRoutes.getMetadata, message).then(this._getMetadata);
@@ -244,6 +249,15 @@ module.exports = class Users extends EventEmitter {
         this.log.warn('Validation error:', error.toJSON());
         throw error;
       });
+  }
+
+  /**
+   * @private
+   * @param  {Object} message
+   * @return {Promise}
+   */
+  _login(message) {
+    return login.call(this, message);
   }
 
   /**

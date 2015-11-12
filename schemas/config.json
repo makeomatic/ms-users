@@ -126,7 +126,7 @@
     },
     "jwt": {
       "type": "object",
-      "required": [ "hashingFunction", "secret", "ttl", "defaultAudience" ],
+      "required": [ "hashingFunction", "secret", "ttl", "defaultAudience", "keepLoginAttempts", "lockAfterAttempts" ],
       "properties": {
         "hashingFunction": {
           "type": "string"
@@ -142,6 +142,14 @@
         "defaultAudience": {
           "type": "string",
           "minLength": 1
+        },
+        "keepLoginAttempts": {
+          "type": "integer",
+          "minLength": 1
+        },
+        "lockAfterAttempts": {
+          "type": "integer",
+          "min": 0
         }
       }
     },

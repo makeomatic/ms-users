@@ -108,7 +108,10 @@ describe('Users suite', function UserClassSuite() {
         send: emptyStub,
       };
       this.users._redis = {};
-      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set', 'hget', 'del', 'hmgetBuffer', 'incrby', 'zrem' ].forEach(prop => {
+      [
+        'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get',
+        'set', 'hget', 'del', 'hmgetBuffer', 'incrby', 'zrem', 'zscoreBuffer',
+      ].forEach(prop => {
         this.users._redis[prop] = emptyStub;
       });
     });
@@ -604,11 +607,62 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#verify', function verifySuite() {
-      it('must reject on an invalid JWT token');
-      it('must reject on an expired JWT token');
-      it('must return user object on a valid JWT token');
-      it('must return user object and associated metadata on a valid JWT token with default audience');
-      it('must return user object and associated metadata on a valid JWT token with provided audiences');
+      const headers = { routingKey: 'verify' };
+
+      it('must reject on an invalid JWT token', function test() {
+        const { defaultAudience: audience } = this.users._config.jwt;
+
+        return this.users.router({ token: 'invalid-token', audience }, headers)
+          .reflect()
+          .then(verify => {
+            expect(verify.isRejected()).to.be.eq(true);
+            expect(verify.reason().name).to.be.eq('HttpStatusError');
+            expect(verify.reason().statusCode).to.be.eq(403);
+            expect(verify.reason().message).to.be.eq('invalid token');
+          });
+      });
+
+      it('must reject on an expired JWT token', function test() {
+        const jwt = require('jsonwebtoken');
+        const { hashingFunction: algorithm, secret, issuer, defaultAudience } = this.users._config.jwt;
+        const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
+
+        // set expiration date to 1970
+        sinon.stub(this.users._redis, 'zscoreBuffer').returns(Promise.resolve(0));
+
+        return this.users.router({ token, audience: defaultAudience }, headers)
+          .reflect()
+          .then(verify => {
+            expect(verify.isRejected()).to.be.eq(true);
+            expect(verify.reason().name).to.be.eq('HttpStatusError');
+            expect(verify.reason().statusCode).to.be.eq(403);
+            expect(verify.reason().message).to.be.eq('token has expired or was forged');
+          });
+      });
+
+      it('must return user object and required audiences information on a valid JWT token', function test() {
+        const jwt = require('jsonwebtoken');
+        const { hashingFunction: algorithm, secret, issuer, defaultAudience } = this.users._config.jwt;
+        const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
+
+        // set expiration date to 1970
+        sinon.stub(this.users._redis, 'zscoreBuffer').returns(Promise.resolve(Date.now()));
+        sinon.stub(this.users._redis, 'zadd').returns(Promise.resolve());
+        sinon.stub(this.users._redis, 'hgetallBuffer').returns({});
+
+        return this.users.router({ token, audience: defaultAudience }, headers)
+          .reflect()
+          .then(verify => {
+            expect(verify.isFulfilled()).to.be.eq(true);
+            expect(verify.value()).to.be.deep.eq({
+              username: 'vitaly',
+              metadata: {
+                [ defaultAudience ]: {},
+              },
+            });
+            expect(this.users._redis.zadd.calledOnce).to.be.eq(true);
+          });
+      });
     });
 
     describe('#getMetadata', function getMetadataSuite() {

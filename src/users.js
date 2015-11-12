@@ -20,6 +20,7 @@ const challenge = require('./actions/challenge.js');
 const activate = require('./actions/activate.js');
 const login = require('./actions/login.js');
 const logout = require('./actions/logout.js');
+const verify = require('./actions/verify.js');
 
 /**
  * @namespace Users
@@ -205,6 +206,8 @@ module.exports = class Users extends EventEmitter {
     let promise;
     switch (route) {
     case postfix.verify:
+      promise = this._validate(defaultRoutes.verify, message).then(this._verify);
+      break;
     case postfix.register:
       promise = this._validate(defaultRoutes.register, message).then(this._register);
       break;
@@ -253,6 +256,15 @@ module.exports = class Users extends EventEmitter {
         this.log.warn('Validation error:', error.toJSON());
         throw error;
       });
+  }
+
+  /**
+   * @private
+   * @param  {Object} message
+   * @return {Promise}
+   */
+  _verify(message) {
+    return verify.call(this, message);
   }
 
   /**

@@ -91,7 +91,12 @@ exports.verify = function verifyToken(token, audience, peek) {
   const { _redis: redis, _config: config } = this;
   const { hashingFunction: algorithm, secret, ttl, issuer } = config.jwt;
 
-  return jwt.verifyAsync(token, secret, { issuer, algorithms: [ algorithm ] })
+  return jwt
+    .verifyAsync(token, secret, { issuer, algorithms: [ algorithm ] })
+    .catch((err) => {
+      this.log.debug('invalid token passed: %s', token, err);
+      throw new Errors.HttpStatusError(403, 'invalid token');
+    })
     .then(function decodedToken(decoded) {
       if (audience.indexOf(decoded.aud) === -1) {
         throw new Errors.HttpStatusError(403, 'audience mismatch');

@@ -1,9 +1,6 @@
 {
   "type": "object",
-  "required": [
-    "token",
-    "audience"
-  ],
+  "required": [ "token", "audience" ],
   "properties": {
     "token": {
       "type": "string",

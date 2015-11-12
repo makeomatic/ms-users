@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const { expect } = chai;
 const MockServer = require('ioredis/test/helpers/mock_server.js');
 const Errors = require('common-errors');
+const ld = require('lodash');
 
 // make sure we have stack
 chai.config.includeStack = true;
@@ -107,7 +108,7 @@ describe('Users suite', function UserClassSuite() {
         send: emptyStub,
       };
       this.users._redis = {};
-      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set', 'hget', 'del' ].forEach(prop => {
+      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set', 'hget', 'del', 'hmgetBuffer', 'incrby' ].forEach(prop => {
         this.users._redis[prop] = emptyStub;
       });
     });
@@ -451,14 +452,124 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#login', function loginSuite() {
-      it('must reject login on a non-existing username');
-      it('must reject login on an invalid password');
-      it('must reject login on an inactive account');
-      it('must reject login on a banned account');
-      it('must login on a valid account with correct credentials');
-      it('must return User object and JWT token on login similar to #register+activate');
-      it('must reject lock account for authentication after 3 invalid login attemps');
-      it('must reset authentication attemps after resetting password');
+      const headers = { routingKey: 'login' };
+      const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
+      const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
+      const scrypt = require('../src/utils/scrypt.js');
+
+      before(function test() {
+        return scrypt.hash(userWithValidPassword.password).then(pass => {
+          this.password = pass;
+        });
+      });
+
+      it('must reject login on a non-existing username', function test() {
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ null ]));
+
+        return this.users.router(user, headers)
+          .reflect()
+          .then((login) => {
+            expect(login.isRejected()).to.be.eq(true);
+            expect(login.reason().name).to.be.eq('HttpStatusError');
+            expect(login.reason().statusCode).to.be.eq(404);
+          });
+      });
+
+      it('must reject login on an invalid password', function test() {
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('true') ]));
+
+        return this.users.router(user, headers)
+          .reflect()
+          .then((login) => {
+            expect(login.isRejected()).to.be.eq(true);
+            expect(login.reason().name).to.be.eq('HttpStatusError');
+            expect(login.reason().statusCode).to.be.eq(403);
+          });
+      });
+
+      it('must reject login on an inactive account', function test() {
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('false') ]));
+
+        return this.users.router(userWithValidPassword, headers)
+          .reflect()
+          .then((login) => {
+            expect(login.isRejected()).to.be.eq(true);
+            expect(login.reason().name).to.be.eq('HttpStatusError');
+            expect(login.reason().statusCode).to.be.eq(412);
+          });
+      });
+
+      it('must reject login on a banned account', function test() {
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('true'), new Buffer('true') ]));
+
+        return this.users.router(userWithValidPassword, headers)
+          .reflect()
+          .then((login) => {
+            expect(login.isRejected()).to.be.eq(true);
+            expect(login.reason().name).to.be.eq('HttpStatusError');
+            expect(login.reason().statusCode).to.be.eq(423);
+          });
+      });
+
+      it('must login on a valid account with correct credentials', function test() {
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('true') ]));
+
+        const jwt = require('../src/utils/jwt.js');
+        const stub = sinon.stub(jwt, 'login').returns(Promise.resolve());
+
+        return this.users.router(userWithValidPassword, headers)
+          .reflect()
+          .then((login) => {
+            expect(login.isFulfilled()).to.be.eq(true);
+            expect(stub.calledOnce).to.be.eq(true);
+            stub.restore();
+          });
+      });
+
+      it('must lock account for authentication after 5 invalid login attemps', function test() {
+        const userWithRemoteIP = { remoteip: '10.0.0.1' };
+        const pipeline = {};
+
+        Object.assign(userWithRemoteIP, user);
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('true') ]));
+        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
+
+        pipeline.exec = sinon.stub();
+        pipeline.incrby = sinon.stub();
+        pipeline.expire = sinon.stub();
+        pipeline.exec.onCall(0).returns(Promise.resolve([[null, 1]]));
+        pipeline.exec.onCall(1).returns(Promise.resolve([[null, 2]]));
+        pipeline.exec.onCall(2).returns(Promise.resolve([[null, 3]]));
+        pipeline.exec.onCall(3).returns(Promise.resolve([[null, 4]]));
+        pipeline.exec.onCall(4).returns(Promise.resolve([[null, 5]]));
+        pipeline.exec.onCall(5).returns(Promise.resolve([[null, 6]]));
+
+        const promises = [];
+
+        ld.times(5, () => {
+          promises.push(
+            this.users.router(userWithRemoteIP, headers)
+              .reflect()
+              .then((login) => {
+                expect(login.isRejected()).to.be.eq(true);
+                expect(login.reason().name).to.be.eq('HttpStatusError');
+                expect(login.reason().statusCode).to.be.eq(403);
+              })
+          );
+        });
+
+        promises.push(
+          this.users.router(userWithRemoteIP, headers)
+            .reflect()
+            .then((login) => {
+              expect(login.isRejected()).to.be.eq(true);
+              expect(login.reason().name).to.be.eq('HttpStatusError');
+              expect(login.reason().statusCode).to.be.eq(429);
+            })
+        );
+
+        return Promise.all(promises);
+      });
     });
 
     describe('#logout', function logoutSuite() {
@@ -491,6 +602,7 @@ describe('Users suite', function UserClassSuite() {
       it('must reject for a non-existing user');
       it('must send challenge email for an existing user');
       it('must reject sending reset password emails for an existing user more than once in 3 hours');
+      it('must reset authentication attempts after resetting password');
     });
 
     describe('#updatePassword', function updatePasswordSuite() {

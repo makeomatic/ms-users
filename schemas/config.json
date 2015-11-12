@@ -145,7 +145,7 @@
         },
         "keepLoginAttempts": {
           "type": "integer",
-          "minLength": 1
+          "minLength": 0
         },
         "lockAfterAttempts": {
           "type": "integer",

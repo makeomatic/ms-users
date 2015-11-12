@@ -20,6 +20,7 @@ module.exports = function login(opts) {
     promise = promise.then(function checkLoginAttempts() {
       // construct pipeline
       const pipeline = redis.pipeline();
+
       pipeline.incrby(remoteipKey, 1);
       if (config.keepLoginAttempts > 0) {
         pipeline.expire(remoteipKey, config.keepLoginAttempts);
@@ -27,30 +28,29 @@ module.exports = function login(opts) {
 
       return pipeline
         .exec()
-        .spread()
-          .then(function incremented(incrementValue) {
-            const err = incrementValue[0];
-            if (err) {
-              this.log.error('Redis error:', err);
-              return;
-            }
+        .spread(function incremented(incrementValue) {
+          const err = incrementValue[0];
+          if (err) {
+            this.log.error('Redis error:', err);
+            return;
+          }
 
-            loginAttempts = incrementValue[1];
-            if (loginAttempts > lockAfterAttempts) {
-              throw new Errors.HttpStatusError(429, 'You are locked from making login attempts for the next 24 hours');
-            }
-          });
+          loginAttempts = incrementValue[1];
+          if (loginAttempts > lockAfterAttempts) {
+            throw new Errors.HttpStatusError(429, 'You are locked from making login attempts for the next 24 hours');
+          }
+        });
     });
   } else {
     promise = Promise.resolve();
   }
 
   return promise.then(function getHashedPasswordAndUserState() {
-    return redis.hmgetBuffer(usernameKey, 'password', 'active');
+    return redis.hmgetBuffer(usernameKey, 'password', 'active', 'banned');
   })
-  .then(function hashedPasswordAndUserState([ passwordHashBuffer, activeBuffer ]) {
+  .spread(function hashedPasswordAndUserState(passwordHashBuffer, activeBuffer, isBanned) {
     if (!passwordHashBuffer) {
-      throw new Errors.HttpStatusError(403, 'username does not exist');
+      throw new Errors.HttpStatusError(404, 'username does not exist');
     }
 
     return scrypt
@@ -68,6 +68,10 @@ module.exports = function login(opts) {
       .then(function checkAccountActivation() {
         if (!activeBuffer || activeBuffer.toString() !== 'true') {
           throw new Errors.HttpStatusError(412, 'Account hasn\'t been activated');
+        }
+
+        if (isBanned && isBanned.toString() === 'true') {
+          throw new Errors.HttpStatusError(423, 'Account has been locked');
         }
       });
   })

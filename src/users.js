@@ -21,6 +21,7 @@ const activate = require('./actions/activate.js');
 const login = require('./actions/login.js');
 const logout = require('./actions/logout.js');
 const verify = require('./actions/verify.js');
+const requestPassword = require('./actions/requestPassword.js');
 
 // utils
 const redisKey = require('./utils/key.js');
@@ -234,6 +235,8 @@ module.exports = class Users extends EventEmitter {
       promise = this._validate(defaultRoutes.updateMetadata, message).then(this._updateMetadata);
       break;
     case postfix.requestPassword:
+      promise = this._validate(defaultRoutes.requestPassword, message).then(this._requestPassword);
+      break;
     case postfix.updatePassword:
     default:
       promise = Promise.reject(new Errors.NotImplementedError(fmt('method "%s"', route)));
@@ -259,6 +262,15 @@ module.exports = class Users extends EventEmitter {
         this.log.warn('Validation error:', error.toJSON());
         throw error;
       });
+  }
+
+  /**
+   * @private
+   * @param  {Object} message
+   * @return {Promise}
+   */
+  _requestPassword(message) {
+    return requestPassword.call(this, message);
   }
 
   /**

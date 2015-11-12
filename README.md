@@ -18,3 +18,6 @@
  - [ ] be able to set metadata on request
  - [ ] record ip address for such a request
  - [ ] extra types of validation
+5. Update Metadata:
+ - [ ] Add/remove batch operations
+ - [ ] support operations on multiple audiences

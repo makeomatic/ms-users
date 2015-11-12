@@ -110,7 +110,7 @@ describe('Users suite', function UserClassSuite() {
       this.users._redis = {};
       [
         'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get',
-        'set', 'hget', 'del', 'hmgetBuffer', 'incrby', 'zrem', 'zscoreBuffer',
+        'set', 'hget', 'del', 'hmgetBuffer', 'incrby', 'zrem', 'zscoreBuffer', 'hmget',
       ].forEach(prop => {
         this.users._redis[prop] = emptyStub;
       });
@@ -787,10 +787,72 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#requestPassword', function requestPasswordSuite() {
-      it('must reject for a non-existing user');
-      it('must send challenge email for an existing user');
-      it('must reject sending reset password emails for an existing user more than once in 3 hours');
-      it('must reset authentication attempts after resetting password');
+      const headers = { routingKey: 'requestPassword' };
+
+      it('must fail when user does not exist', function test() {
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ null, null, null ]));
+
+        return this.users.router({ username: 'noob' }, headers)
+          .reflect()
+          .then(requestPassword => {
+            expect(requestPassword.isRejected()).to.be.eq(true);
+            expect(requestPassword.reason().name).to.be.eq('HttpStatusError');
+            expect(requestPassword.reason().statusCode).to.be.eq(404);
+          });
+      });
+
+      it('must fail when account is inactive', function test() {
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ 1, 'false', null ]));
+
+        return this.users.router({ username: 'noob' }, headers)
+          .reflect()
+          .then(requestPassword => {
+            expect(requestPassword.isRejected()).to.be.eq(true);
+            expect(requestPassword.reason().name).to.be.eq('HttpStatusError');
+            expect(requestPassword.reason().statusCode).to.be.eq(412);
+          });
+      });
+
+      it('must fail when account is banned', function test() {
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ 1, 'true', 'true' ]));
+
+        return this.users.router({ username: 'noob' }, headers)
+          .reflect()
+          .then(requestPassword => {
+            expect(requestPassword.isRejected()).to.be.eq(true);
+            expect(requestPassword.reason().name).to.be.eq('HttpStatusError');
+            expect(requestPassword.reason().statusCode).to.be.eq(423);
+          });
+      });
+
+      it('must send challenge email for an existing user with an active account', function test() {
+        const emailValidation = require('../src/utils/send-email.js');
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ 1, 'true', null ]));
+        const stub = sinon.stub(emailValidation, 'send').returns(Promise.resolve());
+
+        return this.users.router({ username: 'noob' }, headers)
+          .reflect()
+          .then(requestPassword => {
+            expect(requestPassword.isFulfilled()).to.be.eq(true);
+            expect(requestPassword.value()).to.be.deep.eq({ success: true });
+            expect(stub.calledOnce).to.be.eq(true);
+            expect(stub.calledWithExactly('noob', 'reset')).to.be.eq(true);
+            stub.restore();
+          });
+      });
+
+      it('must reject sending reset password emails for an existing user more than once in 3 hours', function test() {
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ 1, 'true', null ]));
+        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(1));
+
+        return this.users.router({ username: 'noob' }, headers)
+          .reflect()
+          .then(requestPassword => {
+            expect(requestPassword.isRejected()).to.be.eq(true);
+            expect(requestPassword.reason().name).to.be.eq('HttpStatusError');
+            expect(requestPassword.reason().statusCode).to.be.eq(429);
+          });
+      });
     });
 
     describe('#updatePassword', function updatePasswordSuite() {

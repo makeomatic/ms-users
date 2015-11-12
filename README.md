@@ -146,3 +146,11 @@ const usersService = new Users(defaultOpts);
 5. Update Metadata:
  - [ ] Add/remove batch operations
  - [ ] support operations on multiple audiences
+6. Ban:
+ - [ ] Add security log
+7. Dockerfile
+8. Search/filter/sort:
+ - [ ] sort by metadata field
+ - [ ] filter by metadata field
+ - [ ] filter by multiple metadata fields
+ - [ ] paginate

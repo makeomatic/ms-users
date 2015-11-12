@@ -108,7 +108,7 @@ describe('Users suite', function UserClassSuite() {
         send: emptyStub,
       };
       this.users._redis = {};
-      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set', 'hget', 'del', 'hmgetBuffer', 'incrby' ].forEach(prop => {
+      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set', 'hget', 'del', 'hmgetBuffer', 'incrby', 'zrem' ].forEach(prop => {
         this.users._redis[prop] = emptyStub;
       });
     });
@@ -573,8 +573,34 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#logout', function logoutSuite() {
-      it('must reject logout on an invalid JWT token');
-      it('must delete JWT token from pool of valid tokens');
+      const headers = { routingKey: 'logout' };
+
+      it('must reject logout on an invalid JWT token', function test() {
+        const { defaultAudience: audience } = this.users._config.jwt;
+
+        return this.users.router({ jwt: 'tests', audience }, headers)
+          .reflect()
+          .then((logout) => {
+            expect(logout.isRejected()).to.be.eq(true);
+            expect(logout.reason().name).to.be.eq('HttpStatusError');
+            expect(logout.reason().statusCode).to.be.eq(403);
+          });
+      });
+
+      it('must delete JWT token from pool of valid tokens', function test() {
+        const jwt = require('jsonwebtoken');
+        const { hashingFunction: algorithm, secret, issuer, defaultAudience } = this.users._config.jwt;
+        const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
+
+        sinon.stub(this.users._redis, 'zrem').returns(Promise.resolve(1));
+
+        return this.users.router({ jwt: token, audience: defaultAudience }, headers)
+          .reflect()
+          .then((logout) => {
+            expect(logout.isFulfilled()).to.be.eq(true);
+            expect(logout.value()).to.be.deep.eq({ success: true });
+          });
+      });
     });
 
     describe('#verify', function verifySuite() {

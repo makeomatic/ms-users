@@ -57,13 +57,18 @@ exports.login = function login(username, _audience) {
  */
 exports.logout = function logout(token, audience) {
   const { _redis: redis, _config: config } = this;
-  const { hashingFunction: algorithm, secret } = config.jwt;
+  const { hashingFunction: algorithm, secret, issuer } = config.jwt;
 
   return jwt
-    .verifyAsync(token, secret, { issuer: 'mservice-users', audience, algorithms: [ algorithm ] })
+    .verifyAsync(token, secret, { issuer, audience, algorithms: [ algorithm ] })
+    .catch((err) => {
+      this.log.debug('error decoding token', err);
+      throw new Errors.HttpStatusError(403, 'Invalid Token');
+    })
     .then(function decodedToken(decoded) {
       return redis.zrem(redisKey(decoded.username, 'tokens'), token);
-    });
+    })
+    .return({ success: true });
 };
 
 /**
@@ -84,9 +89,9 @@ exports.reset = function reset(username) {
  */
 exports.verify = function verifyToken(token, audience, peek) {
   const { _redis: redis, _config: config } = this;
-  const { hashingFunction: algorithm, secret, ttl } = config.jwt;
+  const { hashingFunction: algorithm, secret, ttl, issuer } = config.jwt;
 
-  return jwt.verifyAsync(token, secret, { issuer: 'mservice-users', algorithms: [ algorithm ] })
+  return jwt.verifyAsync(token, secret, { issuer, algorithms: [ algorithm ] })
     .then(function decodedToken(decoded) {
       if (audience.indexOf(decoded.aud) === -1) {
         throw new Errors.HttpStatusError(403, 'audience mismatch');

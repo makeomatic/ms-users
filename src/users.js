@@ -19,6 +19,7 @@ const updateMetadata = require('./actions/updateMetadata.js');
 const challenge = require('./actions/challenge.js');
 const activate = require('./actions/activate.js');
 const login = require('./actions/login.js');
+const logout = require('./actions/logout.js');
 
 /**
  * @namespace Users
@@ -94,6 +95,7 @@ module.exports = class Users extends EventEmitter {
     jwt: {
       defaultAudience: '*.localhost',
       hashingFunction: 'HS256',
+      issuer: 'ms-users',
       secret: 'i-hope-that-you-change-this-long-default-secret-in-your-app',
       ttl: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
       lockAfterAttempts: 5,
@@ -217,6 +219,8 @@ module.exports = class Users extends EventEmitter {
       promise = this._validate(defaultRoutes.login, message).then(this._login);
       break;
     case postfix.logout:
+      promise = this._validate(defaultRoutes.logout, message).then(this._logout);
+      break;
     case postfix.getMetadata:
       promise = this._validate(defaultRoutes.getMetadata, message).then(this._getMetadata);
       break;
@@ -249,6 +253,15 @@ module.exports = class Users extends EventEmitter {
         this.log.warn('Validation error:', error.toJSON());
         throw error;
       });
+  }
+
+  /**
+   * @private
+   * @param  {Object} message
+   * @return {Promise}
+   */
+  _logout(message) {
+    return logout.call(this, message);
   }
 
   /**

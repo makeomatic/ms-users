@@ -17,6 +17,7 @@ const register = require('./actions/register.js');
 const getMetadata = require('./actions/getMetadata.js');
 const updateMetadata = require('./actions/updateMetadata.js');
 const challenge = require('./actions/challenge.js');
+const activate = require('./actions/activate.js');
 
 /**
  * @namespace Users
@@ -98,7 +99,8 @@ module.exports = class Users extends EventEmitter {
     validation: {
       secret: 'please-replace-this-as-a-long-nice-secret',
       algorithm: 'aes-256-ctr',
-      ttl: 2 * 60 * 60, // dont send emails more than once in 2 hours
+      throttle: 2 * 60 * 60, // dont send emails more than once in 2 hours
+      ttl: 4 * 60 * 60, // do not let password to be reset with expired codes
       paths: {
         activate: '/activate',
         reset: '/reset',
@@ -206,6 +208,8 @@ module.exports = class Users extends EventEmitter {
       promise = this._validate(defaultRoutes.challenge, message).then(this._challenge);
       break;
     case postfix.activate:
+      promise = this._validate(defaultRoutes.activate, message).then(this._activate);
+      break;
     case postfix.login:
     case postfix.logout:
     case postfix.getMetadata:
@@ -240,6 +244,15 @@ module.exports = class Users extends EventEmitter {
         this.log.warn('Validation error:', error.toJSON());
         throw error;
       });
+  }
+
+  /**
+   * @private
+   * @param  {Object} message
+   * @return {Promise}
+   */
+  _activate(message) {
+    return activate.call(this, message);
   }
 
   /**

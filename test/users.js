@@ -1,3 +1,4 @@
+const URLSafeBase64 = require('urlsafe-base64');
 const Promise = require('bluebird');
 const chai = require('chai');
 const sinon = require('sinon');
@@ -106,8 +107,23 @@ describe('Users suite', function UserClassSuite() {
         send: emptyStub,
       };
       this.users._redis = {};
-      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set', 'hget' ].forEach(prop => {
+      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set', 'hget', 'del' ].forEach(prop => {
         this.users._redis[prop] = emptyStub;
+      });
+    });
+
+    describe('encrypt/decrypt suite', function cryptoSuite() {
+      const emailValidation = require('../src/utils/send-email.js');
+
+      it('must be able to encode and then decode token', function test() {
+        const { algorithm, secret } = this.users._config.validation;
+        const obj = { email: 'v@example.com', secret: 'super-secret' };
+        const message = new Buffer(JSON.stringify(obj));
+        const token = emailValidation.encrypt(algorithm, secret, message);
+        expect(token).to.not.be.equal(JSON.stringify(obj));
+        const decrypted = emailValidation.decrypt(algorithm, secret, token);
+        expect(decrypted.toString()).to.be.eq(JSON.stringify(obj));
+        expect(JSON.parse(decrypted)).to.be.deep.eq(obj);
       });
     });
 
@@ -297,13 +313,141 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#activate', function activateSuite() {
-      it('must reject activation when challenge token is invalid', function () {
+      const headers = { routingKey: 'activate' };
+      const emailValidation = require('../src/utils/send-email.js');
+      const email = 'v@example.com';
 
+      beforeEach(function genToken() {
+        const { algorithm, secret } = this.users._config.validation;
+        const token = 'incredible-secret';
+        this.token = URLSafeBase64.encode(emailValidation.encrypt(algorithm, secret, new Buffer(JSON.stringify({ email, token }))));
       });
 
-      it('must reject activation when challenge token is expired');
-      it('must activate account when challenge token is correct and not expired');
-      it('must activate account when no challenge token is specified as a service action');
+      it('must reject activation when challenge token is invalid', function test() {
+        return this.users.router({ token: 'useless-token', namespace: 'activate' }, headers)
+          .reflect()
+          .then((activation) => {
+            expect(activation.isRejected()).to.be.eq(true);
+            expect(activation.reason().name).to.be.eq('HttpStatusError');
+            expect(activation.reason().statusCode).to.be.eq(403);
+            expect(activation.reason().message).to.match(/could not decode token/);
+          });
+      });
+
+      it('must reject activation when challenge token is expired or not found', function test() {
+        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(null));
+
+        return this.users.router({ token: this.token, namespace: 'activate' }, headers)
+          .reflect()
+          .then((activation) => {
+            expect(activation.isRejected()).to.be.eq(true);
+            expect(activation.reason().name).to.be.eq('HttpStatusError');
+            expect(activation.reason().statusCode).to.be.eq(404);
+          });
+      });
+
+      it('must reject activation when associated email and the token doesn\'t match', function test() {
+        sinon.stub(this.users._redis, 'get').returns(Promise.resolve('v@example.ru'));
+
+        return this.users.router({ token: this.token, namespace: 'activate' }, headers)
+          .reflect()
+          .then((activation) => {
+            expect(activation.isRejected()).to.be.eq(true);
+            expect(activation.reason().name).to.be.eq('HttpStatusError');
+            expect(activation.reason().statusCode).to.be.eq(412);
+            expect(activation.reason().message).to.match(/associated email doesn\'t match token/);
+          });
+      });
+
+      it('must reject activation when account is already activated', function test() {
+        // mock pipeline response
+        const pipeline = {
+          exec: sinon.stub().returns(Promise.resolve([
+            [ null, 'true' ],
+          ])),
+        };
+        pipeline.hget = sinon.stub().returns(pipeline);
+        pipeline.hset = sinon.stub().returns(pipeline);
+        pipeline.persist = sinon.stub().returns(pipeline);
+        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
+
+        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(email));
+        sinon.stub(this.users._redis, 'del').returns(Promise.resolve());
+
+        return this.users.router({ token: this.token, namespace: 'activate' }, headers)
+          .reflect()
+          .then((activation) => {
+            expect(activation.isRejected()).to.be.eq(true);
+            expect(activation.reason().name).to.be.eq('HttpStatusError');
+            expect(activation.reason().statusCode).to.be.eq(413);
+            expect(activation.reason().message).to.match(/Account v@example\.com was already activated/);
+          });
+      });
+
+      it('must activate account when challenge token is correct and not expired', function test() {
+        // mock pipeline response
+        const jwt = require('../src/utils/jwt.js');
+        const pipeline = {
+          exec: sinon.stub().returns(Promise.resolve([
+            [ null, 'false' ],
+          ])),
+        };
+        pipeline.hget = sinon.stub().returns(pipeline);
+        pipeline.hset = sinon.stub().returns(pipeline);
+        pipeline.persist = sinon.stub().returns(pipeline);
+        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
+
+        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(email));
+        sinon.stub(this.users._redis, 'del').returns(Promise.resolve());
+
+        const stub = sinon.stub(jwt, 'login').returns(Promise.resolve());
+
+        return this.users.router({ token: this.token, namespace: 'activate' }, headers)
+          .reflect()
+          .then((activation) => {
+            expect(activation.isFulfilled()).to.be.eq(true);
+            expect(stub.calledOnce);
+            stub.restore();
+          });
+      });
+
+      it('must activate account when only username is specified as a service action', function test() {
+        const jwt = require('../src/utils/jwt.js');
+        const stub = sinon.stub(jwt, 'login').returns(Promise.resolve());
+
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
+
+        const pipeline = {
+          exec: sinon.stub().returns(Promise.resolve([
+            [ null, 'false' ],
+          ])),
+        };
+        pipeline.hget = sinon.stub().returns(pipeline);
+        pipeline.hset = sinon.stub().returns(pipeline);
+        pipeline.persist = sinon.stub().returns(pipeline);
+        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
+
+        return this.users.router({ username: 'v@makeomatic.ru' }, headers)
+          .reflect()
+          .then((activation) => {
+            expect(activation.isFulfilled()).to.be.eq(true);
+            expect(stub.calledOnce);
+            stub.restore();
+          });
+      });
+
+      it('must fail to activate account when only username is specified as a service action and the user does not exist', function test() {
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(false));
+
+        return this.users.router({ username: 'v@makeomatic.ru' }, headers)
+          .reflect()
+          .then((activation) => {
+            expect(activation.isRejected()).to.be.eq(true);
+            expect(activation.reason().name).to.be.eq('HttpStatusError');
+            expect(activation.reason().statusCode).to.be.eq(404);
+            expect(activation.reason().message).to.be.eq('user does not exist');
+          });
+      });
     });
 
     describe('#login', function loginSuite() {

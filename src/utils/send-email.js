@@ -13,11 +13,11 @@ const render = require('ms-mailer-templates');
  * @param  {Buffer} buffer
  * @return {Buffer}
  */
-function encrypt(algorithm, secret, buffer) {
+exports.encrypt = function encrypt(algorithm, secret, buffer) {
   const cipher = crypto.createCipher(algorithm, secret);
   const crypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
   return crypted;
-}
+};
 
 /**
  * Decrypts buffer using algoruthm and secret
@@ -26,11 +26,11 @@ function encrypt(algorithm, secret, buffer) {
  * @param  {Buffer} buffer
  * @return {Buffer}
  */
-function decrypt(algorithm, secret, buffer) {
+exports.decrypt = function decrypt(algorithm, secret, buffer) {
   const decipher = crypto.createDecipher(algorithm, secret);
   const dec = Buffer.concat([decipher.update(buffer), decipher.final()]);
   return dec;
-}
+};
 
 /**
  * Generates complete link
@@ -38,7 +38,7 @@ function decrypt(algorithm, secret, buffer) {
  * @param  {String} path
  * @return {String}
  */
-function generateLink(server, path) {
+exports.generateLink = function generateLink(server, path) {
   const { proto } = server;
   let { port } = server;
 
@@ -49,7 +49,26 @@ function generateLink(server, path) {
   }
 
   return `${proto}://${server.host + port + path}`;
-}
+};
+
+/**
+ * Safely decodes
+ * @param  {String} algorithm
+ * @param  {String} secret
+ * @param  {String} string
+ * @return {Promise}
+ */
+exports.safeDecode = function safeDecode(algorithm, secret, string) {
+  return Promise
+    .try(function decode() {
+      return JSON.parse(exports.decrypt(algorithm, secret, URLSafeBase64.decode(string)));
+    })
+    .bind(this)
+    .catch(function remapError(err) {
+      this.log.warn('cant decode token', err);
+      throw new Errors.HttpStatusError(403, 'could not decode token');
+    });
+};
 
 /**
  * Send an email with appropriate content
@@ -61,7 +80,7 @@ function generateLink(server, path) {
 exports.send = function sendEmail(email, type = 'activate', wait = false) {
   const { _redis: redis, _config: config, _mailer: mailer } = this;
   const { validation, server } = config;
-  const { ttl, subjects, paths, secret, algorithm, email: mailingAccount } = validation;
+  const { ttl, throttle, subjects, paths, secret, algorithm, email: mailingAccount } = validation;
 
   // method specific stuff
   const throttleEmailsKey = redisKey('vthrottle-' + type, email);
@@ -77,7 +96,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
     })
     .then(function generateContent() {
       // generate secret
-      const enc = encrypt(algorithm, secret, new Buffer(JSON.stringify({ email, secret: activationSecret }), 'utf-8'));
+      const enc = exports.encrypt(algorithm, secret, new Buffer(JSON.stringify({ email, token: activationSecret })));
 
       // generate context
       const context = {
@@ -87,7 +106,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
       switch (type) {
       case 'activate':
       case 'reset':
-        context.link = generateLink(server, paths[type]);
+        context.link = exports.generateLink(server, paths[type]);
         break;
       default:
         throw new Errors.InvalidOperationError(`${type} action is not supported`);
@@ -96,15 +115,24 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
       return render(type, context);
     })
     .then(function storeSecrets(emailTemplate) {
+      const throttleArgs = [ throttleEmailsKey, 1, 'NX' ];
+      if (throttle > 0) {
+        throttleArgs.splice(2, 0, 'EX', throttle);
+      }
       return redis
-        .set(throttleEmailsKey, 1, 'EX', ttl, 'NX')
+        .set(throttleArgs)
         .then(function isThrottled(response) {
           if (!response) {
             throw new Errors.HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email');
           }
         })
         .then(function updateSecret() {
-          return redis.set(redisKey('vsecret-' + type, activationSecret), email);
+          const secretKey = redisKey('vsecret-' + type, activationSecret);
+          const args = [ secretKey, email ];
+          if (ttl > 0) {
+            args.push('EX', ttl);
+          }
+          return redis.set(args);
         })
         .return(emailTemplate);
     })
@@ -139,49 +167,38 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
 };
 
 /**
- * Safely decodes
- * @param  {String} algorithm
- * @param  {String} secret
- * @param  {String} string
- * @return {Promise}
- */
-function safeDecode(algorithm, secret, string) {
-  return Promise.try(function decode() {
-    return JSON.parse(decrypt(algorithm, secret, URLSafeBase64.decode(string)));
-  })
-  .catch(function remapError() {
-    throw new Errors.HttpStatusError(403, 'Invalid or expired activation token');
-  });
-}
-
-/**
  * Verifies token
  * @param  {String}  string
  * @param  {String}  namespace
  * @param  {Boolean} expire
  * @return {Promise}
  */
-exports.verify = function verifyToken(string, namespace = 'activate', expire) {
+exports.verify = function verifyToken(string, namespace = 'activate', expires) {
   const { _redis: redis, _config: config } = this;
   const { validation } = config;
   const { secret: validationSecret, algorithm } = validation;
 
-  return safeDecode(algorithm, validationSecret, string)
+  return exports.safeDecode.call(this, algorithm, validationSecret, string)
     .then(function inspectResult(message) {
-      const { email, secret } = message;
+      const { email, token } = message;
 
-      if (!email || !secret) {
-        throw new Errors.HttpStatusError(403, 'Invalid or expired activation token');
+      if (!email || !token) {
+        throw new Errors.HttpStatusError(403, 'Decoded token misses references to email and/or secret');
       }
 
-      const secretKey = redisKey('vsecret-' + namespace, secret);
-      return redis.get(secretKey)
+      const secretKey = redisKey('vsecret-' + namespace, token);
+      return redis
+        .get(secretKey)
         .then(function inspectAssociatedData(associatedEmail) {
-          if (!associatedEmail || associatedEmail !== email) {
-            throw new Errors.HttpStatusError(403, 'Invalid or expired activation token');
+          if (!associatedEmail) {
+            throw new Errors.HttpStatusError(404, 'token expired or is invalid');
           }
 
-          if (expire) {
+          if (associatedEmail !== email) {
+            throw new Errors.HttpStatusError(412, 'associated email doesn\'t match token');
+          }
+
+          if (expires) {
             return redis.del(secretKey);
           }
         })

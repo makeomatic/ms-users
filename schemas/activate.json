@@ -1,7 +1,21 @@
 {
   "type": "object",
-  "required": [ "token" ],
+  "oneOf": [
+    {
+      "required": [ "namespace", "token" ]
+    },
+    {
+      "required": [ "username" ]
+    }
+  ],
   "properties": {
+    "username": {
+      "type": "string"
+    },
+    "namespace": {
+      "type": "string",
+      "enum": [ "activate", "reset" ]
+    },
     "token": {
       "type": "string",
       "minLength": 1

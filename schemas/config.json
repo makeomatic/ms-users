@@ -160,6 +160,10 @@
           "type": "integer",
           "min": 0
         },
+        "throttle": {
+          "type": "integer",
+          "min": 0
+        },
         "paths": {
           "type": "object",
           "required": [ "activate", "reset" ],

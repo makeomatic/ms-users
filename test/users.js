@@ -110,7 +110,7 @@ describe('Users suite', function UserClassSuite() {
       this.users._redis = {};
       [
         'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get',
-        'set', 'hget', 'del', 'hmgetBuffer', 'incrby', 'zrem', 'zscoreBuffer', 'hmget',
+        'set', 'hget', 'hdel', 'del', 'hmgetBuffer', 'incrby', 'zrem', 'zscoreBuffer', 'hmget',
         'hset',
       ].forEach(prop => {
         this.users._redis[prop] = emptyStub;
@@ -133,7 +133,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#register', function registerSuite() {
-      const headers = { routingKey: 'register' };
+      const headers = { routingKey: Users.defaultOpts.postfix.register };
 
       it('must reject invalid registration params and return detailed error', function test() {
         return this.users.router({}, headers)
@@ -245,7 +245,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#challenge', function challengeSuite() {
-      const headers = { routingKey: 'challenge' };
+      const headers = { routingKey: Users.defaultOpts.postfix.challenge };
 
       it('must fail to send a challenge for a non-existing user', function test() {
         sinon.stub(this.users._redis, 'hget').returns(Promise.resolve(null));
@@ -318,7 +318,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#activate', function activateSuite() {
-      const headers = { routingKey: 'activate' };
+      const headers = { routingKey: Users.defaultOpts.postfix.activate };
       const emailValidation = require('../src/utils/send-email.js');
       const email = 'v@example.com';
 
@@ -456,7 +456,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#login', function loginSuite() {
-      const headers = { routingKey: 'login' };
+      const headers = { routingKey: Users.defaultOpts.postfix.login };
       const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
       const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
       const scrypt = require('../src/utils/scrypt.js');
@@ -577,7 +577,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#logout', function logoutSuite() {
-      const headers = { routingKey: 'logout' };
+      const headers = { routingKey: Users.defaultOpts.postfix.logout };
 
       it('must reject logout on an invalid JWT token', function test() {
         const { defaultAudience: audience } = this.users._config.jwt;
@@ -667,7 +667,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#getMetadata', function getMetadataSuite() {
-      const headers = { routingKey: 'getMetadata' };
+      const headers = { routingKey: Users.defaultOpts.postfix.getMetadata };
 
       it('must reject to return metadata on a non-existing username', function test() {
         const { defaultAudience: audience } = this.users._config.jwt;
@@ -733,7 +733,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#updateMetadata', function getMetadataSuite() {
-      const headers = { routingKey: 'updateMetadata' };
+      const headers = { routingKey: Users.defaultOpts.postfix.updateMetadata };
 
       it('must reject updating metadata on a non-existing user', function test() {
         const { defaultAudience: audience } = this.users._config.jwt;
@@ -788,7 +788,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#requestPassword', function requestPasswordSuite() {
-      const headers = { routingKey: 'requestPassword' };
+      const headers = { routingKey: Users.defaultOpts.postfix.requestPassword };
 
       it('must fail when user does not exist', function test() {
         sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ null, null, null ]));
@@ -857,7 +857,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#updatePassword', function updatePasswordSuite() {
-      const headers = { routingKey: 'updatePassword' };
+      const headers = { routingKey: Users.defaultOpts.postfix.updatePassword };
       const email = 'v@example.com';
       const emailValidation = require('../src/utils/send-email.js');
 
@@ -972,12 +972,56 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#ban', function banSuite() {
-      it('must reject banning a non-existing user');
-      it('must reject (un)banning a user without action being implicitly set');
-      it('must ban an existing user');
-      it('must unban an existing user');
-      it('must fail to unban not banned user');
-      it('must fail to ban already banned user');
+      const headers = { routingKey: Users.defaultOpts.postfix.ban };
+
+      it('must reject banning a non-existing user', function test() {
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(false));
+
+        return this.users.router({ username: 'doesntexist', ban: true }, headers)
+          .reflect()
+          .then(ban => {
+            expect(ban.isRejected()).to.be.eq(true);
+            expect(ban.reason().name).to.be.eq('HttpStatusError');
+            expect(ban.reason().statusCode).to.be.eq(404);
+          });
+      });
+
+      it('must reject (un)banning a user without action being implicitly set', function test() {
+        return this.users.router({ username: 'exists' }, headers)
+          .reflect()
+          .then(ban => {
+            expect(ban.isRejected()).to.be.eq(true);
+            expect(ban.reason().name).to.be.eq('ValidationError');
+          });
+      });
+
+      it('must be able to ban an existing user', function test() {
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
+        sinon.stub(this.users._redis, 'hset').returns(Promise.resolve(1));
+
+        return this.users.router({ username: 'exists', ban: true }, headers)
+          .reflect()
+          .then(ban => {
+            expect(ban.isFulfilled()).to.be.eq(true);
+            expect(ban.value()).to.be.eq(1);
+            expect(this.users._redis.hset.calledOnce).to.be.eq(true);
+            expect(this.users._redis.hset.calledWithExactly(`exists!data`, 'ban', 'true'));
+          });
+      });
+
+      it('must be able to unban an existing user', function test() {
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
+        sinon.stub(this.users._redis, 'hdel').returns(Promise.resolve(1));
+
+        return this.users.router({ username: 'exists', ban: false }, headers)
+          .reflect()
+          .then(ban => {
+            expect(ban.isFulfilled()).to.be.eq(true);
+            expect(ban.value()).to.be.eq(1);
+            expect(this.users._redis.hdel.calledOnce).to.be.eq(true);
+            expect(this.users._redis.hdel.calledWithExactly(`exists!data`, 'ban'));
+          });
+      });
     });
 
     afterEach(tearDownRedisMock);

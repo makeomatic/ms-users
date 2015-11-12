@@ -23,6 +23,7 @@ const logout = require('./actions/logout.js');
 const verify = require('./actions/verify.js');
 const requestPassword = require('./actions/requestPassword.js');
 const updatePassword = require('./actions/updatePassword.js');
+const ban = require('./actions/ban.js');
 
 // utils
 const redisKey = require('./utils/key.js');
@@ -217,6 +218,8 @@ module.exports = class Users extends EventEmitter {
       promise = this._validate(defaultRoutes.register, message).then(this._register);
       break;
     case postfix.ban:
+      promise = this._validate(defaultRoutes.ban, message).then(this._ban);
+      break;
     case postfix.challenge:
       promise = this._validate(defaultRoutes.challenge, message).then(this._challenge);
       break;
@@ -271,6 +274,15 @@ module.exports = class Users extends EventEmitter {
         this.log.warn('Validation error:', error.toJSON());
         throw error;
       });
+  }
+
+  /**
+   * @private
+   * @param  {String} message
+   * @return {Promise}
+   */
+  _ban(message) {
+    return ban.call(this, message);
   }
 
   /**

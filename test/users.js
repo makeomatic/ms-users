@@ -111,6 +111,7 @@ describe('Users suite', function UserClassSuite() {
       [
         'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get',
         'set', 'hget', 'del', 'hmgetBuffer', 'incrby', 'zrem', 'zscoreBuffer', 'hmget',
+        'hset',
       ].forEach(prop => {
         this.users._redis[prop] = emptyStub;
       });
@@ -856,11 +857,118 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#updatePassword', function updatePasswordSuite() {
-      it('must reject updating password for a non-existing user');
-      it('must reject updating password for an invalid challenge token');
-      it('must update password passed with a valid challenge token');
-      it('must fail to update password with a valid challenge token, when it doesn\'t conform to password requirements');
-      it('must reset login attemts for a user after resetting password');
+      const headers = { routingKey: 'updatePassword' };
+      const email = 'v@example.com';
+      const emailValidation = require('../src/utils/send-email.js');
+
+      before(function genToken() {
+        const { algorithm, secret } = this.users._config.validation;
+        const token = 'incredible-secret';
+        this.token = URLSafeBase64.encode(emailValidation.encrypt(algorithm, secret, new Buffer(JSON.stringify({ email, token }))));
+      });
+
+      it('must reject updating password for a non-existing user on usernamep+password update', function test() {
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([
+          null,
+        ]));
+
+        return this.users.router({ username: 'noob', currentPassword: 'xxx', newPassword: 'vvv' }, headers)
+          .reflect()
+          .then(updatePassword => {
+            expect(updatePassword.isRejected()).to.be.eq(true);
+            expect(updatePassword.reason().name).to.be.eq('HttpStatusError');
+            expect(updatePassword.reason().statusCode).to.be.eq(404);
+          });
+      });
+
+      it('must reject updating password for an inactive account on username+password update', function test() {
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([
+          new Buffer(''), new Buffer('false'),
+        ]));
+
+        return this.users.router({ username: 'noob', currentPassword: 'xxx', newPassword: 'vvv' }, headers)
+          .reflect()
+          .then(updatePassword => {
+            expect(updatePassword.isRejected()).to.be.eq(true);
+            expect(updatePassword.reason().name).to.be.eq('HttpStatusError');
+            expect(updatePassword.reason().statusCode).to.be.eq(412);
+          });
+      });
+
+      it('must reject updating password for an account with invalid hash on username+password update', function test() {
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([
+          new Buffer(''), new Buffer('true'),
+        ]));
+
+        return this.users.router({ username: 'noob', currentPassword: 'xxx', newPassword: 'vvv' }, headers)
+          .reflect()
+          .then(updatePassword => {
+            expect(updatePassword.isRejected()).to.be.eq(true);
+            expect(updatePassword.reason().name).to.be.eq('HttpStatusError');
+            expect(updatePassword.reason().statusCode).to.be.eq(500);
+          });
+      });
+
+      it('must reject updating password for an invalid challenge token', function test() {
+        return this.users.router({ resetToken: 'wrong', newPassword: 'vvv' }, headers)
+          .reflect()
+          .then(updatePassword => {
+            expect(updatePassword.isRejected()).to.be.eq(true);
+            expect(updatePassword.reason().name).to.be.eq('HttpStatusError');
+            expect(updatePassword.reason().statusCode).to.be.eq(403);
+          });
+      });
+
+      it('must update password passed with a valid challenge token', function test() {
+        sinon.stub(emailValidation, 'verify').returns(Promise.resolve(email));
+        sinon.stub(this.users._redis, 'hset').returns(Promise.resolve(0));
+
+        return this.users.router({ resetToken: this.token, newPassword: 'vvv' }, headers)
+          .reflect()
+          .then(updatePassword => {
+            expect(updatePassword.isFulfilled()).to.be.eq(true);
+            expect(emailValidation.verify.calledOnce).to.be.eq(true);
+            expect(emailValidation.verify.calledWithExactly(this.token, 'reset', true)).to.be.eq(true);
+            expect(updatePassword.value()).to.be.deep.eq({ success: true });
+
+            emailValidation.verify.restore();
+          });
+      });
+
+      it('must reject updating password with an invalid username/password combination', function test() {
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([
+          new Buffer('dhasjdkahsdkja'), new Buffer('true'),
+        ]));
+
+        return this.users.router({ username: email, currentPassword: 'xxx', newPassword: 'vvv' }, headers)
+          .reflect()
+          .then(updatePassword => {
+            expect(updatePassword.isRejected()).to.be.eq(true);
+            expect(updatePassword.reason().name).to.be.eq('HttpStatusError');
+            expect(updatePassword.reason().statusCode).to.be.eq(403);
+          });
+      });
+
+      it('must update password with a valid username/password combination and different newPassword', function test() {
+        const scrypt = require('../src/utils/scrypt.js');
+
+        return scrypt.hash('superpassword').then(currentPasswordHash => {
+          sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([
+            currentPasswordHash, new Buffer('true'),
+          ]));
+          sinon.stub(this.users._redis, 'hset').returns(Promise.resolve(0));
+          sinon.stub(this.users._redis, 'del');
+
+          return this.users.router({ username: email, currentPassword: 'superpassword', newPassword: 'vvv', remoteip: '10.0.0.0' }, headers)
+            .reflect()
+            .then(updatePassword => {
+              expect(updatePassword.isFulfilled()).to.be.eq(true);
+              expect(updatePassword.value()).to.be.deep.eq({ success: true });
+              expect(this.users._redis.del.calledOnce).to.be.eq(true);
+              expect(this.users._redis.del.calledWithExactly(`${email}!data!10.0.0.0`)).to.be.eq(true);
+            });
+        });
+      });
     });
 
     describe('#ban', function banSuite() {

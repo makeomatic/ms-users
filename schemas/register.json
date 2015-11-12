@@ -8,9 +8,7 @@
       "maxLength": 50
     },
     "password": {
-      "type": "string",
-      "minLength": 6,
-      "maxLength": 50
+      "type": "string"
     },
     "captcha": {
       "type": "object",

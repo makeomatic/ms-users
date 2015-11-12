@@ -16,10 +16,6 @@ exports.verify = function verifyPassword(hash, password) {
   return Promise.fromNode(function verifyKdfPromise(next) {
     scrypt.verifyKdf(hash, new Buffer(password, 'utf-8'), next);
   }).catch(function scruptError(err) {
-    if (err.scrypt_err_code === 11) {
-      throw new Errors.HttpStatusError(403, err.scrypt_err_message);
-    }
-
-    throw err;
+    throw new Errors.HttpStatusError(403, err.scrypt_err_message || err.message);
   });
 };

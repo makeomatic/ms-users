@@ -666,9 +666,69 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#getMetadata', function getMetadataSuite() {
-      it('must reject to return metadata on a non-existing username');
-      it('must return metadata for a default audience of an existing user');
-      it('must return metadata for default and passed audiences of an existing user');
+      const headers = { routingKey: 'getMetadata' };
+
+      it('must reject to return metadata on a non-existing username', function test() {
+        const { defaultAudience: audience } = this.users._config.jwt;
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(null));
+
+        return this.users.router({ username: 'noob', audience }, headers)
+          .reflect()
+          .then(getMetadata => {
+            expect(getMetadata.isRejected()).to.be.eq(true);
+            expect(getMetadata.reason().name).to.be.eq('HttpStatusError');
+            expect(getMetadata.reason().statusCode).to.be.eq(404);
+          });
+      });
+
+      it('must return metadata for a default audience of an existing user', function test() {
+        const { defaultAudience: audience } = this.users._config.jwt;
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
+        sinon.stub(this.users._redis, 'hgetallBuffer').returns({
+          name: new Buffer('{"q":"verynicedata"}'),
+        });
+
+        return this.users.router({ username: 'noob', audience }, headers)
+          .reflect()
+          .then(getMetadata => {
+            expect(getMetadata.isFulfilled()).to.be.eq(true);
+            expect(getMetadata.value()).to.be.deep.eq({
+              [ audience ]: {
+                name: {
+                  q: 'verynicedata',
+                },
+              },
+            });
+          });
+      });
+
+      it('must return metadata for default and passed audiences of an existing user', function test() {
+        const { defaultAudience: audience } = this.users._config.jwt;
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
+        sinon.stub(this.users._redis, 'hgetallBuffer')
+          .onFirstCall().returns({
+            name: new Buffer('{"q":"verynicedata"}'),
+          })
+          .onSecondCall().returns({
+            iat: new Buffer('10'),
+          });
+
+        return this.users.router({ username: 'noob', audience: [ audience, 'matic.ninja' ] }, headers)
+          .reflect()
+          .then(getMetadata => {
+            expect(getMetadata.isFulfilled()).to.be.eq(true);
+            expect(getMetadata.value()).to.be.deep.eq({
+              [ audience ]: {
+                name: {
+                  q: 'verynicedata',
+                },
+              },
+              'matic.ninja': {
+                iat: 10,
+              },
+            });
+          });
+      });
     });
 
     describe('#updateMetadata', function getMetadataSuite() {

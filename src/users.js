@@ -22,6 +22,9 @@ const login = require('./actions/login.js');
 const logout = require('./actions/logout.js');
 const verify = require('./actions/verify.js');
 
+// utils
+const redisKey = require('./utils/key.js');
+
 /**
  * @namespace Users
  */
@@ -318,7 +321,16 @@ module.exports = class Users extends EventEmitter {
    * @return {Promise}
    */
   _getMetadata(message) {
-    return getMetadata.call(this, message.username, message.audience);
+    const { username } = message;
+    return this._redis
+      .hexists(redisKey(username, 'data'), 'password')
+      .then((exists) => {
+        if (exists !== true) {
+          throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
+        }
+
+        return getMetadata.call(this, username, message.audience);
+      });
   }
 
   /**

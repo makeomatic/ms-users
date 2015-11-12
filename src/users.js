@@ -231,7 +231,7 @@ module.exports = class Users extends EventEmitter {
       promise = this._validate(defaultRoutes.getMetadata, message).then(this._getMetadata);
       break;
     case postfix.updateMetadata:
-      promise = this._validate(defaultRoutes.getMetadata, message).then(this._setMetadata);
+      promise = this._validate(defaultRoutes.updateMetadata, message).then(this._updateMetadata);
       break;
     case postfix.requestPassword:
     case postfix.updatePassword:
@@ -339,7 +339,16 @@ module.exports = class Users extends EventEmitter {
    * @return {Promise}
    */
   _updateMetadata(message) {
-    return updateMetadata.call(this, message);
+    const { username } = message;
+    return this._redis
+      .hexists(redisKey(username, 'data'), 'password')
+      .then((exists) => {
+        if (exists !== true) {
+          throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
+        }
+
+        return updateMetadata.call(this, message);
+      });
   }
 
   /**

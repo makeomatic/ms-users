@@ -1,10 +1,6 @@
 {
   "type": "object",
-  "required": [
-    "username",
-    "audience",
-    "metadata"
-  ],
+  "required": [ "username", "audience", "metadata" ],
   "properties": {
     "username": {
       "type": "string",
@@ -55,14 +51,10 @@
       },
       "anyOf": [
         {
-          "required": [
-            "$set"
-          ]
+          "required": [ "$set" ]
         },
         {
-          "required": [
-            "$remove"
-          ]
+          "required": [ "$remove" ]
         }
       ]
     }

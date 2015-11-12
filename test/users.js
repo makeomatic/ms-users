@@ -732,9 +732,57 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#updateMetadata', function getMetadataSuite() {
-      it('must reject updating metadata on a non-existing user');
-      it('must be able to add metadata for a single audience of an existing user');
-      it('must be able to remove metadata for a single audience of an existing user');
+      const headers = { routingKey: 'updateMetadata' };
+
+      it('must reject updating metadata on a non-existing user', function test() {
+        const { defaultAudience: audience } = this.users._config.jwt;
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(null));
+
+        return this.users.router({ username: 'noob', audience, metadata: { $remove: [ 'test' ] } }, headers)
+          .reflect()
+          .then(getMetadata => {
+            expect(getMetadata.isRejected()).to.be.eq(true);
+            expect(getMetadata.reason().name).to.be.eq('HttpStatusError');
+            expect(getMetadata.reason().statusCode).to.be.eq(404);
+          });
+      });
+
+      it('must be able to add metadata for a single audience of an existing user', function test() {
+        const { defaultAudience: audience } = this.users._config.jwt;
+        const pipeline = {};
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
+        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
+
+        pipeline.exec = sinon.stub().returns(Promise.resolve());
+        pipeline.hmset = sinon.spy();
+
+        return this.users.router({ username: 'noob', audience, metadata: { $set: { x: 10 } } }, headers)
+          .reflect()
+          .then(getMetadata => {
+            expect(getMetadata.isFulfilled()).to.be.eq(true);
+            expect(pipeline.hmset.calledOnce).to.be.eq(true);
+            expect(pipeline.hmset.calledWithExactly(`noob!metadata!${audience}`, { x: '10' })).to.be.eq(true);
+          });
+      });
+
+      it('must be able to remove metadata for a single audience of an existing user', function test() {
+        const { defaultAudience: audience } = this.users._config.jwt;
+        const pipeline = {};
+        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
+        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
+
+        pipeline.exec = sinon.stub().returns(Promise.resolve());
+        pipeline.hdel = sinon.spy();
+
+        return this.users.router({ username: 'noob', audience, metadata: { $remove: [ 'x' ] } }, headers)
+          .reflect()
+          .then(getMetadata => {
+            expect(getMetadata.isFulfilled()).to.be.eq(true);
+            expect(pipeline.hdel.calledOnce).to.be.eq(true);
+            expect(pipeline.hdel.calledWithExactly(`noob!metadata!${audience}`, [ 'x' ])).to.be.eq(true);
+          });
+      });
+
       it('must be able to perform batch add/remove operations for a single audience of an existing user');
     });
 

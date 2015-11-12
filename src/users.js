@@ -16,6 +16,7 @@ const { validate, validateSync } = new Validation('../schemas');
 const register = require('./actions/register.js');
 const getMetadata = require('./actions/getMetadata.js');
 const updateMetadata = require('./actions/updateMetadata.js');
+const challenge = require('./actions/challenge.js');
 
 /**
  * @namespace Users
@@ -202,6 +203,8 @@ module.exports = class Users extends EventEmitter {
       break;
     case postfix.ban:
     case postfix.challenge:
+      promise = this._validate(defaultRoutes.challenge, message).then(this._challenge);
+      break;
     case postfix.activate:
     case postfix.login:
     case postfix.logout:
@@ -237,6 +240,15 @@ module.exports = class Users extends EventEmitter {
         this.log.warn('Validation error:', error.toJSON());
         throw error;
       });
+  }
+
+  /**
+   * @private
+   * @param  {Object} message
+   * @return {Promise}
+   */
+  _challenge(message) {
+    return challenge.call(this, message);
   }
 
   /**

@@ -58,7 +58,7 @@ function generateLink(server, path) {
  * @param  {String} type
  * @return {Promise}
  */
-exports.send = function sendEmail(email, type = 'activate') {
+exports.send = function sendEmail(email, type = 'activate', wait = false) {
   const { _redis: redis, _config: config, _mailer: mailer } = this;
   const { validation, server } = config;
   const { ttl, subjects, paths, secret, algorithm, email: mailingAccount } = validation;
@@ -96,16 +96,17 @@ exports.send = function sendEmail(email, type = 'activate') {
       return render(type, context);
     })
     .then(function storeSecrets(emailTemplate) {
-      return Promise.props({
-        throttle: redis.set(throttleEmailsKey, 1, 'EX', ttl, 'NX'),
-        secret: redis.set(redisKey('vsecret-' + type, activationSecret), email),
-      })
-      .then(function isThrottled(responses) {
-        if (!responses.throttle) {
-          throw new Errors.HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email');
-        }
-      })
-      .return(emailTemplate);
+      return redis
+        .set(throttleEmailsKey, 1, 'EX', ttl, 'NX')
+        .then(function isThrottled(response) {
+          if (!response) {
+            throw new Errors.HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email');
+          }
+        })
+        .then(function updateSecret() {
+          return redis.set(redisKey('vsecret-' + type, activationSecret), email);
+        })
+        .return(emailTemplate);
     })
     .then(function definedSubjectAndSend(emailTemplate) {
       let subject;
@@ -124,10 +125,16 @@ exports.send = function sendEmail(email, type = 'activate') {
         html: emailTemplate,
       };
 
-      return mailer.send(mailingAccount, mail)
+      const mailSent = mailer.send(mailingAccount, mail)
         .catch(function mailingFailed(err) {
           logger.warn('couldn\'t send email', err);
         });
+
+      if (wait) {
+        return mailSent;
+      }
+
+      return { queued: true };
     });
 };
 

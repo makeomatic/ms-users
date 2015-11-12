@@ -106,12 +106,12 @@ describe('Users suite', function UserClassSuite() {
         send: emptyStub,
       };
       this.users._redis = {};
-      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set' ].forEach(prop => {
+      [ 'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get', 'set', 'hget' ].forEach(prop => {
         this.users._redis[prop] = emptyStub;
       });
     });
 
-    describe.only('#register', function registerSuite() {
+    describe('#register', function registerSuite() {
       const headers = { routingKey: 'register' };
 
       it('must reject invalid registration params and return detailed error', function test() {
@@ -181,7 +181,7 @@ describe('Users suite', function UserClassSuite() {
         sinon.stub(this.users._redis, 'get')
           .onFirstCall().returns(Promise.resolve());
         sinon.stub(this.users._redis, 'set')
-          .onFirstCall().returns(1);
+          .onFirstCall().returns(Promise.resolve(1));
 
         return this.users.router(opts, headers)
           .delay(50)
@@ -224,14 +224,83 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#challenge', function challengeSuite() {
-      it('must fail to send a challenge for a non-existing user');
-      it('must be able to send challenge email');
-      it('must fail to send challenge email more than once in an hour per user');
+      const headers = { routingKey: 'challenge' };
+
+      it('must fail to send a challenge for a non-existing user', function test() {
+        sinon.stub(this.users._redis, 'hget').returns(Promise.resolve(null));
+
+        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
+          .reflect()
+          .then((validation) => {
+            expect(validation.isRejected()).to.be.eq(true);
+            expect(validation.reason().name).to.be.eq('HttpStatusError');
+            expect(validation.reason().statusCode).to.be.eq(404);
+          });
+      });
+
+      it('must fail to send a challenge for an already active user', function test() {
+        sinon.stub(this.users._redis, 'hget').returns(Promise.resolve('true'));
+
+        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
+          .reflect()
+          .then((validation) => {
+            expect(validation.isRejected()).to.be.eq(true);
+            expect(validation.reason().name).to.be.eq('HttpStatusError');
+            expect(validation.reason().statusCode).to.be.eq(412);
+          });
+      });
+
+      it('must be able to send challenge email', function test() {
+        sinon.stub(this.users._redis, 'hget').returns(Promise.resolve('false'));
+        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(null));
+        sinon.stub(this.users._redis, 'set').returns(Promise.resolve(1));
+        sinon.stub(this.users._mailer, 'send').returns(Promise.resolve());
+
+        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
+          .delay(50)
+          .reflect()
+          .then((validation) => {
+            expect(validation.isFulfilled()).to.be.eq(true);
+            expect(validation.value()).to.be.deep.eq({ queued: true });
+            expect(this.users._mailer.send.calledOnce).to.be.eq(true);
+          });
+      });
+
+      it('must fail to send challenge email more than once in an hour per user', function test() {
+        sinon.stub(this.users._redis, 'hget').returns(Promise.resolve('false'));
+        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(true));
+
+        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
+          .reflect()
+          .then((validation) => {
+            expect(validation.isRejected()).to.be.eq(true);
+            expect(validation.reason().name).to.be.eq('HttpStatusError');
+            expect(validation.reason().statusCode).to.be.eq(429);
+          });
+      });
+
+      it('must fail to send challeng email during race condition', function test() {
+        sinon.stub(this.users._redis, 'hget').returns(Promise.resolve('false'));
+        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(null));
+        sinon.stub(this.users._redis, 'set').returns(Promise.resolve(0));
+
+        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
+          .reflect()
+          .then((validation) => {
+            expect(validation.isRejected()).to.be.eq(true);
+            expect(validation.reason().name).to.be.eq('HttpStatusError');
+            expect(validation.reason().statusCode).to.be.eq(429);
+          });
+      });
+
       it('must validate MX record for a domain before sending an email');
     });
 
     describe('#activate', function activateSuite() {
-      it('must reject activation when challenge token is invalid');
+      it('must reject activation when challenge token is invalid', function () {
+
+      });
+
       it('must reject activation when challenge token is expired');
       it('must activate account when challenge token is correct and not expired');
       it('must activate account when no challenge token is specified as a service action');

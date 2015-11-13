@@ -10,8 +10,9 @@ const { format: fmt } = require('util');
 const bunyan = require('bunyan');
 
 // validator configuration
-const validator = new Validation(require('ms-users-schemas'));
-validator.init('../schemas', false);
+const validator = new Validation();
+validator.init(require('ms-users-schemas'));
+validator.init('../schemas');
 const { validate, validateSync } = validator;
 
 // actions
@@ -157,10 +158,10 @@ module.exports = class Users extends EventEmitter {
     // define logger
     this.setLogger();
 
-    const err = validateSync('config', config);
-    if (err) {
-      this.log.fatal('Invalid configuration:', err.toJSON());
-      throw err;
+    const { error } = validateSync('config', config);
+    if (error) {
+      this.log.fatal('Invalid configuration:', error.toJSON());
+      throw error;
     }
   }
 
@@ -272,6 +273,7 @@ module.exports = class Users extends EventEmitter {
   _validate(route, message) {
     return validate(route, message)
       .bind(this)
+      .return(message)
       .catch(function validationError(error) {
         this.log.warn('Validation error:', error.toJSON());
         throw error;

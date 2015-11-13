@@ -10,7 +10,9 @@ const { format: fmt } = require('util');
 const bunyan = require('bunyan');
 
 // validator configuration
-const { validate, validateSync } = new Validation('../schemas');
+const validator = new Validation(require('ms-users-schemas'));
+validator.init('../schemas', false);
+const { validate, validateSync } = validator;
 
 // actions
 const register = require('./actions/register.js');

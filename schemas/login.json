@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "required": [ "username", "password", "audience" ],
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 50
+    },
+    "password": {
+      "type": "string",
+      "minLength": 6,
+      "maxLength": 50
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1
+    },
+    "remoteip": {
+      "type": "string",
+      "format": "ipv4"
+    }
+  }
+}

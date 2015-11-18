@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-NODE_VERSIONS := 5.0.0 4.2.2 0.12.7
+NODE_VERSIONS := 5.0.0
 PKG_NAME := $(shell cat package.json | ./node_modules/.bin/json name)
 PKG_VERSION := $(shell cat package.json | ./node_modules/.bin/json version)
 
@@ -14,11 +14,20 @@ build: $(BUILD_TASKS)
 
 push: $(PUSH_TASKS)
 
-$(TEST_TASKS):
+build-docker:
+	docker build -t makeomatic/node-test:5.0.0 ./test
+
+$(TEST_TASKS): build-docker
 	docker run -d --name=rabbitmq rabbitmq; \
-	docker run --link=rabbitmq -v ${PWD}:/usr/src/app -w /usr/src/app --rm -e TEST_ENV=docker node:$(basename $@) npm test; \
-	EXIT_CODE=$?; \
+	docker run -d --name=redis_1 makeomatic/alpine-redis; \
+	docker run -d --name=redis_2 makeomatic/alpine-redis; \
+	docker run -d --name=redis_3 makeomatic/alpine-redis; \
+	docker run --link=rabbitmq --link=redis_1 --link=redis_2 --link=redis_3 -v ${PWD}:/usr/src/app -w /usr/src/app --rm -e TEST_ENV=docker makeomatic/node-test:$(basename $@) npm test; \
+	EXIT_CODE=$$?; \
 	docker rm -f rabbitmq; \
+	docker rm -f redis_1; \
+	docker rm -f redis_2; \
+	docker rm -f redis_3; \
 	exit ${EXIT_CODE};
 
 $(BUILD_TASKS):

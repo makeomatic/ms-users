@@ -6,6 +6,7 @@ const { expect } = chai;
 const MockServer = require('ioredis/test/helpers/mock_server.js');
 const Errors = require('common-errors');
 const ld = require('lodash');
+const shell = require('shelljs');
 
 // make sure we have stack
 chai.config.includeStack = true;
@@ -40,6 +41,10 @@ describe('Users suite', function UserClassSuite() {
 
   // inits redis mock cluster
   function redisMock() {
+    if (process.env.TEST_ENV === 'docker') {
+      return;
+    }
+
     const slotTable = [
       [0, 5460, ['127.0.0.1', 30001]],
       [5461, 10922, ['127.0.0.1', 30002]],
@@ -59,10 +64,27 @@ describe('Users suite', function UserClassSuite() {
 
   // teardown cluster
   function tearDownRedisMock() {
+    if (process.env.TEST_ENV === 'docker') {
+      return;
+    }
+
     this.server_1.disconnect();
     this.server_2.disconnect();
     this.server_3.disconnect();
   }
+
+  before(function bootstrapRedisCluster() {
+    this.timeout(10000);
+
+    if (process.env.TEST_ENV !== 'docker') {
+      return;
+    }
+
+    const init = shell.exec('./test/bootstrap.sh');
+    if (init.code !== 0) {
+      throw init.output;
+    }
+  });
 
   describe('configuration suite', function ConfigurationSuite() {
     beforeEach(redisMock);
@@ -374,6 +396,7 @@ describe('Users suite', function UserClassSuite() {
         pipeline.hget = sinon.stub().returns(pipeline);
         pipeline.hset = sinon.stub().returns(pipeline);
         pipeline.persist = sinon.stub().returns(pipeline);
+        pipeline.sadd = sinon.stub().returns(pipeline);
         sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
 
         sinon.stub(this.users._redis, 'get').returns(Promise.resolve(email));
@@ -400,6 +423,7 @@ describe('Users suite', function UserClassSuite() {
         pipeline.hget = sinon.stub().returns(pipeline);
         pipeline.hset = sinon.stub().returns(pipeline);
         pipeline.persist = sinon.stub().returns(pipeline);
+        pipeline.sadd = sinon.stub().returns(pipeline);
         sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
 
         sinon.stub(this.users._redis, 'get').returns(Promise.resolve(email));
@@ -430,6 +454,7 @@ describe('Users suite', function UserClassSuite() {
         pipeline.hget = sinon.stub().returns(pipeline);
         pipeline.hset = sinon.stub().returns(pipeline);
         pipeline.persist = sinon.stub().returns(pipeline);
+        pipeline.sadd = sinon.stub().returns(pipeline);
         sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
 
         return this.users.router({ username: 'v@makeomatic.ru' }, headers)
@@ -1028,6 +1053,11 @@ describe('Users suite', function UserClassSuite() {
   });
 
   describe('integration tests', function integrationSuite() {
+    beforeEach(function initService() {
+      this.users = new Users(config);
+      return this.users.connect();
+    });
+
     describe('#register', function registerSuite() {
       it('must reject invalid registration params and return detailed error');
       it('must be able to create user without validations and return user object and jwt token');
@@ -1110,6 +1140,76 @@ describe('Users suite', function UserClassSuite() {
       it('must unban an existing user');
       it('must fail to unban not banned user');
       it('must fail to ban already banned user');
+    });
+
+    describe('#list', function listSuite() {
+      this.timeout(10000);
+
+      const faker = require('faker');
+      const redisKey = require('../src/utils/key.js');
+
+      beforeEach(function populateRedis() {
+        const promises = [];
+        const userSet = this.users._config.redis.userSet;
+        const audience = this.users._config.jwt.defaultAudience;
+
+        ld.times(100, () => {
+          const user = {
+            id: faker.internet.email(),
+            metadata: {
+              firstName: faker.name.firstName(),
+              lastName: faker.name.lastName(),
+            },
+          };
+
+          promises.push(this.users._redis
+            .pipeline()
+            .sadd(userSet, user.id)
+            .hmset(redisKey(user.id, 'metadata', audience), user.metadata)
+            .exec()
+          );
+        });
+
+        this.userStubs = Promise.all(promises);
+        return this.userStubs;
+      });
+
+      it('able to get random user', function test() {
+        return this.users._redis.spop(this.users._config.redis.userSet)
+          .reflect()
+          .then(result => {
+            expect(result.isFulfilled()).to.be.eq(true);
+          });
+      });
+
+      it('able to list users without any filters', function test() {
+        return this.users._list({
+          offset: 0,
+          limit: 0,
+          order: 'ASC',
+          criteria: null,
+          audience: this.users._config.jwt.defaultAudience,
+          filter: '{}',
+        })
+        .reflect()
+        .then(result => {
+          try {
+            expect(result.isFulfilled()).to.be.eq(true);
+          } catch (e) {
+            throw result.reason();
+          }
+        });
+      });
+    });
+
+    afterEach(function clearRedis() {
+      const nodes = this.users._redis.masterNodes;
+      return Promise.map(Object.keys(nodes), nodeKey => {
+        return nodes[nodeKey].flushdb();
+      })
+      .finally(() => {
+        return this.users.close();
+      });
     });
   });
 });

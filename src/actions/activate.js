@@ -40,6 +40,7 @@ module.exports = function verifyChallenge(opts) {
         .hget(userKey, 'active')
         .hset(userKey, 'active', 'true')
         .persist(userKey) // WARNING: this is very important, otherwise we will lose user's information in 30 days
+        .sadd(config.redis.userSet, user)
         .exec()
         .spread(function pipeResponse(isActive) {
           const status = isActive[1];

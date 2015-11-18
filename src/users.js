@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const AMQPTransport = require('ms-amqp-transport');
 const Validation = require('ms-amqp-validation');
 const Mailer = require('ms-mailer-client');
@@ -24,9 +26,11 @@ const verify = require('./actions/verify.js');
 const requestPassword = require('./actions/requestPassword.js');
 const updatePassword = require('./actions/updatePassword.js');
 const ban = require('./actions/ban.js');
+const list = require('./actions/list.js');
 
 // utils
 const redisKey = require('./utils/key.js');
+const sortedFilteredListLua = fs.readFileSync(path.resolve(__dirname, '../lua/sorted-filtered-list.lua'), 'utf-8');
 
 /**
  * @namespace Users
@@ -39,6 +43,7 @@ module.exports = class Users extends EventEmitter {
    */
   static defaultOpts = {
     debug: process.env.NODE_ENV === 'development',
+    // prefix routes with users.
     prefix: 'users',
     // keep inactive accounts for 30 days
     deleteInactiveAccounts: 30 * 24 * 60 * 60,
@@ -85,6 +90,9 @@ module.exports = class Users extends EventEmitter {
 
       // updates password - either without any checks or, if challenge token is passed, makes sure it's correct
       updatePassword: 'updatePassword',
+
+      // lists and iterators over registered users
+      list: 'list',
     },
     amqp: {
       queue: 'ms-users',
@@ -96,8 +104,10 @@ module.exports = class Users extends EventEmitter {
     },
     redis: {
       options: {
+        // must have {}, so that the keys end up on a single machine
         keyPrefix: '{ms-users}',
       },
+      userSet: 'user-iterator-set'
     },
     jwt: {
       defaultAudience: '*.localhost',
@@ -244,6 +254,9 @@ module.exports = class Users extends EventEmitter {
     case postfix.updatePassword:
       promise = this._validate(defaultRoutes.updatePassword, message).then(this._updatePassword);
       break;
+    case postfix.list:
+      promise = this._validate(defaultRoutes.list, message).then(this._list);
+      break;
     default:
       promise = Promise.reject(new Errors.NotImplementedError(fmt('method "%s"', route)));
       break;
@@ -279,7 +292,16 @@ module.exports = class Users extends EventEmitter {
 
   /**
    * @private
-   * @param  {String} message
+   * @param  {Object} message
+   * @return {Promise}
+   */
+  _list(message) {
+    return list.call(this, message);
+  }
+
+  /**
+   * @private
+   * @param  {Object} message
    * @return {Promise}
    */
   _ban(message) {
@@ -424,6 +446,10 @@ module.exports = class Users extends EventEmitter {
       instance.once('error', onError);
     })
     .tap((instance) => {
+      instance.defineCommand('sortedFilteredList', {
+        numberOfKeys: 2,
+        lua: sortedFilteredListLua,
+      })
       this._redis = instance;
     });
   }

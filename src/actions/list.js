@@ -3,10 +3,14 @@ const redisKey = require('../utils/key.js');
 
 module.exports = function iterateOverActiveUsers(opts) {
   const { _redis: redis, _config: config } = this;
-  const { offset, limit, order, criteria, audience, filter } = opts;
+  const { criteria, audience, filter } = opts;
+  const strFilter = typeof filter === 'string' ? filter : JSON.stringify(filter || {});
+  const order = opts.order || 'ASC';
+  const offset = opts.offset || 0;
+  const limit = opts.limit || 10;
 
   return redis
-    .sortedFilteredList(config.redis.userSet, redisKey('*', 'metadata', audience), criteria, order, filter, offset, limit)
+    .sortedFilteredList(config.redis.userSet, redisKey('*', 'metadata', audience), criteria, order, strFilter, offset, limit)
     .then((ids) => {
       if (!Array.isArray(ids) || ids.length === 0) {
         return [];

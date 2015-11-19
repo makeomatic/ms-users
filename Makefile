@@ -17,12 +17,15 @@ push: $(PUSH_TASKS)
 build-docker:
 	docker build -t makeomatic/node-test:5.0.0 ./test
 
+run-test:
+	docker run --link=rabbitmq --link=redis_1 --link=redis_2 --link=redis_3 -v ${PWD}:/usr/src/app -w /usr/src/app --rm -e TEST_ENV=docker makeomatic/node-test:5.0.0 npm test;
+
 $(TEST_TASKS): build-docker
 	docker run -d --name=rabbitmq rabbitmq; \
 	docker run -d --name=redis_1 makeomatic/alpine-redis; \
 	docker run -d --name=redis_2 makeomatic/alpine-redis; \
 	docker run -d --name=redis_3 makeomatic/alpine-redis; \
-	docker run --link=rabbitmq --link=redis_1 --link=redis_2 --link=redis_3 -v ${PWD}:/usr/src/app -w /usr/src/app --rm -e TEST_ENV=docker makeomatic/node-test:$(basename $@) npm test; \
+	@$(MAKE) -f $(THIS_FILE) run-test; \
 	EXIT_CODE=$$?; \
 	docker rm -f rabbitmq; \
 	docker rm -f redis_1; \
@@ -39,4 +42,4 @@ $(PUSH_TASKS):
 	docker push makeomatic/$(PKG_NAME):$(basename $@)-$(PKG_VERSION)
 	docker push makeomatic/$(PKG_NAME):$(basename $@)
 
-.PHONY: test build push
+.PHONY: test build push run-test build-docker

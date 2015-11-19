@@ -14,10 +14,15 @@ local hashKey = ARGV[1];
 local order = ARGV[2];
 local filter = ARGV[3];
 local jsonFilter = cjson.decode(filter);
+local totalFilters = table.getn(jsonFilter);
 local offset = ARGV[4];
 local limit = ARGV[5];
 
-function subrange(t, first, last)
+local function isempty(s)
+  return s == nil or s == ''
+end
+
+local function subrange(t, first, last)
   local sub = {};
   for i=first,last do
     local val = t[i];
@@ -38,8 +43,8 @@ local preSortedSetKeys = { usernameSet };
 table.insert(finalFilteredListKeys, order);
 table.insert(preSortedSetKeys, order);
 
-if metadataKey ~= nil then
-  if hashKey ~= nil then
+if isempty(metadataKey) ~= true then
+  if isempty(hashKey) ~= true then
     table.insert(finalFilteredListKeys, metadataKey);
     table.insert(finalFilteredListKeys, hashKey);
     table.insert(preSortedSetKeys, metadataKey);
@@ -47,10 +52,10 @@ if metadataKey ~= nil then
   end
 
   -- do we have filter?
-  if #jsonFilter > 0
+  if totalFilters > 0 then
     table.insert(finalFilteredListKeys, filter);
   end
-else if #jsonFilter == 1 and type(jsonFilter["#"]) == "string" then
+elseif totalFilters == 1 and type(jsonFilter["#"]) == "string" then
   table.insert(finalFilteredListKeys, filter);
 end
 
@@ -70,47 +75,50 @@ if redis.call("exists", PSSKey) == 0 then
   valuesToSort = redis.call("SMEMBERS", usernameSet);
 
   -- if we sort the given set
-  if metadataKey == nil then
+  if isempty(metadataKey) then
     if order == "ASC" then
       table.sort(valuesToSort, function (a, b) return a < b end);
     else
       table.sort(valuesToSort, function (a, b) return a > b end);
     end
-  else if hashKey ~= nil then
+  elseif isempty(hashKey) == false then
     local arr = {};
     for i,v in ipairs(valuesToSort) do
-      arr[v] = redis.call("HGET", metadataKey, hashKey);
+      local metaKey = metadataKey:gsub("*", v, 1);
+      arr[v] = redis.call("HGET", metaKey, hashKey);
     end
     if order == "ASC" then
-      table.sort(valuesToSort, function (a, b)
+      local function sortFunc(a, b)
         local sortA = arr[a];
         local sortB = arr[b];
 
         if sortA == nil and sortB == nil then
           return true;
-        else if sortA == nil then
+        elseif sortA == nil then
           return false;
-        else if sortB == nil then
+        elseif sortB == nil then
           return true;
         else
           return sortA < sortB;
         end
-      end);
+      end
+      table.sort(valuesToSort, sortFunc);
     else
-      table.sort(valuesToSort, function (a, b)
+      local function sortFunc(a, b)
         local sortA = arr[a];
         local sortB = arr[b];
 
         if sortA == nil and sortB == nil then
           return false;
-        else if sortA == nil then
+        elseif sortA == nil then
           return true;
-        else if sortB == nil then
+        elseif sortB == nil then
           return false;
         else
           return sortA > sortB;
         end
-      end);
+      end
+      table.sort(valuesToSort, sortFunc);
     end
   end
 
@@ -145,7 +153,7 @@ function filterString(a, b)
 end
 
 -- if no metadata key, but we are still here
-if metadataKey == nil then
+if isempty(metadataKey) then
   -- only sort by value, which is id
   local filterValue = jsonFilter["#"];
   -- iterate over filtered set
@@ -156,7 +164,7 @@ if metadataKey == nil then
 -- we actually have metadata
 else
   for i,v in valuesToSort do
-    local metaKey = string.gsub(metadataKey, "*", v, 1);
+    local metaKey = metadataKey:gsub("*", v, 1);
 
     for fieldName, filterValue in ipairs(jsonFilter) do
       local fieldValue;
@@ -165,7 +173,7 @@ else
       if fieldName == "#" then
         fieldValue = v;
       else
-        fieldValue = redis.call("hget", metaKey, fieldName);
+        fieldValue = redis.call("hget", metadataKey:gsub("*", v, 1), fieldName);
       end
 
       filterString(fieldValue, filterValue);

@@ -6,7 +6,7 @@ module.exports = function iterateOverActiveUsers(opts) {
   const { offset, limit, order, criteria, audience, filter } = opts;
 
   return redis
-    .sortedFilteredList(config.redis.userSet, redisKey('*', 'metadata', audience), criteria, order, filter, 1, offset, limit)
+    .sortedFilteredList(config.redis.userSet, redisKey('*', 'metadata', audience), criteria, order, filter, offset, limit)
     .then((ids) => {
       this.log.debug('Returned ids:', ids);
 

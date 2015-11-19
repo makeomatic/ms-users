@@ -1052,7 +1052,7 @@ describe('Users suite', function UserClassSuite() {
     afterEach(tearDownRedisMock);
   });
 
-  describe('integration tests', function integrationSuite() {
+  describe.only('integration tests', function integrationSuite() {
     beforeEach(function initService() {
       this.users = new Users(config);
       return this.users.connect();
@@ -1185,7 +1185,7 @@ describe('Users suite', function UserClassSuite() {
       it('able to list users without any filters', function test() {
         return this.users._list({
           offset: 0,
-          limit: 0,
+          limit: 10,
           order: 'ASC',
           criteria: null,
           audience: this.users._config.jwt.defaultAudience,
@@ -1195,6 +1195,11 @@ describe('Users suite', function UserClassSuite() {
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
+            expect(result.value()).to.have.length.of(10);
+            expect(result.value()[0]).to.have.ownProperty('id');
+            expect(result.value()[0]).to.have.ownProperty('data');
+            expect(result.value()[0].data).to.have.ownProperty('firstName');
+            expect(result.value()[0].data).to.have.ownProperty('lastName');
           } catch (e) {
             throw result.reason();
           }

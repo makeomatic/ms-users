@@ -1182,7 +1182,7 @@ describe('Users suite', function UserClassSuite() {
           });
       });
 
-      it('able to list users without any filters', function test() {
+      it('able to list users without any filters: ASC', function test() {
         return this.users._list({
           offset: 0,
           limit: 10,
@@ -1200,8 +1200,46 @@ describe('Users suite', function UserClassSuite() {
             expect(result.value()[0]).to.have.ownProperty('data');
             expect(result.value()[0].data).to.have.ownProperty('firstName');
             expect(result.value()[0].data).to.have.ownProperty('lastName');
+
+            const copy = [].concat(result.value());
+            copy.sort(function sortCopy(a, b) {
+              return a.id.toLowerCase() > b.id.toLowerCase();
+            });
+
+            expect(copy).to.be.deep.eq(result.value());
           } catch (e) {
-            throw result.reason();
+            throw result.isRejected() ? result.reason() : e;
+          }
+        });
+      });
+
+      it('able to list users without any filters: DESC', function test() {
+        return this.users._list({
+          offset: 0,
+          limit: 10,
+          order: 'DESC',
+          criteria: null,
+          audience: this.users._config.jwt.defaultAudience,
+          filter: '{}',
+        })
+        .reflect()
+        .then(result => {
+          try {
+            expect(result.isFulfilled()).to.be.eq(true);
+            expect(result.value()).to.have.length.of(10);
+            expect(result.value()[0]).to.have.ownProperty('id');
+            expect(result.value()[0]).to.have.ownProperty('data');
+            expect(result.value()[0].data).to.have.ownProperty('firstName');
+            expect(result.value()[0].data).to.have.ownProperty('lastName');
+
+            const copy = [].concat(result.value());
+            copy.sort(function sortCopy(a, b) {
+              return a.id.toLowerCase() < b.id.toLowerCase();
+            });
+
+            expect(copy).to.be.deep.eq(result.value());
+          } catch (e) {
+            throw result.isRejected() ? result.reason() : e;
           }
         });
       });

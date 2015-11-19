@@ -43,8 +43,8 @@ local preSortedSetKeys = { usernameSet };
 table.insert(finalFilteredListKeys, order);
 table.insert(preSortedSetKeys, order);
 
-if isempty(metadataKey) ~= true then
-  if isempty(hashKey) ~= true then
+if isempty(metadataKey) == false then
+  if isempty(hashKey) == false then
     table.insert(finalFilteredListKeys, metadataKey);
     table.insert(finalFilteredListKeys, hashKey);
     table.insert(preSortedSetKeys, metadataKey);
@@ -75,50 +75,52 @@ if redis.call("exists", PSSKey) == 0 then
   valuesToSort = redis.call("SMEMBERS", usernameSet);
 
   -- if we sort the given set
-  if isempty(metadataKey) then
-    if order == "ASC" then
-      table.sort(valuesToSort, function (a, b) return a < b end);
-    else
-      table.sort(valuesToSort, function (a, b) return a > b end);
-    end
-  elseif isempty(hashKey) == false then
+  if isempty(metadataKey) == false and isempty(hashKey) == false then
     local arr = {};
     for i,v in ipairs(valuesToSort) do
       local metaKey = metadataKey:gsub("*", v, 1);
       arr[v] = redis.call("HGET", metaKey, hashKey);
     end
     if order == "ASC" then
-      local function sortFunc(a, b)
+      local function sortFuncASC(a, b)
         local sortA = arr[a];
         local sortB = arr[b];
 
-        if sortA == nil and sortB == nil then
+        if isempty(sortA) and isempty(sortB) then
           return true;
-        elseif sortA == nil then
+        elseif isempty(sortA) then
           return false;
-        elseif sortB == nil then
+        elseif isempty(sortB) then
           return true;
         else
-          return sortA < sortB;
+          return strlower(sortA) < strlower(sortB);
         end
       end
-      table.sort(valuesToSort, sortFunc);
+
+      table.sort(valuesToSort, sortFuncASC);
     else
-      local function sortFunc(a, b)
+      local function sortFuncDESC(a, b)
         local sortA = arr[a];
         local sortB = arr[b];
 
-        if sortA == nil and sortB == nil then
+        if isempty(sortA) and isempty(sortB) then
           return false;
-        elseif sortA == nil then
+        elseif isempty(sortA) then
           return true;
-        elseif sortB == nil then
+        elseif isempty(sortB) then
           return false;
         else
-          return sortA > sortB;
+          return strlower(sortA) > strlower(sortB);
         end
       end
-      table.sort(valuesToSort, sortFunc);
+
+      table.sort(valuesToSort, sortFuncDESC);
+    end
+  else
+    if order == "ASC" then
+      table.sort(valuesToSort, function (a, b) return a < b end);
+    else
+      table.sort(valuesToSort, function (a, b) return a > b end);
     end
   end
 
@@ -146,7 +148,7 @@ end
 local output = { "LPUSH", FFLKey };
 
 -- filter function
-function filterString(a, b)
+local function filterString(a, b)
   if strfind(strlower(a), strlower(b)) ~= nil then
     table.insert(output, fieldValue);
   end
@@ -173,7 +175,7 @@ else
       if fieldName == "#" then
         fieldValue = v;
       else
-        fieldValue = redis.call("hget", metadataKey:gsub("*", v, 1), fieldName);
+        fieldValue = redis.call("hget", metaKey, fieldName);
       end
 
       filterString(fieldValue, filterValue);

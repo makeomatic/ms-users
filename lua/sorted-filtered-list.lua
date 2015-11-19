@@ -13,8 +13,8 @@ local metadataKey = KEYS[2];
 local hashKey = ARGV[1];
 local order = ARGV[2];
 local filter = ARGV[3];
-local offset = ARGV[4];
-local limit = ARGV[5];
+local offset = tonumber(ARGV[4]);
+local limit = tonumber(ARGV[5]);
 
 local function isempty(s)
   return s == nil or s == ''
@@ -22,15 +22,10 @@ end
 
 local function subrange(t, first, last)
   local sub = {};
-  for i=first,last do
-    local val = t[i];
-    if t ~= nil then
-      sub[#sub + 1] = t[i];
-    else
-      break;
-    end
+  for i=first + 1,last do
+    sub[#sub + 1] = t[i];
   end
-  return sub
+  return sub;
 end
 
 local function hashmapSize(table)
@@ -151,7 +146,7 @@ if redis.call("EXISTS", PSSKey) == 0 then
 
   if FFLKey == PSSKey then
     -- early return if we have no filter
-    local ret = subrange(valuesToSort, offset, limit);
+    local ret = subrange(valuesToSort, offset, offset + limit);
     table.insert(ret, #valuesToSort);
     return ret;
   end

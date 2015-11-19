@@ -1177,7 +1177,7 @@ describe('Users suite', function UserClassSuite() {
 
       it('able to list users without any filters: ASC', function test() {
         return this.users._list({
-          offset: 0,
+          offset: 51,
           limit: 10,
           order: 'ASC',
           criteria: null,
@@ -1188,6 +1188,9 @@ describe('Users suite', function UserClassSuite() {
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
+            expect(result.value().page).to.be.eq(6);
+            expect(result.value().pages).to.be.eq(11);
+            expect(result.value().cursor).to.be.eq(61);
             expect(result.value().users).to.have.length.of(10);
             expect(result.value().users[0]).to.have.ownProperty('id');
             expect(result.value().users[0]).to.have.ownProperty('metadata');

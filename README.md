@@ -10,6 +10,24 @@ Starts horizontally scalable nodejs worker communicating over amqp layer with re
 Supports a broad range of operations for working with users. Please refer to the configuration options for now,
 that contains description of routes and their capabilities.
 
+Aims to provide a complete extendable solution to user's management:
+
+1. Register user:
+  - [x] email, password + metadata
+  - [ ] third party services
+2. Validation challenges:
+  - [x] email validation
+  - [ ] sms
+4. Auto-cleaning of accounts that failed their validation challenge
+5. Login/Logout + JWT token issuing
+6. Ability to erase all issued JWT tokens
+7. Get and update user's metadata
+8. Admin capabilities:
+  - [x] listing, filtering, sorting and paginating users
+  - [x] viewing info about a single user account
+  - [x] (un)locking user accounts
+  - [x] updating user info
+
 ## Configuration
 
 ```js
@@ -150,7 +168,7 @@ const usersService = new Users(defaultOpts);
  - [ ] Add security log
 7. Dockerfile
 8. Search/filter/sort:
- - [ ] sort by metadata field
- - [ ] filter by metadata field
- - [ ] filter by multiple metadata fields
- - [ ] paginate
+ - [x] sort by metadata field
+ - [x] filter by metadata field
+ - [x] filter by multiple metadata fields
+ - [x] paginate

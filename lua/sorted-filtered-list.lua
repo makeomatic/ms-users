@@ -13,8 +13,6 @@ local metadataKey = KEYS[2];
 local hashKey = ARGV[1];
 local order = ARGV[2];
 local filter = ARGV[3];
-local jsonFilter = cjson.decode(filter);
-local totalFilters = table.getn(jsonFilter);
 local offset = ARGV[4];
 local limit = ARGV[5];
 
@@ -35,9 +33,22 @@ local function subrange(t, first, last)
   return sub
 end
 
+local function hashmapSize(table)
+  local numItems = 0;
+  for k,v in pairs(table) do
+    numItems = numItems + 1;
+  end
+
+  return numItems;
+end
+
 -- create filtered list name
 local finalFilteredListKeys = { usernameSet };
 local preSortedSetKeys = { usernameSet };
+
+-- decoded filters
+local jsonFilter = cjson.decode(filter);
+local totalFilters = hashmapSize(jsonFilter);
 
 -- order always exists
 table.insert(finalFilteredListKeys, order);
@@ -64,23 +75,24 @@ local FFLKey = table.concat(finalFilteredListKeys, ":");
 local PSSKey = table.concat(preSortedSetKeys, ":");
 
 -- do we have existing filtered set?
-if redis.call("exists", FFLKey) == 1 then
+if redis.call("EXISTS", FFLKey) == 1 then
   redis.call("PEXPIRE", FFLKey, 30000);
-  return redis.call("lrange", FFLKey, offset, limit);
+  return redis.call("LRANGE", FFLKey, offset, limit);
 end
 
 -- do we have existing sorted set?
 local valuesToSort;
-if redis.call("exists", PSSKey) == 0 then
+if redis.call("EXISTS", PSSKey) == 0 then
   valuesToSort = redis.call("SMEMBERS", usernameSet);
 
   -- if we sort the given set
   if isempty(metadataKey) == false and isempty(hashKey) == false then
     local arr = {};
-    for i,v in ipairs(valuesToSort) do
+    for i,v in pairs(valuesToSort) do
       local metaKey = metadataKey:gsub("*", v, 1);
       arr[v] = redis.call("HGET", metaKey, hashKey);
     end
+
     if order == "ASC" then
       local function sortFuncASC(a, b)
         local sortA = arr[a];
@@ -93,7 +105,7 @@ if redis.call("exists", PSSKey) == 0 then
         elseif isempty(sortB) then
           return true;
         else
-          return strlower(sortA) < strlower(sortB);
+          return string.lower(sortA) < string.lower(sortB);
         end
       end
 
@@ -110,7 +122,7 @@ if redis.call("exists", PSSKey) == 0 then
         elseif isempty(sortB) then
           return false;
         else
-          return strlower(sortA) > strlower(sortB);
+          return string.lower(sortA) > string.lower(sortB);
         end
       end
 
@@ -124,8 +136,10 @@ if redis.call("exists", PSSKey) == 0 then
     end
   end
 
-  redis.call("LPUSH", PSSKey, unpack(valuesToSort));
-  redis.call("PEXPIRE", PSSKey, 30000);
+  if #valuesToSort > 0 then
+    redis.call("RPUSH", PSSKey, unpack(valuesToSort));
+    redis.call("PEXPIRE", PSSKey, 30000);
+  end
 
   if FFLKey == PSSKey then
     -- early return if we have no filter
@@ -137,7 +151,7 @@ else
 
   if FFLKey == PSSKey then
     -- early return if we have no filter
-    return redis.call("lrange", PSSKey, offset, limit);
+    return redis.call("LRANGE", PSSKey, offset, limit);
   end
 
   -- populate in-memory data
@@ -145,12 +159,12 @@ else
 end
 
 -- filtered list holder
-local output = { "LPUSH", FFLKey };
+local output = {};
 
 -- filter function
-local function filterString(a, b)
-  if strfind(strlower(a), strlower(b)) ~= nil then
-    table.insert(output, fieldValue);
+local function filterString(value, filter)
+  if string.find(string.lower(value), string.lower(filter)) ~= nil then
+    table.insert(output, value);
   end
 end
 
@@ -159,16 +173,16 @@ if isempty(metadataKey) then
   -- only sort by value, which is id
   local filterValue = jsonFilter["#"];
   -- iterate over filtered set
-  for i,fieldValue in valuesToSort do
+  for i,fieldValue in pairs(valuesToSort) do
     -- compare strings and insert if they match
     filterString(fieldValue, filterValue);
   end
 -- we actually have metadata
 else
-  for i,v in valuesToSort do
+  for i,v in pairs(valuesToSort) do
     local metaKey = metadataKey:gsub("*", v, 1);
 
-    for fieldName, filterValue in ipairs(jsonFilter) do
+    for fieldName, filterValue in pairs(jsonFilter) do
       local fieldValue;
 
       -- special case
@@ -183,6 +197,10 @@ else
   end
 end
 
-redis.call(unpack(output));
-redis.call("PEXPIRE", FFLKey, 30000);
-return redis.call("lrange", FFLKey, offset, limit);
+if #output > 0 then
+  redis.call("RPUSH", FFLKey, unpack(output));
+  redis.call("PEXPIRE", FFLKey, 30000);
+  return redis.call("LRANGE", FFLKey, offset, offset + limit - 1);
+else
+  return nil;
+end

@@ -1243,6 +1243,76 @@ describe('Users suite', function UserClassSuite() {
           }
         });
       });
+
+      it('able to list users with # filter: ASC', function test() {
+        return this.users._list({
+          offset: 0,
+          limit: 10,
+          order: 'ASC',
+          criteria: null,
+          audience: this.users._config.jwt.defaultAudience,
+          filter: '{"#":"an"}',
+        })
+        .reflect()
+        .then(result => {
+          try {
+            expect(result.isFulfilled()).to.be.eq(true);
+            expect(result.value()).to.have.length.lt(11);
+            expect(result.value()[0]).to.have.ownProperty('id');
+            expect(result.value()[0]).to.have.ownProperty('data');
+            expect(result.value()[0].data).to.have.ownProperty('firstName');
+            expect(result.value()[0].data).to.have.ownProperty('lastName');
+
+            const copy = [].concat(result.value());
+            copy.sort(function sortCopy(a, b) {
+              return a.id.toLowerCase() > b.id.toLowerCase();
+            });
+
+            copy.forEach(function hasAnna(data) {
+              expect(data.id).to.match(/an/i);
+            });
+
+            expect(copy).to.be.deep.eq(result.value());
+          } catch (e) {
+            throw result.isRejected() ? result.reason() : e;
+          }
+        });
+      });
+
+      it('able to list users with # filter: DESC', function test() {
+        return this.users._list({
+          offset: 0,
+          limit: 10,
+          order: 'DESC',
+          criteria: null,
+          audience: this.users._config.jwt.defaultAudience,
+          filter: '{"#":"an"}',
+        })
+        .reflect()
+        .then(result => {
+          try {
+            expect(result.isFulfilled()).to.be.eq(true);
+            expect(result.value()).to.have.length.lt(11);
+            expect(result.value()[0]).to.have.ownProperty('id');
+            expect(result.value()[0]).to.have.ownProperty('data');
+            expect(result.value()[0].data).to.have.ownProperty('firstName');
+            expect(result.value()[0].data).to.have.ownProperty('lastName');
+
+            const copy = [].concat(result.value());
+            copy.sort(function sortCopy(a, b) {
+              return a.id.toLowerCase() < b.id.toLowerCase();
+            });
+
+            copy.forEach(function hasAnna(data) {
+              expect(data.id).to.match(/an/i);
+            });
+
+            expect(copy).to.be.deep.eq(result.value());
+          } catch (e) {
+            throw result.isRejected() ? result.reason() : e;
+          }
+        });
+      });
     });
 
     afterEach(function clearRedis() {

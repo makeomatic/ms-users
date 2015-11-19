@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-NODE_VERSIONS := 5.0.0
+NODE_VERSIONS := 5.1.0
 PKG_NAME := $(shell cat package.json | ./node_modules/.bin/json name)
 PKG_VERSION := $(shell cat package.json | ./node_modules/.bin/json version)
 
@@ -15,10 +15,10 @@ build: $(BUILD_TASKS)
 push: $(PUSH_TASKS)
 
 build-docker:
-	docker build -t makeomatic/node-test:5.0.0 ./test
+	docker build -t makeomatic/node-test:5.1.0 ./test
 
 run-test:
-	docker run --link=rabbitmq --link=redis_1 --link=redis_2 --link=redis_3 -v ${PWD}:/usr/src/app -w /usr/src/app --rm -e TEST_ENV=docker makeomatic/node-test:5.0.0 npm test;
+	docker run --link=rabbitmq --link=redis_1 --link=redis_2 --link=redis_3 -v ${PWD}:/usr/src/app -w /usr/src/app --rm -e TEST_ENV=docker makeomatic/node-test:5.1.0 npm test;
 
 $(TEST_TASKS): build-docker
 	docker run -d --name=rabbitmq rabbitmq; \

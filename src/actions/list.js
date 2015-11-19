@@ -12,8 +12,13 @@ module.exports = function iterateOverActiveUsers(opts) {
   return redis
     .sortedFilteredList(config.redis.userSet, redisKey('*', 'metadata', audience), criteria, order, strFilter, offset, limit)
     .then((ids) => {
-      if (!Array.isArray(ids) || ids.length === 0) {
-        return [];
+      const length = +ids.pop();
+      if (length === 0 || ids.length === 0) {
+        return [
+          ids || [],
+          [],
+          length,
+        ];
       }
 
       const pipeline = redis.pipeline();
@@ -23,14 +28,24 @@ module.exports = function iterateOverActiveUsers(opts) {
       return Promise.all([
         ids,
         pipeline.exec(),
+        length,
       ]);
     })
-    .spread((ids, props) => {
-      return ids.map(function remapData(id, idx) {
+    .spread((ids, props, length) => {
+      const users = ids.map(function remapData(id, idx) {
         return {
-          id: id,
-          data: props[idx][1],
+          id,
+          metadata: {
+            [ audience ]: props[idx][1],
+          },
         };
       });
+
+      return {
+        users,
+        cursor: offset + limit,
+        page: Math.floor(offset / limit + 1),
+        pages: Math.ceil(length / limit),
+      };
     });
 };

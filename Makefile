@@ -2,6 +2,7 @@ SHELL := /bin/bash
 NODE_VERSIONS := 5.1.0
 PKG_NAME := $(shell cat package.json | ./node_modules/.bin/json name)
 PKG_VERSION := $(shell cat package.json | ./node_modules/.bin/json version)
+THIS_FILE := $(lastword $(MAKEFILE_LIST))
 
 # define task lists
 TEST_TASKS := $(addsuffix .test, $(NODE_VERSIONS))
@@ -25,7 +26,7 @@ $(TEST_TASKS): build-docker
 	docker run -d --name=redis_1 makeomatic/alpine-redis; \
 	docker run -d --name=redis_2 makeomatic/alpine-redis; \
 	docker run -d --name=redis_3 makeomatic/alpine-redis; \
-	@$(MAKE) -f $(THIS_FILE) run-test; \
+	$(MAKE) -f $(THIS_FILE) run-test; \
 	EXIT_CODE=$$?; \
 	docker rm -f rabbitmq; \
 	docker rm -f redis_1; \

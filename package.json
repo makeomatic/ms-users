@@ -1,6 +1,6 @@
 {
   "name": "ms-users",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {

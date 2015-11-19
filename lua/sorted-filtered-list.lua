@@ -42,6 +42,13 @@ local function hashmapSize(table)
   return numItems;
 end
 
+local function updateExpireAndReturnWithSize(key)
+  redis.call("PEXPIRE", key, 30000);
+  local ret = redis.call("LRANGE", key, offset, offset + limit - 1);
+  table.insert(ret, redis.call("LLEN", key));
+  return ret;
+end
+
 -- create filtered list name
 local finalFilteredListKeys = { usernameSet };
 local preSortedSetKeys = { usernameSet };
@@ -76,8 +83,7 @@ local PSSKey = table.concat(preSortedSetKeys, ":");
 
 -- do we have existing filtered set?
 if redis.call("EXISTS", FFLKey) == 1 then
-  redis.call("PEXPIRE", FFLKey, 30000);
-  return redis.call("LRANGE", FFLKey, offset, limit);
+  return updateExpireAndReturnWithSize(FFLKey);
 end
 
 -- do we have existing sorted set?
@@ -139,22 +145,26 @@ if redis.call("EXISTS", PSSKey) == 0 then
   if #valuesToSort > 0 then
     redis.call("RPUSH", PSSKey, unpack(valuesToSort));
     redis.call("PEXPIRE", PSSKey, 30000);
+  else
+    return {0};
   end
 
   if FFLKey == PSSKey then
     -- early return if we have no filter
-    return subrange(valuesToSort, offset, limit);
+    local ret = subrange(valuesToSort, offset, limit);
+    table.insert(ret, #valuesToSort);
+    return ret;
   end
 else
-  -- update expiration timer
-  redis.call("PEXPIRE", PSSKey, 30000);
 
   if FFLKey == PSSKey then
     -- early return if we have no filter
-    return redis.call("LRANGE", PSSKey, offset, limit);
+    return updateExpireAndReturnWithSize(PSSKey);
   end
 
   -- populate in-memory data
+  -- update expiration timer
+  redis.call("PEXPIRE", PSSKey, 30000);
   valuesToSort = redis.call("LRANGE", PSSKey, 0, -1);
 end
 
@@ -207,8 +217,7 @@ end
 
 if #output > 0 then
   redis.call("RPUSH", FFLKey, unpack(output));
-  redis.call("PEXPIRE", FFLKey, 30000);
-  return redis.call("LRANGE", FFLKey, offset, offset + limit - 1);
+  return updateExpireAndReturnWithSize(FFLKey);
 else
-  return nil;
+  return {0};
 end

@@ -1052,7 +1052,7 @@ describe('Users suite', function UserClassSuite() {
     afterEach(tearDownRedisMock);
   });
 
-  describe.only('integration tests', function integrationSuite() {
+  describe('integration tests', function integrationSuite() {
     beforeEach(function initService() {
       this.users = new Users(config);
       return this.users.connect();
@@ -1149,11 +1149,11 @@ describe('Users suite', function UserClassSuite() {
       const redisKey = require('../src/utils/key.js');
 
       beforeEach(function populateRedis() {
+        const audience = this.users._config.jwt.defaultAudience;
         const promises = [];
         const userSet = this.users._config.redis.userSet;
-        const audience = this.users._config.jwt.defaultAudience;
 
-        ld.times(100, () => {
+        ld.times(105, () => {
           const user = {
             id: faker.internet.email(),
             metadata: {
@@ -1170,16 +1170,9 @@ describe('Users suite', function UserClassSuite() {
           );
         });
 
+        this.audience = audience;
         this.userStubs = Promise.all(promises);
         return this.userStubs;
-      });
-
-      it('able to get random user', function test() {
-        return this.users._redis.spop(this.users._config.redis.userSet)
-          .reflect()
-          .then(result => {
-            expect(result.isFulfilled()).to.be.eq(true);
-          });
       });
 
       it('able to list users without any filters: ASC', function test() {
@@ -1188,25 +1181,25 @@ describe('Users suite', function UserClassSuite() {
           limit: 10,
           order: 'ASC',
           criteria: null,
-          audience: this.users._config.jwt.defaultAudience,
-          filter: '{}',
+          audience: this.audience,
+          filter: {},
         })
         .reflect()
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
-            expect(result.value()).to.have.length.of(10);
-            expect(result.value()[0]).to.have.ownProperty('id');
-            expect(result.value()[0]).to.have.ownProperty('data');
-            expect(result.value()[0].data).to.have.ownProperty('firstName');
-            expect(result.value()[0].data).to.have.ownProperty('lastName');
+            expect(result.value().users).to.have.length.of(10);
+            expect(result.value().users[0]).to.have.ownProperty('id');
+            expect(result.value().users[0]).to.have.ownProperty('metadata');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-            const copy = [].concat(result.value());
-            copy.sort(function sortCopy(a, b) {
+            const copy = [].concat(result.value().users);
+            copy.sort((a, b) => {
               return a.id.toLowerCase() > b.id.toLowerCase();
             });
 
-            expect(copy).to.be.deep.eq(result.value());
+            expect(copy).to.be.deep.eq(result.value().users);
           } catch (e) {
             throw result.isRejected() ? result.reason() : e;
           }
@@ -1219,25 +1212,25 @@ describe('Users suite', function UserClassSuite() {
           limit: 10,
           order: 'DESC',
           criteria: null,
-          audience: this.users._config.jwt.defaultAudience,
-          filter: '{}',
+          audience: this.audience,
+          filter: {},
         })
         .reflect()
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
-            expect(result.value()).to.have.length.of(10);
-            expect(result.value()[0]).to.have.ownProperty('id');
-            expect(result.value()[0]).to.have.ownProperty('data');
-            expect(result.value()[0].data).to.have.ownProperty('firstName');
-            expect(result.value()[0].data).to.have.ownProperty('lastName');
+            expect(result.value().users).to.have.length.of(10);
+            expect(result.value().users[0]).to.have.ownProperty('id');
+            expect(result.value().users[0]).to.have.ownProperty('metadata');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-            const copy = [].concat(result.value());
-            copy.sort(function sortCopy(a, b) {
+            const copy = [].concat(result.value().users);
+            copy.sort((a, b) => {
               return a.id.toLowerCase() < b.id.toLowerCase();
             });
 
-            expect(copy).to.be.deep.eq(result.value());
+            expect(copy).to.be.deep.eq(result.value().users);
           } catch (e) {
             throw result.isRejected() ? result.reason() : e;
           }
@@ -1250,29 +1243,31 @@ describe('Users suite', function UserClassSuite() {
           limit: 10,
           order: 'ASC',
           criteria: null,
-          audience: this.users._config.jwt.defaultAudience,
-          filter: '{"#":"an"}',
+          audience: this.audience,
+          filter: {
+            '#': 'an',
+          },
         })
         .reflect()
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
-            expect(result.value()).to.have.length.lt(11);
-            expect(result.value()[0]).to.have.ownProperty('id');
-            expect(result.value()[0]).to.have.ownProperty('data');
-            expect(result.value()[0].data).to.have.ownProperty('firstName');
-            expect(result.value()[0].data).to.have.ownProperty('lastName');
+            expect(result.value().users).to.have.length.lte(10);
+            expect(result.value().users[0]).to.have.ownProperty('id');
+            expect(result.value().users[0]).to.have.ownProperty('metadata');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-            const copy = [].concat(result.value());
-            copy.sort(function sortCopy(a, b) {
+            const copy = [].concat(result.value().users);
+            copy.sort((a, b) => {
               return a.id.toLowerCase() > b.id.toLowerCase();
             });
 
-            copy.forEach(function hasAnna(data) {
+            copy.forEach((data) => {
               expect(data.id).to.match(/an/i);
             });
 
-            expect(copy).to.be.deep.eq(result.value());
+            expect(copy).to.be.deep.eq(result.value().users);
           } catch (e) {
             throw result.isRejected() ? result.reason() : e;
           }
@@ -1285,29 +1280,29 @@ describe('Users suite', function UserClassSuite() {
           limit: 10,
           order: 'DESC',
           criteria: null,
-          audience: this.users._config.jwt.defaultAudience,
+          audience: this.audience,
           filter: '{"#":"an"}',
         })
         .reflect()
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
-            expect(result.value()).to.have.length.lt(11);
-            expect(result.value()[0]).to.have.ownProperty('id');
-            expect(result.value()[0]).to.have.ownProperty('data');
-            expect(result.value()[0].data).to.have.ownProperty('firstName');
-            expect(result.value()[0].data).to.have.ownProperty('lastName');
+            expect(result.value().users).to.have.length.lte(10);
+            expect(result.value().users[0]).to.have.ownProperty('id');
+            expect(result.value().users[0]).to.have.ownProperty('metadata');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-            const copy = [].concat(result.value());
-            copy.sort(function sortCopy(a, b) {
+            const copy = [].concat(result.value().users);
+            copy.sort((a, b) => {
               return a.id.toLowerCase() < b.id.toLowerCase();
             });
 
-            copy.forEach(function hasAnna(data) {
+            copy.forEach((data) => {
               expect(data.id).to.match(/an/i);
             });
 
-            expect(copy).to.be.deep.eq(result.value());
+            expect(copy).to.be.deep.eq(result.value().users);
           } catch (e) {
             throw result.isRejected() ? result.reason() : e;
           }
@@ -1320,25 +1315,25 @@ describe('Users suite', function UserClassSuite() {
           limit: 10,
           order: 'ASC',
           criteria: 'firstName',
-          audience: this.users._config.jwt.defaultAudience,
+          audience: this.audience,
           filter: '{}',
         })
         .reflect()
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
-            expect(result.value()).to.have.length.lt(11);
-            expect(result.value()[0]).to.have.ownProperty('id');
-            expect(result.value()[0]).to.have.ownProperty('data');
-            expect(result.value()[0].data).to.have.ownProperty('firstName');
-            expect(result.value()[0].data).to.have.ownProperty('lastName');
+            expect(result.value().users).to.have.length.lte(10);
+            expect(result.value().users[0]).to.have.ownProperty('id');
+            expect(result.value().users[0]).to.have.ownProperty('metadata');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-            const copy = [].concat(result.value());
-            copy.sort(function sortCopy(a, b) {
-              return a.data.firstName.toLowerCase() > b.data.firstName.toLowerCase();
+            const copy = [].concat(result.value().users);
+            copy.sort((a, b) => {
+              return a.metadata[this.audience].firstName.toLowerCase() > b.metadata[this.audience].firstName.toLowerCase();
             });
 
-            expect(copy).to.be.deep.eq(result.value());
+            expect(copy).to.be.deep.eq(result.value().users);
           } catch (e) {
             throw result.isRejected() ? result.reason() : e;
           }
@@ -1351,25 +1346,25 @@ describe('Users suite', function UserClassSuite() {
           limit: 10,
           order: 'DESC',
           criteria: 'firstName',
-          audience: this.users._config.jwt.defaultAudience,
+          audience: this.audience,
           filter: '{}',
         })
         .reflect()
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
-            expect(result.value()).to.have.length.lt(11);
-            expect(result.value()[0]).to.have.ownProperty('id');
-            expect(result.value()[0]).to.have.ownProperty('data');
-            expect(result.value()[0].data).to.have.ownProperty('firstName');
-            expect(result.value()[0].data).to.have.ownProperty('lastName');
+            expect(result.value().users).to.have.length.lte(10);
+            expect(result.value().users[0]).to.have.ownProperty('id');
+            expect(result.value().users[0]).to.have.ownProperty('metadata');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-            const copy = [].concat(result.value());
-            copy.sort(function sortCopy(a, b) {
-              return a.data.firstName.toLowerCase() < b.data.firstName.toLowerCase();
+            const copy = [].concat(result.value().users);
+            copy.sort((a, b) => {
+              return a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase();
             });
 
-            expect(copy).to.be.deep.eq(result.value());
+            expect(copy).to.be.deep.eq(result.value().users);
           } catch (e) {
             throw result.isRejected() ? result.reason() : e;
           }
@@ -1382,30 +1377,30 @@ describe('Users suite', function UserClassSuite() {
           limit: 10,
           order: 'DESC',
           criteria: 'firstName',
-          audience: this.users._config.jwt.defaultAudience,
+          audience: this.audience,
           filter: '{"#":"an","lastName":"b"}',
         })
         .reflect()
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
-            expect(result.value()).to.have.length.lt(11);
-            expect(result.value()[0]).to.have.ownProperty('id');
-            expect(result.value()[0]).to.have.ownProperty('data');
-            expect(result.value()[0].data).to.have.ownProperty('firstName');
-            expect(result.value()[0].data).to.have.ownProperty('lastName');
+            expect(result.value().users).to.have.length.lte(10);
+            expect(result.value().users[0]).to.have.ownProperty('id');
+            expect(result.value().users[0]).to.have.ownProperty('metadata');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-            const copy = [].concat(result.value());
-            copy.sort(function sortCopy(a, b) {
-              return a.data.firstName.toLowerCase() < b.data.firstName.toLowerCase();
+            const copy = [].concat(result.value().users);
+            copy.sort((a, b) => {
+              return a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase();
             });
 
-            copy.forEach(function hasAnna(data) {
+            copy.forEach((data) => {
               expect(data.id).to.match(/an/i);
-              expect(data.data.lastName).to.match(/b/i);
+              expect(data.metadata[this.audience].lastName).to.match(/b/i);
             });
 
-            expect(copy).to.be.deep.eq(result.value());
+            expect(copy).to.be.deep.eq(result.value().users);
           } catch (e) {
             throw result.isRejected() ? result.reason() : e;
           }
@@ -1418,30 +1413,30 @@ describe('Users suite', function UserClassSuite() {
           limit: 10,
           order: 'ASC',
           criteria: 'lastName',
-          audience: this.users._config.jwt.defaultAudience,
+          audience: this.audience,
           filter: '{"#":"an","lastName":"b"}',
         })
         .reflect()
         .then(result => {
           try {
             expect(result.isFulfilled()).to.be.eq(true);
-            expect(result.value()).to.have.length.lt(11);
-            expect(result.value()[0]).to.have.ownProperty('id');
-            expect(result.value()[0]).to.have.ownProperty('data');
-            expect(result.value()[0].data).to.have.ownProperty('firstName');
-            expect(result.value()[0].data).to.have.ownProperty('lastName');
+            expect(result.value().users).to.have.length.lte(10);
+            expect(result.value().users[0]).to.have.ownProperty('id');
+            expect(result.value().users[0]).to.have.ownProperty('metadata');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+            expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-            const copy = [].concat(result.value());
-            copy.sort(function sortCopy(a, b) {
-              return a.data.lastName.toLowerCase() > b.data.lastName.toLowerCase();
+            const copy = [].concat(result.value().users);
+            copy.sort((a, b) => {
+              return a.metadata[this.audience].lastName.toLowerCase() > b.metadata[this.audience].lastName.toLowerCase();
             });
 
-            copy.forEach(function hasAnna(data) {
+            copy.forEach((data) => {
               expect(data.id).to.match(/an/i);
-              expect(data.data.lastName).to.match(/b/i);
+              expect(data.metadata[this.audience].lastName).to.match(/b/i);
             });
 
-            expect(copy).to.be.deep.eq(result.value());
+            expect(copy).to.be.deep.eq(result.value().users);
           } catch (e) {
             throw result.isRejected() ? result.reason() : e;
           }

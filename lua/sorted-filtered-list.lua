@@ -163,9 +163,7 @@ local output = {};
 
 -- filter function
 local function filterString(value, filter)
-  if string.find(string.lower(value), string.lower(filter)) ~= nil then
-    table.insert(output, value);
-  end
+  return string.find(string.lower(value), string.lower(filter));
 end
 
 -- if no metadata key, but we are still here
@@ -173,26 +171,36 @@ if isempty(metadataKey) then
   -- only sort by value, which is id
   local filterValue = jsonFilter["#"];
   -- iterate over filtered set
-  for i,fieldValue in pairs(valuesToSort) do
+  for i,idValue in pairs(valuesToSort) do
     -- compare strings and insert if they match
-    filterString(fieldValue, filterValue);
+    if filterString(idValue, filterValue) ~= nil then
+      table.insert(output, idValue);
+    end
   end
 -- we actually have metadata
 else
-  for i,v in pairs(valuesToSort) do
-    local metaKey = metadataKey:gsub("*", v, 1);
+  for i,idValue in pairs(valuesToSort) do
+    local metaKey = metadataKey:gsub("*", idValue, 1);
+    local matched = true;
 
     for fieldName, filterValue in pairs(jsonFilter) do
       local fieldValue;
 
       -- special case
       if fieldName == "#" then
-        fieldValue = v;
+        fieldValue = idValue;
       else
         fieldValue = redis.call("hget", metaKey, fieldName);
       end
 
-      filterString(fieldValue, filterValue);
+      if filterString(fieldValue, filterValue) == nil then
+        matched = false;
+        break;
+      end
+    end
+
+    if matched then
+      table.insert(output, idValue);
     end
   end
 end

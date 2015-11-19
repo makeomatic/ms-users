@@ -1313,6 +1313,140 @@ describe('Users suite', function UserClassSuite() {
           }
         });
       });
+
+      it('able to list users by meta field key: ASC', function test() {
+        return this.users._list({
+          offset: 0,
+          limit: 10,
+          order: 'ASC',
+          criteria: 'firstName',
+          audience: this.users._config.jwt.defaultAudience,
+          filter: '{}',
+        })
+        .reflect()
+        .then(result => {
+          try {
+            expect(result.isFulfilled()).to.be.eq(true);
+            expect(result.value()).to.have.length.lt(11);
+            expect(result.value()[0]).to.have.ownProperty('id');
+            expect(result.value()[0]).to.have.ownProperty('data');
+            expect(result.value()[0].data).to.have.ownProperty('firstName');
+            expect(result.value()[0].data).to.have.ownProperty('lastName');
+
+            const copy = [].concat(result.value());
+            copy.sort(function sortCopy(a, b) {
+              return a.data.firstName.toLowerCase() > b.data.firstName.toLowerCase();
+            });
+
+            expect(copy).to.be.deep.eq(result.value());
+          } catch (e) {
+            throw result.isRejected() ? result.reason() : e;
+          }
+        });
+      });
+
+      it('able to list users by meta field key: DESC', function test() {
+        return this.users._list({
+          offset: 0,
+          limit: 10,
+          order: 'DESC',
+          criteria: 'firstName',
+          audience: this.users._config.jwt.defaultAudience,
+          filter: '{}',
+        })
+        .reflect()
+        .then(result => {
+          try {
+            expect(result.isFulfilled()).to.be.eq(true);
+            expect(result.value()).to.have.length.lt(11);
+            expect(result.value()[0]).to.have.ownProperty('id');
+            expect(result.value()[0]).to.have.ownProperty('data');
+            expect(result.value()[0].data).to.have.ownProperty('firstName');
+            expect(result.value()[0].data).to.have.ownProperty('lastName');
+
+            const copy = [].concat(result.value());
+            copy.sort(function sortCopy(a, b) {
+              return a.data.firstName.toLowerCase() < b.data.firstName.toLowerCase();
+            });
+
+            expect(copy).to.be.deep.eq(result.value());
+          } catch (e) {
+            throw result.isRejected() ? result.reason() : e;
+          }
+        });
+      });
+
+      it('able to list users by meta field key with multiple filters: DESC', function test() {
+        return this.users._list({
+          offset: 0,
+          limit: 10,
+          order: 'DESC',
+          criteria: 'firstName',
+          audience: this.users._config.jwt.defaultAudience,
+          filter: '{"#":"an","lastName":"b"}',
+        })
+        .reflect()
+        .then(result => {
+          try {
+            expect(result.isFulfilled()).to.be.eq(true);
+            expect(result.value()).to.have.length.lt(11);
+            expect(result.value()[0]).to.have.ownProperty('id');
+            expect(result.value()[0]).to.have.ownProperty('data');
+            expect(result.value()[0].data).to.have.ownProperty('firstName');
+            expect(result.value()[0].data).to.have.ownProperty('lastName');
+
+            const copy = [].concat(result.value());
+            copy.sort(function sortCopy(a, b) {
+              return a.data.firstName.toLowerCase() < b.data.firstName.toLowerCase();
+            });
+
+            copy.forEach(function hasAnna(data) {
+              expect(data.id).to.match(/an/i);
+              expect(data.data.lastName).to.match(/b/i);
+            });
+
+            expect(copy).to.be.deep.eq(result.value());
+          } catch (e) {
+            throw result.isRejected() ? result.reason() : e;
+          }
+        });
+      });
+
+      it('able to list users by meta field key with multiple filters: ASC', function test() {
+        return this.users._list({
+          offset: 0,
+          limit: 10,
+          order: 'ASC',
+          criteria: 'lastName',
+          audience: this.users._config.jwt.defaultAudience,
+          filter: '{"#":"an","lastName":"b"}',
+        })
+        .reflect()
+        .then(result => {
+          try {
+            expect(result.isFulfilled()).to.be.eq(true);
+            expect(result.value()).to.have.length.lt(11);
+            expect(result.value()[0]).to.have.ownProperty('id');
+            expect(result.value()[0]).to.have.ownProperty('data');
+            expect(result.value()[0].data).to.have.ownProperty('firstName');
+            expect(result.value()[0].data).to.have.ownProperty('lastName');
+
+            const copy = [].concat(result.value());
+            copy.sort(function sortCopy(a, b) {
+              return a.data.lastName.toLowerCase() > b.data.lastName.toLowerCase();
+            });
+
+            copy.forEach(function hasAnna(data) {
+              expect(data.id).to.match(/an/i);
+              expect(data.data.lastName).to.match(/b/i);
+            });
+
+            expect(copy).to.be.deep.eq(result.value());
+          } catch (e) {
+            throw result.isRejected() ? result.reason() : e;
+          }
+        });
+      });
     });
 
     afterEach(function clearRedis() {

@@ -8,7 +8,9 @@ module.exports = function iterateOverActiveUsers(opts) {
   return redis
     .sortedFilteredList(config.redis.userSet, redisKey('*', 'metadata', audience), criteria, order, filter, offset, limit)
     .then((ids) => {
-      this.log.debug('Returned ids:', ids);
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return [];
+      }
 
       const pipeline = redis.pipeline();
       ids.forEach((id) => {
@@ -20,8 +22,6 @@ module.exports = function iterateOverActiveUsers(opts) {
       ]);
     })
     .spread((ids, props) => {
-      this.log.debug('Returned props:', ids, props);
-
       return ids.map(function remapData(id, idx) {
         return {
           id: id,

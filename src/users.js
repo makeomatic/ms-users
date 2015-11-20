@@ -312,7 +312,7 @@ module.exports = class Users extends EventEmitter {
       const meta = {
         message,
         headers,
-        latency: hrend[0] * 1000 + (+(hrend[1]/1000000).toFixed(3)),
+        latency: execTime[0] * 1000 + (+(execTime[1]/1000000).toFixed(3)),
       };
 
       if (response instanceof Error) {

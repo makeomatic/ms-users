@@ -149,6 +149,7 @@ module.exports = class Users extends EventEmitter {
         predefined: 'predefined',
       },
     },
+    admins: []
   };
 
   /**
@@ -174,6 +175,44 @@ module.exports = class Users extends EventEmitter {
       this.log.fatal('Invalid configuration:', error.toJSON());
       throw error;
     }
+  }
+
+  initAdminAccounts() {
+    const accounts = this._config.admins;
+    const audience = this._config.jwt.defaultAudience;
+    return Promise.map(accounts, (account) => {
+      return register.call(this, {
+        username: account.username,
+        password: account.password,
+        audience,
+        metadata: {
+          firstName: account.firstName,
+          lastName: account.lastName,
+          roles: [ 'admin' ],
+        },
+        activate: true,
+      })
+      .reflect();
+    })
+    .bind(this)
+    .then(function reportStats(users) {
+      const totalAccounts = users.length;
+      const errors = [];
+      let registered = 0;
+      users.forEach(user => {
+        if (user.isFulfilled()) {
+          registered++;
+        } else {
+          errors.push(user.reason());
+        }
+      });
+
+      this.log.info('Registered admins %d/%d. Errors:', registered, totalAccounts, errors);
+    })
+    .finally(() => {
+      this.log.info('removing account references from memory');
+      this._config.admins = [];
+    });
   }
 
   /**
@@ -219,6 +258,7 @@ module.exports = class Users extends EventEmitter {
    * @return {Promise}
    */
   router = (message, headers, actions, next) => {
+    const time = process.hrtime();
     const route = headers.routingKey.split('.').pop();
     const defaultRoutes = Users.defaultOpts.postfix;
     const { postfix } = this._config;
@@ -267,8 +307,19 @@ module.exports = class Users extends EventEmitter {
     }
 
     // if we have an error
-    promise.catch(function reportError(err) {
-      this.log.error('Error performing %s operation', route, err);
+    promise.finally(function auditLog(response) {
+      const execTime = process.hrtime(time);
+      const meta = {
+        message,
+        headers,
+        latency: hrend[0] * 1000 + (+(hrend[1]/1000000).toFixed(3)),
+      };
+
+      if (response instanceof Error) {
+        this.log.error(meta, 'Error performing operation', err);
+      } else {
+        this.log.info(meta, 'completed operation');
+      }
     });
 
     if (typeof next === 'function') {

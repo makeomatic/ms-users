@@ -27,6 +27,7 @@ Aims to provide a complete extendable solution to user's management:
   - [x] viewing info about a single user account
   - [x] (un)locking user accounts
   - [x] updating user info
+  - [x] pre-create admin accounts
 
 ## Configuration
 

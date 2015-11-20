@@ -1,6 +1,6 @@
 {
   "name": "ms-users",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {
@@ -28,11 +28,11 @@
     "common-errors": "^0.5.3",
     "eventemitter3": "^1.1.1",
     "flake-idgen": "^1.0.0",
-    "ioredis": "^1.10.0",
+    "ioredis": "^1.11.0",
     "jsonwebtoken": "^5.4.1",
     "lodash": "^3.10.1",
     "ms-amqp-conf": "^0.2.0",
-    "ms-amqp-transport": "^0.2.5",
+    "ms-amqp-transport": "^0.2.7",
     "ms-amqp-validation": "^0.4.1",
     "ms-mailer-client": "^0.2.0",
     "ms-mailer-templates": "0.0.1",

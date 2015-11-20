@@ -19,7 +19,8 @@ var Service = require(dir);
 var service = new Service(configuration);
 service.connect()
   .then(function serviceUp() {
-    service.log.info('Started service');
+    service.log.info('Started service, initiating admin accounts');
+    return service.initAdminAccounts();
   })
   .catch(function serviceCrashed(err) {
     service.log.fatal('Failed to start service', err);

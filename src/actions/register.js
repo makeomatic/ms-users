@@ -26,7 +26,6 @@ module.exports = function registerUser(message) {
 
   // task holder
   const logger = this.log.child({ username, action: 'register' });
-  logger.info('attempting to register user based on a message:', message);
 
   let promise = Promise.bind(this);
 

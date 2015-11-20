@@ -13,6 +13,30 @@
       "type": "integer",
       "min": 0
     },
+    "admins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 18
+          },
+          "firstName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
     "postfix": {
       "type": "object",
       "required": [ "ban", "challenge", "activate", "verify", "login", "logout", "register", "getMetadata", "updateMetadata", "requestPassword", "updatePassword", "list" ],

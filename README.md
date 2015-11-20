@@ -167,9 +167,4 @@ const usersService = new Users(defaultOpts);
  - [ ] support operations on multiple audiences
 6. Ban:
  - [ ] Add security log
-7. Dockerfile
-8. Search/filter/sort:
- - [x] sort by metadata field
- - [x] filter by metadata field
- - [x] filter by multiple metadata fields
- - [x] paginate
+7. Logging serializers to remove passwords from logs

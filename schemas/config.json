@@ -164,7 +164,7 @@
     },
     "validation": {
       "type": "object",
-      "required": [ "secret", "algorithm", "ttl", "paths", "subjects", "email", "from" ],
+      "required": [ "secret", "algorithm", "ttl", "paths", "subjects", "email", "senders" ],
       "properties": {
         "secret": {
           "type": "string",
@@ -193,7 +193,7 @@
             }
           }
         },
-        "from": {
+        "senders": {
           "required": [ "activate", "reset" ],
           "type": "object",
           "properties": {

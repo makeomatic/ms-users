@@ -229,22 +229,22 @@ module.exports = class Users extends EventEmitter {
     if (logger && logger instanceof bunyan) {
       this.log = logger;
     } else {
-      let stream;
+      const streams = [{
+        level: 'trace',
+        type: 'raw',
+        stream: new bunyan.RingBuffer({ limit: 100 }),
+      }];
+
       if (logger) {
-        stream = {
+        streams.push({
           stream: process.stdout,
           level: config.debug ? 'debug' : 'info',
-        };
-      } else {
-        stream = {
-          level: 'trace',
-          type: 'raw',
-          stream: new bunyan.RingBuffer({ limit: 100 }),
-        };
+        });
       }
+
       this.log = bunyan.createLogger({
         name: 'ms-users',
-        streams: [ stream ],
+        streams,
       });
     }
   }
@@ -307,7 +307,7 @@ module.exports = class Users extends EventEmitter {
     }
 
     // if we have an error
-    promise.finally(function auditLog(response) {
+    promise = promise.finally(function auditLog(response) {
       const execTime = process.hrtime(time);
       const meta = {
         message,

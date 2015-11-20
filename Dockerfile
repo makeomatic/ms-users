@@ -21,7 +21,7 @@ RUN curl -sSL https://nodejs.org/dist/${VERSION}/node-${VERSION}.tar.gz | tar -x
     /usr/lib/node_modules/npm/man /usr/lib/node_modules/npm/doc /usr/lib/node_modules/npm/html
 
 WORKDIR /src
-ADD . .
+ADD package.json package.json
 
 ENV NODE_ENV=production
 ENV NCONF_NAMESPACE=MS_USERS
@@ -29,5 +29,7 @@ ENV NCONF_NAMESPACE=MS_USERS
 RUN npm install
 RUN apk del curl make gcc g++ python && \
   rm -rf /tmp/* /var/cache/apk/* /root/.npm /root/.node-gyp src
+
+ADD . /src
 
 CMD [ "npm", "start" ]

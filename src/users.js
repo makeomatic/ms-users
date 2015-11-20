@@ -131,6 +131,10 @@ module.exports = class Users extends EventEmitter {
         activate: 'Activate your account',
         reset: 'Reset your password',
       },
+      senders: {
+        activate: 'noreply <support@example.com>',
+        reset: 'noreply <support@example.com>',
+      },
       email: 'support@example.com',
     },
     server: {

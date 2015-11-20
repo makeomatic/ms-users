@@ -164,7 +164,7 @@
     },
     "validation": {
       "type": "object",
-      "required": [ "secret", "algorithm", "ttl", "paths", "subjects", "email" ],
+      "required": [ "secret", "algorithm", "ttl", "paths", "subjects", "email", "from" ],
       "properties": {
         "secret": {
           "type": "string",
@@ -184,6 +184,18 @@
         "paths": {
           "type": "object",
           "required": [ "activate", "reset" ],
+          "properties": {
+            "activate": {
+              "type": "string"
+            },
+            "reset": {
+              "type": "string"
+            }
+          }
+        },
+        "from": {
+          "required": [ "activate", "reset" ],
+          "type": "object",
           "properties": {
             "activate": {
               "type": "string"

@@ -80,7 +80,7 @@ exports.safeDecode = function safeDecode(algorithm, secret, string) {
 exports.send = function sendEmail(email, type = 'activate', wait = false) {
   const { _redis: redis, _config: config, _mailer: mailer } = this;
   const { validation, server } = config;
-  const { ttl, throttle, subjects, paths, secret, algorithm, email: mailingAccount } = validation;
+  const { ttl, throttle, subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation;
 
   // method specific stuff
   const throttleEmailsKey = redisKey('vthrottle-' + type, email);
@@ -138,17 +138,21 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
     })
     .then(function definedSubjectAndSend(emailTemplate) {
       let subject;
+      let from;
       switch (type) {
       case 'activate':
       case 'reset':
         subject = subjects[type];
+        from = senders[type];
         break;
       default:
         subject = '';
+        from = 'noreply <support@example.com>';
       }
 
       const mail = {
         subject,
+        from,
         to: email,
         html: emailTemplate,
       };

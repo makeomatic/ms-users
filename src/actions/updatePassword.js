@@ -18,7 +18,7 @@ function tokenReset(token) {
  * @param {String} password
  */
 function usernamePasswordReset(username, password) {
-  const { _redis: redis } = this;
+  const { redis } = this;
   const userKey = redisKey(username, 'data');
   return redis
     .hmgetBuffer(userKey, 'password', 'active')
@@ -41,7 +41,7 @@ function usernamePasswordReset(username, password) {
 }
 
 module.exports = function updatePassword(opts) {
-  const { _redis: redis } = this;
+  const { redis } = this;
   const { newPassword: password, remoteip } = opts;
   const invalidateTokens = !!opts.invalidateTokens;
 

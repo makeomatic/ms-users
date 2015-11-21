@@ -13,8 +13,9 @@ const flakeIdGen = new FlakeId();
  * @return {Promise}
  */
 exports.login = function login(username, _audience) {
-  const { _redis: redis } = this;
-  const { hashingFunction: algorithm, defaultAudience, secret } = this._config.jwt;
+  const { redis, config } = this;
+  const { jwt: jwtConfig } = config;
+  const { hashingFunction: algorithm, defaultAudience, secret } = jwtConfig;
   let audience = _audience || defaultAudience;
 
   // will have iat field, which is when this token was issued
@@ -56,8 +57,9 @@ exports.login = function login(username, _audience) {
  * @return {Promise}
  */
 exports.logout = function logout(token, audience) {
-  const { _redis: redis, _config: config } = this;
-  const { hashingFunction: algorithm, secret, issuer } = config.jwt;
+  const { redis, config } = this;
+  const { jwt: jwtConfig } = config;
+  const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
   return jwt
     .verifyAsync(token, secret, { issuer, audience, algorithms: [ algorithm ] })
@@ -76,8 +78,7 @@ exports.logout = function logout(token, audience) {
  * @param {String} username
  */
 exports.reset = function reset(username) {
-  const { _redis: redis } = this;
-  return redis.del(redisKey(username, 'tokens'));
+  return this.redis.del(redisKey(username, 'tokens'));
 };
 
 /**
@@ -88,8 +89,9 @@ exports.reset = function reset(username) {
  * @return {Promise}
  */
 exports.verify = function verifyToken(token, audience, peek) {
-  const { _redis: redis, _config: config } = this;
-  const { hashingFunction: algorithm, secret, ttl, issuer } = config.jwt;
+  const { redis, config } = this;
+  const { jwt: jwtConfig } = config;
+  const { hashingFunction: algorithm, secret, ttl, issuer } = jwtConfig;
 
   return jwt
     .verifyAsync(token, secret, { issuer, algorithms: [ algorithm ] })

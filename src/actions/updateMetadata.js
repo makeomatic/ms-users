@@ -7,7 +7,7 @@ const redisKey = require('../utils/key.js');
  * @return {Promise}
  */
 module.exports = function updateMetadata(opts) {
-  const { _redis: redis } = this;
+  const { redis } = this;
   const { username, audience, metadata } = opts;
 
   const metadataKey = redisKey(username, 'metadata', audience);

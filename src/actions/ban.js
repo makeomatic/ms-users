@@ -7,7 +7,7 @@ const redisKey = require('../utils/key.js');
  * @return {Promise}
  */
 module.exports = function banUser(opts) {
-  const { _redis: redis } = this;
+  const { redis } = this;
   const { username, ban } = opts;
 
   const userKey = redisKey(username, 'data');

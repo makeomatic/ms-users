@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 
 module.exports = function iterateOverActiveUsers(opts) {
-  const { _redis: redis, _config: config } = this;
+  const { redis, config } = this;
   const { criteria, audience, filter } = opts;
   const strFilter = typeof filter === 'string' ? filter : JSON.stringify(filter || {});
   const order = opts.order || 'ASC';

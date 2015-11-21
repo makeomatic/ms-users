@@ -95,20 +95,6 @@ describe('Users suite', function UserClassSuite() {
       }).to.throw(Errors.ValidationError);
     });
 
-    it('must be able to connect to and disconnect from amqp', function test() {
-      const users = new Users(config);
-      return users._connectAMQP().tap(() => {
-        return users._closeAMQP();
-      });
-    });
-
-    it('must be able to connect to and disconnect from redis', function test() {
-      const users = new Users(config);
-      return users._connectRedis().tap(() => {
-        return users._closeRedis();
-      });
-    });
-
     it('must be able to initialize and close service', function test() {
       const users = new Users(config);
       return users.connect().tap(() => {
@@ -190,15 +176,19 @@ describe('Users suite', function UserClassSuite() {
         return this.users.router(opts, headers)
           .reflect()
           .then((registered) => {
-            expect(registered.isFulfilled()).to.be.eq(true);
-            expect(registered.value()).to.have.ownProperty('jwt');
-            expect(registered.value()).to.have.ownProperty('user');
-            expect(registered.value().user.username).to.be.eq(opts.username);
-            expect(registered.value().user).to.have.ownProperty('metadata');
-            expect(registered.value().user.metadata).to.have.ownProperty('matic.ninja');
-            expect(registered.value().user.metadata).to.have.ownProperty('*.localhost');
-            expect(registered.value().user).to.not.have.ownProperty('password');
-            expect(registered.value().user).to.not.have.ownProperty('audience');
+            try {
+              expect(registered.isFulfilled()).to.be.eq(true);
+              expect(registered.value()).to.have.ownProperty('jwt');
+              expect(registered.value()).to.have.ownProperty('user');
+              expect(registered.value().user.username).to.be.eq(opts.username);
+              expect(registered.value().user).to.have.ownProperty('metadata');
+              expect(registered.value().user.metadata).to.have.ownProperty('matic.ninja');
+              expect(registered.value().user.metadata).to.have.ownProperty('*.localhost');
+              expect(registered.value().user).to.not.have.ownProperty('password');
+              expect(registered.value().user).to.not.have.ownProperty('audience');
+            } catch (e) {
+              throw registered.isFulfilled() ? e : registered.reason();
+            }
           });
       });
 

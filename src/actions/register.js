@@ -15,8 +15,9 @@ const { format: fmt } = require('util');
  * @return {Promise}
  */
 module.exports = function registerUser(message) {
-  const { _redis: redis, _config: config, deleteInactiveAccounts } = this;
-  const { secret, ttl, uri } = config.captcha;
+  const { redis, config } = this;
+  const { deleteInactiveAccounts, captcha: captchaConfig } = config;
+  const { secret, ttl, uri } = captchaConfig;
 
   // message
   const { username, password, audience, ipaddress } = message;

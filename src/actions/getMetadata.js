@@ -4,7 +4,7 @@ const Promise = require('bluebird');
 const { isArray } = Array;
 
 module.exports = function getMetadata(username, _audience) {
-  const { _redis: redis } = this;
+  const { redis } = this;
   const audience = isArray(_audience) ? _audience : [ _audience ];
 
   return Promise.map(audience, function getAudienceData(aud) {

@@ -78,7 +78,7 @@ exports.safeDecode = function safeDecode(algorithm, secret, string) {
  * @return {Promise}
  */
 exports.send = function sendEmail(email, type = 'activate', wait = false) {
-  const { _redis: redis, _config: config, _mailer: mailer } = this;
+  const { redis, config, mailer } = this;
   const { validation, server } = config;
   const { ttl, throttle, subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation;
 
@@ -178,7 +178,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
  * @return {Promise}
  */
 exports.verify = function verifyToken(string, namespace = 'activate', expires) {
-  const { _redis: redis, _config: config } = this;
+  const { redis, config } = this;
   const { validation } = config;
   const { secret: validationSecret, algorithm } = validation;
 

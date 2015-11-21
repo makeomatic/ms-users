@@ -8,7 +8,7 @@ module.exports = function verifyChallenge(opts) {
   // TODO: add security logs
   // var remoteip = opts.remoteip;
   const { token, audience, namespace, username } = opts;
-  const { _redis: redis, _config: config } = this;
+  const { redis, config } = this;
 
   let promise = Promise.bind(this);
 

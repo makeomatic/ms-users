@@ -9,7 +9,7 @@ const getMetadata = require('./getMetadata.js');
  * @returns {Promise}
  */
 module.exports = function verify(opts) {
-  const { defaultAudience } = this._config.jwt;
+  const { defaultAudience } = this.config.jwt;
   const { token, audience: _audience, peek } = opts;
   const audience = Array.isArray(_audience) ? _audience : [ _audience ];
 

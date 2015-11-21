@@ -5,8 +5,8 @@ const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 
 module.exports = function login(opts) {
-  const config = this._config.jwt;
-  const { _redis: redis } = this;
+  const config = this.config.jwt;
+  const { redis } = this;
   const { username, password } = opts;
   const { lockAfterAttempts, defaultAudience } = config;
   const audience = opts.audience || defaultAudience;

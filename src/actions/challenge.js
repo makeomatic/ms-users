@@ -3,7 +3,7 @@ const emailChallenge = require('../utils/send-email.js');
 const redisKey = require('../utils/key.js');
 
 module.exports = function sendChallenge(opts) {
-  const { _redis: redis } = this;
+  const { redis } = this;
   const { username } = opts;
   const userKey = redisKey(username, 'data');
 

@@ -5,7 +5,6 @@
 // accepts conf through .env file
 // suitable for configuring this in the docker env
 var configuration = require('ms-amqp-conf');
-var bunyan = require('bunyan');
 
 var dir;
 if (process.env.NODE_ENV === 'production') {

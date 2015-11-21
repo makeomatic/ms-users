@@ -1,18 +1,11 @@
+const Mservice = require('mservice');
 const fs = require('fs');
 const path = require('path');
-const AMQPTransport = require('ms-amqp-transport');
-const Validation = require('ms-amqp-validation');
 const Mailer = require('ms-mailer-client');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const EventEmitter = require('eventemitter3');
 const ld = require('lodash');
-const redis = require('ioredis');
 const { format: fmt } = require('util');
-const bunyan = require('bunyan');
-
-// validator configuration
-const { validate, validateSync } = new Validation('../schemas');
 
 // actions
 const register = require('./actions/register.js');
@@ -35,7 +28,7 @@ const sortedFilteredListLua = fs.readFileSync(path.resolve(__dirname, '../lua/so
 /**
  * @namespace Users
  */
-module.exports = class Users extends EventEmitter {
+module.exports = class Users extends Mservice {
 
   /**
    * Configuration options for the service
@@ -107,7 +100,7 @@ module.exports = class Users extends EventEmitter {
         // must have {}, so that the keys end up on a single machine
         keyPrefix: '{ms-users}',
       },
-      userSet: 'user-iterator-set'
+      userSet: 'user-iterator-set',
     },
     jwt: {
       defaultAudience: '*.localhost',
@@ -149,7 +142,13 @@ module.exports = class Users extends EventEmitter {
         predefined: 'predefined',
       },
     },
-    admins: []
+    admins: [],
+    // enable all plugins
+    plugins: [ 'validator', 'logger', 'amqp', 'redisCluster' ],
+    // by default only ringBuffer logger is enabled in prod
+    logger: process.env.NODE_ENV === 'development',
+    // init local schemas
+    validator: [ '../schemas' ],
   };
 
   /**
@@ -158,8 +157,8 @@ module.exports = class Users extends EventEmitter {
    * @return {Users}
    */
   constructor(opts = {}) {
-    super();
-    const config = this._config = ld.merge({}, Users.defaultOpts, opts);
+    super(ld.merge({}, Users.defaultOpts, opts));
+    const config = this.config;
 
     // map routes we listen to
     const { prefix } = config;
@@ -167,19 +166,53 @@ module.exports = class Users extends EventEmitter {
       return `${prefix}.${postfix}`;
     });
 
-    // define logger
-    this.setLogger();
-
-    const { error } = validateSync('config', config);
+    const { error } = this.validateSync('config', config);
     if (error) {
       this.log.fatal('Invalid configuration:', error.toJSON());
       throw error;
     }
+
+    this.on('plugin:connect:amqp', (amqp) => {
+      this._mailer = new Mailer(amqp, config.mailer);
+    });
+
+    this.on('plugin:close:amqp', () => {
+      this._mailer = null;
+    });
+
+    this.on('plugin:connect:redisCluster', (redis) => {
+      redis.defineCommand('sortedFilteredList', {
+        numberOfKeys: 2,
+        lua: sortedFilteredListLua,
+      });
+    });
   }
 
+  /**
+   * Getter for mailer client
+   * @return {Object}
+   */
+  get mailer() {
+    const mailer = this._mailer;
+    return mailer ? mailer : this.emit('error', new Errors.NotImplementedError('amqp is not connected'));
+  }
+
+  /**
+   * Getter for configuration
+   * @return {Object}
+   */
+  get config() {
+    return this._config;
+  }
+
+  /**
+   * Initializes Admin accounts
+   * @return {Promise}
+   */
   initAdminAccounts() {
-    const accounts = this._config.admins;
-    const audience = this._config.jwt.defaultAudience;
+    const config = this.confg;
+    const accounts = config.admins;
+    const audience = config.jwt.defaultAudience;
     return Promise.map(accounts, (account) => {
       return register.call(this, {
         username: account.username,
@@ -211,42 +244,8 @@ module.exports = class Users extends EventEmitter {
     })
     .finally(() => {
       this.log.info('removing account references from memory');
-      this._config.admins = [];
+      config.admins = [];
     });
-  }
-
-  /**
-   * Set logger
-   */
-  setLogger() {
-    const config = this._config;
-    let { logger } = config;
-    if (!config.hasOwnProperty('logger')) {
-      logger = config.debug;
-    }
-
-    // define logger
-    if (logger && logger instanceof bunyan) {
-      this.log = logger;
-    } else {
-      const streams = [{
-        level: 'trace',
-        type: 'raw',
-        stream: new bunyan.RingBuffer({ limit: 100 }),
-      }];
-
-      if (logger) {
-        streams.push({
-          stream: process.stdout,
-          level: config.debug ? 'debug' : 'info',
-        });
-      }
-
-      this.log = bunyan.createLogger({
-        name: 'ms-users',
-        streams,
-      });
-    }
   }
 
   /**
@@ -261,7 +260,7 @@ module.exports = class Users extends EventEmitter {
     const time = process.hrtime();
     const route = headers.routingKey.split('.').pop();
     const defaultRoutes = Users.defaultOpts.postfix;
-    const { postfix } = this._config;
+    const { postfix } = this.config;
 
     let promise;
     switch (route) {
@@ -312,11 +311,11 @@ module.exports = class Users extends EventEmitter {
       const meta = {
         message,
         headers,
-        latency: execTime[0] * 1000 + (+(execTime[1]/1000000).toFixed(3)),
+        latency: execTime[0] * 1000 + (+(execTime[1] / 1000000).toFixed(3)),
       };
 
       if (response instanceof Error) {
-        this.log.error(meta, 'Error performing operation', err);
+        this.log.error(meta, 'Error performing operation', response);
       } else {
         this.log.info(meta, 'completed operation');
       }
@@ -336,7 +335,7 @@ module.exports = class Users extends EventEmitter {
    * @return {Promise}
    */
   _validate(route, message) {
-    return validate(route, message)
+    return this.validate(route, message)
       .bind(this)
       .return(message)
       .catch(function validationError(error) {
@@ -442,7 +441,7 @@ module.exports = class Users extends EventEmitter {
    */
   _getMetadata(message) {
     const { username } = message;
-    return this._redis
+    return this.redis
       .hexists(redisKey(username, 'data'), 'password')
       .then((exists) => {
         if (exists !== true) {
@@ -460,7 +459,7 @@ module.exports = class Users extends EventEmitter {
    */
   _updateMetadata(message) {
     const { username } = message;
-    return this._redis
+    return this.redis
       .hexists(redisKey(username, 'data'), 'password')
       .then((exists) => {
         if (exists !== true) {
@@ -469,119 +468,6 @@ module.exports = class Users extends EventEmitter {
 
         return updateMetadata.call(this, message);
       });
-  }
-
-  /**
-   * @private
-   * @return {Promise}
-   */
-  _connectRedis() {
-    if (this._redis) {
-      return Promise.reject(new Errors.NotPermittedError('redis was already started'));
-    }
-
-    const config = this._config.redis;
-    return new Promise(function redisClusterConnected(resolve, reject) {
-      let onReady;
-      let onError;
-
-      const instance = new redis.Cluster(config.hosts, config.options || {});
-
-      onReady = function redisConnect() {
-        instance.removeListener('error', onError);
-        resolve(instance);
-      };
-
-      onError = function redisError(err) {
-        instance.removeListener('ready', onReady);
-        reject(err);
-      };
-
-      instance.once('ready', onReady);
-      instance.once('error', onError);
-    })
-    .tap((instance) => {
-      instance.defineCommand('sortedFilteredList', {
-        numberOfKeys: 2,
-        lua: sortedFilteredListLua,
-      })
-      this._redis = instance;
-    });
-  }
-
-  /**
-   * @private
-   * @return {Promise}
-   */
-  _closeRedis() {
-    if (!this._redis) {
-      return Promise.reject(new Errors.NotPermittedError('redis was not started'));
-    }
-
-    return this._redis
-      .quit()
-      .tap(() => {
-        this._redis = null;
-      });
-  }
-
-  /**
-   * @private
-   * @return {Promise}
-   */
-  _connectAMQP() {
-    if (this._amqp) {
-      return Promise.reject(new Errors.NotPermittedError('amqp was already started'));
-    }
-
-    return AMQPTransport
-      .connect(this._config.amqp, this.router)
-      .tap((amqp) => {
-        this._amqp = amqp;
-        this._mailer = new Mailer(amqp, this._config.mailer);
-      })
-      .catch((err) => {
-        this.log.fatal('Error connecting to AMQP', err.toJSON());
-        throw err;
-      });
-  }
-
-  /**
-   * @private
-   * @return {Promise}
-   */
-  _closeAMQP() {
-    if (!this._amqp) {
-      return Promise.reject(new Errors.NotPermittedError('amqp was not started'));
-    }
-
-    return this._amqp
-      .close()
-      .tap(() => {
-        this._amqp = null;
-        this._mailer = null;
-      });
-  }
-
-  /**
-   * @return {Promise}
-   */
-  connect() {
-    return Promise.all([
-      this._connectAMQP(),
-      this._connectRedis(),
-    ])
-    .return(this);
-  }
-
-  /**
-   * @return {Promise}
-   */
-  close() {
-    return Promise.all([
-      this._closeAMQP(),
-      this._closeRedis(),
-    ]);
   }
 
 };

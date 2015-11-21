@@ -4,7 +4,7 @@ const emailValidation = require('../utils/send-email.js');
 
 module.exports = function requestPassword(opts) {
   const { username } = opts;
-  const { _redis: redis } = this;
+  const { redis } = this;
   const userKey = redisKey(username, 'data');
 
   // TODO: make use of remoteip in security logs?

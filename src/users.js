@@ -210,7 +210,7 @@ module.exports = class Users extends Mservice {
    * @return {Promise}
    */
   initAdminAccounts() {
-    const config = this.confg;
+    const config = this.config;
     const accounts = config.admins;
     const audience = config.jwt.defaultAudience;
     return Promise.map(accounts, (account) => {

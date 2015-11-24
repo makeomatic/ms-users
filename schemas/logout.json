@@ -1,4 +1,5 @@
 {
+  "id": "logout",
   "type": "object",
   "required": [ "jwt", "audience" ],
   "properties": {

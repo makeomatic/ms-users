@@ -1,4 +1,5 @@
 {
+  "id": "challenge",
   "type": "object",
   "required": [ "type", "username" ],
   "properties": {

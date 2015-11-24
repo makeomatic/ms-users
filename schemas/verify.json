@@ -1,4 +1,5 @@
 {
+  "id": "verify",
   "type": "object",
   "required": [ "token", "audience" ],
   "properties": {

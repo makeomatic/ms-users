@@ -1,4 +1,5 @@
 {
+  "id": "config",
   "type": "object",
   "required": [ "prefix", "postfix", "amqp", "redis", "deleteInactiveAccounts", "jwt", "validation", "server", "mailer" ],
   "properties": {

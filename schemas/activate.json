@@ -1,4 +1,5 @@
 {
+  "id": "activate",
   "type": "object",
   "oneOf": [
     {

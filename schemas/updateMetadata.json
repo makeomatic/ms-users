@@ -1,4 +1,5 @@
 {
+  "id": "updateMetadata",
   "type": "object",
   "required": [ "username", "audience", "metadata" ],
   "properties": {

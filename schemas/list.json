@@ -1,4 +1,5 @@
 {
+  "id": "list",
   "type": "object",
   "required": [ "audience" ],
   "properties": {

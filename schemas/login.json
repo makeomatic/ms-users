@@ -1,4 +1,5 @@
 {
+  "id": "login",
   "type": "object",
   "required": [ "username", "password", "audience" ],
   "properties": {

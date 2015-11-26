@@ -12,7 +12,7 @@
     },
     "deleteInactiveAccounts": {
       "type": "integer",
-      "min": 0
+      "minimum": 0
     },
     "admins": {
       "type": "array",
@@ -146,7 +146,7 @@
         },
         "ttl": {
           "type": "integer",
-          "min": 1
+          "minimum": 1
         },
         "uri": {
           "type": "string",
@@ -167,7 +167,7 @@
         },
         "ttl": {
           "type": "integer",
-          "min": 0
+          "minimum": 0
         },
         "defaultAudience": {
           "type": "string",
@@ -179,7 +179,7 @@
         },
         "lockAfterAttempts": {
           "type": "integer",
-          "min": 0
+          "minimum": 0
         },
         "issuer": {
           "type": "string",
@@ -200,11 +200,11 @@
         },
         "ttl": {
           "type": "integer",
-          "min": 0
+          "minimum": 0
         },
         "throttle": {
           "type": "integer",
-          "min": 0
+          "minimum": 0
         },
         "paths": {
           "type": "object",

@@ -48,6 +48,15 @@
             "minLength": 1
           },
           "minItems": 1
+        },
+        "$incr": {
+          "type": "object",
+          "minProperties": 1,
+          "patternProperties": {
+            "^.+$": {
+              "type": "integer"
+            }
+          }
         }
       },
       "anyOf": [
@@ -56,6 +65,9 @@
         },
         {
           "required": [ "$remove" ]
+        },
+        {
+          "required": [ "$incr" ]
         }
       ]
     }

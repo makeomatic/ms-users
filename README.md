@@ -168,3 +168,7 @@ const usersService = new Users(defaultOpts);
 6. Ban:
  - [ ] Add security log
 7. Logging serializers to remove passwords from logs
+
+## Debugging
+
+`docker run --rm -it --link redis_1 --link redis_2 --link redis_3 --link rabbitmq -v ~/projects/ms-users/schemas:/src/schemas:ro -v ~/projects/ms-users/src:/src/src -v ~/projects/cappasity-deploy/configs:/configs:ro -e NCONF_FILE_PATH='["/configs/amqp.js","/configs/redis.js","/configs/users.js"]' -e MS_USERS__LOGGER=true -e NODE_ENV=development --name ms-users makeomatic/ms-users:5.1.0-development npm start`

@@ -3,6 +3,7 @@ const Errors = require('common-errors');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
+const moment = require('moment');
 
 module.exports = function login(opts) {
   const config = this.config.jwt;
@@ -15,8 +16,9 @@ module.exports = function login(opts) {
 
   let promise = Promise.bind(this);
   let loginAttempts;
+  let remoteipKey;
   if (remoteip && lockAfterAttempts > 0) {
-    const remoteipKey = redisKey(usernameKey, remoteip);
+    remoteipKey = redisKey(usernameKey, remoteip);
     promise = promise.then(function checkLoginAttempts() {
       // construct pipeline
       const pipeline = redis.pipeline();
@@ -37,7 +39,7 @@ module.exports = function login(opts) {
 
           loginAttempts = incrementValue[1];
           if (loginAttempts > lockAfterAttempts) {
-            throw new Errors.HttpStatusError(429, 'You are locked from making login attempts for the next 24 hours');
+            throw new Errors.HttpStatusError(429, 'You are locked from making login attempts for the next ' + moment().add(config.keepLoginAttempts, 'seconds').toNow(true));
           }
         });
     });
@@ -62,7 +64,7 @@ module.exports = function login(opts) {
 
         if (remoteip) {
           loginAttempts = 0;
-          return redis.del(remoteip);
+          return redis.del(remoteipKey);
         }
       })
       .then(function checkAccountActivation() {

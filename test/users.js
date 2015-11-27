@@ -769,15 +769,22 @@ describe('Users suite', function UserClassSuite() {
         sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
         sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
 
-        pipeline.exec = sinon.stub().returns(Promise.resolve());
+        pipeline.exec = sinon.stub().returns(Promise.resolve([
+          [ null, 'OK' ]
+        ]));
         pipeline.hmset = sinon.spy();
+        pipeline.hincryby = sinon.spy();
 
         return this.users.router({ username: 'noob', audience, metadata: { $set: { x: 10 } } }, headers)
           .reflect()
           .then(getMetadata => {
-            expect(getMetadata.isFulfilled()).to.be.eq(true);
-            expect(pipeline.hmset.calledOnce).to.be.eq(true);
-            expect(pipeline.hmset.calledWithExactly(`noob!metadata!${audience}`, { x: '10' })).to.be.eq(true);
+            try {
+              expect(getMetadata.isFulfilled()).to.be.eq(true);
+              expect(pipeline.hmset.calledOnce).to.be.eq(true);
+              expect(pipeline.hmset.calledWithExactly(`noob!metadata!${audience}`, { x: '10' })).to.be.eq(true);
+            } catch (e) {
+              return Promise.reject(getMetadata.isRejected() && getMetadata.reason() || e);
+            }
           });
       });
 
@@ -787,8 +794,11 @@ describe('Users suite', function UserClassSuite() {
         sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
         sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
 
-        pipeline.exec = sinon.stub().returns(Promise.resolve());
+        pipeline.exec = sinon.stub().returns(Promise.resolve([
+          [ null, 'OK' ]
+        ]));
         pipeline.hdel = sinon.spy();
+        pipeline.hincryby = sinon.spy();
 
         return this.users.router({ username: 'noob', audience, metadata: { $remove: [ 'x' ] } }, headers)
           .reflect()

@@ -443,7 +443,7 @@ module.exports = class Users extends Mservice {
     const { username } = message;
     return this.redis
       .hexists(redisKey(username, 'data'), 'password')
-      .then((exists) => {
+      .then(exists => {
         if (exists !== true) {
           throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
         }
@@ -461,7 +461,7 @@ module.exports = class Users extends Mservice {
     const { username } = message;
     return this.redis
       .hexists(redisKey(username, 'data'), 'password')
-      .then((exists) => {
+      .then(exists => {
         if (exists !== true) {
           throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
         }

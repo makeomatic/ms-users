@@ -317,7 +317,7 @@ module.exports = class Users extends Mservice {
       if (response instanceof Error) {
         this.log.error(meta, 'Error performing operation', response);
       } else {
-        this.log.info(meta, 'completed operation');
+        this.log.info(meta, 'completed operation', response);
       }
     });
 
@@ -444,7 +444,7 @@ module.exports = class Users extends Mservice {
     return this.redis
       .hexists(redisKey(username, 'data'), 'password')
       .then(exists => {
-        if (exists !== true) {
+        if (!exists) {
           throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
         }
 
@@ -462,7 +462,7 @@ module.exports = class Users extends Mservice {
     return this.redis
       .hexists(redisKey(username, 'data'), 'password')
       .then(exists => {
-        if (exists !== true) {
+        if (!exists) {
           throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
         }
 

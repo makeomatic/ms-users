@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
+const ld = require('lodash');
 
 module.exports = function iterateOverActiveUsers(opts) {
   const { redis, config } = this;
@@ -33,10 +34,11 @@ module.exports = function iterateOverActiveUsers(opts) {
     })
     .spread((ids, props, length) => {
       const users = ids.map(function remapData(id, idx) {
+        const data = props[idx][1];
         return {
           id,
           metadata: {
-            [ audience ]: props[idx][1],
+            [ audience ]: data ? ld.mapValues(data, JSON.parse, JSON) : {}
           },
         };
       });

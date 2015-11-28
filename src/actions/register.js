@@ -144,8 +144,11 @@ module.exports = function registerUser(message) {
       };
     }
 
-    logger.debug('returning activated user');
-    return jwt.login.call(this, username, audience);
+    return redis.sadd(config.redis.userSet, username)
+      .then(() => {
+        logger.debug('returning activated user');
+        return jwt.login.call(this, username, audience);
+      });
   });
 
   return promise;

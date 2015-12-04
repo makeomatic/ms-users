@@ -120,12 +120,12 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
         emailTemplate: render(type, context),
       };
     })
-    .then(function storeSecrets(data) {
+    .then(data => {
       const { context, emailTemplate } = data;
 
       // in case we need to setup a new password
       if (type === 'password') {
-        return updatePassword(email, context.password).return(emailTemplate);
+        return updatePassword.call(this, email, context.password).return(emailTemplate);
       }
 
       const throttleArgs = [throttleEmailsKey, 1, 'NX'];

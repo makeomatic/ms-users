@@ -119,7 +119,7 @@ describe('Users suite', function UserClassSuite() {
       [
         'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get',
         'set', 'hget', 'hdel', 'del', 'hmgetBuffer', 'incrby', 'zrem', 'zscoreBuffer', 'hmget',
-        'hset',
+        'hset', 'sadd',
       ].forEach(prop => {
         this.users._redis[prop] = emptyStub;
       });
@@ -162,13 +162,14 @@ describe('Users suite', function UserClassSuite() {
 
         const pipeline = { hsetnx: sinon.stub(), exec: sinon.stub() };
         pipeline.exec.returns(Promise.resolve([
-          [ null, 1 ],
-          [ null, 1 ],
+          [null, 1],
+          [null, 1],
         ]));
 
         sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(false));
         sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
         sinon.stub(this.users._redis, 'zadd').returns(1);
+        sinon.stub(this.users._redis, 'sadd').returns(Promise.resolve(1));
         sinon.stub(this.users._redis, 'hgetallBuffer')
           .onFirstCall().returns({})
           .onSecondCall().returns({});
@@ -202,8 +203,8 @@ describe('Users suite', function UserClassSuite() {
 
         const pipeline = { hsetnx: sinon.stub(), exec: sinon.stub() };
         pipeline.exec.returns(Promise.resolve([
-          [ null, 1 ],
-          [ null, 1 ],
+          [null, 1],
+          [null, 1],
         ]));
 
         const stub = sinon.stub().returns(Promise.resolve());
@@ -380,7 +381,7 @@ describe('Users suite', function UserClassSuite() {
         // mock pipeline response
         const pipeline = {
           exec: sinon.stub().returns(Promise.resolve([
-            [ null, 'true' ],
+            [null, 'true'],
           ])),
         };
         pipeline.hget = sinon.stub().returns(pipeline);
@@ -407,7 +408,7 @@ describe('Users suite', function UserClassSuite() {
         const jwt = require('../src/utils/jwt.js');
         const pipeline = {
           exec: sinon.stub().returns(Promise.resolve([
-            [ null, 'false' ],
+            [null, 'false'],
           ])),
         };
         pipeline.hget = sinon.stub().returns(pipeline);
@@ -438,7 +439,7 @@ describe('Users suite', function UserClassSuite() {
 
         const pipeline = {
           exec: sinon.stub().returns(Promise.resolve([
-            [ null, 'false' ],
+            [null, 'false'],
           ])),
         };
         pipeline.hget = sinon.stub().returns(pipeline);
@@ -483,7 +484,7 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('must reject login on a non-existing username', function test() {
-        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ null ]));
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([null]));
 
         return this.users.router(user, headers)
           .reflect()
@@ -495,7 +496,7 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('must reject login on an invalid password', function test() {
-        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('true') ]));
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([this.password, new Buffer('true')]));
 
         return this.users.router(user, headers)
           .reflect()
@@ -507,7 +508,7 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('must reject login on an inactive account', function test() {
-        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('false') ]));
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([this.password, new Buffer('false')]));
 
         return this.users.router(userWithValidPassword, headers)
           .reflect()
@@ -519,7 +520,7 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('must reject login on a banned account', function test() {
-        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('true'), new Buffer('true') ]));
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([this.password, new Buffer('true'), new Buffer('true')]));
 
         return this.users.router(userWithValidPassword, headers)
           .reflect()
@@ -531,7 +532,7 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('must login on a valid account with correct credentials', function test() {
-        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('true') ]));
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([this.password, new Buffer('true')]));
 
         const jwt = require('../src/utils/jwt.js');
         const stub = sinon.stub(jwt, 'login').returns(Promise.resolve());
@@ -550,7 +551,7 @@ describe('Users suite', function UserClassSuite() {
         const pipeline = {};
 
         Object.assign(userWithRemoteIP, user);
-        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([ this.password, new Buffer('true') ]));
+        sinon.stub(this.users._redis, 'hmgetBuffer').returns(Promise.resolve([this.password, new Buffer('true')]));
         sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
 
         pipeline.exec = sinon.stub();
@@ -673,7 +674,7 @@ describe('Users suite', function UserClassSuite() {
             expect(verify.value()).to.be.deep.eq({
               username: 'vitaly',
               metadata: {
-                [ defaultAudience ]: {},
+                [defaultAudience]: {},
               },
             });
             expect(this.users._redis.zadd.calledOnce).to.be.eq(true);
@@ -709,7 +710,7 @@ describe('Users suite', function UserClassSuite() {
           .then(getMetadata => {
             expect(getMetadata.isFulfilled()).to.be.eq(true);
             expect(getMetadata.value()).to.be.deep.eq({
-              [ audience ]: {
+              [audience]: {
                 name: {
                   q: 'verynicedata',
                 },
@@ -729,12 +730,12 @@ describe('Users suite', function UserClassSuite() {
             iat: new Buffer('10'),
           });
 
-        return this.users.router({ username: 'noob', audience: [ audience, 'matic.ninja' ] }, headers)
+        return this.users.router({ username: 'noob', audience: [audience, 'matic.ninja'] }, headers)
           .reflect()
           .then(getMetadata => {
             expect(getMetadata.isFulfilled()).to.be.eq(true);
             expect(getMetadata.value()).to.be.deep.eq({
-              [ audience ]: {
+              [audience]: {
                 name: {
                   q: 'verynicedata',
                 },
@@ -754,7 +755,7 @@ describe('Users suite', function UserClassSuite() {
         const { defaultAudience: audience } = this.users._config.jwt;
         sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(null));
 
-        return this.users.router({ username: 'noob', audience, metadata: { $remove: [ 'test' ] } }, headers)
+        return this.users.router({ username: 'noob', audience, metadata: { $remove: ['test'] } }, headers)
           .reflect()
           .then(getMetadata => {
             expect(getMetadata.isRejected()).to.be.eq(true);
@@ -770,7 +771,7 @@ describe('Users suite', function UserClassSuite() {
         sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
 
         pipeline.exec = sinon.stub().returns(Promise.resolve([
-          [ null, 'OK' ]
+          [null, 'OK'],
         ]));
         pipeline.hmset = sinon.spy();
         pipeline.hincryby = sinon.spy();
@@ -795,17 +796,17 @@ describe('Users suite', function UserClassSuite() {
         sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
 
         pipeline.exec = sinon.stub().returns(Promise.resolve([
-          [ null, 'OK' ]
+          [null, 'OK'],
         ]));
         pipeline.hdel = sinon.spy();
         pipeline.hincryby = sinon.spy();
 
-        return this.users.router({ username: 'noob', audience, metadata: { $remove: [ 'x' ] } }, headers)
+        return this.users.router({ username: 'noob', audience, metadata: { $remove: ['x'] } }, headers)
           .reflect()
           .then(getMetadata => {
             expect(getMetadata.isFulfilled()).to.be.eq(true);
             expect(pipeline.hdel.calledOnce).to.be.eq(true);
-            expect(pipeline.hdel.calledWithExactly(`noob!metadata!${audience}`, [ 'x' ])).to.be.eq(true);
+            expect(pipeline.hdel.calledWithExactly(`noob!metadata!${audience}`, ['x'])).to.be.eq(true);
           });
       });
 
@@ -816,7 +817,7 @@ describe('Users suite', function UserClassSuite() {
       const headers = { routingKey: Users.defaultOpts.postfix.requestPassword };
 
       it('must fail when user does not exist', function test() {
-        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ null, null, null ]));
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([null, null, null]));
 
         return this.users.router({ username: 'noob' }, headers)
           .reflect()
@@ -828,7 +829,7 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('must fail when account is inactive', function test() {
-        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ 1, 'false', null ]));
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([1, 'false', null]));
 
         return this.users.router({ username: 'noob' }, headers)
           .reflect()
@@ -840,7 +841,7 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('must fail when account is banned', function test() {
-        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ 1, 'true', 'true' ]));
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([1, 'true', 'true']));
 
         return this.users.router({ username: 'noob' }, headers)
           .reflect()
@@ -853,7 +854,7 @@ describe('Users suite', function UserClassSuite() {
 
       it('must send challenge email for an existing user with an active account', function test() {
         const emailValidation = require('../src/utils/send-email.js');
-        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ 1, 'true', null ]));
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([1, 'true', null]));
         const stub = sinon.stub(emailValidation, 'send').returns(Promise.resolve());
 
         return this.users.router({ username: 'noob' }, headers)
@@ -868,7 +869,7 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('must reject sending reset password emails for an existing user more than once in 3 hours', function test() {
-        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([ 1, 'true', null ]));
+        sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([1, 'true', null]));
         sinon.stub(this.users._redis, 'get').returns(Promise.resolve(1));
 
         return this.users.router({ username: 'noob' }, headers)
@@ -1165,7 +1166,7 @@ describe('Users suite', function UserClassSuite() {
           promises.push(this.users._redis
             .pipeline()
             .sadd(userSet, user.id)
-            .hmset(redisKey(user.id, 'metadata', audience), user.metadata)
+            .hmset(redisKey(user.id, 'metadata', audience), ld.mapValues(user.metadata, JSON.stringify, JSON))
             .exec()
           );
         });

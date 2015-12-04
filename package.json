@@ -1,6 +1,6 @@
 {
   "name": "ms-users",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {
@@ -34,7 +34,7 @@
     "ms-amqp-conf": "^0.2.0",
     "ms-amqp-transport": "^0.4.0",
     "ms-mailer-client": "^0.3.0",
-    "ms-mailer-templates": "0.0.1",
+    "ms-mailer-templates": "^0.2.0",
     "ms-validation": "^0.5.6",
     "mservice": "^0.13.1",
     "node-uuid": "^1.4.7",

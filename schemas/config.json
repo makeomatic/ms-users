@@ -1,7 +1,7 @@
 {
   "id": "config",
   "type": "object",
-  "required": [ "prefix", "postfix", "amqp", "redis", "deleteInactiveAccounts", "jwt", "validation", "server", "mailer" ],
+  "required": [ "prefix", "postfix", "amqp", "redis", "deleteInactiveAccounts", "jwt", "validation", "server", "mailer", "pwdReset" ],
   "properties": {
     "debug": {
       "type": "boolean"
@@ -35,6 +35,19 @@
             "type": "string",
             "minLength": 1
           }
+        }
+      }
+    },
+    "pwdReset": {
+      "type": "object",
+      "properties": {
+        "length": {
+          "type": "integer",
+          "min": 6,
+          "max": 30
+        },
+        "memorable": {
+          "type": "boolean"
         }
       }
     },

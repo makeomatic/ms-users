@@ -40,7 +40,34 @@ function usernamePasswordReset(username, password) {
     .return(username);
 }
 
-module.exports = function updatePassword(opts) {
+/**
+ * Sets new password for a given username
+ * @param {String} username
+ * @param {String} password
+ */
+function setPassword(username, password) {
+  const { redis } = this;
+
+  return scrypt
+    .hash(password)
+    .then(function calculatedHash(hash) {
+      const userKey = redisKey(username, 'data');
+      return redis
+        .hset(userKey, 'password', hash)
+        .then(function updatedPassword(result) {
+          if (result !== 1) {
+            return null;
+          }
+
+          return redis.hdel(userKey, 'password').done(function reportError() {
+            throw new Errors.HttpStatusError(404, 'username does not exist');
+          });
+        });
+    })
+    .return(username);
+}
+
+module.exports = exports = function updatePassword(opts) {
   const { redis } = this;
   const { newPassword: password, remoteip } = opts;
   const invalidateTokens = !!opts.invalidateTokens;
@@ -53,27 +80,14 @@ module.exports = function updatePassword(opts) {
     promise = usernamePasswordReset.call(this, opts.username, opts.currentPassword);
   }
 
-  promise = promise.then(function prepareData(username) {
-    return scrypt.hash(password)
-      .then(function calculatedHash(hash) {
-        const userKey = redisKey(username, 'data');
-        return redis
-          .hset(userKey, 'password', hash)
-          .then(function updatedPassword(result) {
-            if (result !== 1) {
-              return null;
-            }
-
-            return redis.hdel(userKey, 'password').done(function reportError() {
-              throw new Errors.HttpStatusError(404, 'username does not exist');
-            });
-          });
-      })
-      .return(username);
-  });
+  // update password
+  promise = promise
+    .then(username => {
+      return setPassword.call(this, username, password);
+    });
 
   if (invalidateTokens) {
-    promise = promise.tap(function addInvalidation(username) {
+    promise = promise.tap(username => {
       return jwt.reset.call(this, username);
     });
   }
@@ -86,3 +100,8 @@ module.exports = function updatePassword(opts) {
 
   return promise.return({ success: true });
 };
+
+/**
+ * Update password handler
+ */
+exports.updatePassword = setPassword;

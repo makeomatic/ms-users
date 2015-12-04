@@ -102,6 +102,10 @@ module.exports = class Users extends Mservice {
       },
       userSet: 'user-iterator-set',
     },
+    pwdReset: {
+      memorable: true,
+      length: 10,
+    },
     jwt: {
       defaultAudience: '*.localhost',
       hashingFunction: 'HS256',
@@ -144,11 +148,11 @@ module.exports = class Users extends Mservice {
     },
     admins: [],
     // enable all plugins
-    plugins: [ 'validator', 'logger', 'amqp', 'redisCluster' ],
+    plugins: ['validator', 'logger', 'amqp', 'redisCluster'],
     // by default only ringBuffer logger is enabled in prod
     logger: process.env.NODE_ENV === 'development',
     // init local schemas
-    validator: [ '../schemas' ],
+    validator: ['../schemas'],
   };
 
   /**
@@ -221,7 +225,7 @@ module.exports = class Users extends Mservice {
         metadata: {
           firstName: account.firstName,
           lastName: account.lastName,
-          roles: [ 'admin' ],
+          roles: ['admin'],
         },
         activate: true,
       })
@@ -264,45 +268,45 @@ module.exports = class Users extends Mservice {
 
     let promise;
     switch (route) {
-    case postfix.verify:
-      promise = this._validate(defaultRoutes.verify, message).then(this._verify);
-      break;
-    case postfix.register:
-      promise = this._validate(defaultRoutes.register, message).then(this._register);
-      break;
-    case postfix.ban:
-      promise = this._validate(defaultRoutes.ban, message).then(this._ban);
-      break;
-    case postfix.challenge:
-      promise = this._validate(defaultRoutes.challenge, message).then(this._challenge);
-      break;
-    case postfix.activate:
-      promise = this._validate(defaultRoutes.activate, message).then(this._activate);
-      break;
-    case postfix.login:
-      promise = this._validate(defaultRoutes.login, message).then(this._login);
-      break;
-    case postfix.logout:
-      promise = this._validate(defaultRoutes.logout, message).then(this._logout);
-      break;
-    case postfix.getMetadata:
-      promise = this._validate(defaultRoutes.getMetadata, message).then(this._getMetadata);
-      break;
-    case postfix.updateMetadata:
-      promise = this._validate(defaultRoutes.updateMetadata, message).then(this._updateMetadata);
-      break;
-    case postfix.requestPassword:
-      promise = this._validate(defaultRoutes.requestPassword, message).then(this._requestPassword);
-      break;
-    case postfix.updatePassword:
-      promise = this._validate(defaultRoutes.updatePassword, message).then(this._updatePassword);
-      break;
-    case postfix.list:
-      promise = this._validate(defaultRoutes.list, message).then(this._list);
-      break;
-    default:
-      promise = Promise.reject(new Errors.NotImplementedError(fmt('method "%s"', route)));
-      break;
+      case postfix.verify:
+        promise = this._validate(defaultRoutes.verify, message).then(this._verify);
+        break;
+      case postfix.register:
+        promise = this._validate(defaultRoutes.register, message).then(this._register);
+        break;
+      case postfix.ban:
+        promise = this._validate(defaultRoutes.ban, message).then(this._ban);
+        break;
+      case postfix.challenge:
+        promise = this._validate(defaultRoutes.challenge, message).then(this._challenge);
+        break;
+      case postfix.activate:
+        promise = this._validate(defaultRoutes.activate, message).then(this._activate);
+        break;
+      case postfix.login:
+        promise = this._validate(defaultRoutes.login, message).then(this._login);
+        break;
+      case postfix.logout:
+        promise = this._validate(defaultRoutes.logout, message).then(this._logout);
+        break;
+      case postfix.getMetadata:
+        promise = this._validate(defaultRoutes.getMetadata, message).then(this._getMetadata);
+        break;
+      case postfix.updateMetadata:
+        promise = this._validate(defaultRoutes.updateMetadata, message).then(this._updateMetadata);
+        break;
+      case postfix.requestPassword:
+        promise = this._validate(defaultRoutes.requestPassword, message).then(this._requestPassword);
+        break;
+      case postfix.updatePassword:
+        promise = this._validate(defaultRoutes.updatePassword, message).then(this._updatePassword);
+        break;
+      case postfix.list:
+        promise = this._validate(defaultRoutes.list, message).then(this._list);
+        break;
+      default:
+        promise = Promise.reject(new Errors.NotImplementedError(fmt('method "%s"', route)));
+        break;
     }
 
     // if we have an error

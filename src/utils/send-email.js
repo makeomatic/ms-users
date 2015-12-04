@@ -5,6 +5,8 @@ const redisKey = require('../utils/key.js');
 const crypto = require('crypto');
 const URLSafeBase64 = require('urlsafe-base64');
 const render = require('ms-mailer-templates');
+const { updatePassword } = require('../actions/updatePassword.js');
+const generatePassword = require('password-generator');
 
 /**
  * Encrypts buffer using alg and secret
@@ -95,27 +97,38 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
       }
     })
     .then(function generateContent() {
-      // generate secret
-      const enc = exports.encrypt(algorithm, secret, new Buffer(JSON.stringify({ email, token: activationSecret })));
-
       // generate context
-      const context = {
-        qs: '?q=' + URLSafeBase64.encode(enc),
-      };
+      const context = {};
 
       switch (type) {
-      case 'activate':
-      case 'reset':
-        context.link = exports.generateLink(server, paths[type]);
-        break;
-      default:
-        throw new Errors.InvalidOperationError(`${type} action is not supported`);
+        case 'activate':
+        case 'reset':
+          // generate secret
+          const enc = exports.encrypt(algorithm, secret, new Buffer(JSON.stringify({ email, token: activationSecret })));
+          context.qs = '?q=' + URLSafeBase64.encode(enc);
+          context.link = exports.generateLink(server, paths[type]);
+          break;
+        case 'password':
+          context.password = generatePassword(config.pwdReset.length, config.pwdReset.memorable);
+          break;
+        default:
+          throw new Errors.InvalidOperationError(`${type} action is not supported`);
       }
 
-      return render(type, context);
+      return {
+        context,
+        emailTemplate: render(type, context),
+      };
     })
-    .then(function storeSecrets(emailTemplate) {
-      const throttleArgs = [ throttleEmailsKey, 1, 'NX' ];
+    .then(function storeSecrets(data) {
+      const { context, emailTemplate } = data;
+
+      // in case we need to setup a new password
+      if (type === 'password') {
+        return updatePassword(email, context.password).return(emailTemplate);
+      }
+
+      const throttleArgs = [throttleEmailsKey, 1, 'NX'];
       if (throttle > 0) {
         throttleArgs.splice(2, 0, 'EX', throttle);
       }
@@ -128,7 +141,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
         })
         .then(function updateSecret() {
           const secretKey = redisKey('vsecret-' + type, activationSecret);
-          const args = [ secretKey, email ];
+          const args = [secretKey, email];
           if (ttl > 0) {
             args.push('EX', ttl);
           }
@@ -140,14 +153,15 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
       let subject;
       let from;
       switch (type) {
-      case 'activate':
-      case 'reset':
-        subject = subjects[type];
-        from = senders[type];
-        break;
-      default:
-        subject = '';
-        from = 'noreply <support@example.com>';
+        case 'activate':
+        case 'reset':
+        case 'password':
+          subject = subjects[type];
+          from = senders[type];
+          break;
+        default:
+          subject = '';
+          from = 'noreply <support@example.com>';
       }
 
       const mail = {

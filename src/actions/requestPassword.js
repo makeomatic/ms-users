@@ -26,7 +26,7 @@ module.exports = function requestPassword(opts) {
         throw new Errors.HttpStatusError(423, 'account has been locked');
       }
 
-      return emailValidation.send.call(this, username, 'reset');
+      return emailValidation.send.call(this, username, opts.generateNewPassword ? 'password' : 'reset');
     })
     .return({ success: true });
 };

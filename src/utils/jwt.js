@@ -2,7 +2,7 @@ const Errors = require('common-errors');
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 const redisKey = require('./key.js');
-const getMetadata = require('../actions/getMetadata.js');
+const getMetadata = require('../utils/getMetadata.js');
 const FlakeId = require('flake-idgen');
 const flakeIdGen = new FlakeId();
 
@@ -28,9 +28,9 @@ exports.login = function login(username, _audience) {
   const token = jwt.sign(payload, secret, { algorithm, audience, issuer: 'ms-users' });
 
   if (audience !== defaultAudience) {
-    audience = [ audience, defaultAudience ];
+    audience = [audience, defaultAudience];
   } else {
-    audience = [ audience ];
+    audience = [audience];
   }
 
   return Promise.props({
@@ -62,7 +62,7 @@ exports.logout = function logout(token, audience) {
   const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
   return jwt
-    .verifyAsync(token, secret, { issuer, audience, algorithms: [ algorithm ] })
+    .verifyAsync(token, secret, { issuer, audience, algorithms: [algorithm] })
     .catch((err) => {
       this.log.debug('error decoding token', err);
       throw new Errors.HttpStatusError(403, 'Invalid Token');
@@ -94,7 +94,7 @@ exports.verify = function verifyToken(token, audience, peek) {
   const { hashingFunction: algorithm, secret, ttl, issuer } = jwtConfig;
 
   return jwt
-    .verifyAsync(token, secret, { issuer, algorithms: [ algorithm ] })
+    .verifyAsync(token, secret, { issuer, algorithms: [algorithm] })
     .catch((err) => {
       this.log.debug('invalid token passed: %s', token, err);
       throw new Errors.HttpStatusError(403, 'invalid token');

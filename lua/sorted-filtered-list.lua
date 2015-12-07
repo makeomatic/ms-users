@@ -20,6 +20,10 @@ local function isempty(s)
   return s == nil or s == ''
 end
 
+local function isnumber(a)
+  return tonumber(a) ~= nil;
+end
+
 local function subrange(t, first, last)
   local sub = {};
   for i=first + 1,last do
@@ -105,6 +109,8 @@ if redis.call("EXISTS", PSSKey) == 0 then
           return false;
         elseif isempty(sortB) then
           return true;
+        elseif isnumber(sortA) and isnumber(sortB) then
+          return tonumber(sortA) < tonumber(sortB);
         else
           return string.lower(sortA) < string.lower(sortB);
         end
@@ -122,6 +128,8 @@ if redis.call("EXISTS", PSSKey) == 0 then
           return true;
         elseif isempty(sortB) then
           return false;
+        elseif isnumber(sortA) and isnumber(sortB) then
+          return tonumber(sortA) > tonumber(sortB);
         else
           return string.lower(sortA) > string.lower(sortB);
         end
@@ -171,6 +179,16 @@ local function filterString(value, filter)
   return string.find(string.lower(value), string.lower(filter));
 end
 
+-- filter: gte
+local function gte(value, filter)
+  return tonumber(value) >= tonumber(filter);
+end
+
+-- filter: lte
+local function lte(value, filter)
+  return tonumber(value) <= tonumber(filter);
+end
+
 -- if no metadata key, but we are still here
 if isempty(metadataKey) then
   -- only sort by value, which is id
@@ -198,9 +216,31 @@ else
         fieldValue = redis.call("hget", metaKey, fieldName);
       end
 
-      if filterString(fieldValue, filterValue) == nil then
-        matched = false;
-        break;
+      if type(filterValue) == 'table' then
+        for op, opFilter in pairs(filterValue) do
+          if op == 'gte' then
+            if gte(fieldValue, opFilter) ~= true then
+              matched = false;
+              break;
+            end
+          elseif op == 'lte' then
+            if lte(fieldValue, opFilter) ~= true then
+              matched = false;
+              break;
+            end
+          else
+            return redis.error_reply("not supported op: " .. op);
+          end
+        end
+
+        if matched == false then
+          break;
+        end
+      else
+        if filterString(fieldValue, filterValue) == nil then
+          matched = false;
+          break;
+        end
       end
     end
 

@@ -99,6 +99,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
     .then(function generateContent() {
       // generate context
       const context = {};
+      const templateName = validation.templates[type] || type;
 
       switch (type) {
         case 'activate':
@@ -117,7 +118,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
 
       return {
         context,
-        emailTemplate: render(type, context),
+        emailTemplate: render(templateName, context),
       };
     })
     .then(data => {

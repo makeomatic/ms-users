@@ -34,6 +34,12 @@ const config = {
       },
     ],
   },
+  validation: {
+    templates: {
+      activate: 'cappasity-activate',
+      password: 'cappasity-password',
+    },
+  },
 };
 
 describe('Users suite', function UserClassSuite() {
@@ -141,7 +147,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#register', function registerSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.register };
+      const headers = { routingKey: 'users.register' };
 
       it('must reject invalid registration params and return detailed error', function test() {
         return this.users.router({}, headers)
@@ -258,7 +264,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#challenge', function challengeSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.challenge };
+      const headers = { routingKey: 'users.challenge' };
 
       it('must fail to send a challenge for a non-existing user', function test() {
         sinon.stub(this.users._redis, 'hget').returns(Promise.resolve(null));
@@ -331,7 +337,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#activate', function activateSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.activate };
+      const headers = { routingKey: 'users.activate' };
       const emailValidation = require('../src/utils/send-email.js');
       const email = 'v@example.com';
 
@@ -472,7 +478,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#login', function loginSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.login };
+      const headers = { routingKey: 'users.login' };
       const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
       const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
       const scrypt = require('../src/utils/scrypt.js');
@@ -593,7 +599,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#logout', function logoutSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.logout };
+      const headers = { routingKey: 'users.logout' };
 
       it('must reject logout on an invalid JWT token', function test() {
         const { defaultAudience: audience } = this.users._config.jwt;
@@ -624,7 +630,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#verify', function verifySuite() {
-      const headers = { routingKey: 'verify' };
+      const headers = { routingKey: 'users.verify' };
 
       it('must reject on an invalid JWT token', function test() {
         const { defaultAudience: audience } = this.users._config.jwt;
@@ -683,7 +689,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#getMetadata', function getMetadataSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.getMetadata };
+      const headers = { routingKey: 'users.getMetadata' };
 
       it('must reject to return metadata on a non-existing username', function test() {
         const { defaultAudience: audience } = this.users._config.jwt;
@@ -749,7 +755,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#updateMetadata', function getMetadataSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.updateMetadata };
+      const headers = { routingKey: 'users.updateMetadata' };
 
       it('must reject updating metadata on a non-existing user', function test() {
         const { defaultAudience: audience } = this.users._config.jwt;
@@ -814,7 +820,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#requestPassword', function requestPasswordSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.requestPassword };
+      const headers = { routingKey: 'users.requestPassword' };
 
       it('must fail when user does not exist', function test() {
         sinon.stub(this.users._redis, 'hmget').returns(Promise.resolve([null, null, null]));
@@ -883,7 +889,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#updatePassword', function updatePasswordSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.updatePassword };
+      const headers = { routingKey: 'users.updatePassword' };
       const email = 'v@example.com';
       const emailValidation = require('../src/utils/send-email.js');
 
@@ -998,7 +1004,7 @@ describe('Users suite', function UserClassSuite() {
     });
 
     describe('#ban', function banSuite() {
-      const headers = { routingKey: Users.defaultOpts.postfix.ban };
+      const headers = { routingKey: 'users.ban' };
 
       it('must reject banning a non-existing user', function test() {
         sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(false));
@@ -1148,6 +1154,7 @@ describe('Users suite', function UserClassSuite() {
 
       const faker = require('faker');
       const redisKey = require('../src/utils/key.js');
+      const headers = { routingKey: 'users.list' };
 
       beforeEach(function populateRedis() {
         const audience = this.users._config.jwt.defaultAudience;
@@ -1177,14 +1184,13 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('able to list users without any filters: ASC', function test() {
-        return this.users._list({
+        return this.users.router({
           offset: 51,
           limit: 10,
           order: 'ASC',
-          criteria: null,
           audience: this.audience,
           filter: {},
-        })
+        }, headers)
         .reflect()
         .then(result => {
           try {
@@ -1211,14 +1217,13 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('able to list users without any filters: DESC', function test() {
-        return this.users._list({
+        return this.users.router({
           offset: 0,
           limit: 10,
           order: 'DESC',
-          criteria: null,
           audience: this.audience,
           filter: {},
-        })
+        }, headers)
         .reflect()
         .then(result => {
           try {
@@ -1242,16 +1247,15 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('able to list users with # filter: ASC', function test() {
-        return this.users._list({
+        return this.users.router({
           offset: 0,
           limit: 10,
           order: 'ASC',
-          criteria: null,
           audience: this.audience,
           filter: {
             '#': 'an',
           },
-        })
+        }, headers)
         .reflect()
         .then(result => {
           try {
@@ -1279,14 +1283,15 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('able to list users with # filter: DESC', function test() {
-        return this.users._list({
+        return this.users.router({
           offset: 0,
           limit: 10,
           order: 'DESC',
-          criteria: null,
           audience: this.audience,
-          filter: '{"#":"an"}',
-        })
+          filter: {
+            '#': 'an',
+          },
+        }, headers)
         .reflect()
         .then(result => {
           try {
@@ -1314,14 +1319,14 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('able to list users by meta field key: ASC', function test() {
-        return this.users._list({
+        return this.users.router({
           offset: 0,
           limit: 10,
           order: 'ASC',
           criteria: 'firstName',
           audience: this.audience,
-          filter: '{}',
-        })
+          filter: {},
+        }, headers)
         .reflect()
         .then(result => {
           try {
@@ -1345,14 +1350,14 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('able to list users by meta field key: DESC', function test() {
-        return this.users._list({
+        return this.users.router({
           offset: 0,
           limit: 10,
           order: 'DESC',
           criteria: 'firstName',
           audience: this.audience,
-          filter: '{}',
-        })
+          filter: {},
+        }, headers)
         .reflect()
         .then(result => {
           try {
@@ -1376,14 +1381,17 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('able to list users by meta field key with multiple filters: DESC', function test() {
-        return this.users._list({
+        return this.users.router({
           offset: 0,
           limit: 10,
           order: 'DESC',
           criteria: 'firstName',
           audience: this.audience,
-          filter: '{"#":"an","lastName":"b"}',
-        })
+          filter: {
+            '#': 'an',
+            lastName: 'b',
+          },
+        }, headers)
         .reflect()
         .then(result => {
           try {
@@ -1412,14 +1420,17 @@ describe('Users suite', function UserClassSuite() {
       });
 
       it('able to list users by meta field key with multiple filters: ASC', function test() {
-        return this.users._list({
+        return this.users.router({
           offset: 0,
           limit: 10,
           order: 'ASC',
           criteria: 'lastName',
           audience: this.audience,
-          filter: '{"#":"an","lastName":"b"}',
-        })
+          filter: {
+            '#': 'an',
+            lastName: 'b',
+          },
+        }, headers)
         .reflect()
         .then(result => {
           try {

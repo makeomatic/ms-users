@@ -1,14 +1,10 @@
 {
   "id": "config",
   "type": "object",
-  "required": [ "prefix", "postfix", "amqp", "redis", "deleteInactiveAccounts", "jwt", "validation", "server", "mailer", "pwdReset" ],
+  "required": [ "amqp", "redis", "deleteInactiveAccounts", "jwt", "validation", "server", "mailer", "pwdReset" ],
   "properties": {
     "debug": {
       "type": "boolean"
-    },
-    "prefix": {
-      "type": "string",
-      "minLength": 1
     },
     "deleteInactiveAccounts": {
       "type": "integer",
@@ -51,61 +47,8 @@
         }
       }
     },
-    "postfix": {
-      "type": "object",
-      "required": [ "ban", "challenge", "activate", "verify", "login", "logout", "register", "getMetadata", "updateMetadata", "requestPassword", "updatePassword", "list" ],
-      "properties": {
-        "ban": {
-          "type": "string",
-          "minLength": 1
-        },
-        "challenge": {
-          "type": "string",
-          "minLength": 1
-        },
-        "activate": {
-          "type": "string",
-          "minLength": 1
-        },
-        "verify": {
-          "type": "string",
-          "minLength": 1
-        },
-        "login": {
-          "type": "string",
-          "minLength": 1
-        },
-        "logout": {
-          "type": "string",
-          "minLength": 1
-        },
-        "register": {
-          "type": "string",
-          "minLength": 1
-        },
-        "getMetadata": {
-          "type": "string",
-          "minLength": 1
-        },
-        "updateMetadata": {
-          "type": "string",
-          "minLength": 1
-        },
-        "requestPassword": {
-          "type": "string",
-          "minLength": 1
-        },
-        "updatePassword": {
-          "type": "string",
-          "minLength": 1
-        },
-        "list": {
-          "type": "string",
-          "minLength": 1
-        }
-      }
-    },
     "amqp": {
+      "required": [ "prefix", "postfix" ],
       "type": "object"
     },
     "redis": {
@@ -202,7 +145,7 @@
     },
     "validation": {
       "type": "object",
-      "required": [ "secret", "algorithm", "ttl", "paths", "subjects", "email", "senders" ],
+      "required": [ "secret", "algorithm", "ttl", "paths", "subjects", "email", "senders", "templates" ],
       "properties": {
         "secret": {
           "type": "string",
@@ -232,25 +175,45 @@
           }
         },
         "senders": {
-          "required": [ "activate", "reset" ],
+          "required": [ "activate", "reset", "password" ],
           "type": "object",
           "properties": {
             "activate": {
               "type": "string"
             },
             "reset": {
+              "type": "string"
+            },
+            "password": {
               "type": "string"
             }
           }
         },
         "subjects": {
-          "required": [ "activate", "reset" ],
+          "required": [ "activate", "reset", "password" ],
           "type": "object",
           "properties": {
             "activate": {
               "type": "string"
             },
             "reset": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            }
+          }
+        },
+        "templates": {
+          "type": "object",
+          "properties": {
+            "activate": {
+              "type": "string"
+            },
+            "reset": {
+              "type": "string"
+            },
+            "password": {
               "type": "string"
             }
           }

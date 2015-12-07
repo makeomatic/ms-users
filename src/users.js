@@ -5,25 +5,10 @@ const Mailer = require('ms-mailer-client');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const ld = require('lodash');
-const { format: fmt } = require('util');
-
-// actions
-const register = require('./actions/register.js');
-const getMetadata = require('./actions/getMetadata.js');
-const updateMetadata = require('./actions/updateMetadata.js');
-const challenge = require('./actions/challenge.js');
-const activate = require('./actions/activate.js');
-const login = require('./actions/login.js');
-const logout = require('./actions/logout.js');
-const verify = require('./actions/verify.js');
-const requestPassword = require('./actions/requestPassword.js');
-const updatePassword = require('./actions/updatePassword.js');
-const ban = require('./actions/ban.js');
-const list = require('./actions/list.js');
 
 // utils
-const redisKey = require('./utils/key.js');
 const sortedFilteredListLua = fs.readFileSync(path.resolve(__dirname, '../lua/sorted-filtered-list.lua'), 'utf-8');
+const register = require('./actions/register.js');
 
 /**
  * @namespace Users
@@ -36,59 +21,19 @@ module.exports = class Users extends Mservice {
    */
   static defaultOpts = {
     debug: process.env.NODE_ENV === 'development',
-    // prefix routes with users.
-    prefix: 'users',
     // keep inactive accounts for 30 days
     deleteInactiveAccounts: 30 * 24 * 60 * 60,
-    // postfixes for routes that we support
-    postfix: {
-      // ban, supports both unban/ban actions
-      ban: 'ban',
-
-      // challenge. Challenge sends email with a token that is used to activate account
-      // often used internally from 'register' method
-      challenge: 'challenge',
-
-      // verifies it and activates not banned account
-      activate: 'activate',
-
-      // verify token and return metadata
-      verify: 'verify',
-
-      // verify credentials and return metadata
-      login: 'login',
-
-      // verify token and destroy it
-      logout: 'logout',
-
-      // creates new user
-      // sends 'challenge', or, if this options is not set, immediately registers user
-      // in the future multiple challenge options could be supported, for now it's just an email
-      register: 'register',
-
-      // pass metadata out based on username
-      // core data only contains username and hashed password
-      // this is an application specific part that can store anything here
-      getMetadata: 'getMetadata',
-
-      // update metadata based on username
-      // rewrites/adds new data, includes both set and remove methods, set overwrites,
-      // while remove - deletes. Set precedes over remove and batch updates are supported
-      updateMetadata: 'updateMetadata',
-
-      // requests an email to change password
-      // can be extended in the future to support more options like secret questions
-      // or text messages
-      requestPassword: 'requestPassword',
-
-      // updates password - either without any checks or, if challenge token is passed, makes sure it's correct
-      updatePassword: 'updatePassword',
-
-      // lists and iterators over registered users
-      list: 'list',
-    },
+    // amqp plugin configuration
     amqp: {
       queue: 'ms-users',
+      // prefix routes with users.
+      prefix: 'users',
+      // postfixes for routes that we support
+      postfix: path.join(__dirname, 'actions'),
+      // automatically init routes
+      initRoutes: true,
+      // automatically init router
+      initRouter: true,
     },
     captcha: {
       secret: 'put-your-real-gcaptcha-secret-here',
@@ -127,10 +72,15 @@ module.exports = class Users extends Mservice {
       subjects: {
         activate: 'Activate your account',
         reset: 'Reset your password',
+        password: 'Account Recovery',
       },
       senders: {
         activate: 'noreply <support@example.com>',
         reset: 'noreply <support@example.com>',
+        password: 'noreply <support@example.com>',
+      },
+      templates: {
+        // specify template names here
       },
       email: 'support@example.com',
     },
@@ -163,12 +113,6 @@ module.exports = class Users extends Mservice {
   constructor(opts = {}) {
     super(ld.merge({}, Users.defaultOpts, opts));
     const config = this.config;
-
-    // map routes we listen to
-    const { prefix } = config;
-    config.amqp.listen = ld.map(config.postfix, function assignPostfix(postfix) {
-      return `${prefix}.${postfix}`;
-    });
 
     const { error } = this.validateSync('config', config);
     if (error) {
@@ -250,228 +194,6 @@ module.exports = class Users extends Mservice {
       this.log.info('removing account references from memory');
       config.admins = [];
     });
-  }
-
-  /**
-   * Router instance, bound to Users module
-   * @param  {Object}   message
-   * @param  {Object}   headers
-   * @param  {Object}   actions
-   * @param  {Function} next
-   * @return {Promise}
-   */
-  router = (message, headers, actions, next) => {
-    const time = process.hrtime();
-    const route = headers.routingKey.split('.').pop();
-    const defaultRoutes = Users.defaultOpts.postfix;
-    const { postfix } = this.config;
-
-    let promise;
-    switch (route) {
-      case postfix.verify:
-        promise = this._validate(defaultRoutes.verify, message).then(this._verify);
-        break;
-      case postfix.register:
-        promise = this._validate(defaultRoutes.register, message).then(this._register);
-        break;
-      case postfix.ban:
-        promise = this._validate(defaultRoutes.ban, message).then(this._ban);
-        break;
-      case postfix.challenge:
-        promise = this._validate(defaultRoutes.challenge, message).then(this._challenge);
-        break;
-      case postfix.activate:
-        promise = this._validate(defaultRoutes.activate, message).then(this._activate);
-        break;
-      case postfix.login:
-        promise = this._validate(defaultRoutes.login, message).then(this._login);
-        break;
-      case postfix.logout:
-        promise = this._validate(defaultRoutes.logout, message).then(this._logout);
-        break;
-      case postfix.getMetadata:
-        promise = this._validate(defaultRoutes.getMetadata, message).then(this._getMetadata);
-        break;
-      case postfix.updateMetadata:
-        promise = this._validate(defaultRoutes.updateMetadata, message).then(this._updateMetadata);
-        break;
-      case postfix.requestPassword:
-        promise = this._validate(defaultRoutes.requestPassword, message).then(this._requestPassword);
-        break;
-      case postfix.updatePassword:
-        promise = this._validate(defaultRoutes.updatePassword, message).then(this._updatePassword);
-        break;
-      case postfix.list:
-        promise = this._validate(defaultRoutes.list, message).then(this._list);
-        break;
-      default:
-        promise = Promise.reject(new Errors.NotImplementedError(fmt('method "%s"', route)));
-        break;
-    }
-
-    // if we have an error
-    promise = promise.finally(function auditLog(response) {
-      const execTime = process.hrtime(time);
-      const meta = {
-        message,
-        headers,
-        latency: execTime[0] * 1000 + (+(execTime[1] / 1000000).toFixed(3)),
-      };
-
-      if (response instanceof Error) {
-        this.log.error(meta, 'Error performing operation', response);
-      } else {
-        this.log.info(meta, 'completed operation', response);
-      }
-    });
-
-    if (typeof next === 'function') {
-      return promise.asCallback(next);
-    }
-
-    return promise;
-  }
-
-  /**
-   * @private
-   * @param  {String} route
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _validate(route, message) {
-    return this.validate(route, message)
-      .bind(this)
-      .return(message)
-      .catch(function validationError(error) {
-        this.log.warn('Validation error:', error.toJSON());
-        throw error;
-      });
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _list(message) {
-    return list.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _ban(message) {
-    return ban.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _updatePassword(message) {
-    return updatePassword.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _requestPassword(message) {
-    return requestPassword.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _verify(message) {
-    return verify.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _logout(message) {
-    return logout.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _login(message) {
-    return login.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _activate(message) {
-    return activate.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _challenge(message) {
-    return challenge.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _register(message) {
-    return register.call(this, message);
-  }
-
-  /**
-   * @private
-   * @param  {Object} message
-   * @return {Promise}
-   */
-  _getMetadata(message) {
-    const { username } = message;
-    return this.redis
-      .hexists(redisKey(username, 'data'), 'password')
-      .then(exists => {
-        if (!exists) {
-          throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
-        }
-
-        return getMetadata.call(this, username, message.audience);
-      });
-  }
-
-  /**
-   * @private
-   * @param  {Object}  message
-   * @return {Promise}
-   */
-  _updateMetadata(message) {
-    const { username } = message;
-    return this.redis
-      .hexists(redisKey(username, 'data'), 'password')
-      .then(exists => {
-        if (!exists) {
-          throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
-        }
-
-        return updateMetadata.call(this, message);
-      });
   }
 
 };

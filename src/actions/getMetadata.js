@@ -1,26 +1,16 @@
-const ld = require('lodash');
+const Errors = require('common-errors');
+const getMetadata = require('../utils/getMetadata.js');
 const redisKey = require('../utils/key.js');
-const Promise = require('bluebird');
-const { isArray } = Array;
 
-module.exports = function getMetadata(username, _audience) {
-  const { redis } = this;
-  const audience = isArray(_audience) ? _audience : [ _audience ];
-
-  return Promise.map(audience, function getAudienceData(aud) {
-    return redis.hgetallBuffer(redisKey(username, 'metadata', aud));
-  })
-  .then(function remapAudienceData(data) {
-    const output = {};
-    audience.forEach(function transform(aud, idx) {
-      const datum = data[idx];
-      if (datum) {
-        output[aud] = ld.mapValues(datum, JSON.parse, JSON);
-      } else {
-        output[aud] = {};
+module.exports = function getMetadataAction(message) {
+  const { username } = message;
+  return this.redis
+    .hexists(redisKey(username, 'data'), 'password')
+    .then(exists => {
+      if (!exists) {
+        throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
       }
-    });
 
-    return output;
-  });
+      return getMetadata.call(this, username, message.audience);
+    });
 };

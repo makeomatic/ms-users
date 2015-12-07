@@ -38,7 +38,7 @@ module.exports = function iterateOverActiveUsers(opts) {
         return {
           id,
           metadata: {
-            [ audience ]: data ? ld.mapValues(data, JSON.parse, JSON) : {}
+            [audience]: data ? ld.mapValues(data, JSON.parse, JSON) : {},
           },
         };
       });

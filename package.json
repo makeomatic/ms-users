@@ -50,7 +50,6 @@
     "eslint": "^1.10.3",
     "eslint-config-airbnb": "^2.0.0",
     "eslint-plugin-mocha": "^1.1.0",
-    "eslint-plugin-react": "^3.11.2",
     "faker": "^3.0.1",
     "json": "^9.0.3",
     "mocha": "^2.3.3",

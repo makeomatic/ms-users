@@ -196,4 +196,18 @@ module.exports = class Users extends Mservice {
     });
   }
 
+  /**
+   * Fetches default plan
+   * @return {Promise}
+   */
+  fetchDefaultPlan() {
+    const { amqp, config } = this;
+    const route = [config.payments.prefix, 'plan.get'].join('.');
+    const id = 'free';
+
+    amqp.publishAndWait(route, id, {timeout: 5000}).then((plan) => {
+      return plan;
+    });
+  }
+
 };

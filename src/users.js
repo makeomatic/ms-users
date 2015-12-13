@@ -205,9 +205,7 @@ module.exports = class Users extends Mservice {
     const route = [config.payments.prefix, 'plan.get'].join('.');
     const id = 'free';
 
-    amqp.publishAndWait(route, id, {timeout: 5000}).then((plan) => {
-      return plan;
-    });
+    return amqp.publishAndWait(route, id, {timeout: 5000});
   }
 
 };

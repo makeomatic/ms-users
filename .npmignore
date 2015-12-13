@@ -31,3 +31,6 @@ src
 test
 Makefile
 .env
+
+# client specific code
+lib/custom

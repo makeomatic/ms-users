@@ -3,15 +3,13 @@ const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
 const emailVerification = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
-const ld = require('lodash');
-const moment = require('moment');
-const setMetadata = require('../utils/updateMetadata.js');
 
 module.exports = function verifyChallenge(opts) {
   // TODO: add security logs
   // var remoteip = opts.remoteip;
-  const { token, audience, namespace, username } = opts;
+  const { token, namespace, username } = opts;
   const { redis, config } = this;
+  const audience = opts.audience || config.defaultAudience;
 
   function verifyToken() {
     return emailVerification.verify.call(this, token, namespace, config.validation.ttl > 0);
@@ -50,27 +48,11 @@ module.exports = function verifyChallenge(opts) {
   }
 
   function returnUserInfo(user) {
-    return jwt.login.call(this, user, audience || config.defaultAudience);
+    return jwt.login.call(this, user, audience);
   }
 
-  function mixPlan(user) {
-    return this.fetchDefaultPlan().bind(this).then((plan) => {
-      const subscription = ld.findWhere(plan.subscriptions, { name: 'free' });
-      const nextCycle = moment().add(1, 'month').format();
-      const update = {
-        username: user.username,
-        audience: config.billing.audience,
-        '$set': {
-          plan: 'free',
-          models: subscription.models,
-          model_price: subscription.price,
-          next_cycle: nextCycle,
-        },
-      };
-
-      return setMetadata.call(this, update);
-    })
-    .return(user);
+  function postHook(user) {
+    return this.postHook('users:activate', user.username, audience);
   }
 
   let promise = Promise.bind(this);
@@ -83,6 +65,6 @@ module.exports = function verifyChallenge(opts) {
 
   return promise
     .then(activateAccount)
-    .then(mixPlan)
+    .tap(postHook)
     .then(returnUserInfo);
 };

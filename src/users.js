@@ -96,6 +96,12 @@ module.exports = class Users extends Mservice {
         predefined: 'predefined',
       },
     },
+    payments: {
+      prefix: 'payments',
+      routes: {
+        getPlan: 'plan.get',
+      },
+    },
     admins: [],
     // enable all plugins
     plugins: ['validator', 'logger', 'amqp', 'redisCluster'],
@@ -103,6 +109,8 @@ module.exports = class Users extends Mservice {
     logger: process.env.NODE_ENV === 'development',
     // init local schemas
     validator: ['../schemas'],
+    // default hooks - none
+    hooks: {},
   };
 
   /**
@@ -193,20 +201,6 @@ module.exports = class Users extends Mservice {
     .finally(() => {
       this.log.info('removing account references from memory');
       config.admins = [];
-    });
-  }
-
-  /**
-   * Fetches default plan
-   * @return {Promise}
-   */
-  fetchDefaultPlan() {
-    const { amqp, config } = this;
-    const route = [config.payments.prefix, 'plan.get'].join('.');
-    const id = 'free';
-
-    amqp.publishAndWait(route, id, {timeout: 5000}).then((plan) => {
-      return plan;
     });
   }
 

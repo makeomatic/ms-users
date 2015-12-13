@@ -1,7 +1,7 @@
 {
   "id": "config",
   "type": "object",
-  "required": [ "amqp", "redis", "deleteInactiveAccounts", "jwt", "validation", "server", "mailer", "pwdReset" ],
+  "required": [ "amqp", "redis", "deleteInactiveAccounts", "jwt", "validation", "server", "mailer", "pwdReset", "hooks" ],
   "properties": {
     "debug": {
       "type": "boolean"
@@ -272,6 +272,12 @@
           }
         }
       }
+    },
+    "hooks": {
+      "type": "object"
+    },
+    "payments": {
+      "type": "object"
     }
   }
 }

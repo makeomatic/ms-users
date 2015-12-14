@@ -96,6 +96,12 @@ module.exports = class Users extends Mservice {
         predefined: 'predefined',
       },
     },
+    payments: {
+      prefix: 'payments',
+      routes: {
+        getPlan: 'plan.get',
+      },
+    },
     admins: [],
     // enable all plugins
     plugins: ['validator', 'logger', 'amqp', 'redisCluster'],
@@ -103,6 +109,8 @@ module.exports = class Users extends Mservice {
     logger: process.env.NODE_ENV === 'development',
     // init local schemas
     validator: ['../schemas'],
+    // default hooks - none
+    hooks: {},
   };
 
   /**

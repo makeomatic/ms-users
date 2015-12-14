@@ -8,7 +8,6 @@ const redisKey = require('../utils/key.js');
 const emailValidation = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const { format: fmt } = require('util');
-const moment = require('moment');
 
 /**
  * Registration handler
@@ -56,7 +55,7 @@ module.exports = function registerUser(message) {
               return true;
             })
             .catch(function captchaError(err) {
-              const errData = JSON.stringify(ld.pick(err, [ 'statusCode', 'error' ]));
+              const errData = JSON.stringify(ld.pick(err, ['statusCode', 'error']));
               throw new Errors.HttpStatusError(412, fmt('Captcha response: %s', errData));
             });
         });
@@ -118,27 +117,12 @@ module.exports = function registerUser(message) {
   });
 
   // step 4.5 - add free plan data if user activated
-  promise = promise.then(function mixPlan() {
+  promise = promise.tap(function mixPlan() {
     if (!activate) {
       return null;
     }
 
-    return this.fetchDefaultPlan().bind(this).then((plan) => {
-      const subscription = ld.findWhere(plan.subscriptions, { name: 'free' });
-      const nextCycle = moment().add(1, 'month').format();
-      const update = {
-        username: username,
-        audience: config.billing.audience,
-        '$set': {
-          plan: 'free',
-          models: subscription.models,
-          model_price: subscription.price,
-          next_cycle: nextCycle,
-        },
-      };
-
-      return setMetadata.call(this, update);
-    });
+    return this.postHook('users:activate', username, audience);
   });
 
   // step 5 - save metadata if present

@@ -24,9 +24,13 @@ WORKDIR /src
 ADD package.json package.json
 
 ARG NODE_ENV=production
+ARG NPM_PROXY
 ENV NCONF_NAMESPACE=MS_USERS
 
-RUN npm install
+RUN npm config set registry $NPM_PROXY && \
+    npm install && \
+    npm config set registry https://registry.npmjs.com
+
 RUN apk del curl make gcc g++ python && \
   rm -rf /tmp/* /var/cache/apk/* /root/.npm /root/.node-gyp src
 

@@ -36,8 +36,8 @@ $(TEST_TASKS): build-docker
 
 $(BUILD_TASKS):
 	npm run prepublish
-	docker build --build-arg VERSION=v$(basename $@) --build-arg NODE_ENV=development -t makeomatic/$(PKG_NAME):$(basename $@)-development .
-	docker build --build-arg VERSION=v$(basename $@) -t makeomatic/$(PKG_NAME):$(basename $@)-$(PKG_VERSION) .
+	docker build --build-arg NPM_PROXY=http://$(shell docker-machine ip dev):4873 --build-arg VERSION=v$(basename $@) --build-arg NODE_ENV=development -t makeomatic/$(PKG_NAME):$(basename $@)-development .
+	docker build --build-arg NPM_PROXY=http://$(shell docker-machine ip dev):4873 --build-arg VERSION=v$(basename $@) -t makeomatic/$(PKG_NAME):$(basename $@)-$(PKG_VERSION) .
 	docker tag -f makeomatic/$(PKG_NAME):$(basename $@)-$(PKG_VERSION) makeomatic/$(PKG_NAME):$(basename $@)
 
 $(PUSH_TASKS):

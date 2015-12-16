@@ -22,11 +22,13 @@ module.exports = function mixPlan(username, audience) {
       const update = {
         username: username,
         audience: audience,
-        '$set': {
-          plan: id,
-          nextCycle,
-          models: subscription.models,
-          modelPrice: subscription.price,
+        metadata: {
+          '$set': {
+            plan: id,
+            nextCycle,
+            models: subscription.models,
+            modelPrice: subscription.price,
+          },
         },
       };
 

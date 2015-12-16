@@ -196,7 +196,12 @@ module.exports = class Users extends Mservice {
         }
       });
 
-      this.log.info('Registered admins %d/%d. Errors:', registered, totalAccounts, errors);
+      this.log.info('Registered admins %d/%d. Errors: %d', registered, totalAccounts, errors.length);
+      errors.forEach(err => {
+        if (err.statusCode !== 403) {
+          this.log.warn(err.stack);
+        }
+      });
     })
     .finally(() => {
       this.log.info('removing account references from memory');

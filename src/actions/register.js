@@ -122,6 +122,7 @@ module.exports = function registerUser(message) {
       return null;
     }
 
+    logger.debug('calling posthook with %s and %s', username, audience);
     return this.postHook('users:activate', username, audience);
   });
 

@@ -1,6 +1,6 @@
 {
   "name": "ms-users",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
-    "bluebird": "^3.0.5",
+    "bluebird": "^3.1.1",
     "bunyan": "^1.5.1",
     "bytes": "^2.2.0",
     "common-errors": "^0.5.3",
@@ -31,7 +31,7 @@
     "lodash": "^3.10.1",
     "moment": "^2.10.6",
     "ms-amqp-conf": "^0.2.0",
-    "ms-amqp-transport": "^0.4.0",
+    "ms-amqp-transport": "^0.4.1",
     "ms-mailer-client": "^0.3.0",
     "ms-mailer-templates": "^0.3.0",
     "ms-validation": "^0.5.7",

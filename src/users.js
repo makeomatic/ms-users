@@ -99,7 +99,7 @@ module.exports = class Users extends Mservice {
     payments: {
       prefix: 'payments',
       routes: {
-        getPlan: 'plan.get',
+        planGet: 'plan.get',
       },
     },
     admins: [],
@@ -202,18 +202,6 @@ module.exports = class Users extends Mservice {
       this.log.info('removing account references from memory');
       config.admins = [];
     });
-  }
-
-  /**
-   * Fetches default plan
-   * @return {Promise}
-   */
-  fetchDefaultPlan() {
-    const { amqp, config } = this;
-    const route = [config.payments.prefix, 'plan.get'].join('.');
-    const id = 'free';
-
-    return amqp.publishAndWait(route, id, {timeout: 5000});
   }
 
 };

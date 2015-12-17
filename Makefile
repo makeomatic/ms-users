@@ -8,6 +8,7 @@ THIS_FILE := $(lastword $(MAKEFILE_LIST))
 TEST_TASKS := $(addsuffix .test, $(NODE_VERSIONS))
 BUILD_TASKS := $(addsuffix .build, $(NODE_VERSIONS))
 PUSH_TASKS := $(addsuffix .push, $(NODE_VERSIONS))
+NPM_PROXY := --build-arg NPM_PROXY=http://$(shell docker-machine ip default):4873
 
 test: $(TEST_TASKS)
 
@@ -36,8 +37,8 @@ $(TEST_TASKS): build-docker
 
 $(BUILD_TASKS):
 	npm run prepublish
-	docker build --build-arg NPM_PROXY=http://$(shell docker-machine ip dev):4873 --build-arg VERSION=v$(basename $@) --build-arg NODE_ENV=development -t makeomatic/$(PKG_NAME):$(basename $@)-development .
-	docker build --build-arg NPM_PROXY=http://$(shell docker-machine ip dev):4873 --build-arg VERSION=v$(basename $@) -t makeomatic/$(PKG_NAME):$(basename $@)-$(PKG_VERSION) .
+	docker build $(NPM_PROXY) --build-arg VERSION=v$(basename $@) --build-arg NODE_ENV=development -t makeomatic/$(PKG_NAME):$(basename $@)-development .
+	docker build $(NPM_PROXY) --build-arg VERSION=v$(basename $@) -t makeomatic/$(PKG_NAME):$(basename $@)-$(PKG_VERSION) .
 	docker tag -f makeomatic/$(PKG_NAME):$(basename $@)-$(PKG_VERSION) makeomatic/$(PKG_NAME):$(basename $@)
 
 $(PUSH_TASKS):

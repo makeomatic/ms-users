@@ -25,6 +25,7 @@ module.exports = function iterateOverActiveUsers(opts) {
       const pipeline = redis.pipeline();
       ids.forEach((id) => {
         pipeline.hgetall(redisKey(id, 'metadata', audience));
+        pipeline.hmget(redisKey(id, 'data'), 'active', 'banned');
       });
       return Promise.all([
         ids,
@@ -34,13 +35,20 @@ module.exports = function iterateOverActiveUsers(opts) {
     })
     .spread((ids, props, length) => {
       const users = ids.map(function remapData(id, idx) {
-        const data = props[idx][1];
-        return {
+        const cursor = idx * 2;
+        const data = props[cursor][1];
+        const accountData = props[cursor + 1][1];
+        const account = {
           id,
           metadata: {
             [audience]: data ? ld.mapValues(data, JSON.parse, JSON) : {},
           },
         };
+
+        account.metadata[audience].banned = String(accountData[1]) === 'true';
+        account.metadata[audience].active = String(accountData[0]) === 'true';
+
+        return account;
       });
 
       return {

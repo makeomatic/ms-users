@@ -11,17 +11,20 @@ TASK_LIST := $(foreach env,$(ENVS),$(addsuffix .$(env), $(NODE_VERSIONS)))
 WORKDIR := /src
 COMPOSE_FILE := test/docker-compose.yml
 
-test: mocha
+test: mocha cleanup
 
-%.mocha: IMAGE=$(DOCKER_USER)/alpine-node:$(NODE_VERSION)
-%.mocha: COMPOSE = DIR=$(WORKDIR) IMAGE=$(IMAGE) docker-compose -f $(COMPOSE_FILE)
 %.production.mocha:
-	@echo $@
+	@echo "testing $@"
 	$(COMPOSE) run -e SKIP_REBUILD=${SKIP_REBUILD} --rm tester npm test
+
+%.mocha: ;
+
+%.production.cleanup:
+	@echo "cleaning up $@"
 	$(COMPOSE) stop
 	$(COMPOSE) rm -f
 
-%.mocha: ;
+%.cleanup: ;
 
 %.production.build:
 	@echo "tagging build $@"
@@ -55,6 +58,8 @@ test: mocha
 
 all: test build push
 
+%: COMPOSE = DIR=$(WORKDIR) IMAGE=$(IMAGE) docker-compose -f $(COMPOSE_FILE)
+%: IMAGE=$(DOCKER_USER)/alpine-node:$(NODE_VERSION)
 %: NODE_VERSION = $(basename $(basename $@))
 %: NODE_ENV = $(subst .,,$(suffix $(basename $@)))
 %: DOCKERFILE = "./Dockerfile.$(NODE_VERSION)"
@@ -64,4 +69,4 @@ all: test build push
 	@echo $@  # print target name
 	@$(MAKE) -f $(THIS_FILE) $(addsuffix .$@, $(TASK_LIST))
 
-.PHONY: all %.mocha %.build %.push %.pull
+.PHONY: all test %.mocha %.build %.push %.pull

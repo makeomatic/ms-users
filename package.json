@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "/bin/bash -c 'if [[ $NODE_ENV != \"production\" ]]; then ./node_modules/.bin/babel -d ./lib ./src; fi'",
     "prepublish": "npm run compile",
-    "pretest": "if [[ $SKIP_REBUILD != \"1\" ]]; then npm rebuild; fi",
+    "pretest": "if [ \"$SKIP_REBUILD\" != \"1\" ]; then npm rebuild; fi",
     "test": "BLUEBIRD_DEBUG=1 ./node_modules/.bin/mocha --require babel-register --bail -R spec",
     "start": "node ./bin/mservice.js | ./node_modules/.bin/bunyan -o short"
   },

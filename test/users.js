@@ -47,7 +47,7 @@ describe('Users suite', function UserClassSuite() {
 
   // inits redis mock cluster
   function redisMock() {
-    if (process.env.TEST_ENV === 'docker') {
+    if (process.env.NODE_ENV === 'docker') {
       return;
     }
 
@@ -70,7 +70,7 @@ describe('Users suite', function UserClassSuite() {
 
   // teardown cluster
   function tearDownRedisMock() {
-    if (process.env.TEST_ENV === 'docker') {
+    if (process.env.NODE_ENV === 'docker') {
       return;
     }
 
@@ -78,19 +78,6 @@ describe('Users suite', function UserClassSuite() {
     this.server_2.disconnect();
     this.server_3.disconnect();
   }
-
-  before(function bootstrapRedisCluster() {
-    this.timeout(10000);
-
-    if (process.env.TEST_ENV !== 'docker') {
-      return;
-    }
-
-    const init = shell.exec('./test/bootstrap.sh');
-    if (init.code !== 0) {
-      throw init.output;
-    }
-  });
 
   describe('configuration suite', function ConfigurationSuite() {
     beforeEach(redisMock);

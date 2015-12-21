@@ -3,23 +3,21 @@ THIS_FILE := $(lastword $(MAKEFILE_LIST))
 PKG_NAME := $(shell cat package.json | ./node_modules/.bin/json name)
 PKG_VERSION := $(shell cat package.json | ./node_modules/.bin/json version)
 NPM_PROXY := http://$(shell docker-machine ip dev):4873
-DIST := makeomatic/$(PKG_NAME)
+DOCKER_USER := makeomatic
+DIST := $(DOCKER_USER)/$(PKG_NAME)
 NODE_VERSIONS := 5.3.0
-ENVS := .development .production
-TASK_LIST := $(foreach env,$(ENVS),$(addsuffix $(env), $(NODE_VERSIONS)))
-LINK := --link=rabbitmq --link=redis_1 --link=redis_2 --link=redis_3
+ENVS := development production
+TASK_LIST := $(foreach env,$(ENVS),$(addsuffix .$(env), $(NODE_VERSIONS)))
+WORKDIR := /src
+COMPOSE_FILE := test/docker-compose.yml
 
-run-test:
-	docker run $(LINK) -v ${PWD}:/usr/src/app -w /usr/src/app --rm -e TEST_ENV=docker makeomatic/node-test:5.1.0 npm test;
+test: mocha
 
-%.test: DIR = /src
-%.test: COMPOSE = docker-compose -f test/docker-compose.yml
-%.test:
-	$(COMPOSE) up -d; \
-	docker run $(LINK) -v ${PWD}:$(DIR) -w $(DIR) --rm -e TEST_ENV=docker $(PKG_PREFIX_ENV) npm test; \
-	EXIT_CODE=$$?; \
-	$(COMPOSE) rm -f; \
-	exit ${EXIT_CODE};
+%.mocha: IMAGE=$(DOCKER_USER)/alpine-node:$(NODE_VERSION)
+%.mocha: COMPOSE = DIR=$(WORKDIR) IMAGE=$(IMAGE) docker-compose -f $(COMPOSE_FILE)
+%.production.mocha:
+	$(COMPOSE) run -e SKIP_REBUILD=${SKIP_REBUILD} --rm tester npm test
+%.mocha: ;
 
 %.build: ARGS = --build-arg NODE_ENV=$(NODE_ENV) --build-arg NPM_PROXY=$(NPM_PROXY)
 %.build:
@@ -30,6 +28,13 @@ run-test:
 %.production.build:
 	docker tag -f $(PKG_PREFIX_ENV) $(PKG_PREFIX)
 	docker tag -f $(PKG_PREFIX_ENV) $(PKG_PREFIX)-$(PKG_VERSION)
+
+%.development.pull:
+	docker pull $(PKG_PREFIX_ENV)
+
+%.pull:
+	docker pull $(PKG_PREFIX)
+	docker pull $(PKG_PREFIX)-$(PKG_VERSION)
 
 %.push:
 	docker push $(PKG_PREFIX_ENV)
@@ -49,4 +54,4 @@ all: test build push
 	@echo $@  # print target name
 	$(MAKE) -f $(THIS_FILE) $(addsuffix .$@, $(TASK_LIST))
 
-.PHONY: all %.test %.build %.push
+.PHONY: all %.mocha %.build %.push %.pull

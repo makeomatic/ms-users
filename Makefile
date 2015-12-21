@@ -13,6 +13,8 @@ COMPOSE_FILE := test/docker-compose.yml
 
 test: mocha cleanup
 
+build: docker tag
+
 %.production.mocha:
 	@echo "testing $@"
 	$(COMPOSE) run -e SKIP_REBUILD=${SKIP_REBUILD} --rm tester npm test
@@ -26,17 +28,19 @@ test: mocha cleanup
 
 %.cleanup: ;
 
-%.production.build:
-	@echo "tagging build $@"
-	docker tag -f $(PKG_PREFIX_ENV) $(PKG_PREFIX)
-	docker tag -f $(PKG_PREFIX_ENV) $(PKG_PREFIX)-$(PKG_VERSION)
-
-%.build: ARGS = --build-arg NODE_ENV=$(NODE_ENV) --build-arg NPM_PROXY=$(NPM_PROXY)
-%.build:
+%.docker: ARGS = --build-arg NODE_ENV=$(NODE_ENV) --build-arg NPM_PROXY=$(NPM_PROXY)
+%.docker:
 	@echo "building $@"
 	NODE_VERSION=$(NODE_VERSION) envsubst < "./Dockerfile" > $(DOCKERFILE)
 	docker build $(ARGS) -t $(PKG_PREFIX_ENV) -f $(DOCKERFILE) .
 	rm $(DOCKERFILE)
+
+%.production.tag:
+	@echo "tagging build $@"
+	docker tag -f $(PKG_PREFIX_ENV) $(PKG_PREFIX)
+	docker tag -f $(PKG_PREFIX_ENV) $(PKG_PREFIX)-$(PKG_VERSION)
+
+%.tag: ;
 
 %.development.pull:
 	@echo "pulling development $@"
@@ -69,4 +73,4 @@ all: test build push
 	@echo $@  # print target name
 	@$(MAKE) -f $(THIS_FILE) $(addsuffix .$@, $(TASK_LIST))
 
-.PHONY: all test %.mocha %.build %.push %.pull
+.PHONY: all test build %.mocha %.docker %.push %.pull

@@ -17,11 +17,11 @@ module.exports = function mixPlan(username, audience) {
     .publishAndWait(route, id, { timeout: 5000 })
     .bind(this)
     .then(function mix(plan) {
-      const subscription = ld.findWhere(plan.subscriptions, { name: id });
+      const subscription = ld.findWhere(plan.subs, { name: id });
       const nextCycle = moment().add(1, 'month').format();
       const update = {
-        username: username,
-        audience: audience,
+        username,
+        audience,
         metadata: {
           '$set': {
             plan: id,

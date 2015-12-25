@@ -19,7 +19,12 @@ var service = new Service(configuration);
 service.connect()
   .then(function serviceUp() {
     service.log.info('Started service, initiating admin accounts');
-    return service.initAdminAccounts();
+    if (process.env.NODE_ENV === 'production') {
+      return service.initAdminAccounts();
+    } else {
+      return service.initAdminAccounts().then(service.initFakeAccounts);
+    }
+
   })
   .catch(function serviceCrashed(err) {
     service.log.fatal('Failed to start service', err);

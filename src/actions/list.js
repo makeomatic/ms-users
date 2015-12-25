@@ -25,7 +25,7 @@ module.exports = function iterateOverActiveUsers(opts) {
       const pipeline = redis.pipeline();
       ids.forEach((id) => {
         pipeline.hgetall(redisKey(id, 'metadata', audience));
-        pipeline.hmget(redisKey(id, 'data'), 'active', 'banned');
+        pipeline.hmget(redisKey(id, 'data'), 'active', 'ban');
       });
       return Promise.all([
         ids,

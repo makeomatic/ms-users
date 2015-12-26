@@ -52,7 +52,7 @@ module.exports = function verifyChallenge(opts) {
   }
 
   function postHook(user) {
-    return this.postHook('users:activate', user.username, audience);
+    return this.postHook('users:activate', user, audience);
   }
 
   let promise = Promise.bind(this);

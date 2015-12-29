@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const ld = require('lodash');
 const moment = require('moment');
 const setMetadata = require('../utils/updateMetadata.js');

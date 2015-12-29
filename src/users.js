@@ -169,7 +169,7 @@ module.exports = class Users extends Mservice {
     const config = this.config;
     const accounts = config.admins;
     const audience = config.jwt.defaultAudience;
-    return Promise.map(accounts, (account) => {
+    return Promise.delay(10000).return(accounts).map(account => {
       return register.call(this, {
         username: account.username,
         password: account.password,

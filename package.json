@@ -26,7 +26,7 @@
     "bytes": "^2.2.0",
     "common-errors": "^0.5.3",
     "flake-idgen": "^1.0.0",
-    "ioredis": "^1.13.1",
+    "ioredis": "^1.13.2",
     "jsonwebtoken": "^5.5.0",
     "lodash": "^3.10.1",
     "moment": "^2.10.6",

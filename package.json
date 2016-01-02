@@ -35,7 +35,7 @@
     "ms-mailer-client": "^0.3.0",
     "ms-mailer-templates": "^0.3.0",
     "ms-validation": "^0.5.7",
-    "mservice": "^1.0.0",
+    "mservice": "^1.1.0",
     "node-uuid": "^1.4.7",
     "password-generator": "^2.0.2",
     "request-promise": "^1.0.2",

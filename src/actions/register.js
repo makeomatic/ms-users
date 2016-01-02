@@ -8,6 +8,37 @@ const redisKey = require('../utils/key.js');
 const emailValidation = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const { format: fmt } = require('util');
+const disposableDomains = require('disposable-email-domains');
+const dns = Promise.promisifyAll(require('dns'));
+
+// init pointers
+const disposablePointers = {};
+disposableDomains.reduce((acc, domain) => {
+  disposablePointers[domain] = true;
+  return acc;
+}, disposablePointers);
+
+function isDisposable(email) {
+  return Promise.try(function testDisposable() {
+    if (disposablePointers[email]) {
+      throw new Errors.HttpStatusError(400, `you must use non-disposable email to register`);
+    }
+  });
+}
+
+function mxExists(email) {
+  const hostname = email.split('@').pop();
+  const tld = hostname.split('.').slice(-2).join('.');
+  return dns
+    .resolveMxAsync(tld)
+    .then(addresses => {
+      if (ld.findWhere(addresses, { exchange: hostname })) {
+        return null;
+      }
+
+      throw new Errors.HttpStatusError(400, `no MX record was found for hostname ${hostname}`);
+    });
+}
 
 /**
  * Registration handler
@@ -62,25 +93,35 @@ module.exports = function registerUser(message) {
     });
   }
 
-  if (registrationLimits && registrationLimits.ip && ipaddress) {
-    const { ip: { time, times } } = registrationLimits;
-    promise = promise.then(function verifyIpLimits() {
-      const ipaddressLimitKey = redisKey('reg-limit', ipaddress);
-      const now = Date.now();
-      const old = now + time;
-      return redis.pipeline()
-        .zadd(ipaddressLimitKey, Date.now())
-        .pexpire(ipaddressLimitKey, time)
-        .zremrangebyscore(ipaddressLimitKey, '-inf', old)
-        .zcard(ipaddressLimitKey)
-        .exec()
-        .then(props => {
-          const cardinality = props[3][1];
-          if (cardinality > times) {
-            throw new Errors.HttpStatusError(429, `You can't register more users from your ipaddress now`);
-          }
-        });
-    });
+  if (registrationLimits) {
+    if (registrationLimits.noDisposable) {
+      promise = promise.return(isDisposable(username));
+    }
+
+    if (registrationLimits.checkMX) {
+      promise = promise.return(mxExists(username));
+    }
+
+    if (registrationLimits.ip && ipaddress) {
+      const { ip: { time, times } } = registrationLimits;
+      promise = promise.then(function verifyIpLimits() {
+        const ipaddressLimitKey = redisKey('reg-limit', ipaddress);
+        const now = Date.now();
+        const old = now + time;
+        return redis.pipeline()
+          .zadd(ipaddressLimitKey, Date.now())
+          .pexpire(ipaddressLimitKey, time)
+          .zremrangebyscore(ipaddressLimitKey, '-inf', old)
+          .zcard(ipaddressLimitKey)
+          .exec()
+          .then(props => {
+            const cardinality = props[3][1];
+            if (cardinality > times) {
+              throw new Errors.HttpStatusError(429, `You can't register more users from your ipaddress now`);
+            }
+          });
+      });
+    }
   }
 
   // shared user key

@@ -54,3 +54,5 @@ tester:
     - ${PWD}:/src
   environment:
     NODE_ENV: "docker"
+    SKIP_REBUILD: ${SKIP_REBUILD}
+  command: 'true'

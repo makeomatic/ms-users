@@ -34,6 +34,30 @@
         }
       }
     },
+    "registrationLimits": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "object",
+          "properties": {
+            "time": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "times": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "noDisposable": {
+          "type": "boolean"
+        },
+        "checkMX": {
+          "type": "boolean"
+        }
+      }
+    },
     "pwdReset": {
       "type": "object",
       "properties": {
@@ -53,34 +77,16 @@
     },
     "redis": {
       "type": "object",
-      "required": [ "hosts", "options" ],
+      "required": [ "options" ],
       "properties": {
-        "hosts": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [ "host", "port" ],
-            "properties": {
-              "host": {
-                "type": "string",
-                "format": "ipv4"
-              },
-              "port": {
-                "oneOf": [
-                  { "type": "integer" },
-                  { "type": "string" }
-                ]
-              }
-            }
-          }
-        },
         "options": {
           "type": "object",
           "required": [ "keyPrefix" ],
           "properties": {
             "keyPrefix": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "format": ".*{.*}.*"
             }
           }
         }

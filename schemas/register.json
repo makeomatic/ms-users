@@ -5,8 +5,7 @@
   "properties": {
     "username": {
       "type": "string",
-      "minLength": 3,
-      "maxLength": 50
+      "format": "email"
     },
     "password": {
       "type": "string"

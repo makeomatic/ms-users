@@ -20,6 +20,22 @@ const config = {
   },
 };
 
+function inspectPromise(mustBeFulfilled = true) {
+  return function inspection(promise) {
+    const isFulfilled = promise.isFulfilled();
+    const isRejected = promise.isRejected();
+
+    try {
+      expect(isFulfilled).to.be.eq(mustBeFulfilled);
+    } catch (e) {
+      throw promise.reason();
+    }
+
+    expect(isRejected).to.be.eq(!mustBeFulfilled);
+    return mustBeFulfilled ? promise.value() : promise.reason();
+  };
+}
+
 describe('Users suite', function UserClassSuite() {
   const Users = require('../src');
 
@@ -38,12 +54,23 @@ describe('Users suite', function UserClassSuite() {
     });
   });
 
-  describe('unit tests', function UnitSuite() {
+  describe('integration tests', function UnitSuite() {
     beforeEach(function startService() {
-      function emptyStub() {}
-
       this.users = new Users(config);
-      this.users._mailer = { send: emptyStub };
+      this.users.on('plugin:connect:amqp', () => {
+        this.users._mailer = { send: ld.noop };
+      });
+      return this.users.connect();
+    });
+
+    afterEach(function clearRedis() {
+      const nodes = this.users._redis.masterNodes;
+      return Promise.map(Object.keys(nodes), nodeKey => {
+        return nodes[nodeKey].flushdb();
+      })
+      .finally(() => {
+        return this.users.close();
+      });
     });
 
     describe('encrypt/decrypt suite', function cryptoSuite() {
@@ -67,10 +94,10 @@ describe('Users suite', function UserClassSuite() {
       it('must reject invalid registration params and return detailed error', function test() {
         return this.users.router({}, headers)
           .reflect()
+          .then(inspectPromise(false))
           .then(registered => {
-            expect(registered.isRejected()).to.be.eq(true);
-            expect(registered.reason().name).to.be.eq('ValidationError');
-            expect(registered.reason().errors).to.have.length.of(3);
+            expect(registered.name).to.be.eq('ValidationError');
+            expect(registered.errors).to.have.length.of(3);
           });
       });
 
@@ -84,20 +111,16 @@ describe('Users suite', function UserClassSuite() {
         return this.users
           .router(opts, headers)
           .reflect()
+          .then(inspectPromise(true))
           .then(registered => {
-            try {
-              expect(registered.isFulfilled()).to.be.eq(true);
-              expect(registered.value()).to.have.ownProperty('jwt');
-              expect(registered.value()).to.have.ownProperty('user');
-              expect(registered.value().user.username).to.be.eq(opts.username);
-              expect(registered.value().user).to.have.ownProperty('metadata');
-              expect(registered.value().user.metadata).to.have.ownProperty('matic.ninja');
-              expect(registered.value().user.metadata).to.have.ownProperty('*.localhost');
-              expect(registered.value().user).to.not.have.ownProperty('password');
-              expect(registered.value().user).to.not.have.ownProperty('audience');
-            } catch (e) {
-              throw registered.isFulfilled() ? e : registered.reason();
-            }
+            expect(registered).to.have.ownProperty('jwt');
+            expect(registered).to.have.ownProperty('user');
+            expect(registered.user.username).to.be.eq(opts.username);
+            expect(registered.user).to.have.ownProperty('metadata');
+            expect(registered.user.metadata).to.have.ownProperty('matic.ninja');
+            expect(registered.user.metadata).to.have.ownProperty('*.localhost');
+            expect(registered.user).to.not.have.ownProperty('password');
+            expect(registered.user).to.not.have.ownProperty('audience');
           });
       });
 
@@ -109,31 +132,13 @@ describe('Users suite', function UserClassSuite() {
           activate: false,
         };
 
-        const pipeline = { hsetnx: sinon.stub(), exec: sinon.stub() };
-        pipeline.exec.returns(Promise.resolve([
-          [null, 1],
-          [null, 1],
-        ]));
-
-        const stub = sinon.stub().returns(Promise.resolve());
-        this.users._mailer.send = stub;
-
-        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(false));
-        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
-        sinon.stub(this.users._redis, 'get')
-          .onFirstCall().returns(Promise.resolve());
-        sinon.stub(this.users._redis, 'set')
-          .onFirstCall().returns(Promise.resolve(1));
-
         return this.users.router(opts, headers)
-          .delay(50)
           .reflect()
-          .then((registered) => {
-            expect(registered.isFulfilled()).to.be.eq(true);
-            expect(registered.value()).to.be.deep.eq({
+          .then(inspectPromise())
+          .then(value => {
+            expect(value).to.be.deep.eq({
               requiresActivation: true,
             });
-            expect(stub.calledOnce).to.be.eq(true);
           });
       });
 
@@ -145,16 +150,14 @@ describe('Users suite', function UserClassSuite() {
           activate: false,
         };
 
-        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(true));
-
-        return this.users.router(opts, headers)
-          .delay(50)
+        return this.users
+          .router(opts, headers)
           .reflect()
-          .then((registered) => {
-            expect(registered.isRejected()).to.be.eq(true);
-            expect(registered.reason().name).to.be.eq('HttpStatusError');
-            expect(registered.reason().statusCode).to.be.eq(403);
-            expect(registered.reason().message).to.match(/"v@makeomatic\.ru" already exists/);
+          .then(inspectPromise(false))
+          .then(registered => {
+            expect(registered.name).to.be.eq('HttpStatusError');
+            expect(registered.statusCode).to.be.eq(403);
+            expect(registered.message).to.match(/"v@makeomatic\.ru" already exists/);
           });
       });
 
@@ -171,67 +174,56 @@ describe('Users suite', function UserClassSuite() {
       it('must fail to send a challenge for a non-existing user', function test() {
         sinon.stub(this.users._redis, 'hget').returns(Promise.resolve(null));
 
-        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
+        return this.users
+          .router({ username: 'oops@gmail.com', type: 'email' }, headers)
           .reflect()
-          .then((validation) => {
-            expect(validation.isRejected()).to.be.eq(true);
-            expect(validation.reason().name).to.be.eq('HttpStatusError');
-            expect(validation.reason().statusCode).to.be.eq(404);
+          .then(inspectPromise(false))
+          .then(validation => {
+            expect(validation.name).to.be.eq('HttpStatusError');
+            expect(validation.statusCode).to.be.eq(404);
           });
       });
 
       it('must fail to send a challenge for an already active user', function test() {
-        sinon.stub(this.users._redis, 'hget').returns(Promise.resolve('true'));
-
-        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
+        return this.users
+          .router({ username: 'oops@gmail.com', type: 'email' }, headers)
           .reflect()
-          .then((validation) => {
-            expect(validation.isRejected()).to.be.eq(true);
-            expect(validation.reason().name).to.be.eq('HttpStatusError');
-            expect(validation.reason().statusCode).to.be.eq(412);
+          .then(inspectPromise(false))
+          .then(validation => {
+            expect(validation.name).to.be.eq('HttpStatusError');
+            expect(validation.statusCode).to.be.eq(412);
           });
       });
 
       it('must be able to send challenge email', function test() {
-        sinon.stub(this.users._redis, 'hget').returns(Promise.resolve('false'));
-        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(null));
-        sinon.stub(this.users._redis, 'set').returns(Promise.resolve(1));
-        sinon.stub(this.users._mailer, 'send').returns(Promise.resolve());
-
-        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
-          .delay(50)
+        return this.users
+          .router({ username: 'oops@gmail.com', type: 'email' }, headers)
           .reflect()
-          .then((validation) => {
-            expect(validation.isFulfilled()).to.be.eq(true);
-            expect(validation.value()).to.be.deep.eq({ queued: true });
-            expect(this.users._mailer.send.calledOnce).to.be.eq(true);
+          .then(inspectPromise())
+          .then(validation => {
+            expect(validation).to.be.deep.eq({ queued: true });
           });
       });
 
       it('must fail to send challenge email more than once in an hour per user', function test() {
-        sinon.stub(this.users._redis, 'hget').returns(Promise.resolve('false'));
-        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(true));
-
-        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
+        return this.users
+          .router({ username: 'oops@gmail.com', type: 'email' }, headers)
           .reflect()
-          .then((validation) => {
-            expect(validation.isRejected()).to.be.eq(true);
-            expect(validation.reason().name).to.be.eq('HttpStatusError');
-            expect(validation.reason().statusCode).to.be.eq(429);
+          .then(inspectPromise(false))
+          .then(validation => {
+            expect(validation.name).to.be.eq('HttpStatusError');
+            expect(validation.statusCode).to.be.eq(429);
           });
       });
 
       it('must fail to send challeng email during race condition', function test() {
-        sinon.stub(this.users._redis, 'hget').returns(Promise.resolve('false'));
-        sinon.stub(this.users._redis, 'get').returns(Promise.resolve(null));
-        sinon.stub(this.users._redis, 'set').returns(Promise.resolve(0));
-
-        return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers)
+        return this.users
+          .router({ username: 'oops@gmail.com', type: 'email' }, headers)
           .reflect()
-          .then((validation) => {
-            expect(validation.isRejected()).to.be.eq(true);
-            expect(validation.reason().name).to.be.eq('HttpStatusError');
-            expect(validation.reason().statusCode).to.be.eq(429);
+          .then(inspectPromise(false))
+          .then(validation => {
+            expect(validation.name).to.be.eq('HttpStatusError');
+            expect(validation.statusCode).to.be.eq(429);
           });
       });
 
@@ -957,97 +949,6 @@ describe('Users suite', function UserClassSuite() {
           });
       });
     });
-  });
-
-  describe('integration tests', function integrationSuite() {
-    beforeEach(function initService() {
-      this.users = new Users(config);
-      return this.users.connect();
-    });
-
-    describe('#register', function registerSuite() {
-      it('must reject invalid registration params and return detailed error');
-      it('must be able to create user without validations and return user object and jwt token');
-      it('must be able to create user with validation and return success');
-      it('must reject more than 3 registration a day per ipaddress if it is specified');
-      it('must reject registration for an already existing user');
-      it('must reject registration for disposable email addresses');
-      it('must reject registration for a domain name, which lacks MX record');
-    });
-
-    describe('#challenge', function challengeSuite() {
-      it('must fail to send a challenge for a non-existing user');
-      it('must be able to send challenge email');
-      it('must fail to send challenge email more than once in an hour per user');
-      it('must validate MX record for a domain before sending an email');
-    });
-
-    describe('#activate', function activateSuite() {
-      it('must reject activation when challenge token is invalid');
-      it('must reject activation when challenge token is expired');
-      it('must activate account when challenge token is correct and not expired');
-      it('must activate account when no challenge token is specified as a service action');
-    });
-
-    describe('#login', function loginSuite() {
-      it('must reject login on a non-existing username');
-      it('must reject login on an invalid password');
-      it('must reject login on an inactive account');
-      it('must reject login on a banned account');
-      it('must login on a valid account with correct credentials');
-      it('must return User object and JWT token on login similar to #register+activate');
-      it('must reject lock account for authentication after 3 invalid login attemps');
-      it('must reset authentication attemps after resetting password');
-    });
-
-    describe('#logout', function logoutSuite() {
-      it('must reject logout on an invalid JWT token');
-      it('must delete JWT token from pool of valid tokens');
-    });
-
-    describe('#verify', function verifySuite() {
-      it('must reject on an invalid JWT token');
-      it('must reject on an expired JWT token');
-      it('must return user object on a valid JWT token');
-      it('must return user object and associated metadata on a valid JWT token with default audience');
-      it('must return user object and associated metadata on a valid JWT token with provided audiences');
-    });
-
-    describe('#getMetadata', function getMetadataSuite() {
-      it('must reject to return metadata on a non-existing username');
-      it('must return metadata for a default audience of an existing user');
-      it('must return metadata for default and passed audiences of an existing user');
-    });
-
-    describe('#updateMetadata', function getMetadataSuite() {
-      it('must reject updating metadata on a non-existing user');
-      it('must be able to add metadata for a single audience of an existing user');
-      it('must be able to remove metadata for a single audience of an existing user');
-      it('must be able to perform batch add/remove operations for a single audience of an existing user');
-    });
-
-    describe('#requestPassword', function requestPasswordSuite() {
-      it('must reject for a non-existing user');
-      it('must send challenge email for an existing user');
-      it('must reject sending reset password emails for an existing user more than once in 3 hours');
-    });
-
-    describe('#updatePassword', function updatePasswordSuite() {
-      it('must reject updating password for a non-existing user');
-      it('must reject updating password for an invalid challenge token');
-      it('must update password passed with a valid challenge token');
-      it('must fail to update password with a valid challenge token, when it doesn\'t conform to password requirements');
-      it('must reset login attemts for a user after resetting password');
-    });
-
-    describe('#ban', function banSuite() {
-      it('must reject banning a non-existing user');
-      it('must reject (un)banning a user without action being implicitly set');
-      it('must ban an existing user');
-      it('must unban an existing user');
-      it('must fail to unban not banned user');
-      it('must fail to ban already banned user');
-    });
 
     describe('#list', function listSuite() {
       this.timeout(10000);
@@ -1356,16 +1257,6 @@ describe('Users suite', function UserClassSuite() {
             throw result.isRejected() ? result.reason() : e;
           }
         });
-      });
-    });
-
-    afterEach(function clearRedis() {
-      const nodes = this.users._redis.masterNodes;
-      return Promise.map(Object.keys(nodes), nodeKey => {
-        return nodes[nodeKey].flushdb();
-      })
-      .finally(() => {
-        return this.users.close();
       });
     });
   });

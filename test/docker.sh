@@ -7,7 +7,7 @@ PATH=$PATH:$DIR/.bin/
 COMPOSE=$(which docker-compose)
 
 if [ -z "$NODE_VER" ]; then
-  NODE_VER="5"
+  NODE_VER="5.3.0"
 fi
 
 if ! [ -x "$COMPOSE" ]; then
@@ -23,6 +23,6 @@ function finish {
 }
 trap finish EXIT
 
-export IMAGE=mhart/alpine-node:$NODE_VER
+export IMAGE=makeomatic/alpine-node:$NODE_VER
 $COMPOSE -f $DC up -d
-$COMPOSE -f $DC run --rm tester ./node_modules/.bin/mocha
+$COMPOSE -f $DC run --rm tester /bin/sh -c "npm run rebuild && ./node_modules/.bin/mocha"

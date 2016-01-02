@@ -3,37 +3,15 @@ const Promise = require('bluebird');
 const chai = require('chai');
 const sinon = require('sinon');
 const { expect } = chai;
-const MockServer = require('ioredis/test/helpers/mock_server.js');
 const Errors = require('common-errors');
 const ld = require('lodash');
-const shell = require('shelljs');
 
 // make sure we have stack
 chai.config.includeStack = true;
 
 const config = {
-  amqp: {
-    connection: {
-      host: process.env.RABBITMQ_PORT_5672_TCP_ADDR || '127.0.0.1',
-      port: +process.env.RABBITMQ_PORT_5672_TCP_PORT || 5672,
-    },
-  },
-  redis: {
-    hosts: [
-      {
-        host: process.env.REDIS_1_PORT_6379_TCP_ADDR || '127.0.0.1',
-        port: +process.env.REDIS_1_PORT_6379_TCP_PORT || 30001,
-      },
-      {
-        host: process.env.REDIS_2_PORT_6379_TCP_ADDR || '127.0.0.1',
-        port: +process.env.REDIS_2_PORT_6379_TCP_PORT || 30002,
-      },
-      {
-        host: process.env.REDIS_3_PORT_6379_TCP_ADDR || '127.0.0.1',
-        port: +process.env.REDIS_3_PORT_6379_TCP_PORT || 30003,
-      },
-    ],
-  },
+  amqp: global.AMQP,
+  redis: global.REDIS,
   validation: {
     templates: {
       activate: 'cappasity-activate',
@@ -45,43 +23,7 @@ const config = {
 describe('Users suite', function UserClassSuite() {
   const Users = require('../src');
 
-  // inits redis mock cluster
-  function redisMock() {
-    if (process.env.NODE_ENV === 'docker') {
-      return;
-    }
-
-    const slotTable = [
-      [0, 5460, ['127.0.0.1', 30001]],
-      [5461, 10922, ['127.0.0.1', 30002]],
-      [10923, 16383, ['127.0.0.1', 30003]],
-    ];
-
-    function argvHandler(argv) {
-      if (argv[0] === 'cluster' && argv[1] === 'slots') {
-        return slotTable;
-      }
-    }
-
-    this.server_1 = new MockServer(30001, argvHandler);
-    this.server_2 = new MockServer(30002, argvHandler);
-    this.server_3 = new MockServer(30003, argvHandler);
-  }
-
-  // teardown cluster
-  function tearDownRedisMock() {
-    if (process.env.NODE_ENV === 'docker') {
-      return;
-    }
-
-    this.server_1.disconnect();
-    this.server_2.disconnect();
-    this.server_3.disconnect();
-  }
-
   describe('configuration suite', function ConfigurationSuite() {
-    beforeEach(redisMock);
-
     it('must throw on invalid configuration', function test() {
       expect(function throwOnInvalidConfiguration() {
         return new Users();
@@ -94,28 +36,14 @@ describe('Users suite', function UserClassSuite() {
         return users.close();
       });
     });
-
-    afterEach(tearDownRedisMock);
   });
 
   describe('unit tests', function UnitSuite() {
-    beforeEach(redisMock);
-
     beforeEach(function startService() {
       function emptyStub() {}
 
       this.users = new Users(config);
-      this.users._mailer = {
-        send: emptyStub,
-      };
-      this.users._redis = {};
-      [
-        'hexists', 'hsetnx', 'pipeline', 'expire', 'zadd', 'hgetallBuffer', 'get',
-        'set', 'hget', 'hdel', 'del', 'hmgetBuffer', 'incrby', 'zrem', 'zscoreBuffer', 'hmget',
-        'hset', 'sadd',
-      ].forEach(prop => {
-        this.users._redis[prop] = emptyStub;
-      });
+      this.users._mailer = { send: emptyStub };
     });
 
     describe('encrypt/decrypt suite', function cryptoSuite() {
@@ -139,7 +67,7 @@ describe('Users suite', function UserClassSuite() {
       it('must reject invalid registration params and return detailed error', function test() {
         return this.users.router({}, headers)
           .reflect()
-          .then((registered) => {
+          .then(registered => {
             expect(registered.isRejected()).to.be.eq(true);
             expect(registered.reason().name).to.be.eq('ValidationError');
             expect(registered.reason().errors).to.have.length.of(3);
@@ -153,23 +81,10 @@ describe('Users suite', function UserClassSuite() {
           audience: 'matic.ninja',
         };
 
-        const pipeline = { hsetnx: sinon.stub(), exec: sinon.stub() };
-        pipeline.exec.returns(Promise.resolve([
-          [null, 1],
-          [null, 1],
-        ]));
-
-        sinon.stub(this.users._redis, 'hexists').returns(Promise.resolve(false));
-        sinon.stub(this.users._redis, 'pipeline').returns(pipeline);
-        sinon.stub(this.users._redis, 'zadd').returns(1);
-        sinon.stub(this.users._redis, 'sadd').returns(Promise.resolve(1));
-        sinon.stub(this.users._redis, 'hgetallBuffer')
-          .onFirstCall().returns({})
-          .onSecondCall().returns({});
-
-        return this.users.router(opts, headers)
+        return this.users
+          .router(opts, headers)
           .reflect()
-          .then((registered) => {
+          .then(registered => {
             try {
               expect(registered.isFulfilled()).to.be.eq(true);
               expect(registered.value()).to.have.ownProperty('jwt');
@@ -1042,8 +957,6 @@ describe('Users suite', function UserClassSuite() {
           });
       });
     });
-
-    afterEach(tearDownRedisMock);
   });
 
   describe('integration tests', function integrationSuite() {

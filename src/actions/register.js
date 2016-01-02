@@ -16,7 +16,7 @@ const { format: fmt } = require('util');
  */
 module.exports = function registerUser(message) {
   const { redis, config } = this;
-  const { deleteInactiveAccounts, captcha: captchaConfig } = config;
+  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
   const { secret, ttl, uri } = captchaConfig;
 
   // message
@@ -62,9 +62,25 @@ module.exports = function registerUser(message) {
     });
   }
 
-  if (ipaddress) {
-    // TODO:
-    // add reg per ip address limits
+  if (registrationLimits && registrationLimits.ip && ipaddress) {
+    const { ip: { time, times } } = registrationLimits;
+    promise = promise.then(function verifyIpLimits() {
+      const ipaddressLimitKey = redisKey('reg-limit', ipaddress);
+      const now = Date.now();
+      const old = now + time;
+      return redis.pipeline()
+        .zadd(ipaddressLimitKey, Date.now())
+        .pexpire(ipaddressLimitKey, time)
+        .zremrangebyscore(ipaddressLimitKey, '-inf', old)
+        .zcard(ipaddressLimitKey)
+        .exec()
+        .then(props => {
+          const cardinality = props[3][1];
+          if (cardinality > times) {
+            throw new Errors.HttpStatusError(429, `You can't register more users from your ipaddress now`);
+          }
+        });
+    });
   }
 
   // shared user key

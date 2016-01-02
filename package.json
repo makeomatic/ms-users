@@ -4,10 +4,10 @@
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {
-    "compile": "/bin/bash -c 'if [[ $NODE_ENV != \"production\" ]]; then ./node_modules/.bin/babel -d ./lib ./src; fi'",
+    "compile": "./node_modules/.bin/babel -d ./lib ./src",
     "prepublish": "npm run compile",
     "pretest": "if [ \"$SKIP_REBUILD\" != \"1\" ]; then npm rebuild; fi",
-    "test": "BLUEBIRD_DEBUG=1 ./node_modules/.bin/mocha --require babel-register --bail -R spec",
+    "test": "./test/docker.sh",
     "start": "node ./bin/mservice.js | ./node_modules/.bin/bunyan -o short"
   },
   "repository": {
@@ -20,6 +20,9 @@
     "url": "https://github.com/makeomatic/ms-users/issues"
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
+  "optionalDependencies": {
+    "hiredis": "^0.4.1"
+  },
   "dependencies": {
     "bluebird": "^3.1.1",
     "bunyan": "^1.5.1",

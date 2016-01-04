@@ -9,6 +9,18 @@ const { updatePassword } = require('../actions/updatePassword.js');
 const generatePassword = require('password-generator');
 
 /**
+ * Throttled error
+ * @param  {Mixed}  reply
+ */
+function isThrottled(compare) {
+  return function comparator(reply) {
+    if (!!reply === compare) {
+      throw new Errors.HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email');
+    }
+  };
+}
+
+/**
  * Encrypts buffer using alg and secret
  * @param  {String} algorithm
  * @param  {String} secret
@@ -91,11 +103,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
 
   return redis
     .get(throttleEmailsKey)
-    .then(function isThrottled(reply) {
-      if (reply) {
-        throw new Errors.HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email');
-      }
-    })
+    .then(isThrottled(true))
     .then(function generateContent() {
       // generate context
       const context = {};
@@ -121,12 +129,12 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
         emailTemplate: render(templateName, context),
       };
     })
-    .then(data => {
-      const { context, emailTemplate } = data;
+    .tap(data => {
+      const { context } = data;
 
       // in case we need to setup a new password
       if (type === 'password') {
-        return updatePassword.call(this, email, context.password).return(emailTemplate);
+        return updatePassword.call(this, email, context.password);
       }
 
       const throttleArgs = [throttleEmailsKey, 1, 'NX'];
@@ -135,11 +143,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
       }
       return redis
         .set(throttleArgs)
-        .then(function isThrottled(response) {
-          if (!response) {
-            throw new Errors.HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email');
-          }
-        })
+        .then(isThrottled(false))
         .then(function updateSecret() {
           const secretKey = redisKey('vsecret-' + type, activationSecret);
           const args = [secretKey, email];
@@ -147,41 +151,31 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
             args.push('EX', ttl);
           }
           return redis.set(args);
-        })
-        .return(emailTemplate);
+        });
     })
-    .then(function definedSubjectAndSend(emailTemplate) {
-      let subject;
-      let from;
-      switch (type) {
-        case 'activate':
-        case 'reset':
-        case 'password':
-          subject = subjects[type];
-          from = senders[type];
-          break;
-        default:
-          subject = '';
-          from = 'noreply <support@example.com>';
-      }
-
+    .then(function definedSubjectAndSend({ context, emailTemplate }) {
       const mail = {
-        subject,
-        from,
+        subject: subjects[type] || '',
+        from: senders[type] || 'noreply <support@example.com>',
         to: email,
         html: emailTemplate,
       };
 
       const mailSent = mailer.send(mailingAccount, mail)
+        .return({ sent: true, context })
         .catch(function mailingFailed(err) {
           logger.warn('couldn\'t send email', err);
+          return { sent: false, context, err };
         });
 
       if (wait) {
         return mailSent;
       }
 
-      return { queued: true };
+      return {
+        queued: true,
+        context,
+      };
     });
 };
 

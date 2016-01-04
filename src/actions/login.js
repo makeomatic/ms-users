@@ -43,8 +43,6 @@ module.exports = function login(opts) {
           }
         });
     });
-  } else {
-    promise = Promise.resolve();
   }
 
   return promise.then(function getHashedPasswordAndUserState() {
@@ -57,11 +55,7 @@ module.exports = function login(opts) {
 
     return scrypt
       .verify(passwordHashBuffer, password)
-      .then(function verificationResult(matches) {
-        if (matches !== true) {
-          throw new Errors.HttpStatusError(403, 'incorrect password');
-        }
-
+      .then(function verificationResult() {
         if (remoteip) {
           loginAttempts = 0;
           return redis.del(remoteipKey);

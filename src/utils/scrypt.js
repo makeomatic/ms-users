@@ -15,7 +15,13 @@ exports.hash = function hashPassword(password) {
 exports.verify = function verifyPassword(hash, password) {
   return Promise.fromNode(function verifyKdfPromise(next) {
     scrypt.verifyKdf(hash, new Buffer(password, 'utf-8'), next);
-  }).catch(function scruptError(err) {
+  })
+  .catch(function scryptError(err) {
     throw new Errors.HttpStatusError(403, err.scrypt_err_message || err.message);
+  })
+  .then(function verifyResult(result) {
+    if (result !== true) {
+      throw new Errors.HttpStatusError(403, 'incorrect password');
+    }
   });
 };

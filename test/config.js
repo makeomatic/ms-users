@@ -1,3 +1,5 @@
+require('chai').config.includeStack = true;
+
 global.AMQP = {
   connection: {
     host: process.env.RABBITMQ_PORT_5672_TCP_ADDR,

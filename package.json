@@ -54,6 +54,7 @@
     "babel-preset-stage-0": "^6.3.13",
     "babel-register": "^6.3.13",
     "chai": "^3.4.1",
+    "cz-conventional-changelog": "^1.1.5",
     "eslint": "^1.10.3",
     "eslint-config-airbnb": "^2.1.1",
     "eslint-plugin-mocha": "^1.1.0",
@@ -63,5 +64,10 @@
     "mocha-multi": "^0.7.2",
     "server-destroy": "^1.0.1",
     "sinon": "^1.17.2"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }

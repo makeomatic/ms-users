@@ -32,7 +32,7 @@
     "moment": "^2.10.6",
     "ms-amqp-conf": "^0.2.0",
     "ms-amqp-transport": "^0.4.2",
-    "ms-mailer-client": "^0.3.0",
+    "ms-mailer-client": "^1.0.0",
     "ms-mailer-templates": "^0.3.0",
     "ms-validation": "^0.5.7",
     "mservice": "^1.0.0",

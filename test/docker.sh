@@ -5,6 +5,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DC="$DIR/docker-compose.yml"
 PATH=$PATH:$DIR/.bin/
 COMPOSE=$(which docker-compose)
+MOCHA=./node_modules/.bin/mocha
+TESTS=test/suites/*.js
 
 if [ -z "$NODE_VER" ]; then
   NODE_VER="5.3.0"
@@ -25,4 +27,7 @@ trap finish EXIT
 
 export IMAGE=makeomatic/alpine-node:$NODE_VER
 $COMPOSE -f $DC up -d
-$COMPOSE -f $DC run --rm tester /bin/sh -c "npm run rebuild && ./node_modules/.bin/mocha"
+$COMPOSE -f $DC run --rm tester npm run rebuild
+for fn in $TESTS; do
+  $COMPOSE -f $DC run --rm tester $MOCHA $fn || exit 1
+done

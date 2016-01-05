@@ -1,18 +1,19 @@
 const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const ld = require('lodash');
+const { filter: transformFilter } = require('redis-filtered-sort');
 
 module.exports = function iterateOverActiveUsers(opts) {
   const { redis, config } = this;
   const { criteria, audience, filter } = opts;
-  const strFilter = typeof filter === 'string' ? filter : JSON.stringify(filter || {});
+  const strFilter = typeof filter === 'string' ? filter : transformFilter(filter || {});
   const order = opts.order || 'ASC';
   const offset = opts.offset || 0;
   const limit = opts.limit || 10;
 
   return redis
-    .sortedFilteredList(config.redis.userSet, redisKey('*', 'metadata', audience), criteria, order, strFilter, offset, limit)
-    .then((ids) => {
+    .fsort(config.redis.userSet, redisKey('*', 'metadata', audience), criteria, order, strFilter, offset, limit)
+    .then(ids => {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {
         return [
@@ -23,7 +24,7 @@ module.exports = function iterateOverActiveUsers(opts) {
       }
 
       const pipeline = redis.pipeline();
-      ids.forEach((id) => {
+      ids.forEach(id => {
         pipeline.hgetall(redisKey(id, 'metadata', audience));
         pipeline.hmget(redisKey(id, 'data'), 'active', 'ban');
       });

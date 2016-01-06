@@ -13,4 +13,5 @@ glob.sync('./coverage/**/coverage*.json').forEach(file => {
 
 reporter.write(collector, true, () => {
   process.stdout.write('report combined...\n');
+  process.exit(0);
 });

@@ -44,4 +44,4 @@ echo "started generating combined coverage"
 $COMPOSE -f $DC run --rm tester node ./test/aggregate-report.js
 
 echo "uploading coverage report from ./coverage/lcov.info"
-$BIN/codecov -f ./coverage/lcov.info
+cat ./coverage/lcov.info | $BIN/codecov

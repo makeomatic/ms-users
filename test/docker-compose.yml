@@ -49,8 +49,10 @@ tester:
     - redis_3
     - rabbitmq
     - redis_client
-  working_dir: ${DIR}
+  working_dir: /src
   volumes:
-    - ${PWD}:${DIR}
+    - ${PWD}:/src
   environment:
     NODE_ENV: "docker"
+    SKIP_REBUILD: ${SKIP_REBUILD}
+  command: 'true'

@@ -5,8 +5,7 @@
   "properties": {
     "username": {
       "type": "string",
-      "minLength": 3,
-      "maxLength": 50
+      "format": "email"
     },
     "password": {
       "type": "string"
@@ -21,7 +20,10 @@
         },
         "remoteip": {
           "type": "string",
-          "format": "ipv4"
+          "oneOf": [
+            { "format": "ipv4" },
+            { "format": "ipv6" }
+          ]
         },
         "secret": {
           "type": "string",
@@ -42,7 +44,13 @@
     },
     "ipaddress": {
       "type": "string",
-      "format": "ipv4"
+      "oneOf": [
+        { "format": "ipv4" },
+        { "format": "ipv6" }
+      ]
+    },
+    "skipChallenge": {
+      "type": "boolean"
     }
   }
 }

@@ -149,8 +149,8 @@ const usersService = new Users(defaultOpts);
 ## Roadmap
 
 1. Add extra features to registration:
- - [ ] limit registrations per ip per time span
- - [ ] reject known disposable email addresses
+ - [x] limit registrations per ip per time span
+ - [x] reject known disposable email addresses
  - [ ] add text message validation
  - [ ] add ability to change username
 2. Abstract storage options:

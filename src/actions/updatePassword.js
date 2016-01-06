@@ -21,14 +21,18 @@ function usernamePasswordReset(username, password) {
   const { redis } = this;
   const userKey = redisKey(username, 'data');
   return redis
-    .hmgetBuffer(userKey, 'password', 'active')
-    .spread(function responses(hash, active) {
+    .hmgetBuffer(userKey, 'password', 'active', 'ban')
+    .spread(function responses(hash, active, banned) {
       if (!hash) {
         throw new Errors.HttpStatusError(404, 'user does not exist');
       }
 
       if (String(active) !== 'true') {
         throw new Errors.HttpStatusError(412, 'account is not active or does not exist');
+      }
+
+      if (String(banned) === 'true') {
+        throw new Errors.HttpStatusError(423, 'account is locked');
       }
 
       if (!Buffer.isBuffer(hash) || hash.length < 1) {

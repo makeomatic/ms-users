@@ -1,13 +1,12 @@
 const Mservice = require('mservice');
-const fs = require('fs');
 const path = require('path');
 const Mailer = require('ms-mailer-client');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const ld = require('lodash');
+const fsort = require('redis-filtered-sort');
 
 // utils
-const sortedFilteredListLua = fs.readFileSync(path.resolve(__dirname, '../lua/sorted-filtered-list.lua'), 'utf-8');
 const register = require('./actions/register.js');
 
 /**
@@ -137,10 +136,7 @@ module.exports = class Users extends Mservice {
     });
 
     this.on('plugin:connect:redisCluster', (redis) => {
-      redis.defineCommand('sortedFilteredList', {
-        numberOfKeys: 2,
-        lua: sortedFilteredListLua,
-      });
+      fsort.attach(redis, 'fsort');
     });
   }
 

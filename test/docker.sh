@@ -31,10 +31,17 @@ trap finish EXIT
 export IMAGE=makeomatic/alpine-node:$NODE_VER
 $COMPOSE -f $DC up -d
 $COMPOSE -f $DC run --rm tester npm run rebuild
+
+echo "cleaning old coverage"
 rm -rf ./coverage
+
+echo "running tests"
 for fn in $TESTS; do
   $COMPOSE -f $DC run --rm tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
 done
 
+echo "started generating combined coverage"
 $COMPOSE -f $DC run --rm tester node ./test/aggregate-report.js
+
+echo "uploading coverage report from ./coverage/lcov.info"
 $BIN/codecov -f ./coverage/lcov.info

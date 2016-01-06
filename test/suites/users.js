@@ -3,7 +3,7 @@ const chai = require('chai');
 const { expect } = chai;
 
 describe('configuration suite', function ConfigurationSuite() {
-  const Users = require('../../lib');
+  const Users = require('../../src');
 
   it('must throw on invalid configuration', function test() {
     expect(function throwOnInvalidConfiguration() {

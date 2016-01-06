@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 
 describe('encrypt/decrypt suite', function cryptoSuite() {
-  const emailValidation = require('../../lib/utils/send-email.js');
+  const emailValidation = require('../../src/utils/send-email.js');
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);

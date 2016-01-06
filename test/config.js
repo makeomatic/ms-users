@@ -1,6 +1,6 @@
 require('chai').config.includeStack = true;
 const { expect } = require('chai');
-const Users = require('../lib');
+const Users = require('../src');
 
 global.Promise = require('bluebird');
 

@@ -36,7 +36,7 @@ describe('#verify', function verifySuite() {
   });
 
   describe('valid token', function suite() {
-    const jwt = require('../../lib/utils/jwt.js');
+    const jwt = require('../../src/utils/jwt.js');
 
     beforeEach(function pretest() {
       return this.users.router({ username: 'v@makeomatic.ru', password: '123', audience: 'test' }, { routingKey: 'users.register' });

@@ -1,11 +1,11 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../lib/utils/key.js');
+const redisKey = require('../../src/utils/key.js');
 const URLSafeBase64 = require('urlsafe-base64');
 
 describe('#activate', function activateSuite() {
   const headers = { routingKey: 'users.activate' };
-  const emailValidation = require('../../lib/utils/send-email.js');
+  const emailValidation = require('../../src/utils/send-email.js');
   const email = 'v@aminev.me';
 
   beforeEach(global.startService);

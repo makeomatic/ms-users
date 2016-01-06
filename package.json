@@ -1,6 +1,5 @@
 {
   "name": "ms-users",
-  "version": "0.9.3",
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {
@@ -8,11 +7,12 @@
     "rebuild": "if [ \"$SKIP_REBUILD\" != \"1\" ]; then npm rebuild; fi",
     "prepublish": "npm run compile",
     "test": "./test/docker.sh",
-    "start": "node ./bin/mservice.js | ./node_modules/.bin/bunyan -o short"
+    "start": "node ./bin/mservice.js | ./node_modules/.bin/bunyan -o short",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/makeomatic/ms-users.git"
+    "url": "https://github.com/makeomatic/ms-users.git"
   },
   "author": "Vitaly Aminev <v@makeomatic.ru>",
   "license": "MIT",
@@ -54,16 +54,23 @@
     "babel-preset-stage-0": "^6.3.13",
     "babel-register": "^6.3.13",
     "chai": "^3.4.1",
+    "codecov.io": "^0.1.6",
     "cz-conventional-changelog": "^1.1.5",
     "eslint": "^1.10.3",
     "eslint-config-airbnb": "^2.1.1",
     "eslint-plugin-mocha": "^1.1.0",
     "faker": "^3.0.1",
+    "isparta": "^4.0.0",
+    "istanbul": "^0.4.0",
     "json": "^9.0.3",
     "mocha": "^2.3.3",
     "mocha-multi": "^0.7.2",
+    "semantic-release": "^4.3.5",
     "server-destroy": "^1.0.1",
     "sinon": "^1.17.2"
+  },
+  "release": {
+    "verifyConditions": []
   },
   "config": {
     "commitizen": {

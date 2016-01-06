@@ -1,13 +1,13 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../lib/utils/key.js');
+const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
 
 describe('#login', function loginSuite() {
   const headers = { routingKey: 'users.login' };
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
-  const scrypt = require('../../lib/utils/scrypt.js');
+  const scrypt = require('../../src/utils/scrypt.js');
 
   before(function test() {
     return scrypt.hash(userWithValidPassword.password).then(pass => {

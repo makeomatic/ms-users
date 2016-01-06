@@ -1,13 +1,13 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../lib/utils/key.js');
+const redisKey = require('../../src/utils/key.js');
 
 describe('#updatePassword', function updatePasswordSuite() {
   const headers = { routingKey: 'users.updatePassword' };
   const username = 'v@makeomatic.ru';
   const password = '123';
   const audience = '*.localhost';
-  const emailValidation = require('../../lib/utils/send-email.js');
+  const emailValidation = require('../../src/utils/send-email.js');
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);

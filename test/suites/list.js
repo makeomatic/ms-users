@@ -1,6 +1,6 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../lib/utils/key.js');
+const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
 
 describe('#list', function listSuite() {

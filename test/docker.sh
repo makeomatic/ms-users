@@ -1,11 +1,14 @@
 #!/bin/bash
 
 export NODE_ENV=development
+BIN=./node_modules/.bin
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DC="$DIR/docker-compose.yml"
 PATH=$PATH:$DIR/.bin/
 COMPOSE=$(which docker-compose)
-MOCHA=./node_modules/.bin/mocha
+MOCHA=$BIN/_mocha
+COVER="$BIN/isparta cover"
+NODE=$BIN/babel-node
 TESTS=test/suites/*.js
 
 if [ -z "$NODE_VER" ]; then
@@ -28,6 +31,10 @@ trap finish EXIT
 export IMAGE=makeomatic/alpine-node:$NODE_VER
 $COMPOSE -f $DC up -d
 $COMPOSE -f $DC run --rm tester npm run rebuild
+rm -rf ./coverage
 for fn in $TESTS; do
-  $COMPOSE -f $DC run --rm tester $MOCHA $fn || exit 1
+  $COMPOSE -f $DC run --rm tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
 done
+
+$COMPOSE -f $DC run --rm tester node ./test/aggregate-report.js
+$BIN/codecov -f ./coverage/lcov.info

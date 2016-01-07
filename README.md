@@ -37,120 +37,75 @@ Aims to provide a complete extendable solution to user's management:
 
 ## Configuration
 
-```js
-const Users = require('ms-users');
+1. Configuration options for plugins from https://github.com/makeomatic/mservice:
+  * `redis` - options for https://github.com/luin/ioredis
+  * `amqp`:
+    * `connection`: options for https://github.com/dropbox/amqp-coffee u
+    * `queue` - which queue to listen
+    * `prefix` - which prefix to listen
+    * `postfix` - either object with filename : route name map or path to directory with actions
+    * `initRoutes` - set to `false` to use custom postfix:action mapping
+    * `initRouter` - set to `false` to use a custom router
+  * `logger` - `true` / `false` / bunyan logger instance
+  * `validator` - array of absolute or relative paths to validation schemas
 
-// all the opts listed here are set by defaults
-const defaultOpts = {
-  debug: process.env.NODE_ENV === 'development',
-  // listens to routes on prefix.postfix
-  prefix: 'users',
-  // keep inactive accounts for 30 days
-  deleteInactiveAccounts: 30 * 24 * 60 * 60,
-  // postfixes for routes that we support
-  postfix: {
-    // ban, supports both unban/ban actions
-    ban: 'ban',
+2. Service configuration options
+  * `debug` - Boolean. Defaults to `true` in `development` `NODE_ENV`
+  * `deleteInactiveAccounts` - delete inactive account after X seconds
+  * `pwdReset` - used to configure passwords that are generated in a reset email
+    * `memorable`: Boolean
+    * `length`: Number
+  * `jwt` - json web token generation and validation options. Check https://github.com/auth0/node-jsonwebtoken
+    * `defaultAudience` - namespace for metadata
+    * `hashingFunction`
+    * `issuer`
+    * `secret` ***UPDATE TO YOUR OWN VALUE***
+    * `ttl` how long to keep the token in the DB, milliseconds
+    * `lockAfterAttempts` if set to val > 0 - locks account for `keepLoginAttempts` seconds after this many unsuccessful login attempts
+    * `keepLoginAttempts` defaults to 3600 seconds
+  * `validation` - configuration for validation emails
+    * `secret` - specify your own, encodes json data with it so that people can't tamper tokens
+    * `algorithm` - `aes-256-ctr`
+    * `throttle` - don't send email more frequently than this, seconds
+    * `ttl` - expire token in seconds
+    * `paths` - generate URLs with these paths:
+    * `subjects` - generate emails with these subjects
+    * `senders` - generate emails with these senders
+    * `templates` - template names
+    * `email` - sender
+  * `server` - used to generate URLs
+    * `proto` - 'http' or 'https'
+    * `host`
+    * `port`
+  * `mailer` - configuration for mailing microservice
+  * `payments` - configuration for payments microservice
+  * `admins` - admin accounts to init when starting service
+  * `plugins` - enabled microservice plugins
+  * `hooks`:
+    `users:activate` - set to array of functions or a function. Will be performed after user is activated. Example of custom action is placed in src/custom
 
-    // challenge. Challenge sends email with a token that is used to activate account
-    // often used internally from 'register' method
-    challenge: 'challenge',
+## Usage
 
-    // verifies it and activates not banned account
-    activate: 'activate',
+`node ./bin/mservice.js` and send messages via AMQP
 
-    // verify token and return metadata
-    verify: 'verify',
+## Routes
 
-    // verify credentials and return metadata
-    login: 'login',
+0. `users.register` - register new user
+0. `users.activate` - activate registered user
+0. `users.challenge` - request activation challenge again
+0. `users.login` - login and return token
+0. `users.verify` - verify JWT token and return metadata
+0. `users.logout` - invalidate token
+0. `users.ban` - lock account
+0. `users.list` - list users
+0. `users.updateMetadata` - update metadata for a given user
+0. `users.getMetadata` - get metadata for a given user
+0. `users.requestPassword` - request password reset email
+0. `users.updatePassword` - change password
 
-    // verify token and destroy it
-    logout: 'logout',
+## API
 
-    // creates new user
-    // sends 'challenge', or, if this options is not set, immediately registers user
-    // in the future multiple challenge options could be supported, for now it's just an email
-    register: 'register',
-
-    // pass metadata out based on username
-    // core data only contains username and hashed password
-    // this is an application specific part that can store anything here
-    getMetadata: 'getMetadata',
-
-    // update metadata based on username
-    // rewrites/adds new data, includes both set and remove methods, set overwrites,
-    // while remove - deletes. Set precedes over remove and batch updates are supported
-    updateMetadata: 'updateMetadata',
-
-    // requests an email to change password
-    // can be extended in the future to support more options like secret questions
-    // or text messages
-    requestPassword: 'requestPassword',
-
-    // updates password - either without any checks or, if challenge token is passed, makes sure it's correct
-    updatePassword: 'updatePassword',
-  },
-  // ms-amqp-transport settings, do not specify listen, will be overwritten
-  amqp: {
-    queue: 'ms-users',
-  },
-  // google recaptcha settings
-  captcha: {
-    secret: 'put-your-real-gcaptcha-secret-here',
-    ttl: 3600, // 1 hour - 3600 seconds
-    uri: 'https://www.google.com/recaptcha/api/siteverify',
-  },
-  // ioredis options, uses redis.Cluster
-  redis: {
-    options: {
-      keyPrefix: '{ms-users}',
-    },
-  },
-  // json web token settings
-  jwt: {
-    defaultAudience: '*.localhost',
-    hashingFunction: 'HS256',
-    issuer: 'ms-users',
-    secret: 'i-hope-that-you-change-this-long-default-secret-in-your-app',
-    ttl: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
-    lockAfterAttempts: 5,
-    keepLoginAttempts: 60 * 60, // 1 hour
-  },
-  // account validation settings
-  validation: {
-    secret: 'please-replace-this-as-a-long-nice-secret',
-    algorithm: 'aes-256-ctr',
-    throttle: 2 * 60 * 60, // dont send emails more than once in 2 hours
-    ttl: 4 * 60 * 60, // do not let password to be reset with expired codes
-    paths: {
-      activate: '/activate',
-      reset: '/reset',
-    },
-    subjects: {
-      activate: 'Activate your account',
-      reset: 'Reset your password',
-    },
-    email: 'support@example.com',
-  },
-  // http server settings, that serves api
-  server: {
-    proto: 'http',
-    host: 'localhost',
-    port: 8080,
-  },
-  // ms-mailer-client settings
-  mailer: {
-    prefix: 'mailer',
-    routes: {
-      adhoc: 'adhoc',
-      predefined: 'predefined',
-    },
-  },
-};
-
-const usersService = new Users(defaultOpts);
-```
+Currently consult `schemas` for message format that is required by any route. Filenames correspond to each other
 
 ## Roadmap
 
@@ -174,7 +129,3 @@ const usersService = new Users(defaultOpts);
 6. Ban:
  - [ ] Add security log
 7. Logging serializers to remove passwords from logs
-
-## Debugging
-
-`docker run --rm -it --link redis_1 --link redis_2 --link redis_3 --link rabbitmq -v ~/projects/ms-users/schemas:/src/schemas:ro -v ~/projects/ms-users/src:/src/src -v ~/projects/cappasity-deploy/configs:/configs:ro -e NCONF_FILE_PATH='["/configs/amqp.js","/configs/redis.js","/configs/users.js"]' -e MS_USERS__LOGGER=true -e NODE_ENV=development --name ms-users makeomatic/ms-users:5.1.0-development npm start`

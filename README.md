@@ -88,6 +88,10 @@ that contains description of routes and their capabilities. Aims to provide a co
 
 Currently consult `schemas` for message format that is required by any route. Filenames correspond to each other
 
+## Docker images
+
+Built docker images are available: https://hub.docker.com/r/makeomatic/ms-users/
+
 ## Roadmap
 
 1. Register user:

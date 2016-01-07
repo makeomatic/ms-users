@@ -72,6 +72,7 @@ all: test build push
 %: PKG_PREFIX_ENV = $(PKG_PREFIX)-$(NODE_ENV)
 %::
 	@echo $@  # print target name
+	@echo $(NPM_PROXY)
 	@$(MAKE) -f $(THIS_FILE) $(addsuffix .$@, $(TASK_LIST))
 
 .PHONY: all test build %.mocha %.docker %.push %.pull

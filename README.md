@@ -14,33 +14,14 @@
 
 Starts horizontally scalable nodejs worker communicating over amqp layer with redis cluster backend.
 Supports a broad range of operations for working with users. Please refer to the configuration options for now,
-that contains description of routes and their capabilities.
-
-Aims to provide a complete extendable solution to user's management:
-
-1. Register user:
-  - [x] email, password + metadata
-  - [ ] third party services
-2. Validation challenges:
-  - [x] email validation
-  - [ ] sms
-4. Auto-cleaning of accounts that failed their validation challenge
-5. Login/Logout + JWT token issuing
-6. Ability to erase all issued JWT tokens
-7. Get and update user's metadata
-8. Admin capabilities:
-  - [x] listing, filtering, sorting and paginating users
-  - [x] viewing info about a single user account
-  - [x] (un)locking user accounts
-  - [x] updating user info
-  - [x] pre-create admin accounts
+that contains description of routes and their capabilities. Aims to provide a complete extendable solution to user's management.
 
 ## Configuration
 
 1. Configuration options for plugins from https://github.com/makeomatic/mservice:
   * `redis` - options for https://github.com/luin/ioredis
   * `amqp`:
-    * `connection`: options for https://github.com/dropbox/amqp-coffee u
+    * `connection`: options for https://github.com/dropbox/amqp-coffee
     * `queue` - which queue to listen
     * `prefix` - which prefix to listen
     * `postfix` - either object with filename : route name map or path to directory with actions
@@ -109,6 +90,22 @@ Currently consult `schemas` for message format that is required by any route. Fi
 
 ## Roadmap
 
+1. Register user:
+  - [x] email, password + metadata
+  - [ ] third party services
+2. Validation challenges:
+  - [x] email validation
+  - [ ] sms
+4. Auto-cleaning of accounts that failed their validation challenge
+5. Login/Logout + JWT token issuing
+6. Ability to erase all issued JWT tokens
+7. Get and update user's metadata
+8. Admin capabilities:
+  - [x] listing, filtering, sorting and paginating users
+  - [x] viewing info about a single user account
+  - [x] un/locking user accounts
+  - [x] updating user info
+  - [x] pre-create admin accounts
 1. Add extra features to registration:
  - [x] limit registrations per ip per time span
  - [x] reject known disposable email addresses

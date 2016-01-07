@@ -1,11 +1,11 @@
 SHELL := /bin/bash
 THIS_FILE := $(lastword $(MAKEFILE_LIST))
 PKG_NAME := $(shell cat package.json | ./node_modules/.bin/json name)
-PKG_VERSION := $(shell cat package.json | ./node_modules/.bin/json version)
+PKG_VERSION := $(shell npm show $(PKG_NAME) version)
 NPM_PROXY := http://$(shell docker-machine ip dev):4873
 DOCKER_USER := makeomatic
 DIST := $(DOCKER_USER)/$(PKG_NAME)
-NODE_VERSIONS := 5.3.0
+NODE_VERSIONS := 5.4.0
 ENVS := development production
 TASK_LIST := $(foreach env,$(ENVS),$(addsuffix .$(env), $(NODE_VERSIONS)))
 WORKDIR := /src

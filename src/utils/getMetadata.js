@@ -5,7 +5,7 @@ const { isArray } = Array;
 
 module.exports = function getMetadata(username, _audience) {
   const { redis } = this;
-  const audience = isArray(_audience) ? _audience : [ _audience ];
+  const audience = isArray(_audience) ? _audience : [_audience];
 
   return Promise.map(audience, function getAudienceData(aud) {
     return redis.hgetallBuffer(redisKey(username, 'metadata', aud));

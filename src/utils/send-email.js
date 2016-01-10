@@ -15,7 +15,7 @@ const generatePassword = require('password-generator');
 function isThrottled(compare) {
   return function comparator(reply) {
     if (!!reply === compare) {
-      throw new Errors.HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email');
+      throw new Errors.HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email'); // eslint-disable-line
     }
   };
 }
@@ -94,7 +94,7 @@ exports.safeDecode = function safeDecode(algorithm, secret, string) {
 exports.send = function sendEmail(email, type = 'activate', wait = false) {
   const { redis, config, mailer } = this;
   const { validation, server } = config;
-  const { ttl, throttle, subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation;
+  const { ttl, throttle, subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation; // eslint-disable-line
 
   // method specific stuff
   const throttleEmailsKey = redisKey('vthrottle-' + type, email);
@@ -113,7 +113,8 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
         case 'activate':
         case 'reset':
           // generate secret
-          const enc = exports.encrypt(algorithm, secret, new Buffer(JSON.stringify({ email, token: activationSecret })));
+          const str = new Buffer(JSON.stringify({ email, token: activationSecret }));
+          const enc = exports.encrypt(algorithm, secret, str);
           context.qs = '?q=' + URLSafeBase64.encode(enc);
           context.link = exports.generateLink(server, paths[type]);
           break;
@@ -196,7 +197,8 @@ exports.verify = function verifyToken(string, namespace = 'activate', expires) {
       const { email, token } = message;
 
       if (!email || !token) {
-        throw new Errors.HttpStatusError(403, 'Decoded token misses references to email and/or secret');
+        const msg = 'Decoded token misses references to email and/or secret';
+        throw new Errors.HttpStatusError(403, msg);
       }
 
       const secretKey = redisKey('vsecret-' + namespace, token);

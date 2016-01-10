@@ -75,7 +75,8 @@ function makeCaptchaCheck(redis, username, captcha, captchaConfig) {
       .exec()
       .spread(function captchaCacheResponse(setResponse, getResponse) {
         if (getResponse[1] !== username) {
-          throw new Errors.HttpStatusError(412, 'Captcha challenge you\'ve solved can not be used, please complete it again');
+          const msg = 'Captcha challenge you\'ve solved can not be used, please complete it again';
+          throw new Errors.HttpStatusError(412, msg);
         }
       })
       .then(function verifyGoogleCaptcha() {
@@ -118,7 +119,8 @@ function checkLimits(redis, registrationLimits, ipaddress) {
       .then(props => {
         const cardinality = props[3][1];
         if (cardinality > times) {
-          throw new Errors.HttpStatusError(429, `You can't register more users from your ipaddress now`);
+          const msg = `You can't register more users from your ipaddress now`;
+          throw new Errors.HttpStatusError(429, msg);
         }
       });
   };
@@ -163,7 +165,8 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
         }
 
         if (!activate && deleteInactiveAccounts >= 0) {
-          // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>[by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
+          // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
+          // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
           return redis.expire(userDataKey, deleteInactiveAccounts);
         }
       });
@@ -220,7 +223,8 @@ module.exports = function registerUser(message) {
   promise = promise.return(password).then(scrypt.hash);
 
   // step 4 - create user if it wasn't created by some1 else trying to use race-conditions
-  promise = promise.then(createUser(redis, username, activate, deleteInactiveAccounts, userDataKey));
+  promise = promise
+    .then(createUser(redis, username, activate, deleteInactiveAccounts, userDataKey));
 
   // step 5 - save metadata if present
   if (metadata) {

@@ -39,7 +39,9 @@ module.exports = function login(opts) {
 
           loginAttempts = incrementValue[1];
           if (loginAttempts > lockAfterAttempts) {
-            throw new Errors.HttpStatusError(429, 'You are locked from making login attempts for the next ' + moment().add(config.keepLoginAttempts, 'seconds').toNow(true));
+            const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
+            const msg = `You are locked from making login attempts for the next ${duration}`;
+            throw new Errors.HttpStatusError(429, msg);
           }
         });
     });
@@ -76,7 +78,7 @@ module.exports = function login(opts) {
   })
   .catch(function enrichError(err) {
     if (remoteip) {
-      err.loginAttempts = loginAttempts;
+      err.loginAttempts = loginAttempts; // eslint-disable-line
     }
 
     throw err;

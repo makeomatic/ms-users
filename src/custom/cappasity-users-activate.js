@@ -23,7 +23,7 @@ module.exports = function mixPlan(username, audience) {
         username,
         audience,
         metadata: {
-          '$set': {
+          $set: {
             plan: id,
             agreement: id,
             nextCycle,

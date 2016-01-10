@@ -35,7 +35,8 @@ module.exports = function verifyChallenge(opts) {
       .pipeline()
       .hget(userKey, 'active')
       .hset(userKey, 'active', 'true')
-      .persist(userKey) // WARNING: this is very important, otherwise we will lose user's information in 30 days
+      // WARNING: this is very important, otherwise we will lose user's information in 30 days
+      .persist(userKey)
       .sadd(config.redis.userSet, user)
       .exec()
       .spread(function pipeResponse(isActive) {

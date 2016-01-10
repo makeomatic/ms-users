@@ -5,6 +5,7 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const ld = require('lodash');
 const fsort = require('redis-filtered-sort');
+const { NotImplementedError } = Errors;
 
 // utils
 const register = require('./actions/register.js');
@@ -146,7 +147,7 @@ module.exports = class Users extends Mservice {
    */
   get mailer() {
     const mailer = this._mailer;
-    return mailer ? mailer : this.emit('error', new Errors.NotImplementedError('amqp is not connected'));
+    return mailer ? mailer : this.emit('error', new NotImplementedError('amqp is not connected'));
   }
 
   /**
@@ -192,7 +193,11 @@ module.exports = class Users extends Mservice {
         }
       });
 
-      this.log.info('Registered admins %d/%d. Errors: %d', registered, totalAccounts, errors.length);
+      this.log.info(
+        'Registered admins %d/%d. Errors: %d',
+        registered, totalAccounts, errors.length
+      );
+
       errors.forEach(err => {
         if (err.statusCode !== 403) {
           this.log.warn(err.stack);
@@ -248,7 +253,11 @@ module.exports = class Users extends Mservice {
         }
       });
 
-      this.log.info('Registered fake users %d/%d. Errors: %d', registered, totalAccounts, errors.length);
+      this.log.info(
+        'Registered fake users %d/%d. Errors: %d',
+        registered, totalAccounts, errors.length
+      );
+
       errors.forEach(err => {
         if (err.statusCode !== 403) {
           this.log.warn(err.stack);

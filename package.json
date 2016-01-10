@@ -5,11 +5,12 @@
   "scripts": {
     "compile": "./node_modules/.bin/babel -d ./lib ./src",
     "rebuild": "if [ \"$SKIP_REBUILD\" != \"1\" ]; then npm rebuild; fi",
-    "prepublish": "npm run compile",
+    "prepublish": "npm run lint && npm run compile",
     "test": "./test/docker.sh",
     "start": "node ./bin/mservice.js | ./node_modules/.bin/bunyan -o short",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "docker-release": "./docker-release.sh"
+    "docker-release": "./docker-release.sh",
+    "lint": "./node_modules/.bin/eslint ./src"
   },
   "repository": {
     "type": "git",
@@ -34,9 +35,9 @@
     "ioredis": "^1.14.0",
     "jsonwebtoken": "^5.5.4",
     "lodash": "^3.10.1",
-    "moment": "^2.11.0",
+    "moment": "^2.11.1",
     "ms-amqp-conf": "^0.2.0",
-    "ms-amqp-transport": "^0.9.0",
+    "ms-amqp-transport": "^0.9.1",
     "ms-mailer-client": "^1.0.0",
     "ms-mailer-templates": "^0.3.0",
     "ms-validation": "^1.0.1",
@@ -58,7 +59,7 @@
     "codecov.io": "^0.1.6",
     "cz-conventional-changelog": "^1.1.5",
     "eslint": "^1.10.3",
-    "eslint-config-airbnb": "^3.0.2",
+    "eslint-config-airbnb": "^3.1.0",
     "eslint-plugin-mocha": "^1.1.0",
     "faker": "^3.0.1",
     "isparta": "^4.0.0",

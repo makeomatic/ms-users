@@ -10,9 +10,10 @@ module.exports = function iterateOverActiveUsers(opts) {
   const order = opts.order || 'ASC';
   const offset = opts.offset || 0;
   const limit = opts.limit || 10;
+  const metaKey = redisKey('*', 'metadata', audience);
 
   return redis
-    .fsort(config.redis.userSet, redisKey('*', 'metadata', audience), criteria, order, strFilter, offset, limit)
+    .fsort(config.redis.userSet, metaKey, criteria, order, strFilter, offset, limit)
     .then(ids => {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {

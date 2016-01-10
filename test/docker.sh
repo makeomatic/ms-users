@@ -33,7 +33,7 @@ $COMPOSE -f $DC up -d
 
 if [[ "$SKIP_REBUILD" != "1" ]]; then
   echo "rebuilding native dependencies..."
-  $COMPOSE -f $DC run --rm tester npm run rebuild
+  $COMPOSE -f $DC run --rm tester npm rebuild
 fi
 
 echo "cleaning old coverage"

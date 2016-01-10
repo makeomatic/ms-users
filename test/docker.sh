@@ -30,7 +30,11 @@ trap finish EXIT
 
 export IMAGE=makeomatic/alpine-node:$NODE_VER
 $COMPOSE -f $DC up -d
-$COMPOSE -f $DC run --rm tester npm run rebuild
+
+if [[ "$SKIP_REBUILD" != "1" ]]; then
+  echo "rebuilding native dependencies..."
+  $COMPOSE -f $DC run --rm tester npm run rebuild
+fi
 
 echo "cleaning old coverage"
 rm -rf ./coverage
@@ -44,4 +48,6 @@ echo "started generating combined coverage"
 $COMPOSE -f $DC run --rm tester node ./test/aggregate-report.js
 
 echo "uploading coverage report from ./coverage/lcov.info"
-cat ./coverage/lcov.info | $BIN/codecov
+if [[ "$CI" == "true" ]]; then
+  cat ./coverage/lcov.info | $BIN/codecov
+fi

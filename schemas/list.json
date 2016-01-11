@@ -57,9 +57,12 @@
               "maxProperties": 2,
               "properties": {
                 "patternProperties": {
-                  "^(gte|lte|ne|eq|match)$": {
+                  "^(ne|eq|match)$": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "^(gte|lte)$": {
+                    "type": "number"
                   }
                 }
               }

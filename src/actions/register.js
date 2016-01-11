@@ -227,17 +227,18 @@ module.exports = function registerUser(message) {
     .then(createUser(redis, username, activate, deleteInactiveAccounts, userDataKey));
 
   // step 5 - save metadata if present
-  if (metadata) {
-    promise = promise.then(function insertMetadata() {
-      return setMetadata.call(this, {
-        username,
-        audience,
-        metadata: {
-          $set: metadata,
+  promise = promise.then(function insertMetadata() {
+    return setMetadata.call(this, {
+      username,
+      audience,
+      metadata: {
+        $set: {
+          username,
+          ...metadata || {},
         },
-      });
+      },
     });
-  }
+  });
 
   if (!activate) {
     promise = promise.then(function sendChallenge() {

@@ -41,6 +41,7 @@ describe('#getMetadata', function getMetadataSuite() {
               name: {
                 q: 'verynicedata',
               },
+              username,
             },
           });
         });
@@ -56,6 +57,7 @@ describe('#getMetadata', function getMetadataSuite() {
               name: {
                 q: 'verynicedata',
               },
+              username,
             },
             'matic.ninja': {
               iat: 10,

@@ -57,7 +57,9 @@ describe('#verify', function verifySuite() {
             username: 'v@makeomatic.ru',
             metadata: {
               '*.localhost': {},
-              test: {},
+              test: {
+                username: 'v@makeomatic.ru',
+              },
             },
           });
         });

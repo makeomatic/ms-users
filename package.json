@@ -45,7 +45,7 @@
     "node-uuid": "^1.4.7",
     "password-generator": "^2.0.2",
     "redis-filtered-sort": "^1.1.1",
-    "request-promise": "^1.0.2",
+    "request-promise": "^2.0.0",
     "scrypt": "^5.4.1",
     "urlsafe-base64": "^1.0.0"
   },

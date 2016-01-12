@@ -41,11 +41,11 @@
     "ms-mailer-client": "^1.0.0",
     "ms-mailer-templates": "^0.3.0",
     "ms-validation": "^1.0.1",
-    "mservice": "^1.2.2",
+    "mservice": "^1.2.3",
     "node-uuid": "^1.4.7",
     "password-generator": "^2.0.2",
     "redis-filtered-sort": "^1.1.1",
-    "request-promise": "^1.0.2",
+    "request-promise": "^2.0.0",
     "scrypt": "^5.4.1",
     "urlsafe-base64": "^1.0.0"
   },

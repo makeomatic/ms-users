@@ -111,6 +111,8 @@ module.exports = class Users extends Mservice {
     validator: ['../schemas'],
     // default hooks - none
     hooks: {},
+    // make sure we wait for admin accounts to init
+    initAdminAccountsDelay: 10000,
   };
 
   /**
@@ -166,7 +168,7 @@ module.exports = class Users extends Mservice {
     const config = this.config;
     const accounts = config.admins;
     const audience = config.jwt.defaultAudience;
-    return Promise.delay(10000).return(accounts).map(account => {
+    return Promise.delay(config.initAdminAccountsDelay).return(accounts).map(account => {
       return register.call(this, {
         username: account.username,
         password: account.password,

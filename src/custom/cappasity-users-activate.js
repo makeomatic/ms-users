@@ -18,7 +18,7 @@ module.exports = function mixPlan(username, audience) {
     .bind(this)
     .then(function mix(plan) {
       const subscription = ld.findWhere(plan.subs, { name: 'month' });
-      const nextCycle = moment().add(1, 'month').format();
+      const nextCycle = moment().add(1, 'month').valueOf();
       const update = {
         username,
         audience,
@@ -29,6 +29,8 @@ module.exports = function mixPlan(username, audience) {
             nextCycle,
             models: subscription.models,
             modelPrice: subscription.price,
+            subscriptionPrice: '0',
+            subscriptionInterval: 'month',
           },
         },
       };

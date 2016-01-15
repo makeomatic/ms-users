@@ -37,7 +37,7 @@
     "lodash": "^3.10.1",
     "moment": "^2.11.1",
     "ms-amqp-conf": "^0.2.0",
-    "ms-amqp-transport": "^0.11.3",
+    "ms-amqp-transport": "^1.0.0",
     "ms-mailer-client": "^1.0.0",
     "ms-mailer-templates": "^0.3.0",
     "ms-validation": "^1.0.1",

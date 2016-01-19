@@ -125,10 +125,10 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
           throw new Errors.InvalidOperationError(`${type} action is not supported`);
       }
 
-      return {
+      return Promise.props({
         context,
         emailTemplate: render(templateName, context),
-      };
+      });
     })
     .tap(data => {
       const { context } = data;

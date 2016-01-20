@@ -1,5 +1,6 @@
-const ld = require('lodash');
+const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
+const JSONStringify = JSON.stringify.bind(JSON);
 
 /**
  * Updates metadata on a user object
@@ -23,7 +24,7 @@ module.exports = function updateMetadata(opts) {
   const $setKeys = $set && Object.keys($set);
   const $setLength = $setKeys && $setKeys.length || 0;
   if ($setLength > 0) {
-    pipeline.hmset(metadataKey, ld.mapValues($set, JSON.stringify, JSON));
+    pipeline.hmset(metadataKey, mapValues($set, JSONStringify));
   }
 
   const $incr = metadata.$incr;

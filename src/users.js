@@ -3,7 +3,7 @@ const path = require('path');
 const Mailer = require('ms-mailer-client');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const ld = require('lodash');
+const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
 const { NotImplementedError } = Errors;
 
@@ -121,7 +121,7 @@ module.exports = class Users extends Mservice {
    * @return {Users}
    */
   constructor(opts = {}) {
-    super(ld.merge({}, Users.defaultOpts, opts));
+    super(merge({}, Users.defaultOpts, opts));
     const config = this.config;
 
     const { error } = this.validateSync('config', config);

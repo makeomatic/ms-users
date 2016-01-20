@@ -1,7 +1,8 @@
-const ld = require('lodash');
+const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
 const Promise = require('bluebird');
 const { isArray } = Array;
+const JSONParse = JSON.parse.bind(JSON);
 
 module.exports = function getMetadata(username, _audience) {
   const { redis } = this;
@@ -15,7 +16,7 @@ module.exports = function getMetadata(username, _audience) {
     audience.forEach(function transform(aud, idx) {
       const datum = data[idx];
       if (datum) {
-        output[aud] = ld.mapValues(datum, JSON.parse, JSON);
+        output[aud] = mapValues(datum, JSONParse);
       } else {
         output[aud] = {};
       }

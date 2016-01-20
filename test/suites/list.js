@@ -29,7 +29,10 @@ describe('#list', function listSuite() {
       promises.push(this.users._redis
         .pipeline()
         .sadd(userSet, user.id)
-        .hmset(redisKey(user.id, 'metadata', audience), ld.mapValues(user.metadata, JSON.stringify, JSON))
+        .hmset(
+          redisKey(user.id, 'metadata', audience),
+          ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
+        )
         .exec()
       );
     });

@@ -1,4 +1,4 @@
-const ld = require('lodash');
+const find = require('lodash/find');
 const moment = require('moment');
 const setMetadata = require('../utils/updateMetadata.js');
 
@@ -17,7 +17,7 @@ module.exports = function mixPlan(username, audience) {
     .publishAndWait(route, id, { timeout: 5000 })
     .bind(this)
     .then(function mix(plan) {
-      const subscription = ld.findWhere(plan.subs, { name: 'month' });
+      const subscription = find(plan.subs, ['name', 'month']);
       const nextCycle = moment().add(1, 'month').valueOf();
       const update = {
         username,

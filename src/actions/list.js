@@ -1,7 +1,8 @@
 const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
-const ld = require('lodash');
+const mapValues = require('lodash/mapValues');
 const { filter: transformFilter } = require('redis-filtered-sort');
+const JSONParse = JSON.parse.bind(JSON);
 
 module.exports = function iterateOverActiveUsers(opts) {
   const { redis, config } = this;
@@ -43,7 +44,7 @@ module.exports = function iterateOverActiveUsers(opts) {
         const account = {
           id,
           metadata: {
-            [audience]: data ? ld.mapValues(data, JSON.parse, JSON) : {},
+            [audience]: data ? mapValues(data, JSONParse) : {},
           },
         };
 

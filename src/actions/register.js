@@ -1,7 +1,8 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const request = require('request-promise');
-const ld = require('lodash');
+const defaults = require('lodash/defaults');
+const pick = require('lodash/pick');
 const setMetadata = require('../utils/updateMetadata.js');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
@@ -80,7 +81,7 @@ function makeCaptchaCheck(redis, username, captcha, captchaConfig) {
         }
       })
       .then(function verifyGoogleCaptcha() {
-        return request.post({ uri, qs: ld.defaults(captcha, { secret }), json: true })
+        return request.post({ uri, qs: defaults(captcha, { secret }), json: true })
           .then(function captchaSuccess(body) {
             if (!body.success) {
               return Promise.reject({ statusCode: 200, error: body });
@@ -89,7 +90,7 @@ function makeCaptchaCheck(redis, username, captcha, captchaConfig) {
             return true;
           })
           .catch(function captchaError(err) {
-            const errData = JSON.stringify(ld.pick(err, ['statusCode', 'error']));
+            const errData = JSON.stringify(pick(err, ['statusCode', 'error']));
             throw new Errors.HttpStatusError(412, fmt('Captcha response: %s', errData));
           });
       });

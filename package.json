@@ -66,7 +66,7 @@
     "istanbul": "^0.4.2",
     "json": "^9.0.3",
     "latest-version-cli": "^1.0.0",
-    "mocha": "^2.3.3",
+    "mocha": "^2.4.4",
     "mocha-multi": "^0.7.2",
     "semantic-release": "^4.3.5",
     "server-destroy": "^1.0.1",

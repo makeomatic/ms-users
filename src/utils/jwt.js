@@ -5,6 +5,7 @@ const redisKey = require('./key.js');
 const getMetadata = require('../utils/getMetadata.js');
 const FlakeId = require('flake-idgen');
 const flakeIdGen = new FlakeId();
+const { USERS_TOKENS } = require('../constants.js');
 
 /**
  * Logs user in and returns JWT and User Object
@@ -34,7 +35,7 @@ exports.login = function login(username, _audience) {
   }
 
   return Promise.props({
-    lastAccessUpdated: redis.zadd(redisKey(username, 'tokens'), Date.now(), token),
+    lastAccessUpdated: redis.zadd(redisKey(username, USERS_TOKENS), Date.now(), token),
     jwt: token,
     username,
     metadata: getMetadata.call(this, username, audience),
@@ -63,12 +64,12 @@ exports.logout = function logout(token, audience) {
 
   return jwt
     .verifyAsync(token, secret, { issuer, audience, algorithms: [algorithm] })
-    .catch((err) => {
+    .catch(err => {
       this.log.debug('error decoding token', err);
       throw new Errors.HttpStatusError(403, 'Invalid Token');
     })
     .then(function decodedToken(decoded) {
-      return redis.zrem(redisKey(decoded.username, 'tokens'), token);
+      return redis.zrem(redisKey(decoded.username, USERS_TOKENS), token);
     })
     .return({ success: true });
 };
@@ -78,7 +79,7 @@ exports.logout = function logout(token, audience) {
  * @param {String} username
  */
 exports.reset = function reset(username) {
-  return this.redis.del(redisKey(username, 'tokens'));
+  return this.redis.del(redisKey(username, USERS_TOKENS));
 };
 
 /**
@@ -95,7 +96,7 @@ exports.verify = function verifyToken(token, audience, peek) {
 
   return jwt
     .verifyAsync(token, secret, { issuer, algorithms: [algorithm] })
-    .catch((err) => {
+    .catch(err => {
       this.log.debug('invalid token passed: %s', token, err);
       throw new Errors.HttpStatusError(403, 'invalid token');
     })
@@ -105,7 +106,7 @@ exports.verify = function verifyToken(token, audience, peek) {
       }
 
       const { username } = decoded;
-      const tokensHolder = redisKey(username, 'tokens');
+      const tokensHolder = redisKey(username, USERS_TOKENS);
       let lastAccess = redis.zscoreBuffer(tokensHolder, token).then(function getLastAccess(_score) {
         // parseResponse
         const score = parseInt(_score, 10);

@@ -3,6 +3,8 @@ const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
 const emailVerification = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
+const userExists = require('../utils/userExists.js');
+const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG } = require('../constants.js');
 
 module.exports = function verifyChallenge(opts) {
   // TODO: add security logs
@@ -15,57 +17,34 @@ module.exports = function verifyChallenge(opts) {
     return emailVerification.verify.call(this, token, namespace, config.validation.ttl > 0);
   }
 
-  function verifyUserExists() {
-    const userKey = redisKey(username, 'data');
-    return redis
-      .hexists(userKey, 'active')
-      .then(function fieldExists(exists) {
-        if (!exists) {
-          throw new Errors.HttpStatusError(404, 'user does not exist');
-        }
-      })
-      .return(username);
-  }
-
   function activateAccount(user) {
-    const userKey = redisKey(user, 'data');
+    const userKey = redisKey(user, USERS_DATA);
 
-    // set to active
+    // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
+    // set to active & persist
     return redis
       .pipeline()
-      .hget(userKey, 'active')
-      .hset(userKey, 'active', 'true')
-      // WARNING: this is very important, otherwise we will lose user's information in 30 days
+      .hget(userKey, USERS_ACTIVE_FLAG)
+      .hset(userKey, USERS_ACTIVE_FLAG, 'true')
       .persist(userKey)
-      .sadd(config.redis.userSet, user)
+      .sadd(USERS_INDEX, user)
       .exec()
       .spread(function pipeResponse(isActive) {
         const status = isActive[1];
         if (status === 'true') {
-          throw new Errors.HttpStatusError(413, `Account ${user} was already activated`);
+          throw new Errors.HttpStatusError(412, `Account ${user} was already activated`);
         }
-      })
-      .return(user);
-  }
-
-  function returnUserInfo(user) {
-    return jwt.login.call(this, user, audience);
+      });
   }
 
   function postHook(user) {
     return this.postHook('users:activate', user, audience);
   }
 
-  let promise = Promise.bind(this);
-
-  if (!username) {
-    promise = promise.then(verifyToken);
-  } else {
-    promise = promise.then(verifyUserExists);
-  }
-
-  return promise
-    .then(activateAccount)
+  return Promise
+    .bind(this, username)
+    .then(username ? userExists : verifyToken)
+    .tap(activateAccount)
     .tap(postHook)
-    .then(returnUserInfo);
+    .then(user => jwt.login.call(this, user, audience));
 };

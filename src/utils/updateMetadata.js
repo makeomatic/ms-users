@@ -1,6 +1,7 @@
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
 const JSONStringify = JSON.stringify.bind(JSON);
+const { USERS_METADATA } = require('../constants.js');
 
 /**
  * Updates metadata on a user object
@@ -11,7 +12,7 @@ module.exports = function updateMetadata(opts) {
   const { redis } = this;
   const { username, audience, metadata } = opts;
 
-  const metadataKey = redisKey(username, 'metadata', audience);
+  const metadataKey = redisKey(username, USERS_METADATA, audience);
   const pipeline = redis.pipeline();
 
   const $remove = metadata.$remove;

@@ -1,5 +1,6 @@
 /* global inspectPromise */
 const { expect } = require('chai');
+const times = require('lodash/times');
 
 describe('#register', function registerSuite() {
   const headers = { routingKey: 'users.register' };
@@ -76,7 +77,7 @@ describe('#register', function registerSuite() {
         .then(inspectPromise(false))
         .then(registered => {
           expect(registered.name).to.be.eq('HttpStatusError');
-          expect(registered.statusCode).to.be.eq(403);
+          expect(registered.statusCode).to.be.eq(409);
           expect(registered.message).to.match(/"v@makeomatic\.ru" already exists/);
         });
     });
@@ -92,10 +93,8 @@ describe('#register', function registerSuite() {
     };
 
     beforeEach(function pretest() {
-      return Promise.join(
-        this.users.router({ ...opts, username: '1' + opts.username }, headers),
-        this.users.router({ ...opts, username: '2' + opts.username }, headers),
-        this.users.router({ ...opts, username: '3' + opts.username }, headers)
+      return Promise.all(
+        times(3, n => this.users.router({ ...opts, username: `${n + 1}${opts.username}` }, headers))
       );
     });
 

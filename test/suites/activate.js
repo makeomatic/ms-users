@@ -55,7 +55,7 @@ describe('#activate', function activateSuite() {
         .then(activation => {
           expect(activation.name).to.be.eq('HttpStatusError');
           expect(activation.message).to.match(/Account v@aminev\.me was already activated/);
-          expect(activation.statusCode).to.be.eq(413);
+          expect(activation.statusCode).to.be.eq(412);
         });
     });
   });
@@ -96,7 +96,6 @@ describe('#activate', function activateSuite() {
       .then(activation => {
         expect(activation.name).to.be.eq('HttpStatusError');
         expect(activation.statusCode).to.be.eq(404);
-        expect(activation.message).to.be.eq('user does not exist');
       });
   });
 });

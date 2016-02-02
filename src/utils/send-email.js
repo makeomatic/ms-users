@@ -97,7 +97,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
   const { ttl, throttle, subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation; // eslint-disable-line
 
   // method specific stuff
-  const throttleEmailsKey = redisKey('vthrottle-' + type, email);
+  const throttleEmailsKey = redisKey(`vthrottle-${type}`, email);
   const activationSecret = uuid.v4();
   const logger = this.log.child({ action: 'sendEmail', email });
 
@@ -115,7 +115,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
           // generate secret
           const str = new Buffer(JSON.stringify({ email, token: activationSecret }));
           const enc = exports.encrypt(algorithm, secret, str);
-          context.qs = '?q=' + URLSafeBase64.encode(enc);
+          context.qs = `?q=${URLSafeBase64.encode(enc)}`;
           context.link = exports.generateLink(server, paths[type]);
           break;
         case 'password':
@@ -146,7 +146,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
         .set(throttleArgs)
         .then(isThrottled(false))
         .then(function updateSecret() {
-          const secretKey = redisKey('vsecret-' + type, activationSecret);
+          const secretKey = redisKey(`vsecret-${type}`, activationSecret);
           const args = [secretKey, email];
           if (ttl > 0) {
             args.push('EX', ttl);
@@ -201,7 +201,7 @@ exports.verify = function verifyToken(string, namespace = 'activate', expires) {
         throw new Errors.HttpStatusError(403, msg);
       }
 
-      const secretKey = redisKey('vsecret-' + namespace, token);
+      const secretKey = redisKey(`vsecret-${namespace}`, token);
       return redis
         .get(secretKey)
         .then(function inspectAssociatedData(associatedEmail) {

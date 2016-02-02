@@ -6,6 +6,7 @@ describe('#requestPassword', function requestPasswordSuite() {
   const headers = { routingKey: 'users.requestPassword' };
   const username = 'v@makeomatic.ru';
   const audience = 'requestPassword';
+  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../src/constants.js');
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
@@ -26,7 +27,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
   describe('account: inactive', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, 'data'), 'active', 'false');
+      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
     });
 
     it('must fail when account is inactive', function test() {
@@ -42,7 +43,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
   describe('account: banned', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, 'data'), 'ban', 'true');
+      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true');
     });
 
     it('must fail when account is banned', function test() {
@@ -68,16 +69,15 @@ describe('#requestPassword', function requestPasswordSuite() {
 
     it('must reject sending reset password emails for an existing user more than once in 3 hours', function test() {
       return this.users.router({ username }, headers)
-        .then(() => {
-          return this
-            .users.router({ username }, headers)
+        .then(() => (
+          this.users.router({ username }, headers)
             .reflect()
             .then(inspectPromise(false))
             .then(requestPassword => {
               expect(requestPassword.name).to.be.eq('HttpStatusError');
               expect(requestPassword.statusCode).to.be.eq(429);
-            });
-        });
+            })
+        ));
     });
   });
 });

@@ -4,6 +4,11 @@ const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const moment = require('moment');
+const isActive = require('../utils/isActive.js');
+const isBanned = require('../utils/isBanned.js');
+const getInternalData = require('../utils/getInternalData.js');
+const noop = require('lodash/noop');
+const { USERS_DATA } = require('../constants.js');
 
 module.exports = function login(opts) {
   const config = this.config.jwt;
@@ -12,14 +17,14 @@ module.exports = function login(opts) {
   const { lockAfterAttempts, defaultAudience } = config;
   const audience = opts.audience || defaultAudience;
   const remoteip = opts.remoteip || false;
-  const usernameKey = redisKey(username, 'data');
+  const usernameKey = redisKey(username, USERS_DATA);
 
-  let promise = Promise.bind(this);
+  let promise = Promise.bind(this, username);
   let loginAttempts;
   let remoteipKey;
   if (remoteip && lockAfterAttempts > 0) {
     remoteipKey = redisKey(usernameKey, remoteip);
-    promise = promise.then(function checkLoginAttempts() {
+    promise = promise.tap(function checkLoginAttempts() {
       // construct pipeline
       const pipeline = redis.pipeline();
 
@@ -47,40 +52,32 @@ module.exports = function login(opts) {
     });
   }
 
-  return promise.then(function getHashedPasswordAndUserState() {
-    return redis.hmgetBuffer(usernameKey, 'password', 'active', 'banned');
-  })
-  .spread(function hashedPasswordAndUserState(passwordHashBuffer, activeBuffer, isBanned) {
-    if (!passwordHashBuffer) {
-      throw new Errors.HttpStatusError(404, 'username does not exist');
-    }
+  function verifyHash(data) {
+    const { password: hash } = data;
+    return scrypt.verify(hash, password);
+  }
 
-    return scrypt
-      .verify(passwordHashBuffer, password)
-      .then(function verificationResult() {
-        if (remoteip) {
-          loginAttempts = 0;
-          return redis.del(remoteipKey);
-        }
-      })
-      .then(function checkAccountActivation() {
-        if (!activeBuffer || activeBuffer.toString() !== 'true') {
-          throw new Errors.HttpStatusError(412, 'Account hasn\'t been activated');
-        }
+  function dropLoginCounter() {
+    loginAttempts = 0;
+    return redis.del(remoteipKey);
+  }
 
-        if (isBanned && isBanned.toString() === 'true') {
-          throw new Errors.HttpStatusError(423, 'Account has been locked');
-        }
-      });
-  })
-  .then(function getUserInfo() {
+  function getUserInfo() {
     return jwt.login.call(this, username, audience);
-  })
-  .catch(function enrichError(err) {
-    if (remoteip) {
-      err.loginAttempts = loginAttempts; // eslint-disable-line
-    }
+  }
 
-    throw err;
-  });
+  return promise
+    .then(getInternalData)
+    .tap(verifyHash)
+    .tap(remoteip ? dropLoginCounter : noop)
+    .tap(isActive)
+    .tap(isBanned)
+    .then(getUserInfo)
+    .catch(function enrichError(err) {
+      if (remoteip) {
+        err.loginAttempts = loginAttempts; // eslint-disable-line
+      }
+
+      throw err;
+    });
 };

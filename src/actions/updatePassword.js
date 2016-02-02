@@ -1,8 +1,13 @@
-const Errors = require('common-errors');
+const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const emailChallenge = require('../utils/send-email.js');
+const getInternalData = require('../utils/getInternalData.js');
+const isActive = require('../utils/isActive.js');
+const isBanned = require('../utils/isBanned.js');
+const userExists = require('../utils/userExists.js');
+const { USERS_DATA } = require('../constants.js');
 
 /**
  * Verifies token and deletes it if it matches
@@ -18,29 +23,12 @@ function tokenReset(token) {
  * @param {String} password
  */
 function usernamePasswordReset(username, password) {
-  const { redis } = this;
-  const userKey = redisKey(username, 'data');
-  return redis
-    .hmgetBuffer(userKey, 'password', 'active', 'ban')
-    .spread(function responses(hash, active, banned) {
-      if (!hash) {
-        throw new Errors.HttpStatusError(404, 'user does not exist');
-      }
-
-      if (String(active) !== 'true') {
-        throw new Errors.HttpStatusError(412, 'account is not active or does not exist');
-      }
-
-      if (String(banned) === 'true') {
-        throw new Errors.HttpStatusError(423, 'account is locked');
-      }
-
-      if (!Buffer.isBuffer(hash) || hash.length < 1) {
-        throw new Errors.HttpStatusError(500, 'invalid password hash');
-      }
-
-      return scrypt.verify(hash, password);
-    })
+  return Promise
+    .bind(this, username)
+    .then(getInternalData)
+    .tap(isActive)
+    .tap(isBanned)
+    .tap(data => scrypt.verify(data.password, password))
     .return(username);
 }
 
@@ -52,22 +40,12 @@ function usernamePasswordReset(username, password) {
 function setPassword(username, password) {
   const { redis } = this;
 
-  return scrypt
-    .hash(password)
-    .then(function calculatedHash(hash) {
-      const userKey = redisKey(username, 'data');
-      return redis
-        .hset(userKey, 'password', hash)
-        .then(function updatedPassword(result) {
-          if (result !== 1) {
-            return null;
-          }
-
-          return redis.hdel(userKey, 'password').done(function reportError() {
-            throw new Errors.HttpStatusError(404, 'username does not exist');
-          });
-        });
-    })
+  return Promise
+    .bind(this, username)
+    .then(userExists)
+    .return(password)
+    .then(scrypt.hash)
+    .then(hash => redis.hset(redisKey(username, USERS_DATA), 'password', hash))
     .return(username);
 }
 
@@ -86,19 +64,15 @@ module.exports = exports = function updatePassword(opts) {
 
   // update password
   promise = promise
-    .then(username => {
-      return setPassword.call(this, username, password);
-    });
+    .then(username => setPassword.call(this, username, password));
 
   if (invalidateTokens) {
-    promise = promise.tap(username => {
-      return jwt.reset.call(this, username);
-    });
+    promise = promise.tap(username => jwt.reset.call(this, username));
   }
 
   if (remoteip) {
     promise = promise.tap(function resetLock(username) {
-      return redis.del(redisKey(username, 'data', remoteip));
+      return redis.del(redisKey(username, USERS_DATA, remoteip));
     });
   }
 

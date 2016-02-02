@@ -13,9 +13,9 @@ module.exports = function verify(opts) {
   const { token, audience: _audience, peek } = opts;
   const audience = Array.isArray(_audience) ? _audience : [_audience];
 
-  return jwt
-    .verify.call(this, token, audience, peek)
-    .bind(this)
+  return Promise
+    .bind(this, [token, audience, peek])
+    .spread(jwt.verify)
     .then(function decodedToken(decoded) {
       if (audience.indexOf(defaultAudience) === -1) {
         audience.push(defaultAudience);

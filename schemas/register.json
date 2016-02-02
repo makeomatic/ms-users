@@ -36,7 +36,8 @@
       "minProperties": 1
     },
     "activate": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": true
     },
     "audience": {
       "type": "string",

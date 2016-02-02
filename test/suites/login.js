@@ -8,6 +8,7 @@ describe('#login', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
   const scrypt = require('../../src/utils/scrypt.js');
+  const { USERS_BANNED_FLAG, USERS_DATA } = require('../../src/constants.js');
 
   before(function test() {
     return scrypt.hash(userWithValidPassword.password).then(pass => {
@@ -61,7 +62,7 @@ describe('#login', function loginSuite() {
 
     describe('account: banned', function suite() {
       beforeEach(function pretest() {
-        return this.users.redis.hset(redisKey(user.username, 'data'), 'banned', 'true');
+        return this.users.redis.hset(redisKey(user.username, USERS_DATA), USERS_BANNED_FLAG, 'true');
       });
 
       it('must reject login', function test() {

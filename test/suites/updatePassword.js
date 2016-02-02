@@ -8,6 +8,7 @@ describe('#updatePassword', function updatePasswordSuite() {
   const password = '123';
   const audience = '*.localhost';
   const emailValidation = require('../../src/utils/send-email.js');
+  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../src/constants.js');
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
@@ -28,7 +29,7 @@ describe('#updatePassword', function updatePasswordSuite() {
 
   describe('user: inactive', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, 'data'), 'active', 'false');
+      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
     });
 
     it('must reject updating password for an inactive account on username+password update', function test() {
@@ -44,7 +45,7 @@ describe('#updatePassword', function updatePasswordSuite() {
 
   describe('user: banned', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, 'data'), 'ban', 'true');
+      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true');
     });
 
     it('must reject updating password for an inactive account on username+password update', function test() {

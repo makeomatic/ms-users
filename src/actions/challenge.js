@@ -1,26 +1,20 @@
+const Promise = require('bluebird');
 const Errors = require('common-errors');
 const emailChallenge = require('../utils/send-email.js');
-const redisKey = require('../utils/key.js');
+const getInternalData = require('../utils/getInternalData.js');
+const isActive = require('../utils/isActive.js');
 
-module.exports = function sendChallenge(opts) {
-  const { redis } = this;
-  const { username } = opts;
-  const userKey = redisKey(username, 'data');
+module.exports = function sendChallenge(message) {
+  const { username } = message;
 
   // TODO: record all attemps
   // TODO: add metadata processing on successful email challenge
 
-  return redis
-    .hget(userKey, 'active')
-    .then((active) => {
-      if (!active) {
-        throw new Errors.HttpStatusError(404, 'user doesn\'t exist');
-      }
-
-      if (active === 'true') {
-        throw new Errors.HttpStatusError(412, 'user is already active');
-      }
-
-      return emailChallenge.send.call(this, username);
-    });
+  return Promise
+    .bind(this, username)
+    .then(getInternalData)
+    .tap(isActive)
+    .throw(new Errors.HttpStatusError(417, `${username} is already active`))
+    .catchReturn({ statusCode: 412 }, username)
+    .then(emailChallenge.send);
 };

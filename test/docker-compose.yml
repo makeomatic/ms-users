@@ -28,7 +28,7 @@ rabbitmq:
     - "5672"
     - "15672"
     - "25672"
-  image: rabbitmq
+  image: makeomatic/alpine-rabbitmq:3.5.7
   container_name: rabbitmq
   hostname: rabbitmq
 

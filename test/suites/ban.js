@@ -39,19 +39,20 @@ describe('#ban', function banSuite() {
         .reflect()
         .then(inspectPromise())
         .then(ban => {
-          expect(ban).to.be.eq(1);
+          expect(ban[0][1]).to.be.eq(1);
+          expect(ban[1][1]).to.be.eq(1);
         });
     });
 
     it('must be able to unban an existing user', function test() {
-      return this.users.router({ username, ban: true }, headers)
-        .then(() => {
-          return this.users.router({ username, ban: false }, headers)
-            .reflect()
-            .then(inspectPromise())
-            .then(ban => {
-              expect(ban).to.be.eq(1);
-            });
+      return this.users
+        .router({ username, ban: true }, headers)
+        .then(() => this.users.router({ username, ban: false }, headers))
+        .reflect()
+        .then(inspectPromise())
+        .then(ban => {
+          expect(ban[0][1]).to.be.eq(1);
+          expect(ban[1][1]).to.be.eq(1);
         });
     });
   });

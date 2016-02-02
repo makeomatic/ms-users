@@ -15,7 +15,7 @@ describe('#list', function listSuite() {
   beforeEach(function populateRedis() {
     const audience = this.users._config.jwt.defaultAudience;
     const promises = [];
-    const userSet = this.users._config.redis.userSet;
+    const { USERS_INDEX, USERS_METADATA } = require('../../src/constants.js');
 
     ld.times(105, () => {
       const user = {
@@ -28,9 +28,9 @@ describe('#list', function listSuite() {
 
       promises.push(this.users._redis
         .pipeline()
-        .sadd(userSet, user.id)
+        .sadd(USERS_INDEX, user.id)
         .hmset(
-          redisKey(user.id, 'metadata', audience),
+          redisKey(user.id, USERS_METADATA, audience),
           ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
         )
         .exec()
@@ -64,9 +64,7 @@ describe('#list', function listSuite() {
         expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
         const copy = [].concat(result.value().users);
-        copy.sort((a, b) => {
-          return a.id.toLowerCase() > b.id.toLowerCase();
-        });
+        copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
 
         expect(copy).to.be.deep.eq(result.value().users);
       } catch (e) {
@@ -94,9 +92,7 @@ describe('#list', function listSuite() {
         expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
         const copy = [].concat(result.value().users);
-        copy.sort((a, b) => {
-          return a.id.toLowerCase() < b.id.toLowerCase();
-        });
+        copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
 
         expect(copy).to.be.deep.eq(result.value().users);
       } catch (e) {
@@ -126,9 +122,7 @@ describe('#list', function listSuite() {
         expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
         const copy = [].concat(result.value().users);
-        copy.sort((a, b) => {
-          return a.id.toLowerCase() > b.id.toLowerCase();
-        });
+        copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
 
         copy.forEach((data) => {
           expect(data.id).to.match(/an/i);
@@ -162,9 +156,7 @@ describe('#list', function listSuite() {
         expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
         const copy = [].concat(result.value().users);
-        copy.sort((a, b) => {
-          return a.id.toLowerCase() < b.id.toLowerCase();
-        });
+        copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
 
         copy.forEach((data) => {
           expect(data.id).to.match(/an/i);
@@ -197,9 +189,7 @@ describe('#list', function listSuite() {
         expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
         const copy = [].concat(result.value().users);
-        copy.sort((a, b) => {
-          return a.metadata[this.audience].firstName.toLowerCase() > b.metadata[this.audience].firstName.toLowerCase();
-        });
+        copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() > b.metadata[this.audience].firstName.toLowerCase());
 
         expect(copy).to.be.deep.eq(result.value().users);
       } catch (e) {
@@ -228,9 +218,7 @@ describe('#list', function listSuite() {
         expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
         const copy = [].concat(result.value().users);
-        copy.sort((a, b) => {
-          return a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase();
-        });
+        copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
 
         expect(copy).to.be.deep.eq(result.value().users);
       } catch (e) {
@@ -262,9 +250,7 @@ describe('#list', function listSuite() {
         expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
         const copy = [].concat(result.value().users);
-        copy.sort((a, b) => {
-          return a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase();
-        });
+        copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
 
         copy.forEach((data) => {
           expect(data.id).to.match(/an/i);
@@ -301,9 +287,7 @@ describe('#list', function listSuite() {
         expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
         const copy = [].concat(result.value().users);
-        copy.sort((a, b) => {
-          return a.metadata[this.audience].lastName.toLowerCase() > b.metadata[this.audience].lastName.toLowerCase();
-        });
+        copy.sort((a, b) => a.metadata[this.audience].lastName.toLowerCase() > b.metadata[this.audience].lastName.toLowerCase());
 
         copy.forEach(data => {
           expect(data.id).to.match(/an/i);

@@ -31,7 +31,7 @@ describe('#challenge', function challengeSuite() {
         .then(inspectPromise(false))
         .then(validation => {
           expect(validation.name).to.be.eq('HttpStatusError');
-          expect(validation.statusCode).to.be.eq(412);
+          expect(validation.statusCode).to.be.eq(417);
         });
     });
   });

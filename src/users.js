@@ -6,6 +6,8 @@ const Errors = require('common-errors');
 const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
 const { NotImplementedError } = Errors;
+const times = require('lodash/times');
+const { USERS_ADMIN_ROLE } = require('./constants.js');
 
 // utils
 const register = require('./actions/register.js');
@@ -45,7 +47,6 @@ module.exports = class Users extends Mservice {
         // must have {}, so that the keys end up on a single machine
         keyPrefix: '{ms-users}',
       },
-      userSet: 'user-iterator-set',
     },
     pwdReset: {
       memorable: true,
@@ -168,71 +169,73 @@ module.exports = class Users extends Mservice {
     const config = this.config;
     const accounts = config.admins;
     const audience = config.jwt.defaultAudience;
-    return Promise.delay(config.initAdminAccountsDelay).return(accounts).map(account => {
-      return register.call(this, {
-        username: account.username,
-        password: account.password,
-        audience,
-        metadata: {
-          firstName: account.firstName,
-          lastName: account.lastName,
-          roles: ['admin'],
-        },
-        activate: true,
+
+    return Promise
+      .delay(config.initAdminAccountsDelay)
+      .return(accounts)
+      .map(account => (
+        register.call(this, {
+          username: account.username,
+          password: account.password,
+          audience,
+          metadata: {
+            firstName: account.firstName,
+            lastName: account.lastName,
+            roles: [USERS_ADMIN_ROLE],
+          },
+          activate: true,
+        })
+        .reflect()
+      ))
+      .bind(this)
+      .then(function reportStats(users) {
+        const totalAccounts = users.length;
+        const errors = [];
+        let registered = 0;
+        users.forEach(user => {
+          if (user.isFulfilled()) {
+            registered++;
+          } else {
+            errors.push(user.reason());
+          }
+        });
+
+        this.log.info(
+          'Registered admins %d/%d. Errors: %d',
+          registered, totalAccounts, errors.length
+        );
+
+        errors.forEach(err => {
+          if (err.statusCode !== 403) {
+            this.log.warn(err.stack);
+          }
+        });
       })
-      .reflect();
-    })
-    .bind(this)
-    .then(function reportStats(users) {
-      const totalAccounts = users.length;
-      const errors = [];
-      let registered = 0;
-      users.forEach(user => {
-        if (user.isFulfilled()) {
-          registered++;
-        } else {
-          errors.push(user.reason());
-        }
+      .finally(() => {
+        this.log.info('removing account references from memory');
+        config.admins = [];
       });
-
-      this.log.info(
-        'Registered admins %d/%d. Errors: %d',
-        registered, totalAccounts, errors.length
-      );
-
-      errors.forEach(err => {
-        if (err.statusCode !== 403) {
-          this.log.warn(err.stack);
-        }
-      });
-    })
-    .finally(() => {
-      this.log.info('removing account references from memory');
-      config.admins = [];
-    });
   }
 
   initFakeAccounts() {
     const faker = require('faker');
     const config = this.config;
 
-    const accounts = Array.from(Array(103).keys()).map(() => {
-      return {
-        id: faker.internet.email(),
-        metadata: {
-          firstName: faker.name.firstName(),
-          lastName: faker.name.lastName(),
-        },
-        activate: true,
-      };
-    });
+    const accounts = times(103, () => ({
+      id: faker.internet.email(),
+      metadata: {
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+      },
+      activate: true,
+    }));
 
     const audience = config.jwt.defaultAudience;
 
-    return Promise.map(accounts, (account) => {
-      return register.call(this, {
+    return Promise.map(accounts, account => (
+      register.call(this, {
         username: account.id,
-        password: 'verylongdemopassword',
+        password: (Math.random() * 20).toFixed(20),
         audience,
         metadata: {
           firstName: account.metadata.firstName,
@@ -240,8 +243,8 @@ module.exports = class Users extends Mservice {
         },
         activate: true,
       })
-      .reflect();
-    })
+      .reflect()
+    ))
     .bind(this)
     .then(function reportStats(users) {
       const totalAccounts = users.length;

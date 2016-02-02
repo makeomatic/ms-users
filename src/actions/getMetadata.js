@@ -1,16 +1,12 @@
-const Errors = require('common-errors');
+const Promise = require('bluebird');
 const getMetadata = require('../utils/getMetadata.js');
-const redisKey = require('../utils/key.js');
+const userExists = require('../utils/userExists.js');
 
 module.exports = function getMetadataAction(message) {
-  const { username } = message;
-  return this.redis
-    .hexists(redisKey(username, 'data'), 'password')
-    .then(exists => {
-      if (!exists) {
-        throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
-      }
+  const { username, audience } = message;
 
-      return getMetadata.call(this, username, message.audience);
-    });
+  return Promise
+    .bind(this, username)
+    .then(userExists)
+    .then(() => getMetadata.call(this, username, audience));
 };

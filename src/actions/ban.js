@@ -1,23 +1,36 @@
 const Promise = require('bluebird');
-const redisKey = require('../utils/key.js');
-const userExists = require('../utils/userExists.js');
-const { USERS_DATA, USERS_METADATA, USERS_BANNED_FLAG, USERS_TOKENS } = require('../constants.js');
+const mapValues = require('lodash/mapValues');
 const stringify = JSON.stringify.bind(JSON);
 
-function lockUser(username) {
+const redisKey = require('../utils/key.js');
+const userExists = require('../utils/userExists.js');
+const {
+  USERS_DATA, USERS_METADATA,
+  USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
+} = require('../constants.js');
+
+function lockUser({ username, reason, whom, remoteip }) {
   const { redis, config } = this;
   const { jwt: { defaultAudience } } = config;
+  const data = {
+    banned: true,
+    [USERS_BANNED_DATA]: {
+      reason: reason || '',
+      whom: whom || '',
+      remoteip: remoteip || '',
+    },
+  };
 
   return redis
     .pipeline()
     .hset(redisKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true')
     // set .banned on metadata for filtering & sorting users by that field
-    .hset(redisKey(username, USERS_METADATA, defaultAudience), 'banned', stringify(true))
+    .hmset(redisKey(username, USERS_METADATA, defaultAudience), mapValues(data, stringify))
     .del(redisKey(username, USERS_TOKENS))
     .exec();
 }
 
-function unlockUser(username) {
+function unlockUser({ username }) {
   const { redis, config } = this;
   const { jwt: { defaultAudience } } = config;
 
@@ -25,7 +38,7 @@ function unlockUser(username) {
     .pipeline()
     .hdel(redisKey(username, USERS_DATA), USERS_BANNED_FLAG)
     // remove .banned on metadata for filtering & sorting users by that field
-    .hdel(redisKey(username, USERS_METADATA, defaultAudience), 'banned')
+    .hdel(redisKey(username, USERS_METADATA, defaultAudience), 'banned', USERS_BANNED_DATA)
     .exec();
 }
 
@@ -35,10 +48,9 @@ function unlockUser(username) {
  * @return {Promise}
  */
 module.exports = function banUser(opts) {
-  const { username, ban } = opts;
-
   return Promise
-    .bind(this, username)
+    .bind(this, opts.username)
     .tap(userExists)
-    .then(ban ? lockUser : unlockUser);
+    .return(opts)
+    .then(opts.ban ? lockUser : unlockUser);
 };

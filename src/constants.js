@@ -7,4 +7,5 @@ module.exports = {
   USERS_ACTIVE_FLAG: 'active',
   USERS_ADMIN_ROLE: 'admin',
   USERS_TESTER_ROLE: 'tester',
+  USERS_BANNED_DATA: 'bannedData',
 };

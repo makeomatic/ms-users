@@ -55,7 +55,7 @@ describe('#activate', function activateSuite() {
         .then(activation => {
           expect(activation.name).to.be.eq('HttpStatusError');
           expect(activation.message).to.match(/Account v@aminev\.me was already activated/);
-          expect(activation.statusCode).to.be.eq(412);
+          expect(activation.statusCode).to.be.eq(417);
         });
     });
   });

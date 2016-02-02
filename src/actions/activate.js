@@ -32,7 +32,7 @@ module.exports = function verifyChallenge(opts) {
       .spread(function pipeResponse(isActive) {
         const status = isActive[1];
         if (status === 'true') {
-          throw new Errors.HttpStatusError(412, `Account ${user} was already activated`);
+          throw new Errors.HttpStatusError(417, `Account ${user} was already activated`);
         }
       });
   }

@@ -3,7 +3,7 @@
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {
-    "compile": "./node_modules/.bin/babel -d ./lib ./src",
+    "compile": "rm -rf ./lib; ./node_modules/.bin/babel -d ./lib ./src",
     "rebuild": "if [ \"$SKIP_REBUILD\" != \"1\" ]; then npm rebuild; fi",
     "prepublish": "npm run lint && npm run compile",
     "test": "./test/docker.sh",

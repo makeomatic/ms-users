@@ -150,7 +150,7 @@ module.exports = class Users extends Mservice {
    */
   get mailer() {
     const mailer = this._mailer;
-    return mailer ? mailer : this.emit('error', new NotImplementedError('amqp is not connected'));
+    return mailer || this.emit('error', new NotImplementedError('amqp is not connected'));
   }
 
   /**

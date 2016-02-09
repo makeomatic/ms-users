@@ -7,6 +7,7 @@ const URLSafeBase64 = require('urlsafe-base64');
 const render = require('ms-mailer-templates');
 const { updatePassword } = require('../actions/updatePassword.js');
 const generatePassword = require('password-generator');
+const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD } = require('../constants.js');
 
 /**
  * Throttled error
@@ -91,7 +92,7 @@ exports.safeDecode = function safeDecode(algorithm, secret, string) {
  * @param  {String} type
  * @return {Promise}
  */
-exports.send = function sendEmail(email, type = 'activate', wait = false) {
+exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
   const { redis, config, mailer } = this;
   const { validation, server } = config;
   const { ttl, throttle, subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation; // eslint-disable-line
@@ -110,15 +111,16 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
       const templateName = validation.templates[type] || type;
 
       switch (type) {
-        case 'activate':
-        case 'reset':
+        case MAIL_ACTIVATE:
+        case MAIL_RESET: {
           // generate secret
           const str = new Buffer(JSON.stringify({ email, token: activationSecret }));
           const enc = exports.encrypt(algorithm, secret, str);
           context.qs = `?q=${URLSafeBase64.encode(enc)}`;
           context.link = exports.generateLink(server, paths[type]);
           break;
-        case 'password':
+        }
+        case MAIL_PASSWORD:
           context.password = generatePassword(config.pwdReset.length, config.pwdReset.memorable);
           break;
         default:
@@ -187,7 +189,7 @@ exports.send = function sendEmail(email, type = 'activate', wait = false) {
  * @param  {Boolean} expire
  * @return {Promise}
  */
-exports.verify = function verifyToken(string, namespace = 'activate', expires) {
+exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires) {
   const { redis, config } = this;
   const { validation } = config;
   const { secret: validationSecret, algorithm } = validation;

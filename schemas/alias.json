@@ -11,7 +11,7 @@
       "type": "string",
       "minLength": 3,
       "maxLength": 15,
-      "pattern": "[a-zA-Z.]+"
+      "pattern": "[a-zA-Z.0-9]+"
     }
   }
 }

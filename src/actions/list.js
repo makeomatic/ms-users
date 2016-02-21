@@ -3,7 +3,7 @@ const redisKey = require('../utils/key.js');
 const mapValues = require('lodash/mapValues');
 const fsort = require('redis-filtered-sort');
 const JSONParse = JSON.parse.bind(JSON);
-const { USERS_INDEX, USERS_METADATA } = require('../constants.js');
+const { USERS_INDEX, USERS_PUBLIC_INDEX, USERS_METADATA } = require('../constants.js');
 
 module.exports = function iterateOverActiveUsers(opts) {
   const { redis } = this;
@@ -13,9 +13,10 @@ module.exports = function iterateOverActiveUsers(opts) {
   const offset = opts.offset || 0;
   const limit = opts.limit || 10;
   const metaKey = redisKey('*', USERS_METADATA, audience);
+  const index = opts.public ? USERS_PUBLIC_INDEX : USERS_INDEX;
 
   return redis
-    .fsort(USERS_INDEX, metaKey, criteria, order, strFilter, offset, limit)
+    .fsort(index, metaKey, criteria, order, strFilter, offset, limit)
     .then(ids => {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {

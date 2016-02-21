@@ -9,7 +9,7 @@ COMPOSE=$(which docker-compose)
 MOCHA=$BIN/_mocha
 COVER="$BIN/isparta cover"
 NODE=$BIN/babel-node
-TESTS=test/suites/*.js
+TESTS=${TESTS:-test/suites/*.js}
 
 if [ -z "$NODE_VER" ]; then
   NODE_VER="5.6.0"

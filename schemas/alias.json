@@ -1,0 +1,17 @@
+{
+  "id": "alias",
+  "type": "object",
+  "required": [ "username", "alias" ],
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 1
+    },
+    "alias": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 15,
+      "pattern": "[a-zA-Z.]+"
+    }
+  }
+}

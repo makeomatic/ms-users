@@ -47,6 +47,26 @@ const config = {
   },
 };
 
+function registerUser(username, opts = {}) {
+  return function register() {
+    return this.users
+      .router({
+        username,
+        password: '123',
+        audience: '*.localhost',
+        activate: !opts.inactive,
+        skipChallenge: true,
+      }, { routingKey: 'users.register' })
+      .then(() => {
+        if (opts.locked) {
+          return this.users.router({ username, ban: true }, { routingKey: 'users.ban' });
+        }
+
+        return null;
+      });
+  };
+}
+
 function inspectPromise(mustBeFulfilled = true) {
   return function inspection(promise) {
     const isFulfilled = promise.isFulfilled();
@@ -78,12 +98,9 @@ function startService() {
 
 function clearRedis() {
   const nodes = this.users._redis.masterNodes;
-  return Promise.map(Object.keys(nodes), nodeKey => {
-    return nodes[nodeKey].flushdb();
-  })
-  .finally(() => {
-    return this.users.close();
-  })
+  return Promise
+  .map(Object.keys(nodes), nodeKey => nodes[nodeKey].flushdb())
+  .finally(() => this.users.close())
   .finally(() => {
     this.users = null;
   });
@@ -92,3 +109,4 @@ function clearRedis() {
 global.startService = startService;
 global.inspectPromise = inspectPromise;
 global.clearRedis = clearRedis;
+global.globalRegisterUser = registerUser;

@@ -27,7 +27,8 @@ function checkLimits(redis, registrationLimits, ipaddress) {
   const old = now - time;
 
   return function iplimits() {
-    return redis.pipeline()
+    return redis
+      .pipeline()
       .zadd(ipaddressLimitKey, now, uuid.v4())
       .pexpire(ipaddressLimitKey, time)
       .zremrangebyscore(ipaddressLimitKey, '-inf', old)
@@ -36,7 +37,7 @@ function checkLimits(redis, registrationLimits, ipaddress) {
       .then(props => {
         const cardinality = props[3][1];
         if (cardinality > times) {
-          const msg = `You can't register more users from your ipaddress now`;
+          const msg = 'You can\'t register more users from your ipaddress now';
           throw new Errors.HttpStatusError(429, msg);
         }
       });
@@ -68,6 +69,8 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
           // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
           return redis.expire(userDataKey, deleteInactiveAccounts);
         }
+
+        return null;
       });
   };
 }
@@ -153,9 +156,14 @@ module.exports = function registerUser(message) {
   }
 
   if (!activate) {
-    promise = promise.then(skipChallenge ? noop : emailValidation.send).return({ requiresActivation: true });
+    promise = promise
+      .then(skipChallenge ? noop : emailValidation.send)
+      .return({ requiresActivation: true });
   } else {
-    promise = promise.then(addToIndex).tap(hook).then(login);
+    promise = promise
+      .then(addToIndex)
+      .tap(hook)
+      .then(login);
   }
 
   return promise;

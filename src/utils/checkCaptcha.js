@@ -17,7 +17,8 @@ module.exports = function makeCaptchaCheck(redis, username, captcha, captchaConf
   const { secret, ttl, uri } = captchaConfig;
   return function checkCaptcha() {
     const captchaCacheKey = captcha.response;
-    return redis.pipeline()
+    return redis
+      .pipeline()
       .set(captchaCacheKey, username, 'EX', ttl, 'NX')
       .get(captchaCacheKey)
       .exec()
@@ -28,7 +29,8 @@ module.exports = function makeCaptchaCheck(redis, username, captcha, captchaConf
         }
       })
       .then(function verifyGoogleCaptcha() {
-        return request.post({ uri, qs: defaults(captcha, { secret }), json: true })
+        return request
+          .post({ uri, qs: defaults(captcha, { secret }), json: true })
           .then(function captchaSuccess(body) {
             if (!body.success) {
               return Promise.reject({ statusCode: 200, error: body });

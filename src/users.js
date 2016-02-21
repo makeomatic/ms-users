@@ -232,43 +232,44 @@ module.exports = class Users extends Mservice {
 
     const audience = config.jwt.defaultAudience;
 
-    return Promise.map(accounts, account => (
-      register.call(this, {
-        username: account.id,
-        password: (Math.random() * 20).toFixed(20),
-        audience,
-        metadata: {
-          firstName: account.metadata.firstName,
-          lastName: account.metadata.lastName,
-        },
-        activate: true,
-      })
-      .reflect()
-    ))
-    .bind(this)
-    .then(function reportStats(users) {
-      const totalAccounts = users.length;
-      const errors = [];
-      let registered = 0;
-      users.forEach(user => {
-        if (user.isFulfilled()) {
-          registered++;
-        } else {
-          errors.push(user.reason());
-        }
-      });
+    return Promise
+      .map(accounts, account => (
+        register.call(this, {
+          username: account.id,
+          password: (Math.random() * 20).toFixed(20),
+          audience,
+          metadata: {
+            firstName: account.metadata.firstName,
+            lastName: account.metadata.lastName,
+          },
+          activate: true,
+        })
+        .reflect()
+      ))
+      .bind(this)
+      .then(function reportStats(users) {
+        const totalAccounts = users.length;
+        const errors = [];
+        let registered = 0;
+        users.forEach(user => {
+          if (user.isFulfilled()) {
+            registered++;
+          } else {
+            errors.push(user.reason());
+          }
+        });
 
-      this.log.info(
-        'Registered fake users %d/%d. Errors: %d',
-        registered, totalAccounts, errors.length
-      );
+        this.log.info(
+          'Registered fake users %d/%d. Errors: %d',
+          registered, totalAccounts, errors.length
+        );
 
-      errors.forEach(err => {
-        if (err.statusCode !== 403) {
-          this.log.warn(err.stack);
-        }
+        errors.forEach(err => {
+          if (err.statusCode !== 403) {
+            this.log.warn(err.stack);
+          }
+        });
       });
-    });
   }
 
 };

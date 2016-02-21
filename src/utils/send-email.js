@@ -164,7 +164,8 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
         html: emailTemplate,
       };
 
-      const mailSent = mailer.send(mailingAccount, mail)
+      const mailSent = mailer
+        .send(mailingAccount, mail)
         .return({ sent: true, context })
         .catch(function mailingFailed(err) {
           logger.warn('couldn\'t send email', err);
@@ -194,7 +195,9 @@ exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires
   const { validation } = config;
   const { secret: validationSecret, algorithm } = validation;
 
-  return exports.safeDecode.call(this, algorithm, validationSecret, string)
+  return exports
+    .safeDecode
+    .call(this, algorithm, validationSecret, string)
     .then(function inspectResult(message) {
       const { email, token } = message;
 
@@ -218,6 +221,8 @@ exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires
           if (expires) {
             return redis.del(secretKey);
           }
+
+          return null;
         })
         .return(email);
     });

@@ -8,8 +8,14 @@ const dns = Promise.promisifyAll(require('dns'));
  * @return {Promise}
  */
 module.exports = function mxExists(email) {
-  const hostname = email.split('@').pop();
-  const tld = hostname.split('.').slice(-2).join('.');
+  const hostname = email
+    .split('@')
+    .pop();
+
+  const tld = hostname
+    .split('.')
+    .slice(-2)
+    .join('.');
 
   return function check() {
     return dns

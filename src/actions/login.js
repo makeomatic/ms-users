@@ -8,48 +8,46 @@ const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const getInternalData = require('../utils/getInternalData.js');
 const noop = require('lodash/noop');
-const { USERS_DATA } = require('../constants.js');
 
 module.exports = function login(opts) {
   const config = this.config.jwt;
   const { redis } = this;
-  const { username, password } = opts;
+  const { password } = opts;
   const { lockAfterAttempts, defaultAudience } = config;
   const audience = opts.audience || defaultAudience;
   const remoteip = opts.remoteip || false;
-  const usernameKey = redisKey(username, USERS_DATA);
+  const verifyIp = remoteip && lockAfterAttempts > 0;
 
-  let promise = Promise.bind(this, username);
-  let loginAttempts;
+  // references for data from login attempts
   let remoteipKey;
-  if (remoteip && lockAfterAttempts > 0) {
-    remoteipKey = redisKey(usernameKey, remoteip);
-    promise = promise.tap(function checkLoginAttempts() {
-      // construct pipeline
-      const pipeline = redis.pipeline();
+  let loginAttempts;
 
-      pipeline.incrby(remoteipKey, 1);
-      if (config.keepLoginAttempts > 0) {
-        pipeline.expire(remoteipKey, config.keepLoginAttempts);
-      }
+  function checkLoginAttempts(data) {
+    const pipeline = redis.pipeline();
+    const username = data.username;
+    remoteipKey = redisKey(username, 'ip', remoteip);
 
-      return pipeline
-        .exec()
-        .spread(function incremented(incrementValue) {
-          const err = incrementValue[0];
-          if (err) {
-            this.log.error('Redis error:', err);
-            return;
-          }
+    pipeline.incrby(remoteipKey, 1);
+    if (config.keepLoginAttempts > 0) {
+      pipeline.expire(remoteipKey, config.keepLoginAttempts);
+    }
 
-          loginAttempts = incrementValue[1];
-          if (loginAttempts > lockAfterAttempts) {
-            const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
-            const msg = `You are locked from making login attempts for the next ${duration}`;
-            throw new Errors.HttpStatusError(429, msg);
-          }
-        });
-    });
+    return pipeline
+      .exec()
+      .spread(function incremented(incrementValue) {
+        const err = incrementValue[0];
+        if (err) {
+          this.log.error('Redis error:', err);
+          return;
+        }
+
+        loginAttempts = incrementValue[1];
+        if (loginAttempts > lockAfterAttempts) {
+          const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
+          const msg = `You are locked from making login attempts for the next ${duration}`;
+          throw new Errors.HttpStatusError(429, msg);
+        }
+      });
   }
 
   function verifyHash(data) {
@@ -62,22 +60,26 @@ module.exports = function login(opts) {
     return redis.del(remoteipKey);
   }
 
-  function getUserInfo() {
+  function getUserInfo({ username }) {
     return jwt.login.call(this, username, audience);
   }
 
-  return promise
+  function enrichError(err) {
+    if (remoteip) {
+      err.loginAttempts = loginAttempts;
+    }
+
+    throw err;
+  }
+
+  return Promise
+    .bind(this, opts.username)
     .then(getInternalData)
+    .tap(verifyIp ? checkLoginAttempts : noop)
     .tap(verifyHash)
-    .tap(remoteip ? dropLoginCounter : noop)
+    .tap(verifyIp ? dropLoginCounter : noop)
     .tap(isActive)
     .tap(isBanned)
     .then(getUserInfo)
-    .catch(function enrichError(err) {
-      if (remoteip) {
-        err.loginAttempts = loginAttempts; // eslint-disable-line
-      }
-
-      throw err;
-    });
+    .catch(verifyIp ? enrichError : e => { throw e; });
 };

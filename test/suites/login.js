@@ -60,6 +60,22 @@ describe('#login', function loginSuite() {
         });
     });
 
+    describe('account: with alias', function suite() {
+      const alias = 'bond';
+
+      beforeEach(function pretest() {
+        return this.users.router({ username: userWithValidPassword.username, alias }, { routingKey: 'users.alias' });
+      });
+
+      it('allows to sign in with a valid alias', function test() {
+        return this
+          .users
+          .router({ ...userWithValidPassword, username: alias }, { routingKey: 'users.login' })
+          .reflect()
+          .then(inspectPromise());
+      });
+    });
+
     describe('account: banned', function suite() {
       beforeEach(function pretest() {
         return this.users.redis.hset(redisKey(user.username, USERS_DATA), USERS_BANNED_FLAG, 'true');

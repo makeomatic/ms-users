@@ -31,7 +31,7 @@ module.exports = function assignAlias(opts) {
         .pipeline()
         .sadd(USERS_PUBLIC_INDEX, username)
         .hset(key(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
-        .hset(key(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, alias)
+        .hset(key(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias))
         .exec();
     });
 };

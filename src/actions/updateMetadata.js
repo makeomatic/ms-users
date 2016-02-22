@@ -3,11 +3,9 @@ const updateMetadata = require('../utils/updateMetadata.js');
 const userExists = require('../utils/userExists.js');
 
 module.exports = function updateMetadataAction(message) {
-  const { username } = message;
-
   return Promise
-    .bind(this, username)
+    .bind(this, message.username)
     .then(userExists)
-    .return(message)
+    .then(username => ({ ...message, username }))
     .then(updateMetadata);
 };

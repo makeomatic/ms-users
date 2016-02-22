@@ -37,16 +37,21 @@ function usernamePasswordReset(username, password) {
  * @param {String} username
  * @param {String} password
  */
-function setPassword(username, password) {
+function setPassword(_username, password) {
   const { redis } = this;
 
   return Promise
-    .bind(this, username)
+    .bind(this, _username)
     .then(userExists)
-    .return(password)
-    .then(scrypt.hash)
-    .then(hash => redis.hset(redisKey(username, USERS_DATA), 'password', hash))
-    .return(username);
+    .then(username => Promise.props({
+      username,
+      hash: scrypt.hash(password),
+    }))
+    .then(({ username, hash }) =>
+      redis
+        .hset(redisKey(username, USERS_DATA), 'password', hash)
+        .return(username)
+    );
 }
 
 module.exports = exports = function updatePassword(opts) {
@@ -72,7 +77,7 @@ module.exports = exports = function updatePassword(opts) {
 
   if (remoteip) {
     promise = promise.tap(function resetLock(username) {
-      return redis.del(redisKey(username, USERS_DATA, remoteip));
+      return redis.del(redisKey(username, 'ip', remoteip));
     });
   }
 

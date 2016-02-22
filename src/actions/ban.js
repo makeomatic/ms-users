@@ -50,7 +50,7 @@ function unlockUser({ username }) {
 module.exports = function banUser(opts) {
   return Promise
     .bind(this, opts.username)
-    .tap(userExists)
-    .return(opts)
+    .then(userExists)
+    .then(username => ({ ...opts, username }))
     .then(opts.ban ? lockUser : unlockUser);
 };

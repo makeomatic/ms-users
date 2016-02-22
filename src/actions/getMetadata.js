@@ -3,10 +3,11 @@ const getMetadata = require('../utils/getMetadata.js');
 const userExists = require('../utils/userExists.js');
 
 module.exports = function getMetadataAction(message) {
-  const { username, audience } = message;
+  const { audience } = message;
 
   return Promise
-    .bind(this, username)
+    .bind(this, message.username)
     .then(userExists)
-    .then(() => getMetadata.call(this, username, audience));
+    .then(username => [username, audience])
+    .spread(getMetadata);
 };

@@ -8,6 +8,9 @@
       "minLength": 3,
       "maxLength": 50
     },
+    "public": {
+      "type": "boolean"
+    },
     "audience": {
       "oneOf": [
         {

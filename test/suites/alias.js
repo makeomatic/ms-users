@@ -63,6 +63,42 @@ describe('#alias', function activateSuite() {
         .then(inspectPromise());
     });
 
+    it('returns metadata based on alias', function test() {
+      return this
+        .users
+        .router({ username: 'marvelous', audience: '*.localhost' }, { routingKey: 'users.getMetadata' })
+        .reflect()
+        .then(inspectPromise());
+    });
+
+    it('returns metadata based on username', function test() {
+      return this
+        .users
+        .router({ username: 'active@me.com', audience: '*.localhost' }, { routingKey: 'users.getMetadata' })
+        .reflect()
+        .then(inspectPromise());
+    });
+
+    it('returns public metadata based on alias', function test() {
+      return this
+        .users
+        .router({ public: true, username: 'marvelous', audience: '*.localhost' }, { routingKey: 'users.getMetadata' })
+        .reflect()
+        .then(inspectPromise());
+    });
+
+    it('returns 404 for public metadata based on username', function test() {
+      return this
+        .users
+        .router({ public: true, username: 'active@me.com', audience: '*.localhost' }, { routingKey: 'users.getMetadata' })
+        .reflect()
+        .then(inspectPromise(false))
+        .then(response => {
+          expect(response.name).to.be.eq('HttpStatusError');
+          expect(response.statusCode).to.be.eq(404);
+        });
+    });
+
     it('rejects to change alias', function test() {
       return this
         .users

@@ -39,7 +39,7 @@
     "ms-amqp-conf": "^0.2.0",
     "ms-amqp-transport": "^1.3.0",
     "ms-mailer-client": "^1.0.0",
-    "ms-mailer-templates": "^0.3.1",
+    "ms-mailer-templates": "^0.4.0",
     "ms-validation": "^1.1.0",
     "mservice": "^1.6.0",
     "node-uuid": "^1.4.7",

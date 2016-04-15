@@ -1,23 +1,29 @@
 const mapValues = require('lodash/mapValues');
+const pick = require('lodash/pick');
 const redisKey = require('../utils/key.js');
 const Promise = require('bluebird');
 const { isArray } = Array;
 const JSONParse = JSON.parse.bind(JSON);
 const { USERS_METADATA } = require('../constants.js');
 
-module.exports = function getMetadata(username, _audience) {
+module.exports = function getMetadata(username, _audiences, fields = {}) {
   const { redis } = this;
-  const audience = isArray(_audience) ? _audience : [_audience];
+  const audiences = isArray(_audiences) ? _audiences : [_audiences];
 
-  return Promise.map(audience, function getAudienceData(aud) {
-    return redis.hgetallBuffer(redisKey(username, USERS_METADATA, aud));
+  return Promise.map(audiences, audience => {
+    return redis.hgetallBuffer(redisKey(username, USERS_METADATA, audience));
   })
   .then(function remapAudienceData(data) {
     const output = {};
-    audience.forEach(function transform(aud, idx) {
+    audiences.forEach(function transform(aud, idx) {
       const datum = data[idx];
+
       if (datum) {
+        const pickFields = fields[aud];
         output[aud] = mapValues(datum, JSONParse);
+        if (pickFields) {
+          output[aud] = pick(output[aud], pickFields);
+        }
       } else {
         output[aud] = {};
       }

@@ -17,12 +17,12 @@ function isPublic(username, audience) {
 }
 
 module.exports = function getMetadataAction(message) {
-  const { audience, username } = message;
+  const { audience, username, fields } = message;
 
   return Promise
     .bind(this, username)
     .then(userExists)
-    .then(realUsername => [realUsername, audience])
+    .then(realUsername => [realUsername, audience, fields])
     .spread(getMetadata)
     .tap(message.public ? isPublic(username, audience) : noop);
 };

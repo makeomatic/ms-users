@@ -48,7 +48,8 @@ describe('#getMetadata', function getMetadataSuite() {
     });
 
     it('must return metadata for default and passed audiences', function test() {
-      return this.users.router({ username, audience: [audience, 'matic.ninja'] }, headers)
+      return this.users
+        .router({ username, audience: [audience, 'matic.ninja'] }, headers)
         .reflect()
         .then(inspectPromise())
         .then(getMetadata => {
@@ -57,6 +58,30 @@ describe('#getMetadata', function getMetadataSuite() {
               name: {
                 q: 'verynicedata',
               },
+              username,
+            },
+            'matic.ninja': {
+              iat: 10,
+            },
+          });
+        });
+    });
+
+    it('must return partial response for default and passed audiences', function test() {
+      return this.users
+        .router({
+          username,
+          audience: [audience, 'matic.ninja'],
+          fields: {
+            [audience]: ['username'],
+            'matic.ninja': ['iat'],
+          },
+        }, headers)
+        .reflect()
+        .then(inspectPromise())
+        .then(getMetadata => {
+          expect(getMetadata).to.be.deep.eq({
+            [audience]: {
               username,
             },
             'matic.ninja': {

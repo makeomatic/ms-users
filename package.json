@@ -33,7 +33,7 @@
     "disposable-email-domains": "^1.0.6",
     "flake-idgen": "^1.0.0",
     "ioredis": "^1.15.1",
-    "jsonwebtoken": "^5.7.0",
+    "jsonwebtoken": "^6.2.0",
     "lodash": "^4.5.0",
     "moment": "^2.11.1",
     "ms-amqp-conf": "^0.2.0",

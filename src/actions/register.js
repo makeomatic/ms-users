@@ -6,12 +6,13 @@ const redisKey = require('../utils/key.js');
 const emailValidation = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const uuid = require('node-uuid');
-const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG } = require('../constants.js');
+const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_REGISTER } = require('../constants.js');
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
 const makeCaptchaCheck = require('../utils/checkCaptcha.js');
 const userExists = require('../utils/userExists.js');
 const noop = require('lodash/noop');
+const assignAlias = require('./alias.js');
 
 /**
  * Verify ip limits
@@ -85,12 +86,17 @@ module.exports = function registerUser(message) {
   const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
 
   // message
-  const { username, password, audience, ipaddress, skipChallenge, activate } = message;
+  const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
   const captcha = message.hasOwnProperty('captcha') ? message.captcha : false;
   const metadata = message.hasOwnProperty('metadata') ? message.metadata : false;
 
   // task holder
   const logger = this.log.child({ username, action: 'register' });
+
+  // make sure that if alias is truthy then activate is also truthy
+  if (alias && !activate) {
+    throw new Errors.HttpStatusError(400, 'Account must be activated when setting alias during registration');
+  }
 
   let promise = Promise.bind(this, username);
 
@@ -124,7 +130,18 @@ module.exports = function registerUser(message) {
     .throw(new Errors.HttpStatusError(409, `"${username}" already exists`))
     .catchReturn({ statusCode: 404 }, username)
     // step 3 - encrypt password
-    .return(password)
+    .then(() => {
+      if (password) {
+        return password;
+      }
+
+      // if no password was supplied - we auto-generate it and send it to an email that was provided
+      // then we hash it and store in the db
+      return emailValidation
+        .send
+        .call(this, username, MAIL_REGISTER)
+        .then(ctx => ctx.context.password);
+    })
     .then(scrypt.hash)
     // step 4 - create user if it wasn't created by some1 else trying to use race-conditions
     .then(createUser(redis, username, activate, deleteInactiveAccounts, userDataKey))
@@ -163,6 +180,14 @@ module.exports = function registerUser(message) {
     promise = promise
       .then(addToIndex)
       .tap(hook)
+      .tap(() => {
+        if (!alias) {
+          return null;
+        }
+
+        // adds on-registration alias to the user
+        return assignAlias.call(this, { username, alias });
+      })
       .then(login);
   }
 

@@ -14,4 +14,5 @@ module.exports = {
   MAIL_ACTIVATE: 'activate',
   MAIL_RESET: 'reset',
   MAIL_PASSWORD: 'password',
+  MAIL_REGISTER: 'register',
 };

@@ -35,6 +35,7 @@ const config = {
     templates: {
       activate: 'cappasity-activate',
       password: 'cappasity-password',
+      register: 'cappasity-register',
     },
   },
   registrationLimits: {

@@ -7,7 +7,7 @@ const URLSafeBase64 = require('urlsafe-base64');
 const render = require('ms-mailer-templates');
 const { updatePassword } = require('../actions/updatePassword.js');
 const generatePassword = require('password-generator');
-const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD } = require('../constants.js');
+const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER } = require('../constants.js');
 
 /**
  * Throttled error
@@ -22,17 +22,26 @@ function isThrottled(compare) {
 }
 
 /**
+ * Creates (de)cipher
+ * @param  {Boolean} isDecipher
+ * @return {Function}
+ */
+function createCipher(isDecipher) {
+  const thunk = crypto[isDecipher ? 'createDecipher' : 'createCipher'];
+  return (algorithm, secret, buffer) => {
+    const cipher = thunk(algorithm, secret);
+    return Buffer.concat([cipher.update(buffer), cipher.final()]);
+  };
+}
+
+/**
  * Encrypts buffer using alg and secret
  * @param  {String} algorithm
  * @param  {String} secret
  * @param  {Buffer} buffer
  * @return {Buffer}
  */
-exports.encrypt = function encrypt(algorithm, secret, buffer) {
-  const cipher = crypto.createCipher(algorithm, secret);
-  const crypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
-  return crypted;
-};
+exports.encrypt = createCipher(false);
 
 /**
  * Decrypts buffer using algoruthm and secret
@@ -41,11 +50,7 @@ exports.encrypt = function encrypt(algorithm, secret, buffer) {
  * @param  {Buffer} buffer
  * @return {Buffer}
  */
-exports.decrypt = function decrypt(algorithm, secret, buffer) {
-  const decipher = crypto.createDecipher(algorithm, secret);
-  const dec = Buffer.concat([decipher.update(buffer), decipher.final()]);
-  return dec;
-};
+exports.decrypt = createCipher(true);
 
 /**
  * Generates complete link
@@ -121,8 +126,10 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
           break;
         }
         case MAIL_PASSWORD:
+        case MAIL_REGISTER:
           context.password = generatePassword(config.pwdReset.length, config.pwdReset.memorable);
           break;
+
         default:
           throw new Errors.InvalidOperationError(`${type} action is not supported`);
       }
@@ -136,7 +143,7 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
       const { context } = data;
 
       // in case we need to setup a new password
-      if (type === 'password') {
+      if (type === MAIL_PASSWORD) {
         return updatePassword.call(this, email, context.password);
       }
 

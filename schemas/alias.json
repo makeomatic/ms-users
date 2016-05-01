@@ -1,7 +1,7 @@
 {
   "id": "alias",
   "type": "object",
-  "required": [ "username", "alias" ],
+  "required": ["username", "alias"],
   "properties": {
     "username": {
       "type": "string",

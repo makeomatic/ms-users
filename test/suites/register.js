@@ -14,7 +14,7 @@ describe('#register', function registerSuite() {
       .then(inspectPromise(false))
       .then(registered => {
         expect(registered.name).to.be.eq('ValidationError');
-        expect(registered.errors).to.have.length.of(3);
+        expect(registered.errors).to.have.length.of(2);
       });
   });
 
@@ -41,10 +41,73 @@ describe('#register', function registerSuite() {
       });
   });
 
+  it('must be able to create user with alias', function test() {
+    const opts = {
+      username: 'v@makeomatic.ru',
+      audience: 'matic.ninja',
+      alias: 'bondthebest',
+    };
+
+    return this.users
+      .router(opts, headers)
+      .reflect()
+      .then(inspectPromise(true))
+      .then(registered => {
+        expect(registered).to.have.ownProperty('jwt');
+        expect(registered).to.have.ownProperty('user');
+        expect(registered.user.username).to.be.eq(opts.username);
+        expect(registered.user).to.have.ownProperty('metadata');
+        expect(registered.user.metadata).to.have.ownProperty('matic.ninja');
+        expect(registered.user.metadata).to.have.ownProperty('*.localhost');
+        expect(registered.user.metadata['*.localhost'].alias).to.be.eq(opts.alias);
+        expect(registered.user).to.not.have.ownProperty('password');
+        expect(registered.user).to.not.have.ownProperty('audience');
+      });
+  });
+
+  it('must be able to create user without validations and return user object and jwt token, password is auto-generated', function test() {
+    const opts = {
+      username: 'v@makeomatic.ru',
+      audience: 'matic.ninja',
+    };
+
+    return this.users
+      .router(opts, headers)
+      .reflect()
+      .then(inspectPromise(true))
+      .then(registered => {
+        expect(registered).to.have.ownProperty('jwt');
+        expect(registered).to.have.ownProperty('user');
+        expect(registered.user.username).to.be.eq(opts.username);
+        expect(registered.user).to.have.ownProperty('metadata');
+        expect(registered.user.metadata).to.have.ownProperty('matic.ninja');
+        expect(registered.user.metadata).to.have.ownProperty('*.localhost');
+        expect(registered.user).to.not.have.ownProperty('password');
+        expect(registered.user).to.not.have.ownProperty('audience');
+      });
+  });
+
   it('must be able to create user with validation and return success', function test() {
     const opts = {
       username: 'v@makeomatic.ru',
       password: 'mynicepassword',
+      audience: 'matic.ninja',
+      activate: false,
+    };
+
+    return this.users.router(opts, headers)
+      .reflect()
+      .then(inspectPromise())
+      .then(value => {
+        expect(value).to.be.deep.eq({
+          requiresActivation: true,
+        });
+      });
+  });
+
+  it('must be able to create user with generated password', function test() {
+    const opts = {
+      username: 'v@makeomatic.ru',
       audience: 'matic.ninja',
       activate: false,
     };

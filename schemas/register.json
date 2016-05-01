@@ -1,18 +1,24 @@
 {
   "id": "register",
   "type": "object",
-  "required": [ "username", "password", "audience" ],
+  "required": ["username", "audience"],
   "properties": {
     "username": {
       "type": "string",
       "format": "email"
+    },
+    "alias": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 15,
+      "pattern": "[a-zA-Z.0-9]+"
     },
     "password": {
       "type": "string"
     },
     "captcha": {
       "type": "object",
-      "required": [ "response", "remoteip" ],
+      "required": ["response", "remoteip"],
       "properties": {
         "response": {
           "type": "string",

@@ -37,14 +37,15 @@ module.exports = function verifyChallenge(opts) {
       });
   }
 
-  function postHook(user) {
-    return this.postHook('users:activate', user, audience);
+  function hook(user) {
+    return this.hook.call(this, 'users:activate', user, audience);
   }
 
   return Promise
     .bind(this, username)
     .then(username ? userExists : verifyToken)
     .tap(activateAccount)
-    .tap(postHook)
-    .then(user => jwt.login.call(this, user, audience));
+    .tap(hook)
+    .then(user => [user, audience])
+    .spread(jwt.login);
 };

@@ -159,37 +159,30 @@ module.exports = function registerUser(message) {
     .then(setMetadata)
     .return(username);
 
-
-  function hook() {
-    return this.postHook('users:activate', username, audience);
-  }
-
-  function addToIndex() {
-    return redis.sadd(USERS_INDEX, username);
-  }
-
-  function login() {
-    return jwt.login.call(this, username, audience);
-  }
-
+  // no instant activation -> send email or skip it based on the settings
   if (!activate) {
-    promise = promise
+    return promise
       .then(skipChallenge ? noop : emailValidation.send)
       .return({ requiresActivation: true });
-  } else {
-    promise = promise
-      .then(addToIndex)
-      .tap(hook)
-      .tap(() => {
-        if (!alias) {
-          return null;
-        }
-
-        // adds on-registration alias to the user
-        return assignAlias.call(this, { username, alias });
-      })
-      .then(login);
   }
 
-  return promise;
+  // perform instant activation
+  return promise
+    // add to redis index
+    .then(() => redis.sadd(USERS_INDEX, username))
+    // call hook
+    .return(['users:activate', username, audience])
+    .spread(this.hook)
+    // assign alias if specified
+    .tap(() => {
+      if (!alias) {
+        return null;
+      }
+
+      // adds on-registration alias to the user
+      return assignAlias.call(this, { username, alias });
+    })
+    // login user
+    .return([username, audience])
+    .spread(jwt.login);
 };

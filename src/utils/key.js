@@ -5,5 +5,5 @@ const SEPARATOR = '!';
  * @return {String}
  */
 module.exports = function combineKey(...args) {
-  return args.join(SEPARATOR)
-;};
+  return args.join(SEPARATOR);
+};

@@ -11,6 +11,7 @@ const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
 const makeCaptchaCheck = require('../utils/checkCaptcha.js');
 const userExists = require('../utils/userExists.js');
+const aliasExists = require('../utils/aliasExists.js');
 const noop = require('lodash/noop');
 const assignAlias = require('./alias.js');
 
@@ -129,6 +130,7 @@ module.exports = function registerUser(message) {
     .tap(userExists)
     .throw(new Errors.HttpStatusError(409, `"${username}" already exists`))
     .catchReturn({ statusCode: 404 }, username)
+    .tap(alias ? aliasExists(alias, true) : noop)
     // step 3 - encrypt password
     .then(() => {
       if (password) {

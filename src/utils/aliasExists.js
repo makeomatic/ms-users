@@ -15,7 +15,9 @@ function resolveAlias(alias) {
 
 module.exports = function aliasExists(alias, thunk) {
   if (thunk) {
-    return () => resolveAlias.call(this, alias);
+    return function resolveAliasThunk() {
+      return resolveAlias.call(this, alias);
+    };
   }
 
   return resolveAlias.call(this, alias);

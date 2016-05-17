@@ -22,7 +22,7 @@ module.exports = function removeUser({ username }) {
     meta: getMetadata.call(this, username, audience),
   })
   .then(({ internal, meta }) => {
-    const isAdmin = meta[audience].roles.indexOf(USERS_ADMIN_ROLE) >= 0;
+    const isAdmin = (meta[audience].roles || []).indexOf(USERS_ADMIN_ROLE) >= 0;
     if (isAdmin) {
       throw new Errors.HttpStatusError(400, 'can\'t remove admin user from the system');
     }

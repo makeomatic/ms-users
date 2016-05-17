@@ -1,31 +1,12 @@
 {
   "id": "remove",
   "type": "object",
-  "required": [
-    "username",
-    "audience"
-  ],
+  "required": ["username"],
   "properties": {
     "username": {
       "type": "string",
       "minLength": 3,
       "maxLength": 50
-    },
-    "audience": {
-      "oneOf": [
-        {
-          "type": "string",
-          "minLength": 1
-        },
-        {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      ]
     }
   }
 }

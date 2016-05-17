@@ -2,18 +2,19 @@
 const assert = require('assert');
 const { USERS_ADMIN_ROLE } = require('../../src/constants');
 
-describe('#register', function registerSuite() {
+describe('#remove', function registerSuite() {
   const headers = { routingKey: 'users.remove' };
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
   // register 3 users
-  before(globalRegisterUser('admin@me.com', { metadata: { roles: [USERS_ADMIN_ROLE] } }));
-  before(globalRegisterUser('normal-2@me.com'));
+  beforeEach(globalRegisterUser('admin@me.com', { metadata: { roles: [USERS_ADMIN_ROLE] } }));
+  beforeEach(globalRegisterUser('normal-2@me.com'));
 
   it('must reject invalid registration params and return detailed error', function test() {
-    return this.users.router({}, headers)
+    return this.users
+      .router({}, headers)
       .reflect()
       .then(inspectPromise(false))
       .then(registered => {
@@ -38,16 +39,5 @@ describe('#register', function registerSuite() {
       .router({ username: 'normal-1@me.com' }, headers)
       .reflect()
       .then(inspectPromise());
-  });
-
-  it('must fail to remove already removed user', function test() {
-    return this.users
-      .router({ username: 'normal-1@me.com' }, headers)
-      .reflect()
-      .then(inspectPromise(false))
-      .then(registered => {
-        assert.equal(registered.name, 'HttpStatusError');
-        assert.equal(registered.statusCode, 404);
-      });
   });
 });

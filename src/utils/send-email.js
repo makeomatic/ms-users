@@ -128,6 +128,7 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
         case MAIL_PASSWORD:
         case MAIL_REGISTER:
           context.password = generatePassword(config.pwdReset.length, config.pwdReset.memorable);
+          context.login = email;
           break;
 
         default:

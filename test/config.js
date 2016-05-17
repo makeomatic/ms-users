@@ -57,7 +57,7 @@ function registerUser(username, opts = {}) {
         audience: '*.localhost',
         activate: !opts.inactive,
         skipChallenge: true,
-        metadata: opts.metadata || {},
+        metadata: opts.metadata || undefined,
       }, { routingKey: 'users.register' })
       .then(() => {
         if (opts.locked) {

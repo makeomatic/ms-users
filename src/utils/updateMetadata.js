@@ -1,19 +1,18 @@
+const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
 const JSONStringify = JSON.stringify.bind(JSON);
 const { USERS_METADATA } = require('../constants.js');
 
 /**
- * Updates metadata on a user object
- * @param  {Object} opts
- * @return {Promise}
+ * Process metadata update operation for a passed audience
+ * @param  {Object} pipeline
+ * @param  {String} audience
+ * @param  {Object} metadata
  */
-module.exports = function updateMetadata(opts) {
-  const { redis } = this;
-  const { username, audience, metadata } = opts;
-
-  const metadataKey = redisKey(username, USERS_METADATA, audience);
+function handleAudience(redis, username, audience, metadata) {
   const pipeline = redis.pipeline();
+  const metadataKey = redisKey(username, USERS_METADATA, audience);
 
   const $remove = metadata.$remove;
   const $removeOps = $remove && $remove.length || 0;
@@ -37,9 +36,29 @@ module.exports = function updateMetadata(opts) {
     });
   }
 
-  return pipeline
-    .exec()
-    .then(responses => {
+  return { pipeline, $removeOps, $setLength, $incrLength, $incrFields };
+}
+
+/**
+ * Updates metadata on a user object
+ * @param  {Object} opts
+ * @return {Promise}
+ */
+module.exports = function updateMetadata(opts) {
+  const { redis } = this;
+  const { username } = opts;
+
+  const audience = Array.isArray(opts.audience) ? opts.audience : [opts.audience];
+  const metadata = Array.isArray(opts.metadata) ? opts.metadata : [opts.metadata];
+
+  // process data
+  const pipes = audience.map((it, idx) => (
+    handleAudience(redis, username, it, metadata[idx])
+  ));
+
+  return Promise
+    .map(pipes, props => props.pipeline.exec().then(responses => {
+      const { $removeOps, $setLength, $incrLength, $incrFields } = props;
       const output = {};
       let cursor = 0;
 
@@ -61,5 +80,8 @@ module.exports = function updateMetadata(opts) {
       }
 
       return output;
-    });
+    }))
+    .then(data => (
+      data.length > 1 ? data : data[0]
+    ));
 };

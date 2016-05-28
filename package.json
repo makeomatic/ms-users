@@ -3,8 +3,7 @@
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {
-    "compile": "rm -rf ./lib; ./node_modules/.bin/babel -d ./lib ./src",
-    "rebuild": "if [ \"$SKIP_REBUILD\" != \"1\" ]; then npm rebuild; fi",
+    "compile": "rm -rf ./lib; babel -d ./lib ./src",
     "prepublish": "npm run lint && npm run compile",
     "test": "npm run lint && ./test/docker.sh",
     "start": "node ./bin/mservice.js | bunyan -o short",
@@ -37,11 +36,11 @@
     "lodash": "^4.5.0",
     "moment": "^2.11.1",
     "ms-amqp-conf": "^0.2.0",
-    "ms-amqp-transport": "^1.3.0",
-    "ms-mailer-client": "^1.0.0",
+    "ms-amqp-transport": "^2.0.0",
+    "ms-mailer-client": "^2.0.0",
     "ms-mailer-templates": "^0.6.0",
-    "ms-validation": "^1.1.0",
-    "mservice": "^1.7.0",
+    "ms-validation": "^2.0.0",
+    "mservice": "^2.0.0",
     "node-uuid": "^1.4.7",
     "password-generator": "^2.0.2",
     "redis-filtered-sort": "^1.2.0",
@@ -52,8 +51,10 @@
   "devDependencies": {
     "babel-cli": "^6.5.1",
     "babel-eslint": "^6.0.0",
-    "babel-preset-es2015": "^6.5.0",
-    "babel-preset-stage-0": "^6.5.0",
+    "babel-plugin-transform-strict-mode": "^6.0.0",
+    "babel-plugin-transform-es2015-spread": "^6.0.0",
+    "babel-plugin-transform-object-rest-spread": "^6.0.0",
+    "babel-plugin-transform-class-properties": "^6.0.0",
     "babel-register": "^6.5.2",
     "chai": "^3.5.0",
     "codecov.io": "^0.1.6",
@@ -68,7 +69,7 @@
     "json": "^9.0.3",
     "latest-version-cli": "^1.0.0",
     "mocha": "^2.4.5",
-    "semantic-release": "^4.3.5"
+    "semantic-release": "^6.0.0"
   },
   "release": {
     "verifyConditions": []

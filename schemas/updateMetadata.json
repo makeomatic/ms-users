@@ -7,41 +7,41 @@
       "type": "string",
       "minLength": 3,
       "maxLength": 50
+    }
+  },
+  "anyOf": [
+    {
+      "audience": {
+        "type": "string",
+        "minLength": 1
+      },
+      "metadata": {
+        "$ref": "#/definitions/metadata"
+      }
     },
-    "anyOf": [
-      {
-        "audience": {
+    {
+      "audience": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
           "type": "string",
           "minLength": 1
-        },
-        "metadata": {
-          "$ref": "#/definitions/metadata"
         }
       },
-      {
-        "audience": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
+      "metadata": {
+        "type": "array",
+        "minItems": {
+          "$data": "1/audience#"
         },
-        "metadata": {
-          "type": "array",
-          "minItems": {
-            "$data": "1/audience#"
-          },
-          "maxItems": {
-            "$data": "1/audience#"
-          },
-          "items": {
-            "$ref": "#/definitions/metadata"
-          }
+        "maxItems": {
+          "$data": "1/audience#"
+        },
+        "items": {
+          "$ref": "#/definitions/metadata"
         }
       }
-    ]
-  },
+    }
+  ],
   "definitions": {
     "metadata": {
       "type": "object",

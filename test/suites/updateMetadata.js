@@ -5,6 +5,7 @@ describe('#updateMetadata', function getMetadataSuite() {
   const headers = { routingKey: 'users.updateMetadata' };
   const username = 'v@makeomatic.ru';
   const audience = '*.localhost';
+  const extra = 'extra.localhost';
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
@@ -30,10 +31,47 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('must be able to remove metadata for a single audience of an existing user', function test() {
-    return this.users.router({ username, audience, metadata: { $remove: ['x'] } }, headers)
+    return this.users
+      .router({ username, audience, metadata: { $remove: ['x'] } }, headers)
       .reflect()
-      .then(inspectPromise());
+      .then(inspectPromise())
+      .then(data => {
+        expect(data.$remove).to.be.eq(0);
+      });
   });
 
-  it('must be able to perform batch add/remove operations for a single audience of an existing user');
+  it('must be able to perform batch operations for multiple audiences of an existing user', function test() {
+    return this.users
+      .router({
+        username,
+        audience: [
+          audience,
+          extra,
+        ],
+        metadata: [
+          {
+            $set: {
+              x: 10,
+            },
+            $incr: {
+              b: 2,
+            },
+          },
+          {
+            $incr: {
+              b: 3,
+            },
+          },
+        ],
+      }, headers)
+      .reflect()
+      .then(inspectPromise())
+      .then(data => {
+        const [mainData, extraData] = data;
+
+        expect(mainData.$set).to.be.eq('OK');
+        expect(mainData.$incr.b).to.be.eq(2);
+        expect(extraData.$incr.b).to.be.eq(3);
+      });
+  });
 });

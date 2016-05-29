@@ -1,50 +1,92 @@
 {
-  "id": "updateMetadata",
   "type": "object",
-  "required": [ "username", "audience", "metadata" ],
+  "id": "updateMetadata",
   "properties": {
     "username": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 50
+      "$ref": "#/definitions/username"
     }
   },
   "anyOf": [
     {
-      "audience": {
-        "type": "string",
-        "minLength": 1
-      },
-      "metadata": {
-        "$ref": "#/definitions/metadata"
+      "required": [ "username", "audience", "metadata" ],
+      "properties": {
+        "audience": {
+          "type": "string",
+          "minLength": 1
+        },
+        "metadata": {
+          "$ref": "#/definitions/metadata"
+        }
       }
     },
     {
-      "audience": {
-        "type": "array",
-        "minItems": 1,
-        "items": {
-          "type": "string",
-          "minLength": 1
+      "required": [ "username", "audience", "metadata" ],
+      "properties": {
+        "audience": {
+          "type": "array",
+          "minItems": {
+            "$data": "1/metadata/length"
+          },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "metadata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/metadata"
+          }
         }
-      },
-      "metadata": {
-        "type": "array",
-        "minItems": {
-          "$data": "1/audience#"
+      }
+    },
+    {
+      "required": [ "username", "audience", "script" ],
+      "properties": {
+        "audience": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
-        "maxItems": {
-          "$data": "1/audience#"
-        },
-        "items": {
-          "$ref": "#/definitions/metadata"
+        "script": {
+          "type": "object",
+          "minProperties": 1,
+          "patternProperties": {
+            "^.+$": {
+              "type": "object",
+              "required": ["lua"],
+              "properties": {
+                "lua": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "argv": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
   ],
   "definitions": {
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 50
+    },
     "metadata": {
       "type": "object",
+      "minProperties": 1,
       "properties": {
         "$set": {
           "type": "object",
@@ -89,18 +131,7 @@
             }
           }
         }
-      },
-      "anyOf": [
-        {
-          "required": [ "$set" ]
-        },
-        {
-          "required": [ "$remove" ]
-        },
-        {
-          "required": [ "$incr" ]
-        }
-      ]
+      }
     }
   }
 }

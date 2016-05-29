@@ -40,6 +40,16 @@ describe('#updateMetadata', function getMetadataSuite() {
       });
   });
 
+  it('rejects on mismatch of audience & metadata arrays', function test() {
+    return this.users
+      .router({
+        username, audience: [audience],
+        metadata: [{ $set: { x: 10 } }, { $remove: ['x'] }],
+      }, headers)
+      .reflect()
+      .then(inspectPromise(false));
+  });
+
   it('must be able to perform batch operations for multiple audiences of an existing user', function test() {
     return this.users
       .router({
@@ -73,5 +83,23 @@ describe('#updateMetadata', function getMetadataSuite() {
         expect(mainData.$incr.b).to.be.eq(2);
         expect(extraData.$incr.b).to.be.eq(3);
       });
+  });
+
+  it('must be able to run dynamic scripts', function test() {
+    return this.users.router({ username, audience: [audience, extra], script: {
+      balance: {
+        lua: 'return {KEYS[1],KEYS[2],ARGV[1]}',
+        argv: ['nom-nom'],
+      },
+    } }, headers)
+    .reflect()
+    .then(inspectPromise())
+    .then(data => {
+      expect(data.balance).to.be.deep.eq([
+        `{ms-users}v@makeomatic.ru!metadata!${audience}`,
+        `{ms-users}v@makeomatic.ru!metadata!${extra}`,
+        'nom-nom',
+      ]);
+    });
   });
 });

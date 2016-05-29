@@ -2,6 +2,8 @@ const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
 const JSONStringify = JSON.stringify.bind(JSON);
+const is = require('is');
+const sha256 = require('./sha256.js');
 const { USERS_METADATA } = require('../constants.js');
 
 /**
@@ -10,21 +12,18 @@ const { USERS_METADATA } = require('../constants.js');
  * @param  {String} audience
  * @param  {Object} metadata
  */
-function handleAudience(redis, username, audience, metadata) {
-  const pipeline = redis.pipeline();
-  const metadataKey = redisKey(username, USERS_METADATA, audience);
-
+function handleAudience(pipeline, key, metadata) {
   const $remove = metadata.$remove;
   const $removeOps = $remove && $remove.length || 0;
   if ($removeOps > 0) {
-    pipeline.hdel(metadataKey, $remove);
+    pipeline.hdel(key, $remove);
   }
 
   const $set = metadata.$set;
   const $setKeys = $set && Object.keys($set);
   const $setLength = $setKeys && $setKeys.length || 0;
   if ($setLength > 0) {
-    pipeline.hmset(metadataKey, mapValues($set, JSONStringify));
+    pipeline.hmset(key, mapValues($set, JSONStringify));
   }
 
   const $incr = metadata.$incr;
@@ -32,11 +31,61 @@ function handleAudience(redis, username, audience, metadata) {
   const $incrLength = $incrFields && $incrFields.length || 0;
   if ($incrLength > 0) {
     $incrFields.forEach(fieldName => {
-      pipeline.hincrby(metadataKey, fieldName, $incr[fieldName]);
+      pipeline.hincrby(key, fieldName, $incr[fieldName]);
     });
   }
 
-  return { pipeline, $removeOps, $setLength, $incrLength, $incrFields };
+  return { $removeOps, $setLength, $incrLength, $incrFields };
+}
+
+/**
+ * Maps updateMetadata ops
+ * @param  {Array} responses
+ * @param  {Array} operations
+ * @return {Object|Array}
+ */
+function mapMetaResponse(operations, responses) {
+  let cursor = 0;
+  return Promise.map(operations, props => {
+    const { $removeOps, $setLength, $incrLength, $incrFields } = props;
+    const output = {};
+
+    if ($removeOps > 0) {
+      output.$remove = responses[cursor][1];
+      cursor++;
+    }
+
+    if ($setLength > 0) {
+      output.$set = responses[cursor][1];
+      cursor++;
+    }
+
+    if ($incrLength > 0) {
+      const $incrResponse = output.$incr = {};
+      $incrFields.forEach(fieldName => {
+        $incrResponse[fieldName] = responses[cursor][1];
+        cursor++;
+      });
+    }
+
+    return output;
+  })
+  .then(ops => {
+    return ops.length > 1 ? ops : ops[0];
+  });
+}
+
+/**
+ * Handle script, mutually exclusive with metadata
+ * @param  {Array} scriptKeys
+ * @param  {Array} responses
+ */
+function mapScriptResponse(scriptKeys, responses) {
+  const output = {};
+  scriptKeys.forEach((fieldName, idx) => {
+    output[fieldName] = responses[idx];
+  });
+  return output;
 }
 
 /**
@@ -46,42 +95,31 @@ function handleAudience(redis, username, audience, metadata) {
  */
 module.exports = function updateMetadata(opts) {
   const { redis } = this;
-  const { username } = opts;
+  const { username, audience, metadata, script } = opts;
+  const audiences = is.array(audience) ? audience : [audience];
 
-  const audience = Array.isArray(opts.audience) ? opts.audience : [opts.audience];
-  const metadata = Array.isArray(opts.metadata) ? opts.metadata : [opts.metadata];
+  // keys
+  const keys = audiences.map(aud => redisKey(username, USERS_METADATA, aud));
 
-  // process data
-  const pipes = audience.map((it, idx) => (
-    handleAudience(redis, username, it, metadata[idx])
-  ));
+  // if we have meta, then we can
+  if (metadata) {
+    const pipe = redis.pipeline();
+    const metaOps = is.array(metadata) ? metadata : [metadata];
+    const operations = metaOps.map((meta, idx) => handleAudience(pipe, keys[idx], meta));
+    return pipe.exec().then(res => mapMetaResponse(operations, res));
+  }
 
-  return Promise
-    .map(pipes, props => props.pipeline.exec().then(responses => {
-      const { $removeOps, $setLength, $incrLength, $incrFields } = props;
-      const output = {};
-      let cursor = 0;
+  // dynamic scripts
+  const $scriptKeys = Object.keys(script);
+  const scripts = $scriptKeys.map(scriptName => {
+    const { lua, argv = [] } = script[scriptName];
+    const sha = sha256(lua);
+    const name = `ms_users_${sha}`;
+    if (!is.fn(redis[name])) {
+      redis.defineCommand(name, { lua });
+    }
+    return redis[name](keys.length, keys, argv);
+  });
 
-      if ($removeOps > 0) {
-        output.$remove = responses[cursor][1];
-        cursor++;
-      }
-
-      if ($setLength > 0) {
-        output.$set = responses[cursor][1];
-        cursor++;
-      }
-
-      if ($incrLength > 0) {
-        const $incrResponse = output.$incr = {};
-        $incrFields.forEach((fieldName, idx) => {
-          $incrResponse[fieldName] = responses[cursor + idx][1];
-        });
-      }
-
-      return output;
-    }))
-    .then(data => (
-      data.length > 1 ? data : data[0]
-    ));
+  return Promise.all(scripts).then(res => mapScriptResponse($scriptKeys, res));
 };

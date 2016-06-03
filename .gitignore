@@ -34,3 +34,5 @@ lib
 
 src/db/sandbox/
 .idea
+*-compiled.js
+*-compiled.js.map

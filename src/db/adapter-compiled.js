@@ -1,45 +1,43 @@
+'use strict';
+
 /**
  * Created by Stainwoortsel on 30.05.2016.
  */
 const RedisStorage = require('./redisstorage');
 const Errors = require('common-errors');
 
-class Users{
-  constructor(adapter){
+class Users {
+  constructor(adapter) {
 
     this.adapter = adapter;
 
-/*
-    let opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-    // init configuration
-    const config = this._config = _extends({}, defaultOpts, opts);
-
-    // setup hooks
-    forOwn(config.hooks, (_hooks, eventName) => {
-      const hooks = Array.isArray(_hooks) ? _hooks : [_hooks];
-      each(hooks, hook => this.on(eventName, hook));
-    });
-*/
-
+    /*
+        let opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+    
+        // init configuration
+        const config = this._config = _extends({}, defaultOpts, opts);
+    
+        // setup hooks
+        forOwn(config.hooks, (_hooks, eventName) => {
+          const hooks = Array.isArray(_hooks) ? _hooks : [_hooks];
+          each(hooks, hook => this.on(eventName, hook));
+        });
+    */
   }
 
   /**
    * Initialize connection
    * @return {Promise}
    */
-  connect(){
-    // ????
-  }
+  connect() {}
+  // ????
 
   /**
    * Close connection
    * return {Promise}
    */
-  close(){
-    // ????
-  }
-
+  close() {}
+  // ????
 
   /**
    * Lock user
@@ -49,7 +47,7 @@ class Users{
    * @param remoteip
    * @returns {Redis}
    */
-  lockUser({ username, reason, whom, remoteip }){
+  lockUser({ username, reason, whom, remoteip }) {
     return this.adapter.lockUser({ username, reason, whom, remoteip });
   }
 
@@ -58,7 +56,7 @@ class Users{
    * @param username
    * @returns {Redis}
    */
-  unlockUser(username){
+  unlockUser(username) {
     return this.adapter.unlockUser(username);
   }
 
@@ -67,11 +65,11 @@ class Users{
    * @param username
    * @returns {Redis}
    */
-  isExists(username){
+  isExists(username) {
     return this.adapter.isExists(username);
   }
 
-  isAliasExists(alias, thunk){
+  isAliasExists(alias, thunk) {
     return this.adapter.isAliasExists(alias, thunk);
   }
 
@@ -90,7 +88,7 @@ class Users{
    * @param data
    * @returns {boolean}
    */
-  isActive(data){
+  isActive(data) {
     return this.adapter.isActive(data);
   }
 
@@ -99,7 +97,7 @@ class Users{
    * @param data
    * @returns {Promise}
    */
-  isBanned(data){
+  isBanned(data) {
     return this.adapter.isBanned(data);
   }
 
@@ -108,7 +106,7 @@ class Users{
    * @param user
    * @returns {Redis}
    */
-  activateAccount(user){
+  activateAccount(user) {
     return this.adapter.activateAccount(user);
   }
 
@@ -117,7 +115,7 @@ class Users{
    * @param username
    * @returns {Object}
    */
-  getUser(username){
+  getUser(username) {
     return this.adapter.getUser(username);
   }
 
@@ -132,13 +130,12 @@ class Users{
     return this.adapter.getMetadata(username, _audiences, fields);
   }
 
-
   /**
    * Return the list of users by specified params
    * @param opts
    * @returns {Array}
    */
-  getList(opts){
+  getList(opts) {
     return this.adapter.getList(opts);
   }
 
@@ -147,7 +144,7 @@ class Users{
    * @param data
    * @returns {boolean}
    */
-  isAliasAssigned(data){
+  isAliasAssigned(data) {
     return this.adapter.isAliasAssigned(data);
   }
 
@@ -156,7 +153,7 @@ class Users{
    * @param meta
    * @returns {boolean}
    */
-  isAdmin(meta){
+  isAdmin(meta) {
     return this.adapter.isAdmin(meta);
   }
 
@@ -166,7 +163,7 @@ class Users{
    * @param alias
    * @returns {Redis}
    */
-  storeAlias(username, alias){
+  storeAlias(username, alias) {
     return this.adapter.storeAlias(username, alias);
   }
 
@@ -176,39 +173,39 @@ class Users{
    * @param alias
    * @returns {Redis}
    */
-  assignAlias(username, alias){
+  assignAlias(username, alias) {
     return this.adapter.assignAlias(username, alias);
   }
 
-  get remoteipKey(){
+  get remoteipKey() {
     return this.adapter.remoteipKey;
   }
 
-  set remoteipKey(val){
+  set remoteipKey(val) {
     this.adapter.remoteipKey = val;
   }
 
-  generateipKey(username, remoteip){
+  generateipKey(username, remoteip) {
     return this.adapter.generateipKey(username, remoteip);
   }
 
-  get loginAttempts(){
+  get loginAttempts() {
     return this.adapter.loginAttempts;
   }
 
-  set loginAttempts(val){
+  set loginAttempts(val) {
     this.adapter.loginAttempts = val;
   }
 
-  get options(){
+  get options() {
     return this.adapter.options;
   }
 
-  set options(opts){
+  set options(opts) {
     this.adapter.options = opts;
   }
 
-  dropAttempts(){
+  dropAttempts() {
     return this.adapter.dropAttempts();
   }
 
@@ -222,7 +219,7 @@ class Users{
    * @param hash
    * @returns {Redis}
    */
-  setPassword(username, hash){
+  setPassword(username, hash) {
     return this.adapter.setPassword(username, hash);
   }
 
@@ -232,7 +229,7 @@ class Users{
    * @param ip
    * @returns {Redis}
    */
-  resetIPLock(username, ip){
+  resetIPLock(username, ip) {
     return this.adapter.resetIPLock(username, ip);
   }
 
@@ -243,8 +240,8 @@ class Users{
    * @param metadata
    * @returns {Object}
    */
-  updateMetadata({username, audience, metadata}) {
-    return this.adapter.updateMetadata({username, audience, metadata});
+  updateMetadata({ username, audience, metadata }) {
+    return this.adapter.updateMetadata({ username, audience, metadata });
   }
 
   /**
@@ -253,7 +250,7 @@ class Users{
    * @param data
    * @returns {Redis}
    */
-  removeUser(username, data){
+  removeUser(username, data) {
     return this.adapter.removeUser(username, data);
   }
 
@@ -297,7 +294,7 @@ class Users{
    * @param username
    * @returns {Redis}
    */
-  storeUsername(username){
+  storeUsername(username) {
     return this.adapter.storeUsername(username);
   }
 
@@ -307,7 +304,7 @@ class Users{
    * @returns {*|Promise}
      */
 
-  customScript(script){
+  customScript(script) {
     return this.adapter.customScript(script);
   }
 
@@ -315,19 +312,18 @@ class Users{
    * The error wrapper for the front-level HTTP output
    * @param e
    */
-  static mapErrors(e){
-    const err = new Errors.HttpStatusError(e.status_code || 500 , e.message);
-    if(err.status_code >= 500) {
+  static mapErrors(e) {
+    const err = new Errors.HttpStatusError(e.status_code || 500, e.message);
+    if (err.status_code >= 500) {
       err.message = Errors.HttpStatusError.message_map[500]; //hide the real error from the user
     }
   }
 
 }
 
-module.exports =  function modelCreator(){
+module.exports = function modelCreator() {
   return new Users(RedisStorage);
 };
-
 
 /*
  ВОПРОСЫ:
@@ -366,3 +362,5 @@ module.exports =  function modelCreator(){
  МОЖНО в адаптере сделать трансмиттер ошибок адаптера в ошибки HTTP
 
  */
+
+//# sourceMappingURL=adapter-compiled.js.map

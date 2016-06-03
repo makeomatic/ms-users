@@ -1,3 +1,7 @@
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 /**
  * Created by Stainwoortsel on 30.05.2016.
  */
@@ -26,7 +30,6 @@ const {
 const { redis, captcha: captchaConfig, config } = this;
 const { jwt: { lockAfterAttempts, defaultAudience } } = config;
 
-
 /**
  * Generate hash key string
  * @param args
@@ -46,7 +49,7 @@ module.exports = {
    * @param remoteip
    * @returns {*|{arity, flags, keyStart, keyStop, step}|Array|{index: number, input: string}}
    */
-  lockUser({ username, reason, whom, remoteip }){
+  lockUser({ username, reason, whom, remoteip }) {
     const data = {
       banned: true,
       [USERS_BANNED_DATA]: {
@@ -56,13 +59,9 @@ module.exports = {
       }
     };
 
-    return redis
-      .pipeline()
-      .hset(generateKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true')
-      // set .banned on metadata for filtering & sorting users by that field
-      .hmset(generateKey(username, USERS_METADATA, defaultAudience), mapValues(data, stringify))
-      .del(generateKey(username, USERS_TOKENS))
-      .exec();
+    return redis.pipeline().hset(generateKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true')
+    // set .banned on metadata for filtering & sorting users by that field
+    .hmset(generateKey(username, USERS_METADATA, defaultAudience), mapValues(data, stringify)).del(generateKey(username, USERS_TOKENS)).exec();
   },
 
   /**
@@ -70,14 +69,10 @@ module.exports = {
    * @param username
    * @returns {*|{arity, flags, keyStart, keyStop, step}|Array|{index: number, input: string}}
    */
-  unlockUser({username}){
-    return redis
-      .pipeline()
-      .hdel(generateKey(username, USERS_DATA), USERS_BANNED_FLAG)
-      // remove .banned on metadata for filtering & sorting users by that field
-      .hdel(generateKey(username, USERS_METADATA, defaultAudience), 'banned', USERS_BANNED_DATA)
-      .exec();
-
+  unlockUser({ username }) {
+    return redis.pipeline().hdel(generateKey(username, USERS_DATA), USERS_BANNED_FLAG)
+    // remove .banned on metadata for filtering & sorting users by that field
+    .hdel(generateKey(username, USERS_METADATA, defaultAudience), 'banned', USERS_BANNED_DATA).exec();
   },
 
   /**
@@ -85,36 +80,29 @@ module.exports = {
    * @param username
    * @returns {Redis}
    */
-  isExists(username){
-    return redis
-      .pipeline()
-      .hget(USERS_ALIAS_TO_LOGIN, username)
-      .exists(generateKey(username, USERS_DATA))
-      .exec()
-      .spread((alias, exists) => {
-        if (alias[1]) {
-          return alias[1];
-        }
+  isExists(username) {
+    return redis.pipeline().hget(USERS_ALIAS_TO_LOGIN, username).exists(generateKey(username, USERS_DATA)).exec().spread((alias, exists) => {
+      if (alias[1]) {
+        return alias[1];
+      }
 
-        if (!exists[1]) {
-          throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
+      if (!exists[1]) {
+        throw new Errors.HttpStatusError(404, `"${ username }" does not exists`);
+      }
+
+      return username;
+    });
+  },
+
+  isAliasExists(alias, thunk) {
+    function resolveAlias(alias) {
+      return redis.hget(USERS_ALIAS_TO_LOGIN, alias).then(username => {
+        if (username) {
+          throw new Errors.HttpStatusError(409, `"${ alias }" already exists`);
         }
 
         return username;
       });
-  },
-
-  isAliasExists(alias, thunk){
-    function resolveAlias(alias) {
-      return redis
-        .hget(USERS_ALIAS_TO_LOGIN, alias)
-        .then(username => {
-          if (username) {
-            throw new Errors.HttpStatusError(409, `"${alias}" already exists`);
-          }
-
-          return username;
-        });
     }
     if (thunk) {
       return function resolveAliasThunk() {
@@ -141,13 +129,12 @@ module.exports = {
     };
   },
 
-
   /**
    * Check that user is active
    * @param data
    * @returns {Promise}
    */
-  isActive(data){
+  isActive(data) {
     if (String(data[USERS_ACTIVE_FLAG]) !== 'true') {
       return Promise.reject(new Errors.HttpStatusError(412, 'Account hasn\'t been activated'));
     }
@@ -160,8 +147,8 @@ module.exports = {
    * @param data
    * @returns {Promise}
    */
-  isBanned(data){
-    if(String(data[USERS_BANNED_FLAG]) === 'true') {
+  isBanned(data) {
+    if (String(data[USERS_BANNED_FLAG]) === 'true') {
       return Promise.reject(new Errors.HttpStatusError(423, 'Account has been locked'));
     }
 
@@ -173,24 +160,17 @@ module.exports = {
    * @param user
    * @returns {Redis}
    */
-  activateAccount(user){
+  activateAccount(user) {
     const userKey = generateKey(user, USERS_DATA);
 
     // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
     // set to active & persist
-    return redis
-      .pipeline()
-      .hget(userKey, USERS_ACTIVE_FLAG)
-      .hset(userKey, USERS_ACTIVE_FLAG, 'true')
-      .persist(userKey)
-      .sadd(USERS_INDEX, user)
-      .exec()
-      .spread(function pipeResponse(isActive) {
-        const status = isActive[1];
-        if (status === 'true') {
-          throw new Errors.HttpStatusError(417, `Account ${user} was already activated`);
-        }
-      });
+    return redis.pipeline().hget(userKey, USERS_ACTIVE_FLAG).hset(userKey, USERS_ACTIVE_FLAG, 'true').persist(userKey).sadd(USERS_INDEX, user).exec().spread(function pipeResponse(isActive) {
+      const status = isActive[1];
+      if (status === 'true') {
+        throw new Errors.HttpStatusError(417, `Account ${ user } was already activated`);
+      }
+    });
   },
 
   /**
@@ -198,26 +178,20 @@ module.exports = {
    * @param username
    * @returns {Object}
    */
-  getUser(username){
+  getUser(username) {
     const userKey = generateKey(username, USERS_DATA);
 
-    return redis
-      .pipeline()
-      .hget(USERS_ALIAS_TO_LOGIN, username)
-      .exists(userKey)
-      .hgetallBuffer(userKey)
-      .exec()
-      .spread((aliasToUsername, exists, data) => {
-        if (aliasToUsername[1]) {
-          return  this.getUser(aliasToUsername[1]);
-        }
+    return redis.pipeline().hget(USERS_ALIAS_TO_LOGIN, username).exists(userKey).hgetallBuffer(userKey).exec().spread((aliasToUsername, exists, data) => {
+      if (aliasToUsername[1]) {
+        return this.getUser(aliasToUsername[1]);
+      }
 
-        if (!exists[1]) {
-          throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
-        }
+      if (!exists[1]) {
+        throw new Errors.HttpStatusError(404, `"${ username }" does not exists`);
+      }
 
-        return { ...data[1], username };
-      });
+      return _extends({}, data[1], { username });
+    });
   },
 
   /**
@@ -236,79 +210,66 @@ module.exports = {
 
     return Promise.map(audiences, audience => {
       return redis.hgetallBuffer(generateKey(username, USERS_METADATA, audience));
-    })
-      .then(function remapAudienceData(data) {
-        const output = {};
-        audiences.forEach(function transform(aud, idx) {
-          const datum = data[idx];
+    }).then(function remapAudienceData(data) {
+      const output = {};
+      audiences.forEach(function transform(aud, idx) {
+        const datum = data[idx];
 
-          if (datum) {
-            const pickFields = fields[aud];
-            output[aud] = mapValues(datum, JSONParse);
-            if (pickFields) {
-              output[aud] = pick(output[aud], pickFields);
-            }
-          } else {
-            output[aud] = {};
+        if (datum) {
+          const pickFields = fields[aud];
+          output[aud] = mapValues(datum, JSONParse);
+          if (pickFields) {
+            output[aud] = pick(output[aud], pickFields);
           }
-        });
-
-        return output;
+        } else {
+          output[aud] = {};
+        }
       });
-  },
 
+      return output;
+    });
+  },
 
   /**
    * Return the list of users by specified params
    * @param opts
    * @returns {Array}
    */
-  getList(opts){
+  getList(opts) {
     const { criteria, audience, filter, index, strFilter, order, offset, limit } = opts;
     const metaKey = generateKey('*', USERS_METADATA, audience);
 
-    return redis
-      .fsort(index, metaKey, criteria, order, strFilter, offset, limit)
-      .then(ids => {
-        const length = +ids.pop();
-        if (length === 0 || ids.length === 0) {
-          return [
-            ids || [],
-            [],
-            length,
-          ];
-        }
+    return redis.fsort(index, metaKey, criteria, order, strFilter, offset, limit).then(ids => {
+      const length = +ids.pop();
+      if (length === 0 || ids.length === 0) {
+        return [ids || [], [], length];
+      }
 
-        const pipeline = redis.pipeline();
-        ids.forEach(id => {
-          pipeline.hgetallBuffer(redisKey(id, USERS_METADATA, audience));
-        });
-        return Promise.all([
-          ids,
-          pipeline.exec(),
-          length,
-        ]);
-      })
-      .spread((ids, props, length) => {
-        const users = ids.map(function remapData(id, idx) {
-          const data = props[idx][1];
-          const account = {
-            id,
-            metadata: {
-              [audience]: data ? mapValues(data, JSONParse) : {},
-            },
-          };
-
-          return account;
-        });
-
-        return {
-          users,
-          cursor: offset + limit,
-          page: Math.floor(offset / limit + 1),
-          pages: Math.ceil(length / limit),
-        };
+      const pipeline = redis.pipeline();
+      ids.forEach(id => {
+        pipeline.hgetallBuffer(redisKey(id, USERS_METADATA, audience));
       });
+      return Promise.all([ids, pipeline.exec(), length]);
+    }).spread((ids, props, length) => {
+      const users = ids.map(function remapData(id, idx) {
+        const data = props[idx][1];
+        const account = {
+          id,
+          metadata: {
+            [audience]: data ? mapValues(data, JSONParse) : {}
+          }
+        };
+
+        return account;
+      });
+
+      return {
+        users,
+        cursor: offset + limit,
+        page: Math.floor(offset / limit + 1),
+        pages: Math.ceil(length / limit)
+      };
+    });
   },
 
   /**
@@ -316,7 +277,7 @@ module.exports = {
    * @param data
    * @returns {boolean}
    */
-  isAliasAssigned(data){
+  isAliasAssigned(data) {
     return data[USERS_ALIAS_FIELD] !== undefined; // was just `data[USERS_ALIAS_FIELD]`
   },
 
@@ -325,9 +286,9 @@ module.exports = {
    * @param meta
    * @returns {boolean}
   */
-  isAdmin(meta){
+  isAdmin(meta) {
     const audience = config.jwt.defaultAudience;
-    return(meta[audience].roles || []).indexOf(USERS_ADMIN_ROLE) >= 0;
+    return (meta[audience].roles || []).indexOf(USERS_ADMIN_ROLE) >= 0;
   },
 
   /**
@@ -336,7 +297,7 @@ module.exports = {
    * @param alias
    * @returns {Redis}
      */
-  storeAlias(username, alias){
+  storeAlias(username, alias) {
     return redis.hsetnx(USERS_ALIAS_TO_LOGIN, alias, username);
   },
 
@@ -346,46 +307,41 @@ module.exports = {
    * @param alias
    * @returns {Redis}
      */
-  assignAlias(username, alias){
-    return redis
-      .pipeline()
-      .sadd(USERS_PUBLIC_INDEX, username)
-      .hset(generateKey(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
-      .hset(generateKey(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, stringify)
-      .exec();
+  assignAlias(username, alias) {
+    return redis.pipeline().sadd(USERS_PUBLIC_INDEX, username).hset(generateKey(username, USERS_DATA), USERS_ALIAS_FIELD, alias).hset(generateKey(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, stringify).exec();
   },
 
   _remoteipKey: '',
-  get remoteipKey(){
+  get remoteipKey() {
     return this._remoteipKey;
   },
 
-  set remoteipKey(val){
+  set remoteipKey(val) {
     this._remoteipKey = val;
   },
 
-  generateipKey(username, remoteip){
+  generateipKey(username, remoteip) {
     return this._remoteipKey = generateKey(username, 'ip', remoteip);
   },
 
   _loginAttempts: 0,
-  get loginAttempts(){
+  get loginAttempts() {
     return this._loginAttempts;
   },
-  set loginAttempts(val){
+  set loginAttempts(val) {
     this._loginAttempts = val;
   },
 
   _options: {},
-  get options(){
+  get options() {
     return this._options;
   },
 
-  set options(opts){
+  set options(opts) {
     this._options = opts;
   },
 
-  dropAttempts(){
+  dropAttempts() {
     this._loginAttempts = 0;
     return redis.del(this.key);
   },
@@ -399,22 +355,20 @@ module.exports = {
       pipeline.expire(remoteipKey, config.jwt.keepLoginAttempts);
     }
 
-    return pipeline
-      .exec()
-      .spread(function incremented(incrementValue) {
-        const err = incrementValue[0];
-        if (err) {
-          this.log.error('Redis error:', err);
-          return;
-        }
+    return pipeline.exec().spread(function incremented(incrementValue) {
+      const err = incrementValue[0];
+      if (err) {
+        this.log.error('Redis error:', err);
+        return;
+      }
 
-        this.loginAttempts = incrementValue[1];
-        if (this.loginAttempts > lockAfterAttempts) {
-          const duration = moment().add(config.jwt.keepLoginAttempts, 'seconds').toNow(true);
-          const msg = `You are locked from making login attempts for the next ${duration}`;
-          throw new Errors.HttpStatusError(429, msg);
-        }
-      });
+      this.loginAttempts = incrementValue[1];
+      if (this.loginAttempts > lockAfterAttempts) {
+        const duration = moment().add(config.jwt.keepLoginAttempts, 'seconds').toNow(true);
+        const msg = `You are locked from making login attempts for the next ${ duration }`;
+        throw new Errors.HttpStatusError(429, msg);
+      }
+    });
   },
 
   /**
@@ -423,10 +377,8 @@ module.exports = {
    * @param hash
    * @returns {Redis}
      */
-  setPassword(username, hash){
-    return redis
-      .hset(generateKey(username, USERS_DATA), 'password', hash)
-      .return(username);
+  setPassword(username, hash) {
+    return redis.hset(generateKey(username, USERS_DATA), 'password', hash).return(username);
   },
 
   /**
@@ -435,7 +387,7 @@ module.exports = {
    * @param ip
    * @returns {Redis}
      */
-  resetIPLock(username, ip){
+  resetIPLock(username, ip) {
     return redis.del(generateKey(username, 'ip', ip));
   },
 
@@ -461,7 +413,7 @@ module.exports = {
     }
 
     //or...
-    return this.customScript(script)
+    return this.customScript(script);
   },
 
   /**
@@ -470,7 +422,7 @@ module.exports = {
    * @param data
    * @returns {*|{arity, flags, keyStart, keyStop, step}|Array|{index: number, input: string}}
      */
-  removeUser(username, data){
+  removeUser(username, data) {
     const audience = config.jwt.defaultAudience;
     const transaction = redis.multi();
     const alias = data[USERS_ALIAS_FIELD];
@@ -501,27 +453,20 @@ module.exports = {
    * @return {Function}
    */
   checkLimits(registrationLimits, ipaddress) {
-    const {ip: {time, times}} = registrationLimits;
+    const { ip: { time, times } } = registrationLimits;
     const ipaddressLimitKey = generateKey('reg-limit', ipaddress);
     const now = Date.now();
     const old = now - time;
 
     return function iplimits() {
-      return redis
-        .pipeline()
-        .zadd(ipaddressLimitKey, now, uuid.v4())
-        .pexpire(ipaddressLimitKey, time)
-        .zremrangebyscore(ipaddressLimitKey, '-inf', old)
-        .zcard(ipaddressLimitKey)
-        .exec()
-        .then(props => {
-          const cardinality = props[3][1];
-          if (cardinality > times) {
-            const msg = 'You can\'t register more users from your ipaddress now';
-            throw new Errors.HttpStatusError(429, msg);
-          }
-        });
-    }
+      return redis.pipeline().zadd(ipaddressLimitKey, now, uuid.v4()).pexpire(ipaddressLimitKey, time).zremrangebyscore(ipaddressLimitKey, '-inf', old).zcard(ipaddressLimitKey).exec().then(props => {
+        const cardinality = props[3][1];
+        if (cardinality > times) {
+          const msg = 'You can\'t register more users from your ipaddress now';
+          throw new Errors.HttpStatusError(429, msg);
+        }
+      });
+    };
   },
 
   /**
@@ -545,21 +490,19 @@ module.exports = {
       pipeline.hsetnx(userDataKey, 'password', hash);
       pipeline.hsetnx(userDataKey, USERS_ACTIVE_FLAG, activate);
 
-      return pipeline
-        .exec()
-        .spread(function insertedUserData(passwordSetResponse) {
-          if (passwordSetResponse[1] === 0) {
-            throw new Errors.HttpStatusError(412, `User "${username}" already exists`);
-          }
+      return pipeline.exec().spread(function insertedUserData(passwordSetResponse) {
+        if (passwordSetResponse[1] === 0) {
+          throw new Errors.HttpStatusError(412, `User "${ username }" already exists`);
+        }
 
-          if (!activate && deleteInactiveAccounts >= 0) {
-            // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
-            // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
-            return redis.expire(userDataKey, deleteInactiveAccounts);
-          }
+        if (!activate && deleteInactiveAccounts >= 0) {
+          // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
+          // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
+          return redis.expire(userDataKey, deleteInactiveAccounts);
+        }
 
-          return null;
-        });
+        return null;
+      });
     };
   },
 
@@ -571,35 +514,26 @@ module.exports = {
    * @return {Function}
    */
   checkCaptcha(username, captcha) {
-    const {secret, ttl, uri} = captchaConfig;
+    const { secret, ttl, uri } = captchaConfig;
     return function checkCaptcha() {
       const captchaCacheKey = captcha.response;
-      return redis
-        .pipeline()
-        .set(captchaCacheKey, username, 'EX', ttl, 'NX')
-        .get(captchaCacheKey)
-        .exec()
-        .spread(function captchaCacheResponse(setResponse, getResponse) {
-          if (getResponse[1] !== username) {
-            const msg = 'Captcha challenge you\'ve solved can not be used, please complete it again';
-            throw new Errors.HttpStatusError(412, msg);
+      return redis.pipeline().set(captchaCacheKey, username, 'EX', ttl, 'NX').get(captchaCacheKey).exec().spread(function captchaCacheResponse(setResponse, getResponse) {
+        if (getResponse[1] !== username) {
+          const msg = 'Captcha challenge you\'ve solved can not be used, please complete it again';
+          throw new Errors.HttpStatusError(412, msg);
+        }
+      }).then(function verifyGoogleCaptcha() {
+        return request.post({ uri, qs: defaults(captcha, { secret }), json: true }).then(function captchaSuccess(body) {
+          if (!body.success) {
+            return Promise.reject({ statusCode: 200, error: body });
           }
-        })
-        .then(function verifyGoogleCaptcha() {
-          return request
-            .post({uri, qs: defaults(captcha, {secret}), json: true})
-            .then(function captchaSuccess(body) {
-              if (!body.success) {
-                return Promise.reject({statusCode: 200, error: body});
-              }
 
-              return true;
-            })
-            .catch(function captchaError(err) {
-              const errData = JSON.stringify(pick(err, ['statusCode', 'error']));
-              throw new Errors.HttpStatusError(412, fmt('Captcha response: %s', errData));
-            });
+          return true;
+        }).catch(function captchaError(err) {
+          const errData = JSON.stringify(pick(err, ['statusCode', 'error']));
+          throw new Errors.HttpStatusError(412, fmt('Captcha response: %s', errData));
         });
+      });
     };
   },
 
@@ -608,7 +542,7 @@ module.exports = {
    * @param username
    * @returns {Redis}
    */
-  storeUsername(username){
+  storeUsername(username) {
     return redis.sadd(USERS_INDEX, username);
   },
 
@@ -617,13 +551,13 @@ module.exports = {
    * @param script
    * @returns {Promise}
    */
-  customScript(script){
+  customScript(script) {
     // dynamic scripts
     const $scriptKeys = Object.keys(script);
     const scripts = $scriptKeys.map(scriptName => {
       const { lua, argv = [] } = script[scriptName];
       const sha = sha256(lua);
-      const name = `ms_users_${sha}`;
+      const name = `ms_users_${ sha }`;
       if (!is.fn(redis[name])) {
         redis.defineCommand(name, { lua });
       }
@@ -631,11 +565,11 @@ module.exports = {
     });
 
     return Promise.all(scripts).then(res => {
-        const output = {};
-        $scriptKeys.forEach((fieldName, idx) => {
-          output[fieldName] = res[idx];
-        });
-        return output;
+      const output = {};
+      $scriptKeys.forEach((fieldName, idx) => {
+        output[fieldName] = res[idx];
+      });
+      return output;
     });
   },
 
@@ -666,5 +600,6 @@ module.exports = {
     return { $removeOps, $setLength, $incrLength, $incrFields };
   }
 
-
 };
+
+//# sourceMappingURL=redisstorage-compiled.js.map

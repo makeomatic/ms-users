@@ -1,3 +1,5 @@
+'use strict';
+
 const Users = require('../adapter');
 const fsort = require('redis-filtered-sort');
 const { USERS_INDEX, USERS_PUBLIC_INDEX } = require('../constants.js');
@@ -15,5 +17,6 @@ module.exports = function iterateOverActiveUsers(opts) {
     offset: opts.offset || 0,
     limit: opts.limit || 10
   });
-
 };
+
+//# sourceMappingURL=list-compiled.js.map

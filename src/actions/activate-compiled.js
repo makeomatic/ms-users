@@ -1,3 +1,5 @@
+'use strict';
+
 const Promise = require('bluebird');
 const emailVerification = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
@@ -18,11 +20,7 @@ module.exports = function verifyChallenge(opts) {
     return this.hook.call(this, 'users:activate', user, audience);
   }
 
-  return Promise
-    .bind(this, username)
-    .then(username ? Users.isExists : verifyToken)
-    .tap(Users.activateAccount)
-    .tap(hook)
-    .then(user => [user, audience])
-    .spread(jwt.login);
+  return Promise.bind(this, username).then(username ? Users.isExists : verifyToken).tap(Users.activateAccount).tap(hook).then(user => [user, audience]).spread(jwt.login);
 };
+
+//# sourceMappingURL=activate-compiled.js.map

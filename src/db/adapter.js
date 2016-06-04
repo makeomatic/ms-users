@@ -141,16 +141,7 @@ class Users{
   getList(opts){
     return this.adapter.getList(opts);
   }
-
-  /**
-   * Check existence of alias
-   * @param data
-   * @returns {boolean}
-   */
-  isAliasAssigned(data){
-    return this.adapter.isAliasAssigned(data);
-  }
-
+  
   /**
    * Check that user is admin
    * @param meta
@@ -180,38 +171,27 @@ class Users{
     return this.adapter.assignAlias(username, alias);
   }
 
-  get remoteipKey(){
-    return this.adapter.remoteipKey;
+  /**
+   * Return current login attempts count
+   * @returns {int}
+   */
+  getAttempts(){
+    return this.adapter.getAttempts();
   }
 
-  set remoteipKey(val){
-    this.adapter.remoteipKey = val;
-  }
-
-  generateipKey(username, remoteip){
-    return this.adapter.generateipKey(username, remoteip);
-  }
-
-  get loginAttempts(){
-    return this.adapter.loginAttempts;
-  }
-
-  set loginAttempts(val){
-    this.adapter.loginAttempts = val;
-  }
-
-  get options(){
-    return this.adapter.options;
-  }
-
-  set options(opts){
-    this.adapter.options = opts;
-  }
-
+  /**
+   * Drop login attempts counter
+   * @returns {Redis}
+   */
   dropAttempts(){
     return this.adapter.dropAttempts();
   }
 
+  /**
+   * Check login attempts
+   * @param data
+   * @returns {Redis}
+   */
   checkLoginAttempts(data) {
     return this.adapter.checkLoginAttempts(data);
   }

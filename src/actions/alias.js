@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const { USERS_ALIAS_FIELD } = require('../constants.js');
 
 const Users = require('../db/adapter');
 
@@ -13,7 +14,7 @@ module.exports = function assignAlias(opts) {
     .tap(Users.isActive)
     .tap(Users.isBanned)
     .then(data => {
-      if (Users.isAliasAssigned(data)) {
+      if (data[USERS_ALIAS_FIELD]) {
         throw new Errors.HttpStatusError(417, 'alias is already assigned');
       }
 

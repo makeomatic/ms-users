@@ -25,6 +25,8 @@ const {
 
 const { redis, captcha: captchaConfig, config } = this;
 const { jwt: { lockAfterAttempts, defaultAudience } } = config;
+let remoteipKey;
+let loginAttempts;
 
 
 /**
@@ -264,7 +266,7 @@ module.exports = {
    * @returns {Array}
    */
   getList(opts){
-    const { criteria, audience, filter, index, strFilter, order, offset, limit } = opts;
+    const { criteria, audience, index, strFilter, order, offset, limit } = opts;
     const metaKey = generateKey('*', USERS_METADATA, audience);
 
     return redis
@@ -275,7 +277,7 @@ module.exports = {
           return [
             ids || [],
             [],
-            length,
+            length
           ];
         }
 
@@ -286,7 +288,7 @@ module.exports = {
         return Promise.all([
           ids,
           pipeline.exec(),
-          length,
+          length
         ]);
       })
       .spread((ids, props, length) => {
@@ -295,8 +297,8 @@ module.exports = {
           const account = {
             id,
             metadata: {
-              [audience]: data ? mapValues(data, JSONParse) : {},
-            },
+              [audience]: data ? mapValues(data, JSONParse) : {}
+            }
           };
 
           return account;
@@ -306,18 +308,9 @@ module.exports = {
           users,
           cursor: offset + limit,
           page: Math.floor(offset / limit + 1),
-          pages: Math.ceil(length / limit),
+          pages: Math.ceil(length / limit)
         };
       });
-  },
-
-  /**
-   * Check existence of alias
-   * @param data
-   * @returns {boolean}
-   */
-  isAliasAssigned(data){
-    return data[USERS_ALIAS_FIELD] !== undefined; // was just `data[USERS_ALIAS_FIELD]`
   },
 
   /**
@@ -355,44 +348,37 @@ module.exports = {
       .exec();
   },
 
-  _remoteipKey: '',
-  get remoteipKey(){
-    return this._remoteipKey;
+  /**
+   * Return current login attempts count
+   * @returns {int}
+   */
+  getAttempts(){
+    return loginAttempts;
   },
 
-  set remoteipKey(val){
-    this._remoteipKey = val;
-  },
-
-  generateipKey(username, remoteip){
-    return this._remoteipKey = generateKey(username, 'ip', remoteip);
-  },
-
-  _loginAttempts: 0,
-  get loginAttempts(){
-    return this._loginAttempts;
-  },
-  set loginAttempts(val){
-    this._loginAttempts = val;
-  },
-
-  _options: {},
-  get options(){
-    return this._options;
-  },
-
-  set options(opts){
-    this._options = opts;
-  },
-
+  /**
+   * Drop login attempts counter
+   * @returns {Redis}
+   */
   dropAttempts(){
-    this._loginAttempts = 0;
-    return redis.del(this.key);
+    loginAttempts = 0;
+    if (remoteipKey) {
+      return redis.del(remoteipKey);
+    } else {
+      throw new Errors.Error('Empty remote ip key');
+    }
   },
-  checkLoginAttempts(data) {
+
+  /**
+   * Check login attempts
+   * @param data
+   * @param _remoteip
+   * @returns {Redis}
+   */
+  checkLoginAttempts(data, _remoteip) {
     const pipeline = redis.pipeline();
-    const username = data.username;
-    const remoteipKey = this.generateipKey(username, this._options.remoteip);
+    const { username } = data;
+    remoteipKey = generateKey(username, 'ip', _remoteip);
 
     pipeline.incrby(remoteipKey, 1);
     if (config.jwt.keepLoginAttempts > 0) {
@@ -404,12 +390,11 @@ module.exports = {
       .spread(function incremented(incrementValue) {
         const err = incrementValue[0];
         if (err) {
-          this.log.error('Redis error:', err);
-          return;
+          throw new Errors.data.RedisError(err);
         }
 
-        this.loginAttempts = incrementValue[1];
-        if (this.loginAttempts > lockAfterAttempts) {
+        loginAttempts = incrementValue[1];
+        if (loginAttempts > lockAfterAttempts) {
           const duration = moment().add(config.jwt.keepLoginAttempts, 'seconds').toNow(true);
           const msg = `You are locked from making login attempts for the next ${duration}`;
           throw new Errors.HttpStatusError(429, msg);

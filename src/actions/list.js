@@ -8,7 +8,6 @@ module.exports = function iterateOverActiveUsers(opts) {
   return Users.getList({
     criteria,
     audience,
-    filter,
     index: opts.public ? USERS_PUBLIC_INDEX : USERS_INDEX,
     strFilter: typeof filter === 'string' ? filter : fsort.filter(filter || {}),
     order: opts.order || 'ASC',

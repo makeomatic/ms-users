@@ -14,8 +14,12 @@ const fmt = require('util').format;
 const is = require('is');
 const sha256 = require('./sha256.js');
 const moment = require('moment');
+const verifyGoogleCaptcha = require('../utils/verifyGoogleCaptcha');
+const mapMetaResponse = require('../utils/mapMetaResponse');
 
 const stringify = JSON.stringify.bind(JSON);
+const JSONParse = JSON.parse.bind(JSON);
+
 const {
   USERS_DATA, USERS_METADATA, USERS_ALIAS_TO_LOGIN,
   USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
@@ -24,7 +28,7 @@ const {
 } = require('../constants.js');
 
 const { redis, captcha: captchaConfig, config } = this;
-const { jwt: { lockAfterAttempts, defaultAudience } } = config;
+const { deleteInactiveAccounts, jwt: { lockAfterAttempts, defaultAudience } } = config;
 let remoteipKey;
 let loginAttempts;
 
@@ -106,25 +110,16 @@ module.exports = {
       });
   },
 
-  isAliasExists(alias, thunk){
-    function resolveAlias(alias) {
-      return redis
-        .hget(USERS_ALIAS_TO_LOGIN, alias)
-        .then(username => {
-          if (username) {
-            throw new Errors.HttpStatusError(409, `"${alias}" already exists`);
-          }
+  isAliasExists(alias){
+    return redis
+      .hget(USERS_ALIAS_TO_LOGIN, alias)
+      .then(username => {
+        if (username) {
+          throw new Errors.HttpStatusError(409, `"${alias}" already exists`);
+        }
 
-          return username;
-        });
-    }
-    if (thunk) {
-      return function resolveAliasThunk() {
-        return resolveAlias(alias);
-      };
-    }
-
-    return resolveAlias(alias);
+        return username;
+      });
   },
 
   /**
@@ -222,40 +217,45 @@ module.exports = {
       });
   },
 
+  _getMeta(username, audience){
+    return redis.hgetallBuffer(generateKey(username, USERS_METADATA, audience))
+  },
+  _remapMeta(data, audiences, fields){
+    const output = {};
+    audiences.forEach(function transform(aud, idx) {
+      const datum = data[idx];
+
+      if (datum) {
+        const pickFields = fields[aud];
+        output[aud] = mapValues(datum, JSONParse);
+        if (pickFields) {
+          output[aud] = pick(output[aud], pickFields);
+        }
+      } else {
+        output[aud] = {};
+      }
+    });
+
+    return output;
+  },
+
+
   /**
    * Get users metadata by username and audience
    * @param username
    * @param audience
+   * @param fields
    * @returns {Object}
-     */
-
-  // getMetadata(username, audience){
-  //   return redis.hgetallBuffer(generateKey(username, USERS_METADATA, audience));
-  // },
-
+   */
   getMetadata(username, _audiences, fields = {}) {
     const audiences = Array.isArray(_audiences) ? _audiences : [_audiences];
 
-    return Promise.map(audiences, audience => {
-      return redis.hgetallBuffer(generateKey(username, USERS_METADATA, audience));
-    })
-      .then(function remapAudienceData(data) {
-        const output = {};
-        audiences.forEach(function transform(aud, idx) {
-          const datum = data[idx];
-
-          if (datum) {
-            const pickFields = fields[aud];
-            output[aud] = mapValues(datum, JSONParse);
-            if (pickFields) {
-              output[aud] = pick(output[aud], pickFields);
-            }
-          } else {
-            output[aud] = {};
-          }
-        });
-
-        return output;
+    return Promise
+      .map(audiences, audience => {
+        return this._getMeta(username, audience);
+      })
+      .then(data => {
+        return this._remapMeta(data, audiences, fields);
       });
   },
 
@@ -424,6 +424,40 @@ module.exports = {
     return redis.del(generateKey(username, 'ip', ip));
   },
 
+
+  /**
+   * Process metadata update operation for a passed audience / inner method
+   * @param  {Object} pipeline
+   * @param  {String} audience
+   * @param  {Object} metadata
+   */
+  _handleAudience(pipeline, key, metadata) {
+    const $remove = metadata.$remove;
+    const $removeOps = $remove && $remove.length || 0;
+    if ($removeOps > 0) {
+      pipeline.hdel(key, $remove);
+    }
+    
+    const $set = metadata.$set;
+    const $setKeys = $set && Object.keys($set);
+    const $setLength = $setKeys && $setKeys.length || 0;
+    if ($setLength > 0) {
+      pipeline.hmset(key, mapValues($set, stringify));
+    }
+
+    const $incr = metadata.$incr;
+    const $incrFields = $incr && Object.keys($incr);
+    const $incrLength = $incrFields && $incrFields.length || 0;
+    if ($incrLength > 0) {
+      $incrFields.forEach(fieldName => {
+        pipeline.hincrby(key, fieldName, $incr[fieldName]);
+      });
+    }
+
+    return { $removeOps, $setLength, $incrLength, $incrFields };
+  },
+
+
   /**
    *
    * @param username
@@ -431,17 +465,17 @@ module.exports = {
    * @param metadata
    * @returns {Object}
      */
-  updateMetadata({ username, audience, metadata, script }) {
+    updateMetadata({ username, audience, metadata, script }) {
     const audiences = is.array(audience) ? audience : [audience];
 
     // keys
-    const keys = audiences.map(aud => redisKey(username, USERS_METADATA, aud));
+    const keys = audiences.map(aud => generateKey(username, USERS_METADATA, aud));
 
     // if we have meta, then we can
     if (metadata) {
       const pipe = redis.pipeline();
       const metaOps = is.array(metadata) ? metadata : [metadata];
-      const operations = metaOps.map((meta, idx) => handleAudience(pipe, keys[idx], meta));
+      const operations = metaOps.map((meta, idx) => this._handleAudience(pipe, keys[idx], meta));
       return pipe.exec().then(res => mapMetaResponse(operations, res));
     }
 
@@ -485,7 +519,8 @@ module.exports = {
    * @param  {String} ipaddress
    * @return {Function}
    */
-  checkLimits(registrationLimits, ipaddress) {
+  checkLimits(ipaddress) {
+    const { registrationLimits } = config;
     const {ip: {time, times}} = registrationLimits;
     const ipaddressLimitKey = generateKey('reg-limit', ipaddress);
     const now = Date.now();
@@ -514,11 +549,10 @@ module.exports = {
    * @param redis
    * @param username
    * @param activate
-   * @param deleteInactiveAccounts
    * @param userDataKey
    * @returns {Function}
    */
-  createUser(username, activate, deleteInactiveAccounts) {
+  createUser(username, activate) {
     /**
      * Input from scrypt.hash
      */
@@ -552,12 +586,11 @@ module.exports = {
    * Performs captcha check, returns thukn
    * @param  {String} username
    * @param  {String} captcha
-   * @param  {Object} captchaConfig
    * @return {Function}
    */
   checkCaptcha(username, captcha) {
-    const {secret, ttl, uri} = captchaConfig;
-    return function checkCaptcha() {
+    const {ttl} = captchaConfig;
+    return function checkTheCaptcha() {
       const captchaCacheKey = captcha.response;
       return redis
         .pipeline()
@@ -570,21 +603,7 @@ module.exports = {
             throw new Errors.HttpStatusError(412, msg);
           }
         })
-        .then(function verifyGoogleCaptcha() {
-          return request
-            .post({uri, qs: defaults(captcha, {secret}), json: true})
-            .then(function captchaSuccess(body) {
-              if (!body.success) {
-                return Promise.reject({statusCode: 200, error: body});
-              }
-
-              return true;
-            })
-            .catch(function captchaError(err) {
-              const errData = JSON.stringify(pick(err, ['statusCode', 'error']));
-              throw new Errors.HttpStatusError(412, fmt('Captcha response: %s', errData));
-            });
-        });
+        .then(() => verifyGoogleCaptcha(captcha));
     };
   },
 

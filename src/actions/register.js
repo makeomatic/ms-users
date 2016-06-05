@@ -1,81 +1,18 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const setMetadata = require('../utils/updateMetadata.js');
 const scrypt = require('../utils/scrypt.js');
-const redisKey = require('../utils/key.js');
 const emailValidation = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const uuid = require('node-uuid');
-const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_REGISTER } = require('../constants.js');
+const { MAIL_REGISTER } = require('../constants.js');
+
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
-const makeCaptchaCheck = require('../utils/checkCaptcha.js');
-const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
 const noop = require('lodash/noop');
 const assignAlias = require('./alias.js');
 
-/**
- * Verify ip limits
- * @param  {redisCluster} redis
- * @param  {Object} registrationLimits
- * @param  {String} ipaddress
- * @return {Function}
- */
-function checkLimits(redis, registrationLimits, ipaddress) {
-  const { ip: { time, times } } = registrationLimits;
-  const ipaddressLimitKey = redisKey('reg-limit', ipaddress);
-  const now = Date.now();
-  const old = now - time;
-
-  return function iplimits() {
-    return redis
-      .pipeline()
-      .zadd(ipaddressLimitKey, now, uuid.v4())
-      .pexpire(ipaddressLimitKey, time)
-      .zremrangebyscore(ipaddressLimitKey, '-inf', old)
-      .zcard(ipaddressLimitKey)
-      .exec()
-      .then(props => {
-        const cardinality = props[3][1];
-        if (cardinality > times) {
-          const msg = 'You can\'t register more users from your ipaddress now';
-          throw new Errors.HttpStatusError(429, msg);
-        }
-      });
-  };
-}
-
-/**
- * Creates user with a given hash
- */
-function createUser(redis, username, activate, deleteInactiveAccounts, userDataKey) {
-  /**
-   * Input from scrypt.hash
-   */
-  return function create(hash) {
-    const pipeline = redis.pipeline();
-
-    pipeline.hsetnx(userDataKey, 'password', hash);
-    pipeline.hsetnx(userDataKey, USERS_ACTIVE_FLAG, activate);
-
-    return pipeline
-      .exec()
-      .spread(function insertedUserData(passwordSetResponse) {
-        if (passwordSetResponse[1] === 0) {
-          throw new Errors.HttpStatusError(412, `User "${username}" already exists`);
-        }
-
-        if (!activate && deleteInactiveAccounts >= 0) {
-          // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
-          // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
-          return redis.expire(userDataKey, deleteInactiveAccounts);
-        }
-
-        return null;
-      });
-  };
-}
+const Users = require('../adapter');
 
 /**
  * Registration handler
@@ -83,8 +20,8 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
  * @return {Promise}
  */
 module.exports = function registerUser(message) {
-  const { redis, config } = this;
-  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
+  const {  config } = this;
+  const { registrationLimits } = config;
 
   // message
   const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
@@ -104,7 +41,7 @@ module.exports = function registerUser(message) {
   // optional captcha verification
   if (captcha) {
     logger.debug('verifying captcha');
-    promise = promise.tap(makeCaptchaCheck(redis, username, captcha, captchaConfig));
+    promise = promise.tap(Users.checkCaptcha(username, captcha));
   }
 
   if (registrationLimits) {
@@ -117,20 +54,17 @@ module.exports = function registerUser(message) {
     }
 
     if (registrationLimits.ip && ipaddress) {
-      promise = promise.tap(checkLimits(redis, registrationLimits, ipaddress));
+      promise = promise.tap(Users.checkLimits(ipaddress));
     }
   }
-
-  // shared user key
-  const userDataKey = redisKey(username, USERS_DATA);
 
   // step 2, verify that user _still_ does not exist
   promise = promise
     // verify user does not exist at this point
-    .tap(userExists)
+    .tap(Users.isExists)
     .throw(new Errors.HttpStatusError(409, `"${username}" already exists`))
     .catchReturn({ statusCode: 404 }, username)
-    .tap(alias ? aliasExists(alias, true) : noop)
+    .tap(alias ? () => Users.isAliasExists(alias) : noop)
     // step 3 - encrypt password
     .then(() => {
       if (password) {
@@ -146,7 +80,7 @@ module.exports = function registerUser(message) {
     })
     .then(scrypt.hash)
     // step 4 - create user if it wasn't created by some1 else trying to use race-conditions
-    .then(createUser(redis, username, activate, deleteInactiveAccounts, userDataKey))
+    .then(Users.createUser(username, activate))
     // step 5 - save metadata if present
     .return({
       username,
@@ -154,11 +88,11 @@ module.exports = function registerUser(message) {
       metadata: {
         $set: {
           username,
-          ...metadata || {},
-        },
-      },
+          ...metadata || {}
+        }
+      }
     })
-    .then(setMetadata)
+    .then(Users.updateMetadata)
     .return(username);
 
   // no instant activation -> send email or skip it based on the settings
@@ -171,7 +105,7 @@ module.exports = function registerUser(message) {
   // perform instant activation
   return promise
     // add to redis index
-    .then(() => redis.sadd(USERS_INDEX, username))
+    .then(() => Users.storeUsername(username))
     // call hook
     .return(['users:activate', username, audience])
     .spread(this.hook)

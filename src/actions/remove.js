@@ -1,8 +1,6 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const key = require('../utils/key');
 const { USERS_ADMIN_ROLE } = require('../constants');
-
 const Users = require('../db/adapter');
 
 module.exports = function removeUser({ username }) {

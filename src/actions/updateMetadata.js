@@ -1,11 +1,10 @@
 const Promise = require('bluebird');
-const updateMetadata = require('../utils/updateMetadata.js');
-const userExists = require('../utils/userExists.js');
+const Users = require('../db/adapter');
 
 module.exports = function updateMetadataAction(message) {
   return Promise
     .bind(this, message.username)
-    .then(userExists)
+    .then(Users.isExists)
     .then(username => ({ ...message, username }))
-    .then(updateMetadata);
+    .then(Users.updateMetadata);
 };

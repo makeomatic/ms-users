@@ -437,7 +437,7 @@ module.exports = {
     if ($removeOps > 0) {
       pipeline.hdel(key, $remove);
     }
-    
+
     const $set = metadata.$set;
     const $setKeys = $set && Object.keys($set);
     const $setLength = $setKeys && $setKeys.length || 0;
@@ -464,8 +464,8 @@ module.exports = {
    * @param audience
    * @param metadata
    * @returns {Object}
-     */
-    updateMetadata({ username, audience, metadata, script }) {
+   */
+  updateMetadata({ username, audience, metadata, script }) {
     const audiences = is.array(audience) ? audience : [audience];
 
     // keys

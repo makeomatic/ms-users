@@ -64,7 +64,7 @@ module.exports = function registerUser(message) {
     .tap(Users.isExists)
     .throw(new Errors.HttpStatusError(409, `"${username}" already exists`))
     .catchReturn({ statusCode: 404 }, username)
-    .tap(alias ? () => Users.isAliasExists(alias) : noop)
+    .tap(alias ? () => Users.aliasAlreadyExists(alias) : noop)
     // step 3 - encrypt password
     .then(() => {
       if (password) {

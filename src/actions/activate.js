@@ -3,6 +3,8 @@ const emailVerification = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const Users = require('../db/adapter');
 
+Users.bind(this);
+
 module.exports = function verifyChallenge(opts) {
   // TODO: add security logs
   // var remoteip = opts.remoteip;

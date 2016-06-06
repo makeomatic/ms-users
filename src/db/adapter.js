@@ -71,8 +71,8 @@ class Users{
     return this.adapter.isExists(username);
   }
 
-  isAliasExists(alias, thunk){
-    return this.adapter.isAliasExists(alias, thunk);
+  aliasAlreadyExists(alias, thunk){
+    return this.adapter.aliasAlreadyExists(alias, thunk);
   }
 
   /**

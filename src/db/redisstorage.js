@@ -17,9 +17,11 @@ const moment = require('moment');
 const verifyGoogleCaptcha = require('../utils/verifyGoogleCaptcha');
 const mapMetaResponse = require('../utils/mapMetaResponse');
 
-const stringify = JSON.stringify.bind(JSON);
+//JSON
+const JSONStringify = JSON.stringify.bind(JSON);
 const JSONParse = JSON.parse.bind(JSON);
 
+//constants
 const {
   USERS_DATA, USERS_METADATA, USERS_ALIAS_TO_LOGIN,
   USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
@@ -27,8 +29,11 @@ const {
   USERS_ALIAS_FIELD
 } = require('../constants.js');
 
+//config's and base objects
 const { redis, captcha: captchaConfig, config } = this;
 const { deleteInactiveAccounts, jwt: { lockAfterAttempts, defaultAudience } } = config;
+
+//local vatiables inside the module
 let remoteipKey;
 let loginAttempts;
 
@@ -50,7 +55,7 @@ module.exports = {
    * @param reason
    * @param whom
    * @param remoteip
-   * @returns {*|{arity, flags, keyStart, keyStop, step}|Array|{index: number, input: string}}
+   * @returns {Redis|{index: number, input: string}}
    */
   lockUser({ username, reason, whom, remoteip }){
     const data = {
@@ -66,7 +71,7 @@ module.exports = {
       .pipeline()
       .hset(generateKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true')
       // set .banned on metadata for filtering & sorting users by that field
-      .hmset(generateKey(username, USERS_METADATA, defaultAudience), mapValues(data, stringify))
+      .hmset(generateKey(username, USERS_METADATA, defaultAudience), mapValues(data, JSONStringify))
       .del(generateKey(username, USERS_TOKENS))
       .exec();
   },
@@ -74,7 +79,7 @@ module.exports = {
   /**
    * Unlock user
    * @param username
-   * @returns {*|{arity, flags, keyStart, keyStop, step}|Array|{index: number, input: string}}
+   * @returns {Redis|{index: number, input: string}}
    */
   unlockUser({username}){
     return redis
@@ -89,7 +94,7 @@ module.exports = {
   /**
    * Check existance of user
    * @param username
-   * @returns {Redis}
+   * @returns {Redis|username}
    */
   isExists(username){
     return redis
@@ -110,7 +115,12 @@ module.exports = {
       });
   },
 
-  isAliasExists(alias){
+  /**
+   * Check the existance of alias
+   * @param alias
+   * @returns {username|''}
+   */
+  aliasAlreadyExists(alias){
     return redis
       .hget(USERS_ALIAS_TO_LOGIN, alias)
       .then(username => {
@@ -344,7 +354,7 @@ module.exports = {
       .pipeline()
       .sadd(USERS_PUBLIC_INDEX, username)
       .hset(generateKey(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
-      .hset(generateKey(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, stringify)
+      .hset(generateKey(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSONStringify)
       .exec();
   },
 
@@ -408,7 +418,7 @@ module.exports = {
    * @param hash
    * @returns {Redis}
      */
-  setPassword(username, hash){
+  setPassword({username, hash}){
     return redis
       .hset(generateKey(username, USERS_DATA), 'password', hash)
       .return(username);
@@ -442,7 +452,7 @@ module.exports = {
     const $setKeys = $set && Object.keys($set);
     const $setLength = $setKeys && $setKeys.length || 0;
     if ($setLength > 0) {
-      pipeline.hmset(key, mapValues($set, stringify));
+      pipeline.hmset(key, mapValues($set, JSONStringify));
     }
 
     const $incr = metadata.$incr;
@@ -655,7 +665,7 @@ module.exports = {
     const $setKeys = $set && Object.keys($set);
     const $setLength = $setKeys && $setKeys.length || 0;
     if ($setLength > 0) {
-      pipeline.hmset(key, mapValues($set, stringify));
+      pipeline.hmset(key, mapValues($set, JSONStringify));
     }
 
     const $incr = metadata.$incr;

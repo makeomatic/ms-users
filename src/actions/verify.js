@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const jwt = require('../utils/jwt.js');
-const getMetadata = require('../utils/getMetadata.js');
+const Users = require('../db/adapter');
 
 /**
  * Verifies that passed token is signed correctly, returns associated metadata with it
@@ -25,7 +25,7 @@ module.exports = function verify(opts) {
       const username = decoded.username;
       return Promise.props({
         username,
-        metadata: getMetadata.call(this, username, audience),
+        metadata: Users.getMetadata(username, audience)
       });
     });
 };

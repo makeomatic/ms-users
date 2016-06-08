@@ -5,7 +5,6 @@ const { USERS_DATA, USERS_ALIAS_TO_LOGIN } = require('../constants.js');
 module.exports = function getInternalData(username) {
   const { redis } = this;
   const userKey = redisKey(username, USERS_DATA);
-  
   return redis
     .pipeline()
     .hget(USERS_ALIAS_TO_LOGIN, username)

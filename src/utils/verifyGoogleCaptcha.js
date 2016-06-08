@@ -3,16 +3,18 @@
  */
 const defaults = require('lodash/defaults');
 const Errors = require('common-errors');
+const request = require('request-promise');
+const pick = require('lodash/pick');
+const fmt = require('util').format;
+const { captcha: captchaConfig } = this; // ????? is THIS available here?
 
-const { captcha: captchaConfig } = this; //????? is THIS available here?
-
-module.exports = function verifyGoogleCaptcha(captcha) { //captchaConfig
-  const {secret, uri} = captchaConfig;
+module.exports = function verifyGoogleCaptcha(captcha) { // captchaConfig
+  const { secret, uri } = captchaConfig;
   return request
-    .post({uri, qs: defaults(captcha, {secret}), json: true})
+    .post({ uri, qs: defaults(captcha, { secret }), json: true })
     .then(function captchaSuccess(body) {
       if (!body.success) {
-        return Promise.reject({statusCode: 200, error: body});
+        return Promise.reject({ statusCode: 200, error: body });
       }
 
       return true;

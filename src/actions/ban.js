@@ -6,12 +6,12 @@ function lockUser({ username, reason, whom, remoteip }) {
     username,
     reason: reason || '',
     whom: whom || '',
-    remoteip: remoteip || ''
-  })
+    remoteip: remoteip || '',
+  });
 }
 
 function unlockUser({ username }) {
-  return Users.unlockUser({username});
+  return Users.unlockUser({ username });
 }
 
 /**

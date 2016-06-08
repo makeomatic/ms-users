@@ -3,16 +3,13 @@ const Errors = require('common-errors');
 const scrypt = require('../utils/scrypt.js');
 const emailValidation = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
-const uuid = require('node-uuid');
 const { MAIL_REGISTER } = require('../constants.js');
-
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
-const aliasExists = require('../utils/aliasExists.js');
 const noop = require('lodash/noop');
 const assignAlias = require('./alias.js');
 
-const Users = require('../adapter');
+const Users = require('../db/adapter');
 
 /**
  * Registration handler
@@ -20,7 +17,7 @@ const Users = require('../adapter');
  * @return {Promise}
  */
 module.exports = function registerUser(message) {
-  const {  config } = this;
+  const { config } = this;
   const { registrationLimits } = config;
 
   // message
@@ -88,9 +85,9 @@ module.exports = function registerUser(message) {
       metadata: {
         $set: {
           username,
-          ...metadata || {}
-        }
-      }
+          ...metadata || {},
+        },
+      },
     })
     .then(Users.updateMetadata)
     .return(username);

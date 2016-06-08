@@ -8,7 +8,7 @@ module.exports = function removeUser({ username }) {
 
   return Promise.props({
     internal: Users.getUser(username),
-    meta: Users.getMetadata(username, audience)
+    meta: Users.getMetadata(username, audience),
   })
   .then(({ internal, meta }) => {
     const isAdmin = (meta[audience].roles || []).indexOf(USERS_ADMIN_ROLE) >= 0;

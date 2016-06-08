@@ -31,7 +31,7 @@ module.exports = class Users extends Mservice {
       this.log.fatal('Invalid configuration:', error.toJSON());
       throw error;
     }
-//повесить логику выбора адаптера можно повесить сюда, экшн долежн выполниться позже, можно лочить принятие сообщений внутри роута
+// повесить логику выбора адаптера можно повесить сюда, экшн долежн выполниться позже, можно лочить принятие сообщений внутри роута
     this.on('plugin:connect:amqp', (amqp) => {
       this._mailer = new Mailer(amqp, config.mailer);
     });
@@ -60,7 +60,6 @@ module.exports = class Users extends Mservice {
    */
   get config() {
     return this._config;
-
   }
 
   /**

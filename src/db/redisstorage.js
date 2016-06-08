@@ -4,36 +4,32 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const mapValues = require('lodash/mapValues');
-const defaults = require('lodash/defaults');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-const request = require('request-promise');
 const uuid = require('node-uuid');
-const fsort = require('redis-filtered-sort');
-const fmt = require('util').format;
 const is = require('is');
-const sha256 = require('./sha256.js');
+const sha256 = require('../utils/sha256.js');
 const moment = require('moment');
 const verifyGoogleCaptcha = require('../utils/verifyGoogleCaptcha');
 const mapMetaResponse = require('../utils/mapMetaResponse');
 
-//JSON
+// JSON
 const JSONStringify = JSON.stringify.bind(JSON);
 const JSONParse = JSON.parse.bind(JSON);
 
-//constants
+// constants
 const {
   USERS_DATA, USERS_METADATA, USERS_ALIAS_TO_LOGIN,
   USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
   USERS_ACTIVE_FLAG, USERS_INDEX, USERS_PUBLIC_INDEX,
-  USERS_ALIAS_FIELD
+  USERS_ALIAS_FIELD, USERS_ADMIN_ROLE,
 } = require('../constants.js');
 
-//config's and base objects
+// config's and base objects
 const { redis, captcha: captchaConfig, config } = this;
 const { deleteInactiveAccounts, jwt: { lockAfterAttempts, defaultAudience } } = config;
 
-//local vatiables inside the module
+// local vatiables inside the module
 let remoteipKey;
 let loginAttempts;
 
@@ -57,14 +53,14 @@ module.exports = {
    * @param remoteip
    * @returns {Redis|{index: number, input: string}}
    */
-  lockUser({ username, reason, whom, remoteip }){
+  lockUser({ username, reason, whom, remoteip }) {
     const data = {
       banned: true,
       [USERS_BANNED_DATA]: {
         reason,
         whom,
-        remoteip
-      }
+        remoteip,
+      },
     };
 
     return redis
@@ -81,14 +77,13 @@ module.exports = {
    * @param username
    * @returns {Redis|{index: number, input: string}}
    */
-  unlockUser({username}){
+  unlockUser({ username }) {
     return redis
       .pipeline()
       .hdel(generateKey(username, USERS_DATA), USERS_BANNED_FLAG)
       // remove .banned on metadata for filtering & sorting users by that field
       .hdel(generateKey(username, USERS_METADATA, defaultAudience), 'banned', USERS_BANNED_DATA)
       .exec();
-
   },
 
   /**
@@ -96,7 +91,7 @@ module.exports = {
    * @param username
    * @returns {Redis|username}
    */
-  isExists(username){
+  isExists(username) {
     return redis
       .pipeline()
       .hget(USERS_ALIAS_TO_LOGIN, username)
@@ -120,7 +115,7 @@ module.exports = {
    * @param alias
    * @returns {username|''}
    */
-  aliasAlreadyExists(alias){
+  aliasAlreadyExists(alias) {
     return redis
       .hget(USERS_ALIAS_TO_LOGIN, alias)
       .then(username => {
@@ -154,7 +149,7 @@ module.exports = {
    * @param data
    * @returns {Promise}
    */
-  isActive(data){
+  isActive(data) {
     if (String(data[USERS_ACTIVE_FLAG]) !== 'true') {
       return Promise.reject(new Errors.HttpStatusError(412, 'Account hasn\'t been activated'));
     }
@@ -167,8 +162,8 @@ module.exports = {
    * @param data
    * @returns {Promise}
    */
-  isBanned(data){
-    if(String(data[USERS_BANNED_FLAG]) === 'true') {
+  isBanned(data) {
+    if (String(data[USERS_BANNED_FLAG]) === 'true') {
       return Promise.reject(new Errors.HttpStatusError(423, 'Account has been locked'));
     }
 
@@ -180,7 +175,7 @@ module.exports = {
    * @param user
    * @returns {Redis}
    */
-  activateAccount(user){
+  activateAccount(user) {
     const userKey = generateKey(user, USERS_DATA);
 
     // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
@@ -205,7 +200,7 @@ module.exports = {
    * @param username
    * @returns {Object}
    */
-  getUser(username){
+  getUser(username) {
     const userKey = generateKey(username, USERS_DATA);
 
     return redis
@@ -216,7 +211,7 @@ module.exports = {
       .exec()
       .spread((aliasToUsername, exists, data) => {
         if (aliasToUsername[1]) {
-          return  this.getUser(aliasToUsername[1]);
+          return this.getUser(aliasToUsername[1]);
         }
 
         if (!exists[1]) {
@@ -227,10 +222,10 @@ module.exports = {
       });
   },
 
-  _getMeta(username, audience){
-    return redis.hgetallBuffer(generateKey(username, USERS_METADATA, audience))
+  _getMeta(username, audience) {
+    return redis.hgetallBuffer(generateKey(username, USERS_METADATA, audience));
   },
-  _remapMeta(data, audiences, fields){
+  _remapMeta(data, audiences, fields) {
     const output = {};
     audiences.forEach(function transform(aud, idx) {
       const datum = data[idx];
@@ -275,7 +270,7 @@ module.exports = {
    * @param opts
    * @returns {Array}
    */
-  getList(opts){
+  getList(opts) {
     const { criteria, audience, index, strFilter, order, offset, limit } = opts;
     const metaKey = generateKey('*', USERS_METADATA, audience);
 
@@ -287,18 +282,18 @@ module.exports = {
           return [
             ids || [],
             [],
-            length
+            length,
           ];
         }
 
         const pipeline = redis.pipeline();
         ids.forEach(id => {
-          pipeline.hgetallBuffer(redisKey(id, USERS_METADATA, audience));
+          pipeline.hgetallBuffer(generateKey(id, USERS_METADATA, audience));
         });
         return Promise.all([
           ids,
           pipeline.exec(),
-          length
+          length,
         ]);
       })
       .spread((ids, props, length) => {
@@ -307,8 +302,8 @@ module.exports = {
           const account = {
             id,
             metadata: {
-              [audience]: data ? mapValues(data, JSONParse) : {}
-            }
+              [audience]: data ? mapValues(data, JSONParse) : {},
+            },
           };
 
           return account;
@@ -318,7 +313,7 @@ module.exports = {
           users,
           cursor: offset + limit,
           page: Math.floor(offset / limit + 1),
-          pages: Math.ceil(length / limit)
+          pages: Math.ceil(length / limit),
         };
       });
   },
@@ -328,9 +323,9 @@ module.exports = {
    * @param meta
    * @returns {boolean}
   */
-  isAdmin(meta){
+  isAdmin(meta) {
     const audience = config.jwt.defaultAudience;
-    return(meta[audience].roles || []).indexOf(USERS_ADMIN_ROLE) >= 0;
+    return (meta[audience].roles || []).indexOf(USERS_ADMIN_ROLE) >= 0;
   },
 
   /**
@@ -339,7 +334,7 @@ module.exports = {
    * @param alias
    * @returns {Redis}
      */
-  storeAlias(username, alias){
+  storeAlias(username, alias) {
     return redis.hsetnx(USERS_ALIAS_TO_LOGIN, alias, username);
   },
 
@@ -349,7 +344,7 @@ module.exports = {
    * @param alias
    * @returns {Redis}
      */
-  assignAlias(username, alias){
+  assignAlias(username, alias) {
     return redis
       .pipeline()
       .sadd(USERS_PUBLIC_INDEX, username)
@@ -362,7 +357,7 @@ module.exports = {
    * Return current login attempts count
    * @returns {int}
    */
-  getAttempts(){
+  getAttempts() {
     return loginAttempts;
   },
 
@@ -370,13 +365,13 @@ module.exports = {
    * Drop login attempts counter
    * @returns {Redis}
    */
-  dropAttempts(){
+  dropAttempts() {
     loginAttempts = 0;
     if (remoteipKey) {
       return redis.del(remoteipKey);
-    } else {
-      throw new Errors.Error('Empty remote ip key');
     }
+
+    throw new Errors.Error('Empty remote ip key');
   },
 
   /**
@@ -418,7 +413,7 @@ module.exports = {
    * @param hash
    * @returns {Redis}
      */
-  setPassword({username, hash}){
+  setPassword({ username, hash }) {
     return redis
       .hset(generateKey(username, USERS_DATA), 'password', hash)
       .return(username);
@@ -430,7 +425,7 @@ module.exports = {
    * @param ip
    * @returns {Redis}
      */
-  resetIPLock(username, ip){
+  resetIPLock(username, ip) {
     return redis.del(generateKey(username, 'ip', ip));
   },
 
@@ -489,8 +484,8 @@ module.exports = {
       return pipe.exec().then(res => mapMetaResponse(operations, res));
     }
 
-    //or...
-    return this.customScript(script)
+    // or...
+    return this.customScript(script, keys);
   },
 
   /**
@@ -498,8 +493,8 @@ module.exports = {
    * @param username
    * @param data
    * @returns {*|{arity, flags, keyStart, keyStop, step}|Array|{index: number, input: string}}
-     */
-  removeUser(username, data){
+   */
+  removeUser(username, data) {
     const audience = config.jwt.defaultAudience;
     const transaction = redis.multi();
     const alias = data[USERS_ALIAS_FIELD];
@@ -531,7 +526,7 @@ module.exports = {
    */
   checkLimits(ipaddress) {
     const { registrationLimits } = config;
-    const {ip: {time, times}} = registrationLimits;
+    const { ip: { time, times } } = registrationLimits;
     const ipaddressLimitKey = generateKey('reg-limit', ipaddress);
     const now = Date.now();
     const old = now - time;
@@ -551,7 +546,7 @@ module.exports = {
             throw new Errors.HttpStatusError(429, msg);
           }
         });
-    }
+    };
   },
 
   /**
@@ -599,7 +594,7 @@ module.exports = {
    * @return {Function}
    */
   checkCaptcha(username, captcha) {
-    const {ttl} = captchaConfig;
+    const { ttl } = captchaConfig;
     return function checkTheCaptcha() {
       const captchaCacheKey = captcha.response;
       return redis
@@ -622,7 +617,7 @@ module.exports = {
    * @param username
    * @returns {Redis}
    */
-  storeUsername(username){
+  storeUsername(username) {
     return redis.sadd(USERS_INDEX, username);
   },
 
@@ -631,7 +626,7 @@ module.exports = {
    * @param script
    * @returns {Promise}
    */
-  customScript(script){
+  customScript(script, keys) {
     // dynamic scripts
     const $scriptKeys = Object.keys(script);
     const scripts = $scriptKeys.map(scriptName => {
@@ -645,11 +640,11 @@ module.exports = {
     });
 
     return Promise.all(scripts).then(res => {
-        const output = {};
-        $scriptKeys.forEach((fieldName, idx) => {
-          output[fieldName] = res[idx];
-        });
-        return output;
+      const output = {};
+      $scriptKeys.forEach((fieldName, idx) => {
+        output[fieldName] = res[idx];
+      });
+      return output;
     });
   },
 
@@ -678,7 +673,5 @@ module.exports = {
     }
 
     return { $removeOps, $setLength, $incrLength, $incrFields };
-  }
-
-
+  },
 };

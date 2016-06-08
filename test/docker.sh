@@ -23,17 +23,17 @@ if ! [ -x "$COMPOSE" ]; then
 fi
 
 function finish {
-  $COMPOSE -f $DC stop
-  $COMPOSE -f $DC rm -f
+  "$COMPOSE" -f $DC stop
+  "$COMPOSE" -f $DC rm -f
 }
 trap finish EXIT
 
 export IMAGE=makeomatic/alpine-node:$NODE_VER
-$COMPOSE -f $DC up -d
+"$COMPOSE" -f $DC up -d
 
 if [[ "$SKIP_REBUILD" != "1" ]]; then
   echo "rebuilding native dependencies..."
-  $COMPOSE -f $DC run --rm tester npm rebuild
+  "$COMPOSE" -f $DC run --rm tester npm rebuild
 fi
 
 echo "cleaning old coverage"
@@ -41,11 +41,11 @@ rm -rf ./coverage
 
 echo "running tests"
 for fn in $TESTS; do
-  $COMPOSE -f $DC run --rm tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
+  "$COMPOSE" -f $DC run --rm tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
 done
 
 echo "started generating combined coverage"
-$COMPOSE -f $DC run --rm tester node ./test/aggregate-report.js
+"$COMPOSE" -f $DC run --rm tester node ./test/aggregate-report.js
 
 echo "uploading coverage report from ./coverage/lcov.info"
 if [[ "$CI" == "true" ]]; then

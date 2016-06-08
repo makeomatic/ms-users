@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
 const jwt = require('../utils/jwt.js');
 const emailChallenge = require('../utils/send-email.js');
-const Users = require('../adapter');
+const Users = require('../db/adapter');
 
 /**
  * Verifies token and deletes it if it matches

@@ -25,7 +25,7 @@ module.exports = function verify(opts) {
       const username = decoded.username;
       return Promise.props({
         username,
-        metadata: Users.getMetadata(username, audience)
+        metadata: Users.getMetadata(username, audience),
       });
     });
 };

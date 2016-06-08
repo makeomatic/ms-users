@@ -4,42 +4,10 @@
 const RedisStorage = require('./redisstorage');
 const Errors = require('common-errors');
 
-class Users{
-  constructor(adapter){
-
+class Users {
+  constructor(adapter) {
     this.adapter = adapter;
-
-/*
-    let opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-    // init configuration
-    const config = this._config = _extends({}, defaultOpts, opts);
-
-    // setup hooks
-    forOwn(config.hooks, (_hooks, eventName) => {
-      const hooks = Array.isArray(_hooks) ? _hooks : [_hooks];
-      each(hooks, hook => this.on(eventName, hook));
-    });
-*/
-
   }
-
-  /**
-   * Initialize connection
-   * @return {Promise}
-   */
-  connect(){
-    // ????
-  }
-
-  /**
-   * Close connection
-   * return {Promise}
-   */
-  close(){
-    // ????
-  }
-
 
   /**
    * Lock user
@@ -49,7 +17,7 @@ class Users{
    * @param remoteip
    * @returns {Redis}
    */
-  lockUser({ username, reason, whom, remoteip }){
+  lockUser({ username, reason, whom, remoteip }) {
     return this.adapter.lockUser({ username, reason, whom, remoteip });
   }
 
@@ -58,7 +26,7 @@ class Users{
    * @param username
    * @returns {Redis}
    */
-  unlockUser(username){
+  unlockUser(username) {
     return this.adapter.unlockUser(username);
   }
 
@@ -67,11 +35,11 @@ class Users{
    * @param username
    * @returns {Redis}
    */
-  isExists(username){
+  isExists(username) {
     return this.adapter.isExists(username);
   }
 
-  aliasAlreadyExists(alias, thunk){
+  aliasAlreadyExists(alias, thunk) {
     return this.adapter.aliasAlreadyExists(alias, thunk);
   }
 
@@ -90,7 +58,7 @@ class Users{
    * @param data
    * @returns {boolean}
    */
-  isActive(data){
+  isActive(data) {
     return this.adapter.isActive(data);
   }
 
@@ -99,7 +67,7 @@ class Users{
    * @param data
    * @returns {Promise}
    */
-  isBanned(data){
+  isBanned(data) {
     return this.adapter.isBanned(data);
   }
 
@@ -108,7 +76,7 @@ class Users{
    * @param user
    * @returns {Redis}
    */
-  activateAccount(user){
+  activateAccount(user) {
     return this.adapter.activateAccount(user);
   }
 
@@ -117,7 +85,7 @@ class Users{
    * @param username
    * @returns {Object}
    */
-  getUser(username){
+  getUser(username) {
     return this.adapter.getUser(username);
   }
 
@@ -138,7 +106,7 @@ class Users{
    * @param opts
    * @returns {Array}
    */
-  getList(opts){
+  getList(opts) {
     return this.adapter.getList(opts);
   }
 
@@ -147,7 +115,7 @@ class Users{
    * @param meta
    * @returns {boolean}
    */
-  isAdmin(meta){
+  isAdmin(meta) {
     return this.adapter.isAdmin(meta);
   }
 
@@ -157,7 +125,7 @@ class Users{
    * @param alias
    * @returns {Redis}
    */
-  storeAlias(username, alias){
+  storeAlias(username, alias) {
     return this.adapter.storeAlias(username, alias);
   }
 
@@ -167,7 +135,7 @@ class Users{
    * @param alias
    * @returns {Redis}
    */
-  assignAlias(username, alias){
+  assignAlias(username, alias) {
     return this.adapter.assignAlias(username, alias);
   }
 
@@ -175,7 +143,7 @@ class Users{
    * Return current login attempts count
    * @returns {int}
    */
-  getAttempts(){
+  getAttempts() {
     return this.adapter.getAttempts();
   }
 
@@ -183,7 +151,7 @@ class Users{
    * Drop login attempts counter
    * @returns {Redis}
    */
-  dropAttempts(){
+  dropAttempts() {
     return this.adapter.dropAttempts();
   }
 
@@ -202,7 +170,7 @@ class Users{
    * @param hash
    * @returns {Redis}
    */
-  setPassword(username, hash){
+  setPassword(username, hash) {
     return this.adapter.setPassword(username, hash);
   }
 
@@ -212,7 +180,7 @@ class Users{
    * @param ip
    * @returns {Redis}
    */
-  resetIPLock(username, ip){
+  resetIPLock(username, ip) {
     return this.adapter.resetIPLock(username, ip);
   }
 
@@ -223,8 +191,8 @@ class Users{
    * @param metadata
    * @returns {Object}
    */
-  updateMetadata({username, audience, metadata}) {
-    return this.adapter.updateMetadata({username, audience, metadata});
+  updateMetadata({ username, audience, metadata }) {
+    return this.adapter.updateMetadata({ username, audience, metadata });
   }
 
   /**
@@ -233,7 +201,7 @@ class Users{
    * @param data
    * @returns {Redis}
    */
-  removeUser(username, data){
+  removeUser(username, data) {
     return this.adapter.removeUser(username, data);
   }
 
@@ -277,7 +245,7 @@ class Users{
    * @param username
    * @returns {Redis}
    */
-  storeUsername(username){
+  storeUsername(username) {
     return this.adapter.storeUsername(username);
   }
 
@@ -287,7 +255,7 @@ class Users{
    * @returns {*|Promise}
      */
 
-  customScript(script){
+  customScript(script) {
     return this.adapter.customScript(script);
   }
 
@@ -295,60 +263,15 @@ class Users{
    * The error wrapper for the front-level HTTP output
    * @param e
    */
-  static mapErrors(e){
-    const err = new Errors.HttpStatusError(e.status_code || 500 , e.message);
-    if(err.status_code >= 500) {
-      err.message = Errors.HttpStatusError.message_map[500]; //hide the real error from the user
+  static mapErrors(e) {
+    const err = new Errors.HttpStatusError(e.status_code || 500, e.message);
+    if (err.status_code >= 500) {
+      err.message = Errors.HttpStatusError.message_map[500]; // hide the real error from the user
     }
   }
 
 }
 
-module.exports =  function modelCreator(){
+module.exports = function modelCreator() {
   return new Users(RedisStorage);
 };
-
-
-/*
- ВОПРОСЫ:
- Не превращается ли адаптер в полноценную модель?
- Что делать с промисами? Правильно ли частично их пихать в адаптер (по идее, соединение -- ресурс, так что да)?
- Архитектура MServices, где берется redis?
- Оставить Errors снаружи?
-
-+  ЭМИТТЕР НЕ НУЖЕН
-+  МОЖНО СДЕЛАТЬ ХУКИ, но только если нужно
-~  ЭРРОРЫ НАДО ВЫНЕСТИ НАРУЖУ с сообщениями, а внутри генерить женерик-эрроры с кодами, врапить их в экшне в HTTPошикби
-+ sandbox/activate.js -> Если это модель, то оствлять ли всякие verifyToken, emailVerification и хуки снаружи?
-+  СНАРУЖИ
-+ sandbox/alias.js -> 18, 25 (запихнуть их в User?) не надо, все верно
-+ sandbox/getMetadata -> волевым решением, логика Metadata вместе с промисами запихнута в метод getMetadata. С точки зрения абстракции всё соблюдено, но правильно ли это для текущей ситуации?
-+  ДА, МОЖНО
-+  но надо сделать разницу между трансформатором данных
-+  и селектором
-+  плюс вытянуть свежую репу
-+ sandbox/list -> метод getList настолько широк, что поглатил в себя всю реализацию этого экшна. разве это хорошо?
-  ВСЕ ОК, дефолты можно вытащить наружу. подумать над общим форматом ответа и соотв-но вытащить кое что в методы сторожа
-+ sandbox/login -> 25, передаем options в адаптер... что-то не в порядке в королевстве Датском!
-+  МЕНЯЕМ логику работы промисов. чтобы не городить нерабочий огород в адаптере
-
- redisstorage -> 394 this.log. раньше this брался из экшна, к чему относится метод log?
- redisstorage -> 148,157 оборачивать ли эти методы? эти статусы потенциально зависят от адаптера, но должны выводить значение в чистом виде. С другой стороны, в чистом виде значение не используется, а используется промис
-  ЛОГИЧНЕЕ будет сформить метод с промисом и кидаться ошибками на верхний уровень, собстна в sql логика будет та же
-  нафига нужны просто флаги -- не понятно
- redisstorage -> 105 что на счет методов с thunk'ом?
-  ПОСМОТРЕТЬ что делает thunk и где он участвует, вожможно придется оставить
-
- bluebird: tap
-
- ПОСМОТРЕТЬ levelDB и схожие адаптеры для работы с логикой
-
- МОЖНО в адаптере сделать трансмиттер ошибок адаптера в ошибки HTTP
-------------------
-  redisstorage:checkCaptcha -> имеет ли смысл verifyGoogleCaptcha вынести из сторожа в экшн?
-  redisstorage:updateMetadata -> будет ли где-то еще применим метод _handleAudience и mapMetaResponse
-      mapMetaResponse -- теоретиццки не зависит от реализации в той или иной СУБД, а просто мэппит поля
-      _handleAudience -- использует pipe и активно работает в базе, извеняя поля в зависимости от переданных Meta
-      поэтому первое реализовано как утилита, второе как внутренний метод. В теории, _handleAudience может быть совсем другим для той же РСУБД (если вообще будет)
- redisstorage:isAdmin -> стоит ли его помещать в сторож? по идее, конечно, это может быть метод, зависимый от выборки. Но, скорее всего, он просто будет чекать поля. В actions/remove логика оставлена в самом экшне
- */

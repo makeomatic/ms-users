@@ -39,8 +39,12 @@ describe('#login', function loginSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then(login => {
-          expect(login.name).to.be.eq('HttpStatusError');
-          expect(login.statusCode).to.be.eq(412);
+          try {
+            expect(login.name).to.be.eq('HttpStatusError');
+            expect(login.statusCode).to.be.eq(412);
+          } catch (error) {
+            throw login;
+          }
         });
     });
   });

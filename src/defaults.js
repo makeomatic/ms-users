@@ -27,6 +27,9 @@ module.exports = {
   },
   redis: {
     options: {
+      // attempt to fix cluster?
+      keyPrefix: '{ms-users}',
+      // pass this to constructor
       redisOptions: {
         // must have {}, so that the keys end up on a single machine
         keyPrefix: '{ms-users}',

@@ -99,7 +99,7 @@ function startService() {
 }
 
 function clearRedis() {
-  const nodes = this.users._redis.nodes('masters');
+  const nodes = this.users.redis.nodes('masters');
   return Promise
   .map(nodes, node => node.flushdb())
   .finally(() => this.users.close())

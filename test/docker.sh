@@ -30,7 +30,7 @@ export IMAGE=makeomatic/node:$NODE_VER
 $COMPOSE -f $DC up -d
 
 # add glibc
-$COMPOSE -f $DC exec tester /bin/sh -c "apk --no-cache add build-base" || exit 1
+$COMPOSE -f $DC exec tester /bin/sh -c "apk --no-cache add build-base python" || exit 1
 
 if [[ "$SKIP_REBUILD" != "1" ]]; then
   echo "rebuilding native dependencies..."

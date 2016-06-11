@@ -62,7 +62,7 @@
     "eslint": "^2.10.2",
     "eslint-config-airbnb-base": "^3.0.0",
     "eslint-plugin-import": "^1.6.1",
-    "eslint-plugin-mocha": "^2.0.0",
+    "eslint-plugin-mocha": "^3.0.0",
     "faker": "^3.0.1",
     "isparta": "^4.0.0",
     "istanbul": "^0.4.2",

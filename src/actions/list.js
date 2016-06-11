@@ -29,7 +29,7 @@ module.exports = function iterateOverActiveUsers(opts) {
 
       const pipeline = redis.pipeline();
       ids.forEach(id => {
-        pipeline.hgetallBuffer(redisKey(id, USERS_METADATA, audience));
+        pipeline.hgetall(redisKey(id, USERS_METADATA, audience));
       });
       return Promise.all([
         ids,

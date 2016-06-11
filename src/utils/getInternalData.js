@@ -10,7 +10,7 @@ module.exports = function getInternalData(username) {
     .pipeline()
     .hget(USERS_ALIAS_TO_LOGIN, username)
     .exists(userKey)
-    .hgetallBuffer(userKey)
+    .hgetall(userKey)
     .exec()
     .spread((aliasToUsername, exists, data) => {
       if (aliasToUsername[1]) {

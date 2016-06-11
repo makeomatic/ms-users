@@ -27,7 +27,7 @@ exports.verify = function verifyPassword(hash, password) {
   return scrypt
     .verifyKdfAsync(Buffer.from(hash, 'utf8'), Buffer.from(password, 'utf8'))
     .catch(function scryptError(err) {
-      throw new Errors.HttpStatusError(403, err.scrypt_err_message || err.message);
+      throw new Errors.HttpStatusError(403, err.message || err.scrypt_err_message);
     })
     .then(function verifyResult(result) {
       if (result !== true) {

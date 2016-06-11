@@ -27,10 +27,12 @@ module.exports = {
   },
   redis: {
     options: {
-      // must have {}, so that the keys end up on a single machine
-      keyPrefix: '{ms-users}',
-      // do not use buffers
-      dropBufferSupport: true,
+      redisOptions: {
+        // must have {}, so that the keys end up on a single machine
+        keyPrefix: '{ms-users}',
+        // do not use buffers
+        dropBufferSupport: true,
+      },
     },
   },
   pwdReset: {

@@ -7,14 +7,7 @@ describe('#login', function loginSuite() {
   const headers = { routingKey: 'users.login' };
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
-  const scrypt = require('../../src/utils/scrypt.js');
   const { USERS_BANNED_FLAG, USERS_DATA } = require('../../src/constants.js');
-
-  before(function test() {
-    return scrypt.hash(userWithValidPassword.password).then(pass => {
-      this.password = pass;
-    });
-  });
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
@@ -31,7 +24,11 @@ describe('#login', function loginSuite() {
 
   describe('existing user: inactivate', function userSuite() {
     beforeEach(function pretest() {
-      return this.users.router({ ...userWithValidPassword, activate: false }, { routingKey: 'users.register' });
+      return this.users.router({
+        ...userWithValidPassword,
+        activate: false,
+        skipChallenge: true,
+      }, { routingKey: 'users.register' });
     });
 
     it('must reject login on an inactive account', function test() {

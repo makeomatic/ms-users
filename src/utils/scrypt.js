@@ -11,20 +11,12 @@ exports.hash = function hashPassword(password) {
     throw new Errors.HttpStatusError(500, 'invalid password passed');
   }
 
-  return scrypt.kdfAsync(new Buffer(password, 'utf-8'), scryptParams);
+  return scrypt.kdfAsync(Buffer.from(password), scryptParams);
 };
 
 exports.verify = function verifyPassword(hash, password) {
-  if (!hash || hash.length === 0) {
-    throw new Errors.HttpStatusError(500, 'hash must be truthy');
-  }
-
-  if (!password || password.length === 0) {
-    throw new Errors.HttpStatusError(500, 'password must be truthy');
-  }
-
   return scrypt
-    .verifyKdfAsync(hash, password)
+    .verifyKdfAsync(hash, Buffer.from(password))
     .catch(function scryptError(err) {
       throw new Errors.HttpStatusError(403, err.message || err.scrypt_err_message);
     })
@@ -34,3 +26,5 @@ exports.verify = function verifyPassword(hash, password) {
       }
     });
 };
+
+exports.scrypt = scrypt;

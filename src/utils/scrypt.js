@@ -2,7 +2,6 @@ const Errors = require('common-errors');
 const Promise = require('bluebird');
 const scrypt = Promise.promisifyAll(require('scrypt'));
 const bytes = require('bytes');
-const is = require('is');
 
 // setup scrypt
 const scryptParams = scrypt.paramsSync(0.1, bytes('32mb'));
@@ -16,16 +15,16 @@ exports.hash = function hashPassword(password) {
 };
 
 exports.verify = function verifyPassword(hash, password) {
-  if (!is.string(hash) || hash.length === 0) {
-    throw new Errors.HttpStatusError(500, 'invalid password hash retrieved from redis');
+  if (!hash || hash.length === 0) {
+    throw new Errors.HttpStatusError(500, 'hash must be truthy');
   }
 
-  if (!is.string(password) || password.length === 0) {
-    throw new Errors.HttpStatusError(500, 'password must be a string with non-zero length');
+  if (!password || password.length === 0) {
+    throw new Errors.HttpStatusError(500, 'password must be truthy');
   }
 
   return scrypt
-    .verifyKdfAsync(Buffer.from(hash, 'utf8'), Buffer.from(password, 'utf8'))
+    .verifyKdfAsync(hash, password)
     .catch(function scryptError(err) {
       throw new Errors.HttpStatusError(403, err.message || err.scrypt_err_message);
     })

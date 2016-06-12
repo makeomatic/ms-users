@@ -2,7 +2,6 @@ SHELL := /bin/bash
 THIS_FILE := $(lastword $(MAKEFILE_LIST))
 PKG_NAME = $(shell cat package.json | ./node_modules/.bin/json name)
 PKG_VERSION = $(shell ./node_modules/.bin/latest-version $(PKG_NAME))
-NPM_PROXY = http://$(shell docker-machine ip dev):4873
 DOCKER_USER := makeomatic
 DIST := $(DOCKER_USER)/$(PKG_NAME)
 NODE_VERSIONS := 6.2.1
@@ -16,12 +15,11 @@ test:
 
 build: docker tag
 
-%.docker: ARGS = --build-arg NODE_ENV=$(NODE_ENV) --build-arg NPM_PROXY=$(NPM_PROXY)
 %.docker:
 	@echo "building $@"
 	npm run compile
-	NODE_VERSION=$(NODE_VERSION) envsubst < "./Dockerfile" > $(DOCKERFILE)
-	docker build $(ARGS) -t $(PKG_PREFIX_ENV) -f $(DOCKERFILE) .
+	NODE_ENV=$(NODE_ENV) NODE_VERSION=$(NODE_VERSION) envsubst < "./Dockerfile" > $(DOCKERFILE)
+	docker build -t $(PKG_PREFIX_ENV) -f $(DOCKERFILE) .
 	rm $(DOCKERFILE)
 
 %.production.tag:

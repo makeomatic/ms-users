@@ -27,8 +27,15 @@ module.exports = {
   },
   redis: {
     options: {
-      // must have {}, so that the keys end up on a single machine
+      // attempt to fix cluster?
       keyPrefix: '{ms-users}',
+      // pass this to constructor
+      redisOptions: {
+        // must have {}, so that the keys end up on a single machine
+        keyPrefix: '{ms-users}',
+        // do not use buffers
+        dropBufferSupport: false,
+      },
     },
   },
   pwdReset: {

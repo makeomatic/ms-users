@@ -11,18 +11,14 @@ exports.hash = function hashPassword(password) {
     throw new Errors.HttpStatusError(500, 'invalid password passed');
   }
 
-  return scrypt.kdfAsync(new Buffer(password, 'utf-8'), scryptParams);
+  return scrypt.kdfAsync(Buffer.from(password), scryptParams);
 };
 
 exports.verify = function verifyPassword(hash, password) {
-  if (!Buffer.isBuffer(hash) || hash.length === 0) {
-    throw new Errors.HttpStatusError(500, 'invalid password hash retrieved from redis');
-  }
-
   return scrypt
-    .verifyKdfAsync(hash, new Buffer(password, 'utf-8'))
+    .verifyKdfAsync(hash, Buffer.from(password))
     .catch(function scryptError(err) {
-      throw new Errors.HttpStatusError(403, err.scrypt_err_message || err.message);
+      throw new Errors.HttpStatusError(403, err.message || err.scrypt_err_message);
     })
     .then(function verifyResult(result) {
       if (result !== true) {
@@ -30,3 +26,5 @@ exports.verify = function verifyPassword(hash, password) {
       }
     });
 };
+
+exports.scrypt = scrypt;

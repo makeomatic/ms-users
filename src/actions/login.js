@@ -51,8 +51,7 @@ module.exports = function login(opts) {
   }
 
   function verifyHash(data) {
-    const { password: hash } = data;
-    return scrypt.verify(hash, password);
+    return scrypt.verify(data.password, password);
   }
 
   function dropLoginCounter() {

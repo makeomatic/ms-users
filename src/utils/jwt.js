@@ -107,7 +107,7 @@ exports.verify = function verifyToken(token, audience, peek) {
 
       const { username } = decoded;
       const tokensHolder = redisKey(username, USERS_TOKENS);
-      let lastAccess = redis.zscoreBuffer(tokensHolder, token).then(function getLastAccess(_score) {
+      let lastAccess = redis.zscore(tokensHolder, token).then(function getLastAccess(_score) {
         // parseResponse
         const score = parseInt(_score, 10);
 

@@ -94,8 +94,12 @@ describe('#activate', function activateSuite() {
       .reflect()
       .then(inspectPromise(false))
       .then(activation => {
-        expect(activation.name).to.be.eq('HttpStatusError');
-        expect(activation.statusCode).to.be.eq(404);
+        try {
+          expect(activation.name).to.be.eq('HttpStatusError');
+          expect(activation.statusCode).to.be.eq(404);
+        } catch (e) {
+          throw activation;
+        }
       });
   });
 });

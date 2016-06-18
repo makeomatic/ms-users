@@ -1,17 +1,11 @@
-const Users = require('../db/adapter');
-const fsort = require('redis-filtered-sort');
-const { USERS_INDEX, USERS_PUBLIC_INDEX } = require('../constants.js');
+const Promise = require('bluebird');
+const { User } = require('../model/usermodel');
+const { ModelError } = require('../model/modelError');
+
 
 module.exports = function iterateOverActiveUsers(opts) {
-  const { criteria, audience, filter } = opts;
-
-  return Users.getList({
-    criteria,
-    audience,
-    index: opts.public ? USERS_PUBLIC_INDEX : USERS_INDEX,
-    strFilter: typeof filter === 'string' ? filter : fsort.filter(filter || {}),
-    order: opts.order || 'ASC',
-    offset: opts.offset || 0,
-    limit: opts.limit || 10,
-  });
+  return Promise
+    .bind(this, opts)
+    .then(User.getList)
+    .catch(e => { throw (e instanceof ModelError ? e : e.mapToHttp); });
 };

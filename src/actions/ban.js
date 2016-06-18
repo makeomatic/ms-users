@@ -1,18 +1,6 @@
 const Promise = require('bluebird');
-const Users = require('../db/adapter');
-
-function lockUser({ username, reason, whom, remoteip }) {
-  return Users.lockUser({
-    username,
-    reason: reason || '',
-    whom: whom || '',
-    remoteip: remoteip || '',
-  });
-}
-
-function unlockUser({ username }) {
-  return Users.unlockUser({ username });
-}
+const { User } = require('../model/usermodel');
+const { ModelError } = require('../model/modelError');
 
 /**
  * Bans/unbans existing user
@@ -22,7 +10,8 @@ function unlockUser({ username }) {
 module.exports = function banUser(opts) {
   return Promise
     .bind(this, opts.username)
-    .then(Users.isExists)
-    .then(username => ({ ...opts, username }))
-    .then(opts.ban ? lockUser : unlockUser);
+    .then(User.getUsername)
+    .then(username => ({ username, opts }))
+    .then(opts.ban ? User.lock : User.unlock)
+    .catch(e => { throw (e instanceof ModelError ? e : e.mapToHttp); });
 };

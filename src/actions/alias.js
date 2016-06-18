@@ -1,8 +1,9 @@
 const Promise = require('bluebird');
-const Errors = require('common-errors');
-const { USERS_ALIAS_FIELD } = require('../constants.js');
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
 
-const Users = require('../db/adapter');
+const { User } = require('../model/usermodel');
+const { ModelError } = require('../model/modelError');
 
 
 module.exports = function assignAlias(opts) {
@@ -10,21 +11,10 @@ module.exports = function assignAlias(opts) {
 
   return Promise
     .bind(this, username)
-    .then(Users.getUser)
-    .tap(Users.isActive)
-    .tap(Users.isBanned)
-    .then(data => {
-      if (data[USERS_ALIAS_FIELD]) {
-        throw new Errors.HttpStatusError(417, 'alias is already assigned');
-      }
-
-      return Users.storeAlias(username, alias);
-    })
-    .then(assigned => {
-      if (assigned === 0) {
-        throw new Errors.HttpStatusError(409, 'alias was already taken');
-      }
-
-      return Users.assignAlias(username, alias);
-    });
+    .then(User.getOne)
+    .tap(isActive)
+    .tap(isBanned)
+    .then(data => ({ username, alias, data }))
+    .then(User.User.setAlias)
+    .catch(e => { throw (e instanceof ModelError ? e : e.mapToHttp); });
 };

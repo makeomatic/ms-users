@@ -1,7 +1,8 @@
 const Promise = require('bluebird');
-const Errors = require('common-errors');
 const emailChallenge = require('../utils/send-email.js');
-const Users = require('../db/adapter');
+const isActive = require('../utils/isActive');
+const { User } = require('../model/usermodel');
+const { ModelError, ERR_USERNAME_ALREADY_ACTIVE } = require('../model/modelError');
 
 module.exports = function sendChallenge(message) {
   const { username } = message;
@@ -11,9 +12,10 @@ module.exports = function sendChallenge(message) {
 
   return Promise
     .bind(this, username)
-    .then(Users.getUser)
-    .tap(Users.isActive)
-    .throw(new Errors.HttpStatusError(417, `${username} is already active`))
+    .then(User.getOne)
+    .tap(isActive)
+    .throw(new ModelError(ERR_USERNAME_ALREADY_ACTIVE, username))
     .catchReturn({ statusCode: 412 }, username)
-    .then(emailChallenge.send);
+    .then(emailChallenge.send)
+    .catch(e => { throw (e instanceof ModelError ? e : e.mapToHttp); });
 };

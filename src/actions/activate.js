@@ -1,9 +1,8 @@
 const Promise = require('bluebird');
 const emailVerification = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
-const Users = require('../db/adapter');
-
-Users.bind(this);
+const { User } = require('../model/usermodel');
+const { ModelError } = require('../model/modelError');
 
 module.exports = function verifyChallenge(opts) {
   // TODO: add security logs
@@ -22,9 +21,10 @@ module.exports = function verifyChallenge(opts) {
 
   return Promise
     .bind(this, username)
-    .then(username ? Users.isExists : verifyToken)
-    .tap(Users.activateAccount)
+    .then(username ? User.getUsername : verifyToken)
+    .tap(User.activate)
     .tap(hook)
     .then(user => [user, audience])
-    .spread(jwt.login);
+    .spread(jwt.login)
+    .catch(e => { throw (e instanceof ModelError ? e : e.mapToHttp); });
 };

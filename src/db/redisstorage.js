@@ -27,7 +27,8 @@ const {
 
 // config's and base objects
 const { redis, captcha: captchaConfig, config } = this;
-const { deleteInactiveAccounts, jwt: { lockAfterAttempts, defaultAudience } } = config;
+const { deleteInactiveAccounts, jwt: { lockAfterAttempts, defaultAudience, hashingFunction: { ttl } } } = config;
+
 
 // local vatiables inside the module
 let remoteipKey;
@@ -284,7 +285,7 @@ module.exports = {
             [],
             length,
           ];
-        }
+        }o
 
         const pipeline = redis.pipeline();
         ids.forEach(id => {
@@ -645,6 +646,49 @@ module.exports = {
         output[fieldName] = res[idx];
       });
       return output;
+    });
+  },
+
+  /**
+   * Store user token
+   * @param username
+   * @param token
+   * @returns {Redis}
+     */
+  addToken(username, token) {
+    return redis.zadd(generateKey(username, USERS_TOKENS), Date.now(), token);
+  },
+
+  /**
+   * Drop user token
+   * @param username
+   * @param token
+   * @returns {Redis}
+     */
+  dropToken(username, token) {
+    return token ?
+      redis.zrem(generateKey(username, USERS_TOKENS), token) :
+      redis.del(generateKey(username, USERS_TOKENS));
+  },
+
+  /**
+   * Check the last access
+   * @param username
+   * @param token
+   * @returns {Redis}
+     */
+  lastAccess(username, token) {
+    const tokensHolder = generateKey(username, USERS_TOKENS);
+    return redis.zscoreBuffer(tokensHolder, token).then(function getLastAccess(_score) {
+      // parseResponse
+      const score = parseInt(_score, 10);
+
+      // throw if token not found or expired
+      if (isNaN(score) || Date.now() > score + ttl) {
+        throw new Errors.HttpStatusError(403, 'token has expired or was forged');
+      }
+
+      return score;
     });
   },
 

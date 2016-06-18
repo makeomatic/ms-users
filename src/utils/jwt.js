@@ -1,11 +1,10 @@
 const Errors = require('common-errors');
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
-const redisKey = require('./key.js');
 const getMetadata = require('../utils/getMetadata.js');
 const FlakeId = require('flake-idgen');
 const flakeIdGen = new FlakeId();
-const { USERS_TOKENS } = require('../constants.js');
+const Users = require('../db/adapter');
 
 /**
  * Logs user in and returns JWT and User Object
@@ -14,7 +13,7 @@ const { USERS_TOKENS } = require('../constants.js');
  * @return {Promise}
  */
 exports.login = function login(username, _audience) {
-  const { redis, config } = this;
+  const { config } = this;
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, defaultAudience, secret } = jwtConfig;
   let audience = _audience || defaultAudience;
@@ -35,7 +34,7 @@ exports.login = function login(username, _audience) {
   }
 
   return Promise.props({
-    lastAccessUpdated: redis.zadd(redisKey(username, USERS_TOKENS), Date.now(), token),
+    lastAccessUpdated: Users.addToken(username, token),
     jwt: token,
     username,
     metadata: getMetadata.call(this, username, audience),
@@ -58,7 +57,7 @@ exports.login = function login(username, _audience) {
  * @return {Promise}
  */
 exports.logout = function logout(token, audience) {
-  const { redis, config } = this;
+  const { config } = this;
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
@@ -69,7 +68,7 @@ exports.logout = function logout(token, audience) {
       throw new Errors.HttpStatusError(403, 'Invalid Token');
     })
     .then(function decodedToken(decoded) {
-      return redis.zrem(redisKey(decoded.username, USERS_TOKENS), token);
+      return Users.dropToken(decoded.username, token);
     })
     .return({ success: true });
 };
@@ -79,7 +78,7 @@ exports.logout = function logout(token, audience) {
  * @param {String} username
  */
 exports.reset = function reset(username) {
-  return this.redis.del(redisKey(username, USERS_TOKENS));
+  return Users.dropToken(username);
 };
 
 /**
@@ -90,9 +89,9 @@ exports.reset = function reset(username) {
  * @return {Promise}
  */
 exports.verify = function verifyToken(token, audience, peek) {
-  const { redis, config } = this;
+  const { config } = this;
   const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, secret, ttl, issuer } = jwtConfig;
+  const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
   return jwt
     .verifyAsync(token, secret, { issuer, algorithms: [algorithm] })
@@ -106,22 +105,11 @@ exports.verify = function verifyToken(token, audience, peek) {
       }
 
       const { username } = decoded;
-      const tokensHolder = redisKey(username, USERS_TOKENS);
-      let lastAccess = redis.zscoreBuffer(tokensHolder, token).then(function getLastAccess(_score) {
-        // parseResponse
-        const score = parseInt(_score, 10);
-
-        // throw if token not found or expired
-        if (isNaN(score) || Date.now() > score + ttl) {
-          throw new Errors.HttpStatusError(403, 'token has expired or was forged');
-        }
-
-        return score;
-      });
+      let lastAccess = Users.lastAccess(username, token);
 
       if (!peek) {
         lastAccess = lastAccess.then(function refreshLastAccess() {
-          return redis.zadd(tokensHolder, Date.now(), token);
+          return Users.addToken(username, token);
         });
       }
 

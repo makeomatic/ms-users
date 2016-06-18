@@ -1,14 +1,14 @@
 const Promise = require('bluebird');
-const noop = require('lodash/noop');
-const Users = require('../db/adapter');
+const { User } = require('../model/usermodel');
+const { ModelError } = require('../model/modelError');
 
 module.exports = function getMetadataAction(message) {
   const { audience, username, fields } = message;
 
   return Promise
     .bind(this, username)
-    .then(Users.isExists)
-    .then(realUsername => [realUsername, audience, fields])
-    .spread(Users.getMetadata)
-    .tap(message.public ? Users.isPublic(username, audience) : noop);
+    .then(User.getUsername)
+    .then(realUsername => [realUsername, audience, fields, message.public])
+    .spread(User.getMeta)
+    .catch(e => { throw (e instanceof ModelError ? e : e.mapToHttp); });
 };

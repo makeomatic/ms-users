@@ -260,6 +260,36 @@ class Users {
   }
 
   /**
+   * Store user token
+   * @param username
+   * @param token
+   * @returns {Redis}
+   */
+  addToken(username, token) {
+    return this.adapter.addToken(username, token);
+  }
+
+  /**
+   * Drop user token
+   * @param username
+   * @param token
+   * @returns {Redis}
+   */
+  dropToken(username, token) {
+    return this.adapter.dropToken(username, token);
+  }
+
+  /**
+   * Check the last access
+   * @param username
+   * @param token
+   * @returns {Redis}
+   */
+  lastAccess(username, token) {
+    return this.adapter.lastAccess(username, token);
+  }
+
+  /**
    * The error wrapper for the front-level HTTP output
    * @param e
    */

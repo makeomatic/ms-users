@@ -2,9 +2,10 @@ const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
 const jwt = require('../utils/jwt.js');
 const noop = require('lodash/noop');
-
-const Users = require('../db/adapter');
-
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
+const { User, Attempts } = require('../model/usermodel');
+const { httpErrorMapper } = require('../model/modelError');
 
 module.exports = function login(opts) {
   const config = this.config.jwt;
@@ -25,21 +26,21 @@ module.exports = function login(opts) {
 
   function enrichError(err) {
     if (remoteip) {
-      err.loginAttempts = Users.getAttempts();
+      err.loginAttempts = Attempts.count();
     }
 
-    throw err;
+    return err;
   }
 
   return Promise
     .bind(this, opts.username)
-    .then(Users.getUser)
+    .then(User.getOne)
     .then(data => [data, remoteip])
-    .tap(verifyIp ? Users.checkLoginAttempts : noop)
+    .tap(verifyIp ? Attempts.check : noop)
     .tap(verifyHash)
-    .tap(verifyIp ? Users.dropAttempts : noop)
-    .tap(Users.isActive)
-    .tap(Users.isBanned)
+    .tap(verifyIp ? Attempts.drop : noop)
+    .tap(isActive)
+    .tap(isBanned)
     .then(getUserInfo)
-    .catch(verifyIp ? enrichError : e => { throw e; });
+    .catch(e => { throw httpErrorMapper(verifyIp ? enrichError(e) : e); });
 };

@@ -3,7 +3,7 @@ const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 
 const { User } = require('../model/usermodel');
-const { ModelError } = require('../model/modelError');
+const { httpErrorMapper } = require('../model/modelError');
 
 
 module.exports = function assignAlias(opts) {
@@ -16,5 +16,5 @@ module.exports = function assignAlias(opts) {
     .tap(isBanned)
     .then(data => ({ username, alias, data }))
     .then(User.User.setAlias)
-    .catch(e => { throw (e instanceof ModelError ? e : e.mapToHttp); });
+    .catch(e => { throw httpErrorMapper(e); });
 };

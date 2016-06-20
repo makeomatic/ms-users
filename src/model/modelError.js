@@ -25,6 +25,9 @@ const mapErr = (e) => e.code;
  * Error types structure
  * @type {Object}
  */
+
+const ERR_DEFAULT = genErr(0, 500, 'Internal error');
+
 const ErrorTypes = {
   ERR_ALIAS_ALREADY_ASSIGNED:
     genErr(100, 417, 'alias is already assigned'),
@@ -62,7 +65,6 @@ const ErrorTypes = {
     genErr(151, 400, (hostname) => (`no MX record was found for hostname ${hostname}`)),
   ERR_EMAIL_ALREADY_SENT:
     genErr(152, 429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email'), // eslint-disable-line
-
   ERR_TOKEN_INVALID:
     genErr(160, 403, 'Invalid Token'),
   ERR_TOKEN_AUDIENCE_MISMATCH:
@@ -98,28 +100,10 @@ const ErrorTypes = {
 const ErrorCodes = mapValues(ErrorTypes, mapErr);
 
 /**
- * Fabric for error classes with mapToHttp method, to map error into HttpStatusError
- * @param name
- * @param opts
- * @returns {Class} HTTP-mapped error class
- */
-const generateHttpMapedClass = function generateHttpMapedClass(name, opts) {
-  const Class = Errors.helpers.generateClass(name, opts);
-
-  Class.prototype.mapToHttp = function mapToHttp() {
-    const key = findKey(ErrorTypes, { code: this.code });
-    const err = ErrorTypes[key];
-    return new Errors.HttpStatusError(err.http, this.generateMessage());
-  };
-
-  return Class;
-};
-
-/**
  * Model error class
  * @type {Class}
  */
-const ModelError = generateHttpMapedClass('ModelError', {
+const ModelError = Errors.helpers.generateClass('ModelError', {
   extends: Errors.Error,
   args: ['code', 'data'],
   generateMessage: function generateMessage() {
@@ -129,4 +113,33 @@ const ModelError = generateHttpMapedClass('ModelError', {
   },
 });
 
-module.exports = { ...ErrorCodes, ModelError };
+/**
+ * Make http-map to the inner error (middleware)
+ * @param e
+ * @returns {*}
+ * @constructor
+ */
+const httpErrorMapper = function _HttpErrorMapper(e = null) {
+  const mapMEToHttp = function mapToHttp(_e) {
+    const key = findKey(ErrorTypes, { code: _e.code });
+    const err = ErrorTypes[key];
+    return new Errors.HttpStatusError(err.http, _e.generateMessage());
+  };
+
+  if (e instanceof ModelError) {
+    return mapMEToHttp(e);
+  }
+
+  if (e instanceof Errors.HttpStatusError) {
+    return e;
+  }
+
+  if (e instanceof Errors.InvalidOperationError) {
+    return e;
+  }
+
+  return new Errors.HttpStatusError(ERR_DEFAULT.http, ERR_DEFAULT.msg);
+};
+
+
+module.exports = { ...ErrorCodes, ModelError, httpErrorMapper };

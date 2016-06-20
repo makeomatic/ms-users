@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const pick = require('lodash/pick');
 
 const { User } = require('../model/usermodel');
-const { ModelError } = require('../model/modelError');
+const { httpErrorMapper } = require('../model/modelError');
 
 module.exports = function internalData(message) {
   const { fields } = message;
@@ -13,5 +13,5 @@ module.exports = function internalData(message) {
     .then(data => {
       return fields ? pick(data, fields) : data;
     })
-    .catch(e => { throw (e instanceof ModelError ? e : e.mapToHttp); });
+    .catch(e => { throw httpErrorMapper(e); });
 };

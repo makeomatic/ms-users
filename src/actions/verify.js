@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const jwt = require('../utils/jwt.js');
-const Users = require('../db/adapter');
+const { User } = require('../model/usermodel');
+const { httpErrorMapper } = require('../model/modelError');
 
 /**
  * Verifies that passed token is signed correctly, returns associated metadata with it
@@ -25,7 +26,8 @@ module.exports = function verify(opts) {
       const username = decoded.username;
       return Promise.props({
         username,
-        metadata: Users.getMetadata(username, audience),
+        metadata: User.getMeta.call(this, username, audience),
       });
-    });
+    })
+    .catch(e => { throw httpErrorMapper(e); });
 };

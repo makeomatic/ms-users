@@ -2,7 +2,13 @@ const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
 const jwt = require('../utils/jwt.js');
 const emailChallenge = require('../utils/send-email.js');
-const Users = require('../db/adapter');
+
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
+
+const { User, Attempts } = require('../model/usermodel');
+const { httpErrorMapper } = require('../model/modelError');
+
 
 /**
  * Verifies token and deletes it if it matches
@@ -20,11 +26,12 @@ function tokenReset(token) {
 function usernamePasswordReset(username, password) {
   return Promise
     .bind(this, username)
-    .then(Users.getUser)
-    .tap(Users.isActive)
-    .tap(Users.isBanned)
+    .then(User.getOne)
+    .tap(isActive)
+    .tap(isBanned)
     .tap(data => scrypt.verify(data.password, password))
-    .return(username);
+    .return(username)
+    .catch(e => { throw httpErrorMapper(e); });
 }
 
 /**
@@ -35,12 +42,13 @@ function usernamePasswordReset(username, password) {
 function setPassword(_username, password) {
   return Promise
     .bind(this, _username)
-    .then(Users.isExists)
+    .then(User.getUsername)
     .then(username => Promise.props({
       username,
       hash: scrypt.hash(password),
     }))
-    .then(Users.setPassword);
+    .then(User.setPassword)
+    .catch(e => { throw httpErrorMapper(e); });
 }
 
 module.exports = exports = function updatePassword(opts) {
@@ -65,7 +73,7 @@ module.exports = exports = function updatePassword(opts) {
 
   if (remoteip) {
     promise = promise.tap(function resetLock(username) {
-      return Users.resetIPLock(username, remoteip);
+      return Attempts.drop(username, remoteip);
     });
   }
 

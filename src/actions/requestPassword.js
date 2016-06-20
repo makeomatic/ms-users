@@ -1,6 +1,10 @@
 const Promise = require('bluebird');
 const emailValidation = require('../utils/send-email.js');
-const Users = require('../db/adapter');
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
+const { User } = require('../model/usermodel');
+const { httpErrorMapper } = require('../model/modelError');
+
 
 module.exports = function requestPassword(opts) {
   const { username, generateNewPassword } = opts;
@@ -11,9 +15,10 @@ module.exports = function requestPassword(opts) {
 
   return Promise
     .bind(this, username)
-    .then(Users.getUser)
-    .tap(Users.isActive)
-    .tap(Users.isBanned)
+    .then(User.getOne)
+    .tap(isActive)
+    .tap(isBanned)
     .then(() => emailValidation.send.call(this, username, action))
-    .return({ success: true });
+    .return({ success: true })
+    .catch(e => { throw httpErrorMapper(e); });
 };

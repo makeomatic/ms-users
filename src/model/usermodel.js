@@ -36,10 +36,11 @@ class UserModel {
    * @param username
    * @param audiences
    * @param fields
+   * @param _public
    * @returns {Object}
      */
-  getMeta(username, audiences, fields = {}) {
-    return this.adapter.getMeta(username, audiences, fields);
+  getMeta(username, audiences, fields = {}, _public = null) {
+    return this.adapter.getMeta(username, audiences, fields, _public);
   }
 
   /**
@@ -74,6 +75,17 @@ class UserModel {
    */
   setMeta(username, audience, metadata) {
     return this.adapter.setMeta(username, audience, metadata);
+  }
+
+  /**
+   * Update meta of user by using direct script
+   * @param username
+   * @param audience
+   * @param script
+   * @returns {Object}
+   */
+  executeUpdateMetaScript(username, audience, script) {
+    return this.adapter.executeUpdateMetaScript(username, audience, script);
   }
 
   /**
@@ -128,13 +140,12 @@ class UserModel {
 }
 
 class AttemptsHelper {
-
   constructor(adapter) {
     this.adapter = adapter;
   }
 
-  check(username, ip) {
-    return this.adapter.check(username, ip);
+  check({ username, ip }) {
+    return this.adapter.check({ username, ip });
   }
 
   drop(username, ip) {
@@ -144,8 +155,26 @@ class AttemptsHelper {
   count() {
     return this.adapter.count();
   }
+}
 
+class TokensHelper {
+  constructor(adapter) {
+    this.adapter = adapter;
+  }
+
+  add(username, token) {
+    return this.adapter.add(username, token);
+  }
+
+  drop(username, token = null) {
+    return this.adapter.drop(username, token);
+  }
+
+  lastAccess(username, token) {
+    return this.adapter.count(username, token);
+  }
 }
 
 module.exports.User = new UserModel(storage.User);
 module.exports.Attempts = new AttemptsHelper(storage.Attempts);
+module.exports.Tokens = new TokensHelper(storage.Tokens);

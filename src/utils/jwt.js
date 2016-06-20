@@ -1,10 +1,9 @@
-const Errors = require('common-errors');
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
-const getMetadata = require('../utils/getMetadata.js');
 const FlakeId = require('flake-idgen');
 const flakeIdGen = new FlakeId();
-const Users = require('../db/adapter');
+const { User, Tokens } = require('../model/usermodel');
+const { ModelError, ERR_TOKEN_INVALID, ERR_TOKEN_AUDIENCE_MISMATCH } = require('../model/modelError');
 
 /**
  * Logs user in and returns JWT and User Object
@@ -34,10 +33,10 @@ exports.login = function login(username, _audience) {
   }
 
   return Promise.props({
-    lastAccessUpdated: Users.addToken(username, token),
+    lastAccessUpdated: Tokens.add.call(this, username, token),
     jwt: token,
     username,
-    metadata: getMetadata.call(this, username, audience),
+    metadata: User.getMeta.call(this, username, audience),
   })
   .then(function remap(props) {
     return {
@@ -65,10 +64,10 @@ exports.logout = function logout(token, audience) {
     .verifyAsync(token, secret, { issuer, audience, algorithms: [algorithm] })
     .catch(err => {
       this.log.debug('error decoding token', err);
-      throw new Errors.HttpStatusError(403, 'Invalid Token');
+      throw new ModelError(ERR_TOKEN_INVALID);
     })
     .then(function decodedToken(decoded) {
-      return Users.dropToken(decoded.username, token);
+      return Tokens.drop(decoded.username, token);
     })
     .return({ success: true });
 };
@@ -78,7 +77,7 @@ exports.logout = function logout(token, audience) {
  * @param {String} username
  */
 exports.reset = function reset(username) {
-  return Users.dropToken(username);
+  return Tokens.drop(username);
 };
 
 /**
@@ -97,19 +96,19 @@ exports.verify = function verifyToken(token, audience, peek) {
     .verifyAsync(token, secret, { issuer, algorithms: [algorithm] })
     .catch(err => {
       this.log.debug('invalid token passed: %s', token, err);
-      throw new Errors.HttpStatusError(403, 'invalid token');
+      throw new ModelError(ERR_TOKEN_INVALID);
     })
     .then(function decodedToken(decoded) {
       if (audience.indexOf(decoded.aud) === -1) {
-        throw new Errors.HttpStatusError(403, 'audience mismatch');
+        throw new ModelError(ERR_TOKEN_AUDIENCE_MISMATCH);
       }
 
       const { username } = decoded;
-      let lastAccess = Users.lastAccess(username, token);
+      let lastAccess = Tokens.lastAccess(username, token);
 
       if (!peek) {
         lastAccess = lastAccess.then(function refreshLastAccess() {
-          return Users.addToken(username, token);
+          return Tokens.add(username, token);
         });
       }
 

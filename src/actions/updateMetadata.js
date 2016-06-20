@@ -1,10 +1,12 @@
 const Promise = require('bluebird');
-const Users = require('../db/adapter');
+const { User } = require('../model/usermodel');
+const { httpErrorMapper } = require('../model/modelError');
 
 module.exports = function updateMetadataAction(message) {
   return Promise
     .bind(this, message.username)
-    .then(Users.isExists)
+    .then(User.getUsername)
     .then(username => ({ ...message, username }))
-    .then(Users.updateMetadata);
+    .then(message.script ? User.executeUpdateMetaScript : User.setMeta)
+    .catch(e => { throw httpErrorMapper(e); });
 };

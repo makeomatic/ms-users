@@ -20,15 +20,15 @@ module.exports = function mixPlan(username, audience) {
       const subscription = find(plan.subs, ['name', 'month']);
       const nextCycle = moment().add(1, 'month').valueOf();
       const metadata = {
-          $set: {
-            plan: id,
-            agreement: id,
-            nextCycle,
-            models: subscription.models,
-            modelPrice: subscription.price,
-            subscriptionPrice: '0',
-            subscriptionInterval: 'month',
-          },
+        $set: {
+          plan: id,
+          agreement: id,
+          nextCycle,
+          models: subscription.models,
+          modelPrice: subscription.price,
+          subscriptionPrice: '0',
+          subscriptionInterval: 'month',
+        },
       };
 
       return User.setMeta.call(this, username, audience, metadata);

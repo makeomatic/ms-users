@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const scrypt = Promise.promisifyAll(require('scrypt'));
 const bytes = require('bytes');
-const { ModelError, ERR_PASSWORD_INVALID, ERR_PASSWORD_INCORRECT, 
+const { ModelError, ERR_PASSWORD_INVALID, ERR_PASSWORD_INCORRECT,
   ERR_PASSWORD_SCRYPT_ERROR, ERR_PASSWORD_INVALID_HASH } = require('../model/modelError');
 
 // setup scrypt
@@ -27,7 +27,7 @@ exports.verify = function verifyPassword(hash, password) {
     })
     .then(function verifyResult(result) {
       if (result !== true) {
-        throw new ModelError(ERR_PASSWORD_INCORRECT)
+        throw new ModelError(ERR_PASSWORD_INCORRECT);
       }
     });
 };

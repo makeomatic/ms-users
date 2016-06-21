@@ -9,7 +9,7 @@ const generatePassword = require('password-generator');
 const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER } = require('../constants.js');
 const { Tokens } = require('../model/usermodel');
 const { ModelError, ERR_TOKEN_CANT_DECODE, ERR_EMAIL_ALREADY_SENT, ERR_TOKEN_BAD_EMAIL,
-  ERR_TOKEN_EXPIRED, ERR_TOKEN_MISS_EMAIL} = require('../model/modelError');
+  ERR_TOKEN_EXPIRED, ERR_TOKEN_MISS_EMAIL } = require('../model/modelError');
 /**
  * Throttled error
  * @param  {Mixed}  reply

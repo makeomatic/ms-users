@@ -596,7 +596,7 @@ module.exports.Tokens = {
      */
   getEmailThrottleToken(type, token) {
     const secretKey = generateKey(`vsecret-${type}`, token);
-    return redis.get(secretKey)
+    return redis.get(secretKey);
   },
 
   /**
@@ -607,11 +607,11 @@ module.exports.Tokens = {
    * @returns {*}
      */
   setEmailThrottleToken(type, email, token) {
-    const { validation: ttl } = config;
+    const { validation } = config;
     const secretKey = generateKey(`vsecret-${type}`, token);
     const args = [secretKey, email];
     if (ttl > 0) {
-      args.push('EX', ttl);
+      args.push('EX', validation.ttl);
     }
     return redis.set(args);
   },

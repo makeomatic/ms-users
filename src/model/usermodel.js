@@ -281,7 +281,6 @@ class TokensHelper {
   dropEmailThrottleToken(type, token) {
     return this.adapter.dropEmailThrottleToken(type, token);
   }
-  
 }
 
 /**

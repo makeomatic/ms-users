@@ -1,5 +1,5 @@
-const Errors = require('common-errors');
 const disposableDomains = require('disposable-email-domains');
+const { ModelError, ERR_EMAIL_DISPOSABLE } = require('../model/modelError');
 
 // init pointers
 const disposablePointers = {};
@@ -17,7 +17,7 @@ module.exports = function isDisposable(email) {
   const domain = email.split('@')[1];
   return function testDisposable() {
     if (disposablePointers[domain]) {
-      throw new Errors.HttpStatusError(400, 'you must use non-disposable email to register');
+      throw new ModelError(ERR_EMAIL_DISPOSABLE);
     }
 
     return email;

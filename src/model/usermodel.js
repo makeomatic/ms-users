@@ -3,7 +3,9 @@
  */
 const storage = require('./storages/redisstorage');
 
-
+/**
+ * Adapter pattern class with user model methods
+ */
 class UserModel {
   /**
    * Create user model
@@ -52,6 +54,21 @@ class UserModel {
     return this.adapter.getUsername(username);
   }
 
+  /**
+   * Check alias existence
+   * @param alias
+   * @returns {*}
+     */
+  checkAlias(alias) {
+    return this.adapter.checkAlias(alias);
+  }
+
+  /**
+   * Sets alias to the user by username
+   * @param username
+   * @param alias
+   * @returns {*}
+     */
   setAlias(username, alias) {
     return this.adapter.setAlias(username, alias);
   }
@@ -139,42 +156,164 @@ class UserModel {
   }
 }
 
+/**
+ * Adapter pattern class for user login attempts counting
+ */
 class AttemptsHelper {
   constructor(adapter) {
     this.adapter = adapter;
   }
 
+  /**
+   * Check login attempts
+   * @param username
+   * @param ip
+   * @returns {*}
+     */
   check({ username, ip }) {
     return this.adapter.check({ username, ip });
   }
 
+  /**
+   * Drop login attempts
+   * @param username
+   * @param ip
+   * @returns {*}
+     */
   drop(username, ip) {
     return this.adapter.drop(username, ip);
   }
 
+  /**
+   * Get attempts count
+   * @returns {integer}
+     */
   count() {
     return this.adapter.count();
   }
 }
 
+/**
+ * Adapter pattern class for user tokens
+ */
 class TokensHelper {
   constructor(adapter) {
     this.adapter = adapter;
   }
 
+  /**
+   * Add the token
+   * @param username
+   * @param token
+   * @returns {*}
+   */
   add(username, token) {
     return this.adapter.add(username, token);
   }
 
+  /**
+   * Drop the token
+   * @param username
+   * @param token
+   * @returns {*}
+   */
   drop(username, token = null) {
     return this.adapter.drop(username, token);
   }
 
+  /**
+   * Get last token score
+   * @param username
+   * @param token
+   * @returns {integer}
+   */
   lastAccess(username, token) {
     return this.adapter.count(username, token);
   }
+
+  /**
+   * Get special email throttle state
+   * @param type
+   * @param email
+   * @returns {bool} state
+     */
+  getEmailThrottleState(type, email) {
+    return this.adapter.getEmailThrottleState(type, email);
+  }
+
+  /**
+   * Set special email throttle state
+   * @param type
+   * @param email
+   * @returns {*}
+     */
+  setEmailThrottleState(type, email) {
+    return this.adapter.setEmailThrottleState(type, email);
+  }
+
+  /**
+   * Get special email throttle token
+   * @param type
+   * @param token
+   * @returns {string} email
+     */
+  getEmailThrottleToken(type, token) {
+    return this.adapter.getEmailThrottleToken(type, token);
+  }
+
+  /**
+   * Set special email throttle token
+   * @param type
+   * @param email
+   * @param token
+   * @returns {*}
+     */
+  setEmailThrottleToken(type, email, token) {
+    return this.adapter.setEmailThrottleToken(type, email, token);
+  }
+
+  /**
+   * Drop special email throttle token
+   * @param type
+   * @param token
+   * @returns {*}
+     */
+  dropEmailThrottleToken(type, token) {
+    return this.adapter.dropEmailThrottleToken(type, token);
+  }
+  
 }
 
-module.exports.User = new UserModel(storage.User);
-module.exports.Attempts = new AttemptsHelper(storage.Attempts);
-module.exports.Tokens = new TokensHelper(storage.Tokens);
+/**
+ * Adapter pattern class for util methods with IP
+ */
+class Utils {
+  constructor(adapter) {
+    this.adapter = adapter;
+  }
+
+  /**
+   * Check IP limits for registration
+   * @param ipaddress
+   * @returns {*}
+   */
+  checkIPLimits(ipaddress) {
+    return this.adapter.checkIPLimits(ipaddress);
+  }
+
+  /**
+   * Check captcha
+   * @param username
+   * @param captcha
+   * @param next
+   * @returns {*}
+   */
+  checkCaptcha(username, captcha, next = null) {
+    return this.adapter.checkCaptcha(username, captcha, next);
+  }
+}
+
+exports.User = new UserModel(storage.User);
+exports.Attempts = new AttemptsHelper(storage.Attempts);
+exports.Tokens = new TokensHelper(storage.Tokens);
+exports.Utils = new Utils(storage.Utils);

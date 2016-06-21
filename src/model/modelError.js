@@ -28,6 +28,9 @@ const mapErr = (e) => e.code;
 
 const ERR_DEFAULT = genErr(0, 500, 'Internal error');
 
+/**
+ * Error types with inner code, HTTP-code and error message
+ */
 const ErrorTypes = {
   ERR_ALIAS_ALREADY_ASSIGNED:
     genErr(100, 417, 'alias is already assigned'),

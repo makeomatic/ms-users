@@ -5,7 +5,6 @@ const noop = require('lodash/noop');
 const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const { User, Attempts } = require('../model/usermodel');
-const { httpErrorMapper } = require('../model/modelError');
 
 module.exports = function login(opts) {
   const config = this.config.jwt;
@@ -42,5 +41,5 @@ module.exports = function login(opts) {
     .tap(isActive)
     .tap(isBanned)
     .then(getUserInfo)
-    .catch(e => { throw httpErrorMapper(verifyIp ? enrichError(e) : e); });
+    .catch(verifyIp ? enrichError : e => { throw e; });
 };

@@ -2,14 +2,12 @@
  * Created by Stainwoortsel on 05.06.2016.
  */
 const defaults = require('lodash/defaults');
-const Errors = require('common-errors');
 const request = require('request-promise');
 const pick = require('lodash/pick');
-const fmt = require('util').format;
-const { captcha: captchaConfig } = this; // ????? is THIS available here?
+const { ModelError, ERR_CAPTCHA_ERROR_RESPONSE } = require('../model/modelError');
 
-module.exports = function verifyGoogleCaptcha(captcha) { // captchaConfig
-  const { secret, uri } = captchaConfig;
+module.exports = function verifyGoogleCaptcha(captcha) {
+  const { config: { captcha: { captchaConfig: { secret, uri } } } } = this;
   return request
     .post({ uri, qs: defaults(captcha, { secret }), json: true })
     .then(function captchaSuccess(body) {
@@ -21,6 +19,6 @@ module.exports = function verifyGoogleCaptcha(captcha) { // captchaConfig
     })
     .catch(function captchaError(err) {
       const errData = JSON.stringify(pick(err, ['statusCode', 'error']));
-      throw new Errors.HttpStatusError(412, fmt('Captcha response: %s', errData));
+      throw new ModelError(ERR_CAPTCHA_ERROR_RESPONSE, errData);
     });
 };

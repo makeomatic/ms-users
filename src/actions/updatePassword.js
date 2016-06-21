@@ -2,12 +2,9 @@ const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
 const jwt = require('../utils/jwt.js');
 const emailChallenge = require('../utils/send-email.js');
-
 const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
-
 const { User, Attempts } = require('../model/usermodel');
-const { httpErrorMapper } = require('../model/modelError');
 
 
 /**
@@ -30,8 +27,7 @@ function usernamePasswordReset(username, password) {
     .tap(isActive)
     .tap(isBanned)
     .tap(data => scrypt.verify(data.password, password))
-    .return(username)
-    .catch(e => { throw httpErrorMapper(e); });
+    .return(username);
 }
 
 /**
@@ -47,8 +43,7 @@ function setPassword(_username, password) {
       username,
       hash: scrypt.hash(password),
     }))
-    .then(User.setPassword)
-    .catch(e => { throw httpErrorMapper(e); });
+    .then(User.setPassword);
 }
 
 module.exports = exports = function updatePassword(opts) {

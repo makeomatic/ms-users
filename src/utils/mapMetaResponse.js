@@ -2,7 +2,7 @@
  * Created by Stainwoortsel on 05.06.2016.
  */
 /**
- * Is a common method for mapping updateMetadata ops
+ * Is a common method for mapping User.setMeta ops
  * @param operations
  * @param responses
  * @returns {Promise}

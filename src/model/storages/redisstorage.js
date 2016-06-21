@@ -1,30 +1,31 @@
 /**
  * Created by Stainwoortsel on 17.06.2016.
  */
-const Errors = require('common-errors');
 const remapMeta = require('../../utils/remapMeta');
 const mapMetaResponse = require('../../utils/mapMetaResponse');
 const mapValues = require('lodash/mapValues');
 const moment = require('moment');
 const sha256 = require('../../utils/sha256.js');
 const fsort = require('redis-filtered-sort');
+const uuid = require('node-uuid');
 const noop = require('lodash/noop');
 const get = require('lodash/get');
 const is = require('is');
 const {
   ModelError,
   ERR_ALIAS_ALREADY_ASSIGNED, ERR_ALIAS_ALREADY_TAKEN, ERR_USERNAME_NOT_EXISTS, ERR_USERNAME_NOT_FOUND,
-  ERR_ATTEMPTS_LOCKED, ERR_TOKEN_FORGED,
+  ERR_ATTEMPTS_LOCKED, ERR_TOKEN_FORGED, ERR_CAPTCHA_WRONG_USERNAME, ERR_ATTEMPTS_TO_MUCH_REGISTERED,
+  ERR_ALIAS_ALREADY_EXISTS, ERR_ACCOUNT_IS_ALREADY_EXISTS, ERR_ACCOUNT_ALREADY_ACTIVATED,
 } = require('../modelError');
 /*
- ERR_ALIAS_ALREADY_EXISTS, ERR_USERNAME_ALREADY_ACTIVE,
+  ERR_USERNAME_ALREADY_ACTIVE,
  ERR_USERNAME_ALREADY_EXISTS,  ERR_ACCOUNT_MUST_BE_ACTIVATED,
- ERR_ACCOUNT_NOT_ACTIVATED, ERR_ACCOUNT_ALREADY_ACTIVATED, ERR_ACCOUNT_IS_LOCKED, ERR_ACCOUNT_IS_ALREADY_EXISTS,
- ERR_ADMIN_IS_UNTOUCHABLE, ERR_CAPTCHA_WRONG_USERNAME, ERR_CAPTCHA_ERROR_RESPONSE, ERR_EMAIL_DISPOSABLE,
+ ERR_ACCOUNT_NOT_ACTIVATED, ERR_ACCOUNT_IS_LOCKED
+ ERR_ADMIN_IS_UNTOUCHABLE, ERR_CAPTCHA_ERROR_RESPONSE, ERR_EMAIL_DISPOSABLE,
  ERR_EMAIL_NO_MX, ERR_EMAIL_ALREADY_SENT, ERR_TOKEN_INVALID, ERR_TOKEN_AUDIENCE_MISMATCH, ERR_TOKEN_MISS_EMAIL,
  ERR_TOKEN_EXPIRED, ERR_TOKEN_BAD_EMAIL, ERR_TOKEN_CANT_DECODE, ERR_PASSWORD_INVALID,
  ERR_PASSWORD_INVALID_HASH, ERR_PASSWORD_INCORRECT, ERR_PASSWORD_SCRYPT_ERROR,
- ERR_ATTEMPTS_TO_MUCH_REGISTERED
+
 */
 
 // JSON
@@ -39,7 +40,7 @@ const {
 } = require('../../constants');
 
 // config's and base objects
-const { redis, captcha: captchaConfig, config } = this;
+const { redis, captcha: captchaConfig, registrationLimits, config } = this;
 const { deleteInactiveAccounts, jwt: { lockAfterAttempts, defaultAudience, hashingFunction: { ttl } } } = config;
 
 /**
@@ -195,8 +196,20 @@ module.exports.User = {
       });
   },
 
-  setAlias(username, alias, data) {
-    if (data[USERS_ALIAS_FIELD]) {
+  checkAlias(alias) {
+    return redis
+      .hget(USERS_ALIAS_TO_LOGIN, alias)
+      .then(username => {
+        if (username) {
+          throw new ModelError(ERR_ALIAS_ALREADY_EXISTS, alias);
+        }
+
+        return username;
+      });
+  },
+
+  setAlias(username, alias, data = null) {
+    if (data && data[USERS_ALIAS_FIELD]) {
       throw new ModelError(ERR_ALIAS_ALREADY_ASSIGNED);
     }
 
@@ -318,7 +331,39 @@ module.exports.User = {
    * @returns {*}
    */
   create(username, alias, hash, activate) {
-    return this.adapter.create(username, alias, hash, activate);
+    const userDataKey = generateKey(username, USERS_DATA);
+    const pipeline = redis.pipeline();
+
+    pipeline
+    // add password
+      .hsetnx(userDataKey, 'password', hash)
+    // set activation flag
+      .hsetnx(userDataKey, USERS_ACTIVE_FLAG, activate);
+
+    // if we can activate user
+    if (activate) {
+      // store username to index
+      pipeline.sadd(USERS_INDEX, username);
+    }
+
+    // well done! let's execute
+    return pipeline
+      .exec()
+      .spread(function insertedUserData(passwordSetResponse) {
+        if (passwordSetResponse[1] === 0) {
+          throw new ModelError(ERR_ACCOUNT_IS_ALREADY_EXISTS, username);
+        }
+
+        if (!activate && deleteInactiveAccounts >= 0) {
+          // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
+          // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
+          return redis.expire(userDataKey, deleteInactiveAccounts);
+        }
+
+        return null;
+      })
+      // setting alias, if we can
+      .tap(activate && alias ? () => { this.setAlias(username, alias); } : noop);
   },
 
   /**
@@ -370,7 +415,7 @@ module.exports.User = {
       .spread(function pipeResponse(isActive) {
         const status = isActive[1];
         if (status === 'true') {
-          throw new Errors.HttpStatusError(417, `Account ${username} was already activated`);
+          throw new ModelError(ERR_ACCOUNT_ALREADY_ACTIVATED, username);
         }
       });
   },
@@ -418,7 +463,12 @@ module.exports.User = {
 
 let loginAttempts;
 module.exports.Attempts = {
-
+  /**
+   * Check login attempts
+   * @param username
+   * @param ip
+   * @returns {*}
+     */
   check: function check({ username, ip }) {
     const ipKey = generateKey(username, 'ip', ip);
     const pipeline = redis.pipeline();
@@ -459,7 +509,7 @@ module.exports.Attempts = {
 
   /**
    * Get attempts count
-   * @returns {*}
+   * @returns {integer}
    */
   count: function count() {
     return loginAttempts;
@@ -467,16 +517,34 @@ module.exports.Attempts = {
 };
 
 module.exports.Tokens = {
+  /**
+   * Add the token
+   * @param username
+   * @param token
+   * @returns {*}
+     */
   add(username, token) {
     return redis.zadd(generateKey(username, USERS_TOKENS), Date.now(), token);
   },
 
+  /**
+   * Drop the token
+   * @param username
+   * @param token
+   * @returns {*}
+     */
   drop(username, token = null) {
     return token ?
       redis.zrem(generateKey(username, USERS_TOKENS), token) :
       redis.del(generateKey(username, USERS_TOKENS));
   },
 
+  /**
+   * Get last token score
+   * @param username
+   * @param token
+   * @returns {integer}
+     */
   lastAccess(username, token) {
     const tokensHolder = generateKey(username, USERS_TOKENS);
     return redis.zscoreBuffer(tokensHolder, token).then(function getLastAccess(_score) {
@@ -492,8 +560,127 @@ module.exports.Tokens = {
     });
   },
 
+  /**
+   * Get special email throttle state
+   * @param type
+   * @param email
+   * @returns {bool} state
+     */
+  getEmailThrottleState(type, email) {
+    const throttleEmailsKey = generateKey(`vthrottle-${type}`, email);
+    return redis.get(throttleEmailsKey);
+  },
+
+  /**
+   * Set special email throttle state
+   * @param type
+   * @param email
+   * @returns {*}
+     */
+  setEmailThrottleState(type, email) {
+    const throttleEmailsKey = generateKey(`vthrottle-${type}`, email);
+    const { validation: throttle } = config;
+
+    const throttleArgs = [throttleEmailsKey, 1, 'NX'];
+    if (throttle > 0) {
+      throttleArgs.splice(2, 0, 'EX', throttle);
+    }
+    return redis.set(throttleArgs);
+  },
+
+  /**
+   * Get special email throttle token
+   * @param type
+   * @param token
+   * @returns {string} email
+     */
+  getEmailThrottleToken(type, token) {
+    const secretKey = generateKey(`vsecret-${type}`, token);
+    return redis.get(secretKey)
+  },
+
+  /**
+   * Set special email throttle token
+   * @param type
+   * @param email
+   * @param token
+   * @returns {*}
+     */
+  setEmailThrottleToken(type, email, token) {
+    const { validation: ttl } = config;
+    const secretKey = generateKey(`vsecret-${type}`, token);
+    const args = [secretKey, email];
+    if (ttl > 0) {
+      args.push('EX', ttl);
+    }
+    return redis.set(args);
+  },
+
+  /**
+   * Drop special email throttle token
+   * @param type
+   * @param token
+   * @returns {*}
+     */
+  dropEmailThrottleToken(type, token) {
+    const secretKey = generateKey(`vsecret-${type}`, token);
+    return redis.del(secretKey);
+  },
+
 };
 
 module.exports.Utils = {
+  /**
+   * Check IP limits for registration
+   * @param ipaddress
+   * @returns {*}
+     */
+  checkIPLimits(ipaddress) {
+    const { ip: { time, times } } = registrationLimits;
+    const ipaddressLimitKey = generateKey('reg-limit', ipaddress);
+    const now = Date.now();
+    const old = now - time;
 
+    return function iplimits() {
+      return redis
+        .pipeline()
+        .zadd(ipaddressLimitKey, now, uuid.v4())
+        .pexpire(ipaddressLimitKey, time)
+        .zremrangebyscore(ipaddressLimitKey, '-inf', old)
+        .zcard(ipaddressLimitKey)
+        .exec()
+        .then(props => {
+          const cardinality = props[3][1];
+          if (cardinality > times) {
+            throw new ModelError(ERR_ATTEMPTS_TO_MUCH_REGISTERED);
+          }
+        });
+    };
+  },
+
+  /**
+   * Check captcha
+   * @param username
+   * @param captcha
+   * @param next
+   * @returns {*}
+     */
+  checkCaptcha(username, captcha, next = null) {
+    const that = this;
+    return function checkCaptcha() {
+      const captchaCacheKey = captcha.response;
+      return redis
+        .pipeline()
+        .set(captchaCacheKey, username, 'EX', captchaConfig.ttl, 'NX')
+        .get(captchaCacheKey)
+        .exec()
+        .spread(function captchaCacheResponse(setResponse, getResponse) {
+          if (getResponse[1] !== username) {
+            throw new ModelError(ERR_CAPTCHA_WRONG_USERNAME);
+          }
+        })
+        // check google captcha
+        .then(next ? () => next.call(that, captcha) : noop);
+    };
+  },
 };

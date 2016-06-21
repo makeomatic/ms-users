@@ -1,4 +1,5 @@
 const path = require('path');
+const { httpErrorMapper } = require('./model/modelError');
 
 /**
  * Contains default options for users microservice
@@ -19,6 +20,12 @@ module.exports = {
     initRoutes: true,
     // automatically init router
     initRouter: true,
+    // error wrapping to http state
+    onComplete(err) {
+      if (err) {
+        throw httpErrorMapper(err);
+      }
+    },
   },
   captcha: {
     secret: 'put-your-real-gcaptcha-secret-here',

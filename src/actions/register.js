@@ -1,15 +1,15 @@
 const Promise = require('bluebird');
-const Errors = require('common-errors');
 const scrypt = require('../utils/scrypt.js');
 const emailValidation = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
+const verifyGoogleCaptcha = require('../utils/verifyGoogleCaptcha');
 const { MAIL_REGISTER } = require('../constants.js');
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
 const noop = require('lodash/noop');
-const assignAlias = require('./alias.js');
 
-const Users = require('../db/adapter');
+const { User, Utils } = require('../model/usermodel');
+const { ModelError, ERR_ACCOUNT_MUST_BE_ACTIVATED, ERR_USERNAME_ALREADY_EXISTS } = require('../model/modelError');
 
 /**
  * Registration handler
@@ -17,8 +17,7 @@ const Users = require('../db/adapter');
  * @return {Promise}
  */
 module.exports = function registerUser(message) {
-  const { config } = this;
-  const { registrationLimits } = config;
+  const { config: registrationLimits } = this;
 
   // message
   const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
@@ -30,7 +29,7 @@ module.exports = function registerUser(message) {
 
   // make sure that if alias is truthy then activate is also truthy
   if (alias && !activate) {
-    throw new Errors.HttpStatusError(400, 'Account must be activated when setting alias during registration');
+    throw new ModelError(ERR_ACCOUNT_MUST_BE_ACTIVATED);
   }
 
   let promise = Promise.bind(this, username);
@@ -38,7 +37,7 @@ module.exports = function registerUser(message) {
   // optional captcha verification
   if (captcha) {
     logger.debug('verifying captcha');
-    promise = promise.tap(Users.checkCaptcha(username, captcha));
+    promise = promise.tap(Utils.checkCaptcha.call(this, username, captcha, verifyGoogleCaptcha));
   }
 
   if (registrationLimits) {
@@ -51,17 +50,17 @@ module.exports = function registerUser(message) {
     }
 
     if (registrationLimits.ip && ipaddress) {
-      promise = promise.tap(Users.checkLimits(ipaddress));
+      promise = promise.tap(Utils.checkIPLimits.call(this, ipaddress));
     }
   }
 
   // step 2, verify that user _still_ does not exist
   promise = promise
     // verify user does not exist at this point
-    .tap(Users.isExists)
-    .throw(new Errors.HttpStatusError(409, `"${username}" already exists`))
+    .tap(User.getUsername)
+    .throw(new ModelError(ERR_USERNAME_ALREADY_EXISTS, username))
     .catchReturn({ statusCode: 404 }, username)
-    .tap(alias ? () => Users.aliasAlreadyExists(alias) : noop)
+    .tap(alias ? () => User.checkAlias.call(this, alias) : noop)
     // step 3 - encrypt password
     .then(() => {
       if (password) {
@@ -77,7 +76,7 @@ module.exports = function registerUser(message) {
     })
     .then(scrypt.hash)
     // step 4 - create user if it wasn't created by some1 else trying to use race-conditions
-    .then(Users.createUser(username, activate))
+    .then((hash) => { User.create.call(this, username, alias, hash, activate); })
     // step 5 - save metadata if present
     .return({
       username,
@@ -89,7 +88,7 @@ module.exports = function registerUser(message) {
         },
       },
     })
-    .then(Users.updateMetadata)
+    .then(User.setMeta)
     .return(username);
 
   // no instant activation -> send email or skip it based on the settings
@@ -101,21 +100,10 @@ module.exports = function registerUser(message) {
 
   // perform instant activation
   return promise
-    // add to redis index
-    .then(() => Users.storeUsername(username))
-    // call hook
+  // call hook
     .return(['users:activate', username, audience])
     .spread(this.hook)
-    // assign alias if specified
-    .tap(() => {
-      if (!alias) {
-        return null;
-      }
-
-      // adds on-registration alias to the user
-      return assignAlias.call(this, { username, alias });
-    })
-    // login user
+  // login user
     .return([username, audience])
     .spread(jwt.login);
 };

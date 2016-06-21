@@ -2,7 +2,6 @@ const Promise = require('bluebird');
 const emailVerification = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const { User } = require('../model/usermodel');
-const { httpErrorMapper } = require('../model/modelError');
 
 module.exports = function verifyChallenge(opts) {
   // TODO: add security logs
@@ -25,6 +24,5 @@ module.exports = function verifyChallenge(opts) {
     .tap(User.activate)
     .tap(hook)
     .then(user => [user, audience])
-    .spread(jwt.login)
-    .catch(e => { throw httpErrorMapper(e); });
+    .spread(jwt.login);
 };

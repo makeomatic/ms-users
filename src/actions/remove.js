@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const { USERS_ADMIN_ROLE } = require('../constants');
 const { User } = require('../model/usermodel');
-const { ModelError, httpErrorMapper, ERR_ADMIN_IS_UNTOUCHABLE } = require('../model/modelError');
+const { ModelError, ERR_ADMIN_IS_UNTOUCHABLE } = require('../model/modelError');
 
 
 module.exports = function removeUser({ username }) {
@@ -16,8 +16,6 @@ module.exports = function removeUser({ username }) {
     if (isAdmin) {
       throw new ModelError(ERR_ADMIN_IS_UNTOUCHABLE);
     }
-
     return User.remove.call(this, username, internal);
-  })
-  .catch(e => { throw httpErrorMapper(e); });
+  });
 };

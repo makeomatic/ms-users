@@ -3,7 +3,6 @@ const emailValidation = require('../utils/send-email.js');
 const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const { User } = require('../model/usermodel');
-const { httpErrorMapper } = require('../model/modelError');
 
 
 module.exports = function requestPassword(opts) {
@@ -19,6 +18,5 @@ module.exports = function requestPassword(opts) {
     .tap(isActive)
     .tap(isBanned)
     .then(() => emailValidation.send.call(this, username, action))
-    .return({ success: true })
-    .catch(e => { throw httpErrorMapper(e); });
+    .return({ success: true });
 };

@@ -10,43 +10,40 @@ MOCHA=$BIN/_mocha
 COVER="$BIN/isparta cover"
 NODE=$BIN/babel-node
 TESTS=${TESTS:-test/suites/*.js}
-NODE_VER=${NODE_VER:-6.2.1}
 COMPOSE_VER=${COMPOSE_VER:-1.7.1}
+COMPOSE="docker-compose -f $DC"
 
-if ! [ -x "$COMPOSE" ]; then
+# init compose
+if ! [ -x "$(which docker-compose)" ]; then
   mkdir $DIR/.bin
   curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VER}/docker-compose-`uname -s`-`uname -m` > $DIR/.bin/docker-compose
   chmod +x $DIR/.bin/docker-compose
-  COMPOSE=$(which docker-compose)
 fi
 
-function finish {
-  $COMPOSE -f $DC stop
-  $COMPOSE -f $DC rm -f
-}
-trap finish EXIT
+# add trap handler
+trap "$COMPOSE stop; $COMPOSE rm -f;" EXIT
+$COMPOSE up -d
 
-export IMAGE=makeomatic/node:$NODE_VER
-$COMPOSE -f $DC up -d
-
-# add glibc
-$COMPOSE -f $DC exec tester /bin/sh -c "apk --no-cache add build-base python" || exit 1
-
+# rebuild if needed
 if [[ "$SKIP_REBUILD" != "1" ]]; then
   echo "rebuilding native dependencies..."
-  $COMPOSE -f $DC exec tester npm rebuild
+  $COMPOSE exec tester npm rebuild
 fi
 
+# clean coverage
 echo "cleaning old coverage"
 rm -rf ./coverage
 
+# tests
 echo "running tests"
 for fn in $TESTS; do
-  $COMPOSE -f $DC exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
+  echo "running $fn"
+  $COMPOSE exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
 done
 
+# coverage report
 echo "started generating combined coverage"
-$COMPOSE -f $DC exec tester node ./test/aggregate-report.js
+$COMPOSE exec tester node ./test/aggregate-report.js
 
 echo "uploading coverage report from ./coverage/lcov.info"
 if [[ "$CI" == "true" ]]; then

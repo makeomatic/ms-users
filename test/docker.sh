@@ -50,5 +50,5 @@ $COMPOSE -f $DC exec tester node ./test/aggregate-report.js
 
 echo "uploading coverage report from ./coverage/lcov.info"
 if [[ "$CI" == "true" ]]; then
-  cat ./coverage/lcov.info | $BIN/codecov
+  $BIN/codecov -f ./coverage/lcov.info
 fi

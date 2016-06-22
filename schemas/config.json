@@ -81,11 +81,15 @@
       "properties": {
         "options": {
           "type": "object",
-          "required": ["redisOptions"],
+          "required": ["keyPrefix"],
           "properties": {
+            "keyPrefix": {
+              "type": "string",
+              "minLength": 1,
+              "format": ".*{.*}.*"
+            },
             "redisOptions": {
               "type": "object",
-              "required": ["keyPrefix"],
               "properties": {
                 "keyPrefix": {
                   "type": "string",

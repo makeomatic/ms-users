@@ -15,8 +15,7 @@ module.exports = function login(opts) {
   const verifyIp = remoteip && lockAfterAttempts > 0;
 
   function verifyHash(data) {
-    const { password: hash } = data;
-    return scrypt.verify(hash, password);
+    return scrypt.verify(data.password, password);
   }
 
   function getUserInfo({ username }) {

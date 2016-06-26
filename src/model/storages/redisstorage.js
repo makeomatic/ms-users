@@ -39,10 +39,6 @@ const {
   USERS_ALIAS_FIELD, USERS_TOKENS, USERS_BANNED_FLAG, USERS_BANNED_DATA,
 } = require('../../constants');
 
-// config's and base objects
-const { redis, captcha: captchaConfig, registrationLimits, config } = this;
-const { deleteInactiveAccounts, jwt: { lockAfterAttempts, defaultAudience, hashingFunction: { ttl } } } = config;
-
 /**
  * Generate hash key string
  * @param args
@@ -53,10 +49,7 @@ const generateKey = (...args) => {
   return args.join(SEPARATOR);
 };
 
-
-module.exports = {};
-
-module.exports.User = {
+exports.User = {
 
   /**
    * Get user by username
@@ -65,6 +58,7 @@ module.exports.User = {
    */
   getOne(username) {
     const userKey = generateKey(username, USERS_DATA);
+    const { redis } = this;
 
     return redis
       .pipeline()
@@ -91,6 +85,7 @@ module.exports.User = {
    * @returns {Array}
    */
   getList(opts) {
+    const { redis } = this;
     const { criteria, audience, filter } = opts;
     const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
     const order = opts.order || 'ASC';
@@ -153,6 +148,7 @@ module.exports.User = {
    * @returns {Object}
    */
   getMeta(username, _audiences, fields = {}, _public = null) {
+    const { redis } = this;
     const audiences = Array.isArray(_audiences) ? _audiences : [_audiences];
     const audience = Array.isArray(_audiences) ? _audiences[0] : _audiences;
 
@@ -178,6 +174,8 @@ module.exports.User = {
    * @returns {String} username
    */
   getUsername(username) {
+    const { redis } = this;
+
     return redis
       .pipeline()
       .hget(USERS_ALIAS_TO_LOGIN, username)
@@ -197,6 +195,8 @@ module.exports.User = {
   },
 
   checkAlias(alias) {
+    const { redis } = this;
+
     return redis
       .hget(USERS_ALIAS_TO_LOGIN, alias)
       .then(username => {
@@ -209,6 +209,9 @@ module.exports.User = {
   },
 
   setAlias(username, alias, data = null) {
+    const { redis, config } = this;
+    const { jwt: { defaultAudience } } = config;
+
     if (data && data[USERS_ALIAS_FIELD]) {
       throw new ModelError(ERR_ALIAS_ALREADY_ASSIGNED);
     }
@@ -233,6 +236,8 @@ module.exports.User = {
    * @returns {String} username
    */
   setPassword(username, hash) {
+    const { redis } = this;
+
     return redis
       .hset(generateKey(username, USERS_DATA), 'password', hash)
       .return(username);
@@ -280,6 +285,7 @@ module.exports.User = {
    * @returns {Object}
    */
   setMeta(username, audience, metadata) {
+    const { redis } = this;
     const audiences = is.array(audience) ? audience : [audience];
     const keys = audiences.map(aud => generateKey(username, USERS_METADATA, aud));
 
@@ -297,6 +303,7 @@ module.exports.User = {
    * @returns {Object}
      */
   executeUpdateMetaScript(username, audience, script) {
+    const { redis } = this;
     const audiences = is.array(audience) ? audience : [audience];
     const keys = audiences.map(aud => generateKey(username, USERS_METADATA, aud));
 
@@ -331,6 +338,8 @@ module.exports.User = {
    * @returns {*}
    */
   create(username, alias, hash, activate) {
+    const { redis, config } = this;
+    const { deleteInactiveAccounts } = config;
     const userDataKey = generateKey(username, USERS_DATA);
     const pipeline = redis.pipeline();
 
@@ -373,6 +382,9 @@ module.exports.User = {
    * @returns {*}
    */
   remove(username, data) {
+    const { redis, config } = this;
+    const { jwt: { defaultAudience } } = config;
+
     const audience = defaultAudience;
     const transaction = redis.multi();
     const alias = data[USERS_ALIAS_FIELD];
@@ -401,6 +413,7 @@ module.exports.User = {
    * @returns {*}
    */
   activate(username) {
+    const { redis } = this;
     const userKey = generateKey(username, USERS_DATA);
 
     // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
@@ -427,6 +440,9 @@ module.exports.User = {
    * @returns {*}
    */
   lock(username, opts) {
+    const { redis, config } = this;
+    const { jwt: { defaultAudience } } = config;
+
     const { reason, whom, remoteip } = opts; // to guarantee writing only those three variables to metadata from opts
     const data = {
       banned: true,
@@ -452,6 +468,9 @@ module.exports.User = {
    * @returns {*}
    */
   unlock(username) {
+    const { redis, config } = this;
+    const { jwt: { defaultAudience } } = config;
+
     return redis
       .pipeline()
       .hdel(generateKey(username, USERS_DATA), USERS_BANNED_FLAG)
@@ -462,7 +481,7 @@ module.exports.User = {
 };
 
 let loginAttempts;
-module.exports.Attempts = {
+exports.Attempts = {
   /**
    * Check login attempts
    * @param username
@@ -470,6 +489,8 @@ module.exports.Attempts = {
    * @returns {*}
      */
   check: function check({ username, ip }) {
+    const { redis, config } = this;
+    const { jwt: { lockAfterAttempts } } = config;
     const ipKey = generateKey(username, 'ip', ip);
     const pipeline = redis.pipeline();
 
@@ -502,6 +523,7 @@ module.exports.Attempts = {
    * @returns {*}
      */
   drop: function drop(username, ip) {
+    const { redis } = this;
     const ipKey = generateKey(username, 'ip', ip);
     loginAttempts = 0;
     return redis.del(ipKey);
@@ -516,7 +538,7 @@ module.exports.Attempts = {
   },
 };
 
-module.exports.Tokens = {
+exports.Tokens = {
   /**
    * Add the token
    * @param username
@@ -524,6 +546,7 @@ module.exports.Tokens = {
    * @returns {*}
      */
   add(username, token) {
+    const { redis } = this;
     return redis.zadd(generateKey(username, USERS_TOKENS), Date.now(), token);
   },
 
@@ -534,6 +557,7 @@ module.exports.Tokens = {
    * @returns {*}
      */
   drop(username, token = null) {
+    const { redis } = this;
     return token ?
       redis.zrem(generateKey(username, USERS_TOKENS), token) :
       redis.del(generateKey(username, USERS_TOKENS));
@@ -546,6 +570,8 @@ module.exports.Tokens = {
    * @returns {integer}
      */
   lastAccess(username, token) {
+    const { redis, config } = this;
+    const { jwt: { ttl } } = config;
     const tokensHolder = generateKey(username, USERS_TOKENS);
     return redis.zscoreBuffer(tokensHolder, token).then(function getLastAccess(_score) {
       // parseResponse
@@ -567,6 +593,7 @@ module.exports.Tokens = {
    * @returns {bool} state
      */
   getEmailThrottleState(type, email) {
+    const { redis } = this;
     const throttleEmailsKey = generateKey(`vthrottle-${type}`, email);
     return redis.get(throttleEmailsKey);
   },
@@ -578,6 +605,7 @@ module.exports.Tokens = {
    * @returns {*}
      */
   setEmailThrottleState(type, email) {
+    const { redis, config } = this;
     const throttleEmailsKey = generateKey(`vthrottle-${type}`, email);
     const { validation: throttle } = config;
 
@@ -595,6 +623,7 @@ module.exports.Tokens = {
    * @returns {string} email
      */
   getEmailThrottleToken(type, token) {
+    const { redis } = this;
     const secretKey = generateKey(`vsecret-${type}`, token);
     return redis.get(secretKey);
   },
@@ -607,11 +636,13 @@ module.exports.Tokens = {
    * @returns {*}
      */
   setEmailThrottleToken(type, email, token) {
-    const { validation } = config;
+    const { redis, config } = this;
+    const { validation: { ttl } } = config;
+
     const secretKey = generateKey(`vsecret-${type}`, token);
     const args = [secretKey, email];
     if (ttl > 0) {
-      args.push('EX', validation.ttl);
+      args.push('EX', ttl);
     }
     return redis.set(args);
   },
@@ -623,20 +654,28 @@ module.exports.Tokens = {
    * @returns {*}
      */
   dropEmailThrottleToken(type, token) {
+    const { redis } = this;
     const secretKey = generateKey(`vsecret-${type}`, token);
     return redis.del(secretKey);
   },
 
 };
 
-module.exports.Utils = {
+exports.Utils = {
   /**
    * Check IP limits for registration
    * @param ipaddress
    * @returns {*}
      */
   checkIPLimits(ipaddress) {
-    const { ip: { time, times } } = registrationLimits;
+    // TODO: КРИВО, в оригинале есть проверка на существование registrationLimits
+
+    // if (registrationLimits.ip && ipaddress) {
+    //   promise = promise.tap(checkLimits(redis, registrationLimits, ipaddress));
+    // }
+
+    const { redis, config } = this;
+    const { registrationLimits: { ip: { time, times } } } = config;
     const ipaddressLimitKey = generateKey('reg-limit', ipaddress);
     const now = Date.now();
     const old = now - time;
@@ -666,8 +705,10 @@ module.exports.Utils = {
    * @returns {*}
      */
   checkCaptcha(username, captcha, next = null) {
-    const that = this;
-    return function checkCaptcha() {
+    const { redis, config } = this;
+    const { captcha: captchaConfig } = config;
+
+    return () => {
       const captchaCacheKey = captcha.response;
       return redis
         .pipeline()
@@ -680,7 +721,7 @@ module.exports.Utils = {
           }
         })
         // check google captcha
-        .then(next ? () => next.call(that, captcha) : noop);
+        .then(next ? () => next.call(this, captcha) : noop);
     };
   },
 };

@@ -1,9 +1,9 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
 const URLSafeBase64 = require('urlsafe-base64');
 
 describe('#activate', function activateSuite() {
+  const redisKey = require('../../src/utils/key.js');
   const headers = { routingKey: 'users.activate' };
   const emailValidation = require('../../src/utils/send-email.js');
   const email = 'v@aminev.me';
@@ -94,8 +94,12 @@ describe('#activate', function activateSuite() {
       .reflect()
       .then(inspectPromise(false))
       .then(activation => {
-        expect(activation.name).to.be.eq('HttpStatusError');
-        expect(activation.statusCode).to.be.eq(404);
+        try {
+          expect(activation.name).to.be.eq('HttpStatusError');
+          expect(activation.statusCode).to.be.eq(404);
+        } catch (e) {
+          throw activation;
+        }
       });
   });
 });

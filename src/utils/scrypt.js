@@ -12,7 +12,7 @@ exports.hash = function hashPassword(password) {
     throw new ModelError(ERR_PASSWORD_INVALID);
   }
 
-  return scrypt.kdfAsync(new Buffer(password, 'utf-8'), scryptParams);
+  return scrypt.kdfAsync(Buffer.from(password), scryptParams);
 };
 
 exports.verify = function verifyPassword(hash, password) {
@@ -21,7 +21,7 @@ exports.verify = function verifyPassword(hash, password) {
   }
 
   return scrypt
-    .verifyKdfAsync(hash, new Buffer(password, 'utf-8'))
+    .verifyKdfAsync(hash, Buffer.from(password))
     .catch(function scryptError(err) {
       throw new ModelError(ERR_PASSWORD_SCRYPT_ERROR, err);
     })
@@ -31,3 +31,5 @@ exports.verify = function verifyPassword(hash, password) {
       }
     });
 };
+
+exports.scrypt = scrypt;

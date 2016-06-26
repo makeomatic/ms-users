@@ -1,8 +1,8 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
 
 describe('#updatePassword', function updatePasswordSuite() {
+  const redisKey = require('../../src/utils/key.js');
   const headers = { routingKey: 'users.updatePassword' };
   const username = 'v@makeomatic.ru';
   const password = '123';

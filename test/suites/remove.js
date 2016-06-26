@@ -1,9 +1,9 @@
 /* global inspectPromise, globalRegisterUser */
 const assert = require('assert');
-const { USERS_ADMIN_ROLE } = require('../../src/constants');
 
 describe('#remove', function registerSuite() {
   const headers = { routingKey: 'users.remove' };
+  const { USERS_ADMIN_ROLE } = require('../../src/constants');
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);

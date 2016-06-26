@@ -1,6 +1,7 @@
 #!/bin/bash
 
-export NODE_ENV=development
+set -x
+
 BIN=./node_modules/.bin
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DC="$DIR/docker-compose.yml"
@@ -10,46 +11,46 @@ MOCHA=$BIN/_mocha
 COVER="$BIN/isparta cover"
 NODE=$BIN/babel-node
 TESTS=${TESTS:-test/suites/*.js}
-NODE_VER=${NODE_VER:-6.2.1}
-COMPOSE_VER=${COMPOSE_VER:-1.7.1}
+COMPOSE="docker-compose -f $DC"
 
-if ! [ -x "$COMPOSE" ]; then
+if ! [ -x "$(which docker-compose)" ]; then
   mkdir $DIR/.bin
-  curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VER}/docker-compose-`uname -s`-`uname -m` > $DIR/.bin/docker-compose
+  curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-`uname -s`-`uname -m` > $DIR/.bin/docker-compose
   chmod +x $DIR/.bin/docker-compose
-#  COMPOSE=$(which docker-compose)
-  COMPOSE="c:/dev/docker/docker-compose.exe"
 fi
 
-function finish {
-  $COMPOSE -f $DC stop
-  $COMPOSE -f $DC rm -f
-}
-trap finish EXIT
+# add trap handler
+if [[ x"$CI" == x"true" ]]; then
+  trap "$COMPOSE stop; $COMPOSE rm -v -f;" EXIT
+else
+  WARN="containers are still running, please type the following commands to stop them:"
+  trap "printf \"$WARN\n\n${COMPOSE} stop;\n${COMPOSE} rm -v -f;\n\n\"" EXIT
+fi
 
-export IMAGE=makeomatic/node:$NODE_VER
-$COMPOSE -f $DC up -d
+$COMPOSE up --remove-orphans -d
 
-# add glibc
-$COMPOSE -f $DC exec tester /bin/sh -c "apk --no-cache add build-base python" || exit 1
-
+# rebuild if needed
 if [[ "$SKIP_REBUILD" != "1" ]]; then
   echo "rebuilding native dependencies..."
-  $COMPOSE -f $DC exec tester npm rebuild
+  docker exec tester npm rebuild
 fi
 
+# clean coverage
 echo "cleaning old coverage"
 rm -rf ./coverage
 
+# tests
 echo "running tests"
 for fn in $TESTS; do
-  $COMPOSE -f $DC exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
+  echo "running $fn"
+  docker exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
 done
 
+# coverage report
 echo "started generating combined coverage"
-$COMPOSE -f $DC exec tester node ./test/aggregate-report.js
+docker exec tester node ./test/aggregate-report.js
 
 echo "uploading coverage report from ./coverage/lcov.info"
 if [[ "$CI" == "true" ]]; then
-  cat ./coverage/lcov.info | $BIN/codecov
+  $BIN/codecov -f ./coverage/lcov.info
 fi

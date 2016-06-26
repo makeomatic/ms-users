@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 const FlakeId = require('flake-idgen');
+const noop = require('lodash/noop');
 const flakeIdGen = new FlakeId();
 const { User, Tokens } = require('../model/usermodel');
 const { ModelError, ERR_TOKEN_INVALID, ERR_TOKEN_AUDIENCE_MISMATCH } = require('../model/modelError');
@@ -104,13 +105,9 @@ exports.verify = function verifyToken(token, audience, peek) {
       }
 
       const { username } = decoded;
-      let lastAccess = Tokens.lastAccess(username, token);
-
-      if (!peek) {
-        lastAccess = lastAccess.then(function refreshLastAccess() {
-          return Tokens.add(username, token);
-        });
-      }
+      const lastAccess = Tokens
+        .lastAccess(username, token)
+        .then(peek ? () => Tokens.add(username, token) : noop);
 
       return lastAccess.return(decoded);
     });

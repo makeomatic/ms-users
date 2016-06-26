@@ -1,36 +1,27 @@
 require('chai').config.includeStack = true;
 const { expect } = require('chai');
-const Users = require('../src');
 
 global.Promise = require('bluebird');
 
 global.AMQP = {
   connection: {
-    host: process.env.RABBITMQ_PORT_5672_TCP_ADDR,
-    port: process.env.RABBITMQ_PORT_5672_TCP_PORT,
+    host: 'rabbitmq',
+    port: 5672,
   },
 };
 
 global.REDIS = {
-  hosts: [
-    {
-      host: process.env.REDIS_1_PORT_6379_TCP_ADDR,
-      port: process.env.REDIS_1_PORT_6379_TCP_PORT,
-    },
-    {
-      host: process.env.REDIS_2_PORT_6379_TCP_ADDR,
-      port: process.env.REDIS_2_PORT_6379_TCP_PORT,
-    },
-    {
-      host: process.env.REDIS_3_PORT_6379_TCP_ADDR,
-      port: process.env.REDIS_3_PORT_6379_TCP_PORT,
-    },
-  ],
+  hosts: Array.from({ length: 3 }).map((_, i) => ({
+    host: `redis-${i + 1}`,
+    port: 6379,
+  })),
 };
 
 const config = {
   amqp: global.AMQP,
   redis: global.REDIS,
+  logger: true,
+  debug: true,
   validation: {
     templates: {
       activate: 'cappasity-activate',
@@ -90,6 +81,7 @@ function inspectPromise(mustBeFulfilled = true) {
 }
 
 function startService() {
+  const Users = require('../src');
   this.users = new Users(config);
   this.users.on('plugin:connect:amqp', () => {
     this.users._mailer = { send: () => Promise.resolve() };

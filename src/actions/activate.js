@@ -6,15 +6,32 @@ const jwt = require('../utils/jwt.js');
 const userExists = require('../utils/userExists.js');
 const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG } = require('../constants.js');
 
+/**
+ * @api {amqp} <prefix>.activate Activate User
+ * @apiVersion 1.0.0
+ * @apiName ActivateUser
+ * @apiGroup Users
+ *
+ * @apiDescription This method allows one to activate user by 2 means: providing a username or encoded verification token.
+ * When only username is provided, no verifications will be performed and user will be set to active. In contrary, `token`
+ * would be verified. This allows for 2 scenarios: admin activating a user, or user completing verification challenge. In
+ * case of success output would contain user object
+ *
+ * @apiParam (Payload) {String} username - currently email of the user
+ * @apiParam (Payload) {String} token - if present, would be used against test challenge
+ * @apiParam (Payload) {String} [remoteip] - not used, but is reserved for security log in the future
+ * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
+ *
+ */
 module.exports = function verifyChallenge(opts) {
   // TODO: add security logs
   // var remoteip = opts.remoteip;
-  const { token, namespace, username } = opts;
+  const { token, username } = opts;
   const { redis, config } = this;
   const audience = opts.audience || config.defaultAudience;
 
   function verifyToken() {
-    return emailVerification.verify.call(this, token, namespace, config.validation.ttl > 0);
+    return emailVerification.verify.call(this, token, 'activate', config.validation.ttl > 0);
   }
 
   function activateAccount(user) {

@@ -68,7 +68,8 @@ module.exports = exports = function updatePassword(opts) {
 
   if (remoteip) {
     promise = promise.tap(function resetLock(username) {
-      return Attempts.drop(username, remoteip);
+      const theAttempts = new Attempts(this);
+      return theAttempts.drop(username, remoteip);
     });
   }
 

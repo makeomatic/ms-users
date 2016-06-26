@@ -14,6 +14,8 @@ module.exports = function login(opts) {
   const remoteip = opts.remoteip || false;
   const verifyIp = remoteip && lockAfterAttempts > 0;
 
+  const theAttempts = new Attempts(this);
+
   function verifyHash(data) {
     return scrypt.verify(data.password, password);
   }
@@ -24,7 +26,7 @@ module.exports = function login(opts) {
 
   function enrichError(err) {
     if (remoteip) {
-      err.loginAttempts = Attempts.count();
+      err.loginAttempts = theAttempts.count();
     }
 
     return err;
@@ -34,9 +36,9 @@ module.exports = function login(opts) {
     .bind(this, opts.username)
     .then(User.getOne)
     .then(data => [data, remoteip])
-    .tap(verifyIp ? Attempts.check : noop)
+    .tap(verifyIp ? ({ username, ip }) => theAttempts.check(username, ip) : noop)
     .tap(verifyHash)
-    .tap(verifyIp ? Attempts.drop : noop)
+    .tap(verifyIp ? (username, ip) => theAttempts.drop(username, ip) : noop)
     .tap(isActive)
     .tap(isBanned)
     .then(getUserInfo)

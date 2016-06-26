@@ -1,28 +1,23 @@
 /**
  * Created by Stainwoortsel on 17.06.2016.
  */
+const Promise = require('bluebird');
 const storage = require('./storages/redisstorage');
+const { ModelError, ERR_ATTEMPTS_LOCKED } = require('./modelError');
+const moment = require('moment');
 
 /**
  * Adapter pattern class with user model methods
  */
-class UserModel {
-  /**
-   * Create user model
-   * @param adapter
-   */
-  constructor(adapter) {
-    this.adapter = adapter;
-  }
-
+exports.User = {
   /**
    * Get user by username
    * @param username
    * @returns {Object}
      */
   getOne(username) {
-    return this.adapter.getOne(username);
-  }
+    return storage.User.getOne.call(this, username);
+  },
 
   /**
    * Get list of users by params
@@ -30,8 +25,8 @@ class UserModel {
    * @returns {Array}
      */
   getList(opts) {
-    return this.adapter.getList(opts);
-  }
+    return storage.User.getList.call(this, opts);
+  },
 
   /**
    * Get metadata of user
@@ -42,8 +37,8 @@ class UserModel {
    * @returns {Object}
      */
   getMeta(username, audiences, fields = {}, _public = null) {
-    return this.adapter.getMeta(username, audiences, fields, _public);
-  }
+    return storage.User.getMeta.call(this, username, audiences, fields, _public);
+  },
 
   /**
    * Get ~real~ username by username or alias
@@ -51,8 +46,8 @@ class UserModel {
    * @returns {String} username
      */
   getUsername(username) {
-    return this.adapter.getUsername(username);
-  }
+    return storage.User.getUsername.call(this, username);
+  },
 
   /**
    * Check alias existence
@@ -60,8 +55,8 @@ class UserModel {
    * @returns {*}
      */
   checkAlias(alias) {
-    return this.adapter.checkAlias(alias);
-  }
+    return storage.User.checkAlias.call(this, alias);
+  },
 
   /**
    * Sets alias to the user by username
@@ -70,8 +65,8 @@ class UserModel {
    * @returns {*}
      */
   setAlias(username, alias) {
-    return this.adapter.setAlias(username, alias);
-  }
+    return storage.User.setAlias.call(this, username, alias);
+  },
 
   /**
    * Set user password
@@ -80,8 +75,8 @@ class UserModel {
    * @returns {String} username
    */
   setPassword(username, hash) {
-    return this.adapter.setPassword(username, hash);
-  }
+    return storage.User.setPassword.call(this, username, hash);
+  },
 
   /**
    * Updates metadata of user by username and audience
@@ -91,8 +86,8 @@ class UserModel {
    * @returns {Object}
    */
   setMeta(username, audience, metadata) {
-    return this.adapter.setMeta(username, audience, metadata);
-  }
+    return storage.User.setMeta.call(this, username, audience, metadata);
+  },
 
   /**
    * Update meta of user by using direct script
@@ -102,8 +97,8 @@ class UserModel {
    * @returns {Object}
    */
   executeUpdateMetaScript(username, audience, script) {
-    return this.adapter.executeUpdateMetaScript(username, audience, script);
-  }
+    return storage.User.executeUpdateMetaScript.call(this, username, audience, script);
+  },
 
   /**
    * Create user account with alias and password
@@ -114,8 +109,8 @@ class UserModel {
    * @returns {*}
      */
   create(username, alias, hash, activate) {
-    return this.adapter.create(username, alias, hash, activate);
-  }
+    return storage.User.create.call(this, username, alias, hash, activate);
+  },
 
   /**
    * Remove user
@@ -124,8 +119,8 @@ class UserModel {
    * @returns {*}
      */
   remove(username, data) {
-    return this.adapter.remove(username, data);
-  }
+    return storage.User.remove.call(this, username, data);
+  },
 
   /**
    * Activate user
@@ -133,8 +128,8 @@ class UserModel {
    * @returns {*}
      */
   activate(username) {
-    return this.adapter.activate(username);
-  }
+    return storage.User.activate.call(this, username);
+  },
 
   /**
    * Ban user
@@ -143,8 +138,8 @@ class UserModel {
    * @returns {*}
      */
   lock(username, opts) {
-    return this.adapter.lock(username, opts);
-  }
+    return storage.User.lock.call(this, username, opts);
+  },
 
   /**
    * Unlock banned user
@@ -152,16 +147,21 @@ class UserModel {
    * @returns {*}
      */
   unlock(username) {
-    return this.adapter.unlock(username);
-  }
-}
+    return storage.User.unlock.call(this, username);
+  },
+};
 
 /**
  * Adapter pattern class for user login attempts counting
  */
-class AttemptsHelper {
-  constructor(adapter) {
-    this.adapter = adapter;
+class AttemptsClass {
+  /**
+   * Attempts class constructor, _context parameter is the context of service
+   * @param _context
+   */
+  constructor(_context) {
+    this.context = _context;
+    this.loginAttempts = 0;
   }
 
   /**
@@ -170,8 +170,19 @@ class AttemptsHelper {
    * @param ip
    * @returns {*}
      */
-  check({ username, ip }) {
-    return this.adapter.check({ username, ip });
+  check(username, ip) {
+    const { config: { jwt: { lockAfterAttempts }, keepLoginAttempts } } = this.context;
+    return Promise.bind(this.context, { username, ip })
+      .then(storage.Attempts.check)
+      .then((attempts) => {
+        if (attempts === null) return;
+
+        this.loginAttempts = attempts;
+        if (this.loginAttempts > lockAfterAttempts) {
+          const duration = moment().add(keepLoginAttempts, 'seconds').toNow(true);
+          throw new ModelError(ERR_ATTEMPTS_LOCKED, duration);
+        }
+      });
   }
 
   /**
@@ -181,7 +192,8 @@ class AttemptsHelper {
    * @returns {*}
      */
   drop(username, ip) {
-    return this.adapter.drop(username, ip);
+    this.loginAttempts = 0;
+    return storage.Attempts.drop.call(this, username, ip);
   }
 
   /**
@@ -189,18 +201,15 @@ class AttemptsHelper {
    * @returns {integer}
      */
   count() {
-    return this.adapter.count();
+    return this.loginAttempts;
   }
 }
+exports.Attempts = AttemptsClass;
 
-/**
+  /**
  * Adapter pattern class for user tokens
  */
-class TokensHelper {
-  constructor(adapter) {
-    this.adapter = adapter;
-  }
-
+exports.Tokens = {
   /**
    * Add the token
    * @param username
@@ -208,8 +217,8 @@ class TokensHelper {
    * @returns {*}
    */
   add(username, token) {
-    return this.adapter.add(username, token);
-  }
+    return storage.Tokens.add.call(this, username, token);
+  },
 
   /**
    * Drop the token
@@ -218,8 +227,8 @@ class TokensHelper {
    * @returns {*}
    */
   drop(username, token = null) {
-    return this.adapter.drop(username, token);
-  }
+    return storage.Tokens.drop.call(this, username, token);
+  },
 
   /**
    * Get last token score
@@ -228,8 +237,8 @@ class TokensHelper {
    * @returns {integer}
    */
   lastAccess(username, token) {
-    return this.adapter.count(username, token);
-  }
+    return storage.Tokens.lastAccess.call(this, username, token);
+  },
 
   /**
    * Get special email throttle state
@@ -238,8 +247,8 @@ class TokensHelper {
    * @returns {bool} state
      */
   getEmailThrottleState(type, email) {
-    return this.adapter.getEmailThrottleState(type, email);
-  }
+    return storage.Tokens.getEmailThrottleState.call(this, type, email);
+  },
 
   /**
    * Set special email throttle state
@@ -248,8 +257,8 @@ class TokensHelper {
    * @returns {*}
      */
   setEmailThrottleState(type, email) {
-    return this.adapter.setEmailThrottleState(type, email);
-  }
+    return storage.Tokens.setEmailThrottleState.call(this, type, email);
+  },
 
   /**
    * Get special email throttle token
@@ -258,8 +267,8 @@ class TokensHelper {
    * @returns {string} email
      */
   getEmailThrottleToken(type, token) {
-    return this.adapter.getEmailThrottleToken(type, token);
-  }
+    return storage.Tokens.getEmailThrottleToken.call(this, type, token);
+  },
 
   /**
    * Set special email throttle token
@@ -269,8 +278,8 @@ class TokensHelper {
    * @returns {*}
      */
   setEmailThrottleToken(type, email, token) {
-    return this.adapter.setEmailThrottleToken(type, email, token);
-  }
+    return storage.Tokens.setEmailThrottleToken.call(this, type, email, token);
+  },
 
   /**
    * Drop special email throttle token
@@ -279,26 +288,22 @@ class TokensHelper {
    * @returns {*}
      */
   dropEmailThrottleToken(type, token) {
-    return this.adapter.dropEmailThrottleToken(type, token);
-  }
-}
+    return storage.Tokens.dropEmailThrottleToken.call(this, type, token);
+  },
+};
 
 /**
  * Adapter pattern class for util methods with IP
  */
-class Utils {
-  constructor(adapter) {
-    this.adapter = adapter;
-  }
-
+exports.Utils = {
   /**
    * Check IP limits for registration
    * @param ipaddress
    * @returns {*}
    */
   checkIPLimits(ipaddress) {
-    return this.adapter.checkIPLimits(ipaddress);
-  }
+    return storage.Utils.checkIPLimits.call(this, ipaddress);
+  },
 
   /**
    * Check captcha
@@ -308,11 +313,6 @@ class Utils {
    * @returns {*}
    */
   checkCaptcha(username, captcha, next = null) {
-    return this.adapter.checkCaptcha(username, captcha, next);
-  }
-}
-
-exports.User = new UserModel(storage.User);
-exports.Attempts = new AttemptsHelper(storage.Attempts);
-exports.Tokens = new TokensHelper(storage.Tokens);
-exports.Utils = new Utils(storage.Utils);
+    return storage.Utils.checkCaptcha.call(this, username, captcha, next);
+  },
+};

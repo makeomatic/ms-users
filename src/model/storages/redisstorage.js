@@ -4,7 +4,6 @@
 const remapMeta = require('../../utils/remapMeta');
 const mapMetaResponse = require('../../utils/mapMetaResponse');
 const mapValues = require('lodash/mapValues');
-const moment = require('moment');
 const sha256 = require('../../utils/sha256.js');
 const fsort = require('redis-filtered-sort');
 const uuid = require('node-uuid');
@@ -14,7 +13,7 @@ const is = require('is');
 const {
   ModelError,
   ERR_ALIAS_ALREADY_ASSIGNED, ERR_ALIAS_ALREADY_TAKEN, ERR_USERNAME_NOT_EXISTS, ERR_USERNAME_NOT_FOUND,
-  ERR_ATTEMPTS_LOCKED, ERR_TOKEN_FORGED, ERR_CAPTCHA_WRONG_USERNAME, ERR_ATTEMPTS_TO_MUCH_REGISTERED,
+  ERR_TOKEN_FORGED, ERR_CAPTCHA_WRONG_USERNAME, ERR_ATTEMPTS_TO_MUCH_REGISTERED,
   ERR_ALIAS_ALREADY_EXISTS, ERR_ACCOUNT_IS_ALREADY_EXISTS, ERR_ACCOUNT_ALREADY_ACTIVATED,
 } = require('../modelError');
 /*
@@ -480,7 +479,6 @@ exports.User = {
   },
 };
 
-let loginAttempts;
 exports.Attempts = {
   /**
    * Check login attempts
@@ -490,7 +488,6 @@ exports.Attempts = {
      */
   check: function check({ username, ip }) {
     const { redis, config } = this;
-    const { jwt: { lockAfterAttempts } } = config;
     const ipKey = generateKey(username, 'ip', ip);
     const pipeline = redis.pipeline();
 
@@ -505,14 +502,9 @@ exports.Attempts = {
         const err = incrementValue[0];
         if (err) {
           this.log.error('Redis error:', err);
-          return;
+          return null;
         }
-
-        loginAttempts = incrementValue[1];
-        if (loginAttempts > lockAfterAttempts) {
-          const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
-          throw new ModelError(ERR_ATTEMPTS_LOCKED, duration);
-        }
+        return incrementValue[1];
       });
   },
 
@@ -525,16 +517,7 @@ exports.Attempts = {
   drop: function drop(username, ip) {
     const { redis } = this;
     const ipKey = generateKey(username, 'ip', ip);
-    loginAttempts = 0;
     return redis.del(ipKey);
-  },
-
-  /**
-   * Get attempts count
-   * @returns {integer}
-   */
-  count: function count() {
-    return loginAttempts;
   },
 };
 

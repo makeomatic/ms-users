@@ -36,7 +36,7 @@ function isPublic(username, audiences) {
  *
  * @apiParam (Payload) {String} username - user's username, can be `alias` or real `username`.
  * 	If it's a real username - then all the data is returned.
- * @apiParam (Payload) {String|String[]} audience - which namespace of metadata should be used
+ * @apiParam (Payload) {String[]} audience - which namespace of metadata should be used, can be string or array of strings
  * @apiParam (Payload) {Object} fields - must contain an object of `[audience]: String[]` mapping
  * @apiParam (Payload) {String[]} fields.* - fields to return from a passed audience
  *

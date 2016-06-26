@@ -12,8 +12,8 @@ const userExists = require('../utils/userExists.js');
  * custom actions. Supports batch updates for multiple audiences
  *
  * @apiParam (Payload) {String} username - currently only email is supported
- * @apiParam (Payload) {String|String[]} audience - audience(s) to be updated, must match length of metadata key. If string, metadata must be object
- * @apiParam (Payload) {Object|Object[]} [metadata] - operations to be performed on corresponding audience,
+ * @apiParam (Payload) {String[]} audience - audience(s) to be updated, must match length of metadata key. If string, metadata must be object
+ * @apiParam (Payload) {Object[]} [metadata] - operations to be performed on corresponding audience,
  * 	supports `$set key:value`, `$remove keys[]`, `$incr key:diff`
  * @apiParam (Payload) {Object} [script] - if present will be called with passed metadata keys & username, provides direct scripting access.
  * 	Be careful with granting access to this function.

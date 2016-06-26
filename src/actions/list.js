@@ -21,7 +21,7 @@ const { USERS_INDEX, USERS_PUBLIC_INDEX, USERS_METADATA } = require('../constant
  * @apiParam (Payload) {String} [criteria] - if supplied, sort will be performed based on this field
  * @apiParam (Payload) {String} audience - which namespace of metadata should be used for filtering & retrieving
  * @apiParam (Payload) {Boolean} [public=false] - when `true` returns only publicly marked users
- * @apiParam (Payload) {Object|String} - filter to use, consult https://github.com/makeomatic/redis-filtered-sort
+ * @apiParam (Payload) {Object} - filter to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
  */
 module.exports = function iterateOverActiveUsers(opts) {
   const { redis } = this;

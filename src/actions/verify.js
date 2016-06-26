@@ -11,7 +11,7 @@ const getMetadata = require('../utils/getMetadata.js');
  * @apiDescription Verifies passed JWT and returns deserialized user object. Must be used for session management
  *
  * @apiParam (Payload) {String} token - signed JWT token
- * @apiParam (Payload) {String|String[]} audience - which namespaces of metadata to return
+ * @apiParam (Payload) {String[]} audience - which namespaces of metadata to return
  *
  */
 module.exports = function verify(opts) {

@@ -40,8 +40,13 @@ redis_client:
   container_name: redis_client
   hostname: redis-client
   image: makeomatic/redis-trib
+  environment:
+    - REDIS_1=redis-1
+    - REDIS_2=redis-2
+    - REDIS_3=redis-3
 
 tester:
+  container_name: tester
   image: makeomatic/node:6.2.2-tester
   links:
     - redis_1
@@ -53,6 +58,7 @@ tester:
   volumes:
     - ${PWD}:/src
   environment:
-    NODE_ENV: "docker"
+    NODE_ENV: "test"
+    DEBUG: ${DEBUG}
     SKIP_REBUILD: ${SKIP_REBUILD}
   command: tail -f /dev/null

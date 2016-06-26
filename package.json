@@ -50,6 +50,7 @@
     "urlsafe-base64": "^1.0.0"
   },
   "devDependencies": {
+    "apidoc": "^0.16.1",
     "babel-cli": "^6.10.1",
     "babel-eslint": "^6.0.5",
     "babel-plugin-transform-class-properties": "^6.10.2",

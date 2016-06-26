@@ -5,6 +5,24 @@ const fsort = require('redis-filtered-sort');
 const JSONParse = JSON.parse.bind(JSON);
 const { USERS_INDEX, USERS_PUBLIC_INDEX, USERS_METADATA } = require('../constants.js');
 
+/**
+ * @api {amqp} <prefix>.list Retrieve Registered Users
+ * @apiVersion 1.0.0
+ * @apiName ListUsers
+ * @apiGroup Users
+ *
+ * @apiDescription This method allows to list user that are registered and activated in the system. They can be sorted & filtered by
+ * any metadata field. Furthermore, it retrieves metadata based on the supplied audience and returns array of users similar to `info`
+ * endpoint
+ *
+ * @apiParam (Payload) {Number} [offset=0] - cursor for pagination
+ * @apiParam (Payload) {Number} [limit=10] - profiles per page
+ * @apiParam (Payload) {String="ASC","DESC"} [order=ASC] - sort order
+ * @apiParam (Payload) {String} [criteria] - if supplied, sort will be performed based on this field
+ * @apiParam (Payload) {String} audience - which namespace of metadata should be used for filtering & retrieving
+ * @apiParam (Payload) {Boolean} [public=false] - when `true` returns only publicly marked users
+ * @apiParam (Payload) {Object|String} - filter to use, consult https://github.com/makeomatic/redis-filtered-sort
+ */
 module.exports = function iterateOverActiveUsers(opts) {
   const { redis } = this;
   const { criteria, audience, filter } = opts;

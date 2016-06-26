@@ -3,19 +3,15 @@
   "type": "object",
   "oneOf": [
     {
-      "required": [ "namespace", "token" ]
+      "required": ["token"]
     },
     {
-      "required": [ "username" ]
+      "required": ["username"]
     }
   ],
   "properties": {
     "username": {
       "type": "string"
-    },
-    "namespace": {
-      "type": "string",
-      "enum": [ "activate", "reset" ]
     },
     "token": {
       "type": "string",

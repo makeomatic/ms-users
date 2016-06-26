@@ -6,6 +6,20 @@ const isBanned = require('../utils/isBanned.js');
 const key = require('../utils/key.js');
 const { USERS_DATA, USERS_METADATA, USERS_PUBLIC_INDEX, USERS_ALIAS_TO_LOGIN, USERS_ALIAS_FIELD } = require('../constants.js');
 
+/**
+ * @api {amqp} <prefix>.alias Add alias to user
+ * @apiVersion 1.0.0
+ * @apiName AddAlias
+ * @apiGroup Users
+ *
+ * @apiDescription Adds alias to existing username. This alias must be unique across system, as
+ * well as obide strict restrictions - ascii chars only, include numbers and dot. It's used to obfuscate
+ * username in public interfaces
+ *
+ * @apiParam (Payload) {String} username - currently email of the user
+ * @apiParam (Payload) {String{3..15}} alias - chosen alias
+ *
+ */
 module.exports = function assignAlias(opts) {
   const { redis, config: { jwt: { defaultAudience } } } = this;
   const { username, alias } = opts;

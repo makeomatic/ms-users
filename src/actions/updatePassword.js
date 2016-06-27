@@ -7,14 +7,14 @@ const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const userExists = require('../utils/userExists.js');
-const { USERS_DATA } = require('../constants.js');
+const { USERS_DATA, MAIL_RESET } = require('../constants.js');
 
 /**
  * Verifies token and deletes it if it matches
  * @param {Strong} token
  */
 function tokenReset(token) {
-  return emailChallenge.verify.call(this, token, 'reset', true);
+  return emailChallenge.verify.call(this, token, MAIL_RESET, true);
 }
 
 /**

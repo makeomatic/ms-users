@@ -4,7 +4,7 @@ const redisKey = require('../utils/key.js');
 const emailVerification = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const userExists = require('../utils/userExists.js');
-const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG } = require('../constants.js');
+const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_ACTIVATE } = require('../constants.js');
 
 /**
  * @api {amqp} <prefix>.activate Activate User
@@ -31,7 +31,7 @@ module.exports = function verifyChallenge(opts) {
   const audience = opts.audience || config.defaultAudience;
 
   function verifyToken() {
-    return emailVerification.verify.call(this, token, 'activate', config.validation.ttl > 0);
+    return emailVerification.verify.call(this, token, MAIL_ACTIVATE, config.validation.ttl > 0);
   }
 
   function activateAccount(user) {

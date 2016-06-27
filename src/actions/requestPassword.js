@@ -3,6 +3,7 @@ const emailValidation = require('../utils/send-email.js');
 const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
+const { MAIL_RESET, MAIL_PASSWORD } = require('../constants.js');
 
 /**
  * @api {amqp} <prefix>.requestPassword Reset Password
@@ -21,7 +22,7 @@ const isBanned = require('../utils/isBanned.js');
  */
 module.exports = function requestPassword(opts) {
   const { username, generateNewPassword } = opts;
-  const action = generateNewPassword ? 'password' : 'reset';
+  const action = generateNewPassword ? MAIL_PASSWORD : MAIL_RESET;
 
   // TODO: make use of remoteip in security logs?
   // var remoteip = opts.remoteip;

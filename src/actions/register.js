@@ -13,6 +13,8 @@ const makeCaptchaCheck = require('../utils/checkCaptcha.js');
 const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
 const noop = require('lodash/noop');
+const is = require('is');
+const uniq = require('lodash/uniq');
 const assignAlias = require('./alias.js');
 
 /**
@@ -105,7 +107,7 @@ module.exports = function registerUser(message) {
   const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
 
   // message
-  const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
+  const { invite, username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
   const captcha = message.hasOwnProperty('captcha') ? message.captcha : false;
   const metadata = message.hasOwnProperty('metadata') ? message.metadata : false;
 
@@ -115,6 +117,10 @@ module.exports = function registerUser(message) {
   // make sure that if alias is truthy then activate is also truthy
   if (alias && !activate) {
     throw new Errors.HttpStatusError(400, 'Account must be activated when setting alias during registration');
+  }
+
+  if (invite && !activate) {
+    throw new Errors.HttpStatusError(400, 'Account must be activated when using invite token');
   }
 
   let promise = Promise.bind(this, username);
@@ -137,6 +143,10 @@ module.exports = function registerUser(message) {
     if (registrationLimits.ip && ipaddress) {
       promise = promise.tap(checkLimits(redis, registrationLimits, ipaddress));
     }
+  }
+
+  if (invite) {
+    promise = promise.tap(verifyInvitation(invite));
   }
 
   // shared user key

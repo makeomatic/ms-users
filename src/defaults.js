@@ -54,18 +54,21 @@ module.exports = {
     paths: {
       activate: '/activate',
       reset: '/reset',
+      invite: '/register',
     },
     subjects: {
       activate: 'Activate your account',
       reset: 'Reset your password',
       password: 'Account Recovery',
       register: 'Account Registration',
+      invite: 'Invitation to Register',
     },
     senders: {
       activate: 'noreply <support@example.com>',
       reset: 'noreply <support@example.com>',
       password: 'noreply <support@example.com>',
       register: 'noreply <support@example.com>',
+      invite: 'noreply <support@example.com>',
     },
     templates: {
       // specify template names here

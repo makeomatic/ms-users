@@ -7,7 +7,7 @@ const URLSafeBase64 = require('urlsafe-base64');
 const render = require('ms-mailer-templates');
 const { updatePassword } = require('../actions/updatePassword.js');
 const generatePassword = require('password-generator');
-const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER } = require('../constants.js');
+const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER, MAIL_INVITE } = require('../constants.js');
 
 /**
  * Throttled error
@@ -97,14 +97,14 @@ exports.safeDecode = function safeDecode(algorithm, secret, string) {
  * @param  {String} type
  * @return {Promise}
  */
-exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
+exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false, _activationSecret, ctx = {}) {
   const { redis, config, mailer } = this;
   const { validation, server } = config;
   const { ttl, throttle, subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation; // eslint-disable-line
 
   // method specific stuff
   const throttleEmailsKey = redisKey(`vthrottle-${type}`, email);
-  const activationSecret = uuid.v4();
+  const activationSecret = _activationSecret || uuid.v4();
   const logger = this.log.child({ action: 'sendEmail', email });
 
   return redis
@@ -112,12 +112,13 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
     .then(isThrottled(true))
     .then(function generateContent() {
       // generate context
-      const context = {};
+      const context = { ...ctx };
       const templateName = validation.templates[type] || type;
 
       switch (type) {
         case MAIL_ACTIVATE:
-        case MAIL_RESET: {
+        case MAIL_RESET:
+        case MAIL_INVITE: {
           // generate secret
           const str = new Buffer(JSON.stringify({ email, token: activationSecret }));
           const enc = exports.encrypt(algorithm, secret, str);

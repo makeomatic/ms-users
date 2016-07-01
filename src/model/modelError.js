@@ -69,7 +69,7 @@ const ErrorTypes = {
   ERR_EMAIL_ALREADY_SENT:
     genErr(152, 429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email'), // eslint-disable-line
   ERR_TOKEN_INVALID:
-    genErr(160, 403, 'Invalid Token'),
+    genErr(160, 403, 'invalid token'),
   ERR_TOKEN_AUDIENCE_MISMATCH:
     genErr(161, 403, 'audience mismatch'),
   ERR_TOKEN_MISS_EMAIL:
@@ -141,8 +141,12 @@ const httpErrorMapper = function _HttpErrorMapper(e = null) {
     return e;
   }
 
+  if (e instanceof Errors.ValidationError) {
+    return e;
+  }
+
   return new Errors.HttpStatusError(ERR_DEFAULT.http, ERR_DEFAULT.msg);
 };
 
 
-module.exports = { ...ErrorCodes, ModelError, httpErrorMapper };
+  module.exports = { ...ErrorCodes, ModelError, httpErrorMapper };

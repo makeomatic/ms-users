@@ -17,7 +17,7 @@ const { ModelError, ERR_ACCOUNT_MUST_BE_ACTIVATED, ERR_USERNAME_ALREADY_EXISTS }
  * @return {Promise}
  */
 module.exports = function registerUser(message) {
-  const { config: registrationLimits } = this;
+  const { config: { registrationLimits } } = this;
 
   // message
   const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;

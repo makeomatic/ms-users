@@ -6,12 +6,12 @@ const { User } = require('../model/usermodel');
 module.exports = function verifyChallenge(opts) {
   // TODO: add security logs
   // var remoteip = opts.remoteip;
-  const { token, namespace, username } = opts;
+  const { token, username } = opts;
   const { config } = this;
   const audience = opts.audience || config.defaultAudience;
 
   function verifyToken() {
-    return emailVerification.verify.call(this, token, namespace, config.validation.ttl > 0);
+    return emailVerification.verify.call(this, token, 'activate', config.validation.ttl > 0);
   }
 
   function hook(user) {

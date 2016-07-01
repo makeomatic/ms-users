@@ -190,8 +190,7 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
  * @return {Promise}
  */
 exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires) {
-  const { config: validation } = this;
-  const { secret: validationSecret, algorithm } = validation;
+  const { config: { validation: { secret: validationSecret, algorithm } } } = this;
 
   return exports
     .safeDecode
@@ -204,8 +203,11 @@ exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires
       }
 
       return Promise
-        .bind(this)
-        .then(() => Tokens.getEmailThrottleToken(namespace, token))
+//        .bind(this)
+//        .then(() => Tokens.getEmailThrottleToken(namespace, token))
+//        .then(function inspectAssociatedData(associatedEmail) {
+        .bind(that, [namespace, token])
+        .spread(Tokens.getEmailThrottleToken)
         .then(function inspectAssociatedData(associatedEmail) {
           if (!associatedEmail) {
             throw new ModelError(ERR_TOKEN_EXPIRED);

@@ -108,8 +108,8 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
   const logger = this.log.child({ action: 'sendEmail', email });
 
   return Promise
-    .bind(this)
-    .then(() => Tokens.getEmailThrottleState(type, email))
+    .bind(this, [type, email])
+    .spread(Tokens.getEmailThrottleState)
     .then(isThrottled(true))
     .then(function generateContent() {
       // generate context
@@ -150,10 +150,10 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
       }
 
       return Promise
-        .bind(this)
-        .then(() => Tokens.setEmailThrottleState(type, email))
+        .bind(this, [type, email, activationSecret])
+        .spread(Tokens.setEmailThrottleState)
         .then(isThrottled(false))
-        .then(() => Tokens.setEmailThrottleToken(type, email, activationSecret));
+        .then(Tokens.setEmailThrottleToken);
     })
     .then(function definedSubjectAndSend({ context, emailTemplate }) {
       const mail = {

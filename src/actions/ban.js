@@ -10,6 +10,6 @@ module.exports = function banUser(opts) {
   return Promise
     .bind(this, opts.username)
     .then(User.getUsername)
-    .then(username => ({ username, opts }))
+    .then(username => ({ ...opts, username }))
     .then(opts.ban ? User.lock : User.unlock);
 };

@@ -31,6 +31,6 @@ module.exports = function mixPlan(username, audience) {
         },
       };
 
-      return User.setMeta.call(this, username, audience, metadata);
+      return User.setMeta.call(this, { username, audience, metadata });
     });
 };

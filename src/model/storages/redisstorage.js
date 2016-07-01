@@ -67,7 +67,7 @@ exports.User = {
       .exec()
       .spread((aliasToUsername, exists, data) => {
         if (aliasToUsername[1]) {
-          return this.getUser(aliasToUsername[1]);
+          return exports.User.getUser(aliasToUsername[1]);
         }
 
         if (!exists[1]) {
@@ -283,15 +283,20 @@ exports.User = {
    * @param metadata
    * @returns {Object}
    */
-  setMeta(username, audience, metadata) {
+  setMeta(opts) {
     const { redis } = this;
+    const { username, audience, metadata, script } = opts;
     const audiences = is.array(audience) ? audience : [audience];
     const keys = audiences.map(aud => generateKey(username, USERS_METADATA, aud));
 
-    const pipe = redis.pipeline();
-    const metaOps = is.array(metadata) ? metadata : [metadata];
-    const operations = metaOps.map((meta, idx) => this._handleAudience(pipe, keys[idx], meta));
-    return pipe.exec().then(res => mapMetaResponse(operations, res));
+    if(metadata) {
+      const pipe = redis.pipeline();
+      const metaOps = is.array(metadata) ? metadata : [metadata];
+      const operations = metaOps.map((meta, idx) => exports.User._handleAudience(pipe, keys[idx], metadata));
+      return pipe.exec().then(res => mapMetaResponse(operations, res));
+    }
+
+    return exports.User.executeUpdateMetaScript(username, audience, script);
   },
 
   /**
@@ -301,9 +306,8 @@ exports.User = {
    * @param script
    * @returns {Object}
      */
-  executeUpdateMetaScript(username, audience, script) {
+  executeUpdateMetaScript(username, audiences, script) {
     const { redis } = this;
-    const audiences = is.array(audience) ? audience : [audience];
     const keys = audiences.map(aud => generateKey(username, USERS_METADATA, aud));
 
     // dynamic scripts
@@ -371,7 +375,7 @@ exports.User = {
         return null;
       })
       // setting alias, if we can
-      .tap(activate && alias ? () => { this.setAlias(username, alias); } : noop);
+      .tap(activate && alias ? () => { exports.User.setAlias(username, alias); } : noop);
   },
 
   /**
@@ -438,11 +442,11 @@ exports.User = {
    * @param opts
    * @returns {*}
    */
-  lock(username, opts) {
+  lock(opts) {
     const { redis, config } = this;
     const { jwt: { defaultAudience } } = config;
 
-    const { reason, whom, remoteip } = opts; // to guarantee writing only those three variables to metadata from opts
+    const { username, reason, whom, remoteip } = opts; // to guarantee writing only those three variables to metadata from opts
     const data = {
       banned: true,
       [USERS_BANNED_DATA]: {

@@ -85,19 +85,8 @@ exports.User = {
    * @param metadata
    * @returns {Object}
    */
-  setMeta(username, audience, metadata) {
-    return storage.User.setMeta.call(this, username, audience, metadata);
-  },
-
-  /**
-   * Update meta of user by using direct script
-   * @param username
-   * @param audience
-   * @param script
-   * @returns {Object}
-   */
-  executeUpdateMetaScript(username, audience, script) {
-    return storage.User.executeUpdateMetaScript.call(this, username, audience, script);
+  setMeta(opts) {
+    return storage.User.setMeta.call(this, opts);
   },
 
   /**
@@ -137,8 +126,8 @@ exports.User = {
    * @param opts
    * @returns {*}
      */
-  lock(username, opts) {
-    return storage.User.lock.call(this, username, opts);
+  lock(opts) {
+    return storage.User.lock.call(this, opts);
   },
 
   /**

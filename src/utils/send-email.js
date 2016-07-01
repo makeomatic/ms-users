@@ -191,6 +191,7 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
  */
 exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires) {
   const { config: { validation: { secret: validationSecret, algorithm } } } = this;
+  const that = this;
 
   return exports
     .safeDecode
@@ -218,7 +219,7 @@ exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires
           }
 
           if (expires) {
-            return Tokens.dropEmailThrottleToken.call(this, namespace, token);
+            return Tokens.dropEmailThrottleToken.call(that, namespace, token);
           }
 
           return null;

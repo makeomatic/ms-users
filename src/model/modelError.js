@@ -149,4 +149,4 @@ const httpErrorMapper = function _HttpErrorMapper(e = null) {
 };
 
 
-  module.exports = { ...ErrorCodes, ModelError, httpErrorMapper };
+module.exports = { ...ErrorCodes, ModelError, httpErrorMapper };

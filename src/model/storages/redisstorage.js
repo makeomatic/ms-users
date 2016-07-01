@@ -289,7 +289,7 @@ exports.User = {
     const audiences = is.array(audience) ? audience : [audience];
     const keys = audiences.map(aud => generateKey(username, USERS_METADATA, aud));
 
-    if(metadata) {
+    if (metadata) {
       const pipe = redis.pipeline();
       const metaOps = is.array(metadata) ? metadata : [metadata];
       const operations = metaOps.map((meta, idx) => exports.User._handleAudience(pipe, keys[idx], metadata));

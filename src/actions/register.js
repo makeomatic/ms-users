@@ -9,7 +9,7 @@ const mxExists = require('../utils/mxExists.js');
 const noop = require('lodash/noop');
 
 const { User, Utils } = require('../model/usermodel');
-const { ModelError, ERR_ACCOUNT_MUST_BE_ACTIVATED, ERR_USERNAME_ALREADY_EXISTS } = require('../model/modelError');
+const { ModelError, ERR_USERNAME_NOT_EXISTS, ERR_ACCOUNT_MUST_BE_ACTIVATED, ERR_USERNAME_ALREADY_EXISTS } = require('../model/modelError');
 
 /**
  * Registration handler
@@ -59,7 +59,7 @@ module.exports = function registerUser(message) {
     // verify user does not exist at this point
     .tap(User.getUsername)
     .throw(new ModelError(ERR_USERNAME_ALREADY_EXISTS, username))
-    .catchReturn({ statusCode: 404 }, username)
+    .catchReturn({ code: ERR_USERNAME_NOT_EXISTS }, username)
     .tap(alias ? () => User.checkAlias.call(this, alias) : noop)
     // step 3 - encrypt password
     .then(() => {

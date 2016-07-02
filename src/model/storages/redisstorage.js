@@ -224,7 +224,7 @@ exports.User = {
       .pipeline()
       .sadd(USERS_PUBLIC_INDEX, username)
       .hset(generateKey(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
-      .hset(generateKey(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSONStringify)
+      .hset(generateKey(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias))
       .exec();
   },
 
@@ -375,7 +375,7 @@ exports.User = {
         return null;
       })
       // setting alias, if we can
-      .tap(activate && alias ? () => { exports.User.setAlias(username, alias); } : noop);
+      .tap(activate && alias ? () => exports.User.setAlias.call(this, username, alias) : noop);
   },
 
   /**

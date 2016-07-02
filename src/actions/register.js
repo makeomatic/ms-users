@@ -76,7 +76,7 @@ module.exports = function registerUser(message) {
     })
     .then(scrypt.hash)
     // step 4 - create user if it wasn't created by some1 else trying to use race-conditions
-    .then((hash) => { User.create.call(this, username, alias, hash, activate); })
+    .then((hash) => User.create.call(this, username, alias, hash, activate))
     // step 5 - save metadata if present
     .return({
       username,

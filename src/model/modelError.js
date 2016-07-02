@@ -41,7 +41,7 @@ const ErrorTypes = {
   ERR_USERNAME_ALREADY_ACTIVE:
     genErr(110, 417, (username) => (`${username} is already active`)),
   ERR_USERNAME_ALREADY_EXISTS:
-    genErr(111, 409, (username) => (`${username} is already exists`)),
+    genErr(111, 409, (username) => (`"${username}" already exists`)),
   ERR_USERNAME_NOT_EXISTS:
     genErr(112, 404, (username) => (`${username} does not exists`)),
   ERR_USERNAME_NOT_FOUND:
@@ -108,6 +108,7 @@ const ErrorCodes = mapValues(ErrorTypes, mapErr);
  */
 const ModelError = Errors.helpers.generateClass('ModelError', {
   extends: Errors.Error,
+  name: 'ModelError',
   args: ['code', 'data'],
   generateMessage: function generateMessage() {
     const key = findKey(ErrorTypes, { code: this.code });
@@ -134,14 +135,6 @@ const httpErrorMapper = function _HttpErrorMapper(e = null) {
   }
 
   if (e instanceof Errors.HttpStatusError) {
-    return e;
-  }
-
-  if (e instanceof Errors.InvalidOperationError) {
-    return e;
-  }
-
-  if (e instanceof Errors.ValidationError) {
     return e;
   }
 

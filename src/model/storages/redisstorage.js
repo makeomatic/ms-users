@@ -67,7 +67,7 @@ exports.User = {
       .exec()
       .spread((aliasToUsername, exists, data) => {
         if (aliasToUsername[1]) {
-          return exports.User.getUser(aliasToUsername[1]);
+          return exports.User.getOne(aliasToUsername[1]);
         }
 
         if (!exists[1]) {
@@ -207,25 +207,34 @@ exports.User = {
       });
   },
 
-  setAlias(username, alias, data = null) {
+  /**
+   * Set up alias of user
+   * @param opts
+   * @returns {*}
+     */
+  setAlias(opts) {
     const { redis, config } = this;
     const { jwt: { defaultAudience } } = config;
+    const { username, alias, data } = opts;
 
     if (data && data[USERS_ALIAS_FIELD]) {
       throw new ModelError(ERR_ALIAS_ALREADY_ASSIGNED);
     }
 
-    const assigned = redis.hsetnx(USERS_ALIAS_TO_LOGIN, alias, username);
-    if (assigned === 0) {
-      throw new ModelError(ERR_ALIAS_ALREADY_TAKEN);
-    }
-
     return redis
-      .pipeline()
-      .sadd(USERS_PUBLIC_INDEX, username)
-      .hset(generateKey(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
-      .hset(generateKey(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias))
-      .exec();
+      .hsetnx(USERS_ALIAS_TO_LOGIN, alias, username)
+      .then(assigned => {
+        if (assigned === 0) {
+          throw new ModelError(ERR_ALIAS_ALREADY_TAKEN);
+        }
+
+        return redis
+          .pipeline()
+          .sadd(USERS_PUBLIC_INDEX, username)
+          .hset(generateKey(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
+          .hset(generateKey(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias))
+          .exec();
+      });
   },
 
   /**
@@ -375,7 +384,7 @@ exports.User = {
         return null;
       })
       // setting alias, if we can
-      .tap(activate && alias ? () => exports.User.setAlias.call(this, username, alias) : noop);
+      .tap(activate && alias ? () => exports.User.setAlias.call(this, { username, alias }) : noop);
   },
 
   /**
@@ -470,7 +479,7 @@ exports.User = {
    * @param username
    * @returns {*}
    */
-  unlock(username) {
+  unlock({ username }) {
     const { redis, config } = this;
     const { jwt: { defaultAudience } } = config;
 

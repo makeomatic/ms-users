@@ -35,10 +35,10 @@ module.exports = function login(opts) {
   return Promise
     .bind(this, opts.username)
     .then(User.getOne)
-    .then(data => [data, remoteip])
+    .then(data => ({ ...data, remoteip }))
     .tap(verifyIp ? ({ username, ip }) => theAttempts.check(username, ip) : noop)
     .tap(verifyHash)
-    .tap(verifyIp ? (username, ip) => theAttempts.drop(username, ip) : noop)
+    .tap(verifyIp ? ({ username, ip }) => theAttempts.drop(username, ip) : noop)
     .tap(isActive)
     .tap(isBanned)
     .then(getUserInfo)

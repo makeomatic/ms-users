@@ -60,12 +60,11 @@ exports.User = {
 
   /**
    * Sets alias to the user by username
-   * @param username
-   * @param alias
+   * @param opts
    * @returns {*}
      */
-  setAlias(username, alias) {
-    return storage.User.setAlias.call(this, username, alias);
+  setAlias(opts) {
+    return storage.User.setAlias.call(this, opts);
   },
 
   /**
@@ -132,11 +131,11 @@ exports.User = {
 
   /**
    * Unlock banned user
-   * @param username
+   * @param opts
    * @returns {*}
      */
-  unlock(username) {
-    return storage.User.unlock.call(this, username);
+  unlock(opts) {
+    return storage.User.unlock.call(this, opts);
   },
 };
 

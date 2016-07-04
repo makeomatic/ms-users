@@ -3,18 +3,17 @@ const Errors = require('common-errors');
 const setMetadata = require('../utils/updateMetadata.js');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
-const emailValidation = require('../utils/send-email.js');
+const generatePassword = require('password-generator');
+const challenge = require('../utils/send-challenge.js');
 const jwt = require('../utils/jwt.js');
 const uuid = require('node-uuid');
-const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_REGISTER } = require('../constants.js');
+const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_REGISTER, MAIL_ACTIVATE } = require('../constants.js');
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
 const makeCaptchaCheck = require('../utils/checkCaptcha.js');
 const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
 const noop = require('lodash/noop');
-const is = require('is');
-const uniq = require('lodash/uniq');
 const assignAlias = require('./alias.js');
 
 /**
@@ -104,7 +103,7 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
  */
 module.exports = function registerUser(message) {
   const { redis, config } = this;
-  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
+  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits, pwdReset } = config;
 
   // message
   const { invite, username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
@@ -165,12 +164,20 @@ module.exports = function registerUser(message) {
         return password;
       }
 
+      // generate auto password
+      const autoPassword = generatePassword(pwdReset.length, pwdReset.memorable);
+
       // if no password was supplied - we auto-generate it and send it to an email that was provided
       // then we hash it and store in the db
-      return emailValidation
-        .send
-        .call(this, username, MAIL_REGISTER)
-        .then(ctx => ctx.context.password);
+      return challenge.call(this, {
+        id: username,
+        type: 'email',
+        tempalte: MAIL_REGISTER,
+        ctx: {
+          password: autoPassword,
+        },
+      })
+      .return(autoPassword);
     })
     .then(scrypt.hash)
     // step 4 - create user if it wasn't created by some1 else trying to use race-conditions
@@ -187,12 +194,16 @@ module.exports = function registerUser(message) {
       },
     })
     .then(setMetadata)
-    .return(username);
+    .return({
+      id: username,
+      type: 'email',
+      template: MAIL_ACTIVATE,
+    });
 
   // no instant activation -> send email or skip it based on the settings
   if (!activate) {
     return promise
-      .then(skipChallenge ? noop : emailValidation.send)
+      .then(skipChallenge ? noop : challenge)
       .return({ requiresActivation: true });
   }
 

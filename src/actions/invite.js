@@ -1,7 +1,7 @@
 const stringify = JSON.stringify.bind(JSON);
 const uuid = require('node-uuid');
 const mapValues = require('lodash/mapValues');
-const mailUtils = require('../utils/send-email.js');
+const challenge = require('../utils/send-challenge.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const redisKey = require('../utils/key.js');
 const {
@@ -58,6 +58,14 @@ module.exports = function generateInvite({ email, greeting, expire = 0, metadata
     .exec()
     .then(handlePipeline)
     .bind(this)
-    .return([email, MAIL_INVITE, false, token, { greeting }])
-    .spread(mailUtils.send);
+    .return({
+      id: email,
+      type: MAIL_INVITE,
+      wait: false,
+      secret: token,
+      ctx: {
+        greeting,
+      },
+    })
+    .then(challenge);
 };

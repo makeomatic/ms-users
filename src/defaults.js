@@ -32,6 +32,7 @@ module.exports = {
       // pass this to constructor
       dropBufferSupport: false,
     },
+    luaScripts: path.resolve(__dirname, '../scripts'),
   },
   pwdReset: {
     memorable: true,

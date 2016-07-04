@@ -28,4 +28,10 @@ module.exports = {
   INVITATIONS_FIELD_SENT: '4',
   INVITATIONS_FIELD_DATE: '5',
   INVITATIONS_FIELD_GREETING: '6',
+  // throttling
+  THROTTLE_NAMESPACE: 'throttle',
+  SECRETS_NAMESPACE: 'secret',
+  // challenge types
+  CHALLENGE_TYPE_EMAIL: 'email',
+  CHALLENGE_TYPE_PHONE: 'phone',
 };

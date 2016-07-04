@@ -24,14 +24,6 @@ module.exports = function login(opts) {
     return jwt.login.call(this, username, audience);
   }
 
-  function enrichError(err) {
-    if (remoteip) {
-      err.loginAttempts = theAttempts.count();
-    }
-
-    return err;
-  }
-
   return Promise
     .bind(this, opts.username)
     .then(User.getOne)
@@ -41,6 +33,5 @@ module.exports = function login(opts) {
     .tap(verifyIp ? ({ username, ip }) => theAttempts.drop(username, ip) : noop)
     .tap(isActive)
     .tap(isBanned)
-    .then(getUserInfo)
-    .catch(verifyIp ? enrichError : e => { throw e; });
+    .then(getUserInfo);
 };

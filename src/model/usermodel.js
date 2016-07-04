@@ -168,7 +168,14 @@ class AttemptsClass {
         this.loginAttempts = attempts;
         if (this.loginAttempts > lockAfterAttempts) {
           const duration = moment().add(keepLoginAttempts, 'seconds').toNow(true);
-          throw new ModelError(ERR_ATTEMPTS_LOCKED, duration);
+          const verifyIp = ip && lockAfterAttempts > 0;
+
+          const err = new ModelError(ERR_ATTEMPTS_LOCKED, duration);
+          if (verifyIp) {
+            err.loginAttempts = this.loginAttempts;
+          }
+
+          throw err;
         }
       });
   }
@@ -181,7 +188,7 @@ class AttemptsClass {
      */
   drop(username, ip) {
     this.loginAttempts = 0;
-    return storage.Attempts.drop.call(this, username, ip);
+    return storage.Attempts.drop.call(this.context, username, ip);
   }
 
   /**

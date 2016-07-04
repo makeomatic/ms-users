@@ -67,7 +67,7 @@ exports.User = {
       .exec()
       .spread((aliasToUsername, exists, data) => {
         if (aliasToUsername[1]) {
-          return exports.User.getOne(aliasToUsername[1]);
+          return exports.User.getOne.call(this, aliasToUsername[1]);
         }
 
         if (!exists[1]) {

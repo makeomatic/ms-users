@@ -60,7 +60,6 @@ exports.logout = function logout(token, audience) {
   const { config } = this;
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
-  const that = this;
 
   return jwt
     .verifyAsync(token, secret, { issuer, audience, algorithms: [algorithm] })
@@ -68,8 +67,8 @@ exports.logout = function logout(token, audience) {
       this.log.debug('error decoding token', err);
       throw new ModelError(ERR_TOKEN_INVALID);
     })
-    .then(function decodedToken(decoded) {
-      return Tokens.drop.call(that, decoded.username, token);
+    .then(decoded => {
+      return Tokens.drop.call(this, decoded.username, token);
     })
     .return({ success: true });
 };

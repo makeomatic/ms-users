@@ -6,6 +6,8 @@ const flakeIdGen = new FlakeId();
 const { User, Tokens } = require('../model/usermodel');
 const { ModelError, ERR_TOKEN_INVALID, ERR_TOKEN_AUDIENCE_MISMATCH } = require('../model/modelError');
 
+// TODO: merge this code with master!!!
+
 /**
  * Logs user in and returns JWT and User Object
  * @param  {String}  username

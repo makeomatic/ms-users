@@ -259,7 +259,7 @@ exports.User = {
    * @param  {Object} metadata
    * @returns {object}
    */
-  _handleAudience(pipeline, key, metadata) {
+  handleAudience(pipeline, key, metadata) {
     const $remove = metadata.$remove;
     const $removeOps = $remove && $remove.length || 0;
     if ($removeOps > 0) {
@@ -301,11 +301,11 @@ exports.User = {
     if (metadata) {
       const pipe = redis.pipeline();
       const metaOps = is.array(metadata) ? metadata : [metadata];
-      const operations = metaOps.map((meta, idx) => exports.User._handleAudience(pipe, keys[idx], metadata));
+      const operations = metaOps.map((meta, idx) => exports.User.handleAudience(pipe, keys[idx], meta));
       return pipe.exec().then(res => mapMetaResponse(operations, res));
     }
 
-    return exports.User.executeUpdateMetaScript(username, audience, script);
+    return exports.User.executeUpdateMetaScript.call(this, username, audience, script);
   },
 
   /**

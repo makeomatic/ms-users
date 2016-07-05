@@ -10,6 +10,9 @@ const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER } = require('../
 const { Tokens } = require('../model/usermodel');
 const { ModelError, ERR_TOKEN_CANT_DECODE, ERR_EMAIL_ALREADY_SENT, ERR_TOKEN_BAD_EMAIL,
   ERR_TOKEN_EXPIRED, ERR_TOKEN_MISS_EMAIL } = require('../model/modelError');
+
+// TODO: merge this code with master!!!
+
 /**
  * Throttled error
  * @param  {Mixed}  reply
@@ -191,12 +194,11 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
  */
 exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires) {
   const { config: { validation: { secret: validationSecret, algorithm } } } = this;
-  const that = this;
 
   return exports
     .safeDecode
     .call(this, algorithm, validationSecret, string)
-    .then(function inspectResult(message) {
+    .then(message => {
       const { email, token } = message;
 
       if (!email || !token) {
@@ -207,9 +209,9 @@ exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires
 //        .bind(this)
 //        .then(() => Tokens.getEmailThrottleToken(namespace, token))
 //        .then(function inspectAssociatedData(associatedEmail) {
-        .bind(that, [namespace, token])
+        .bind(this, [namespace, token])
         .spread(Tokens.getEmailThrottleToken)
-        .then(function inspectAssociatedData(associatedEmail) {
+        .then(associatedEmail => {
           if (!associatedEmail) {
             throw new ModelError(ERR_TOKEN_EXPIRED);
           }
@@ -219,7 +221,7 @@ exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires
           }
 
           if (expires) {
-            return Tokens.dropEmailThrottleToken.call(that, namespace, token);
+            return Tokens.dropEmailThrottleToken.call(this, namespace, token);
           }
 
           return null;

@@ -569,7 +569,7 @@ exports.Tokens = {
     const { redis, config } = this;
     const { jwt: { ttl } } = config;
     const tokensHolder = generateKey(username, USERS_TOKENS);
-    return redis.zscoreBuffer(tokensHolder, token).then(function getLastAccess(_score) {
+    return redis.zscoreBuffer(tokensHolder, token).then(_score => {
       // parseResponse
       const score = parseInt(_score, 10);
 
@@ -603,7 +603,7 @@ exports.Tokens = {
   setEmailThrottleState(type, email) {
     const { redis, config } = this;
     const throttleEmailsKey = generateKey(`vthrottle-${type}`, email);
-    const { validation: throttle } = config;
+    const { validation: { throttle } } = config;
 
     const throttleArgs = [throttleEmailsKey, 1, 'NX'];
     if (throttle > 0) {

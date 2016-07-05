@@ -156,7 +156,7 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
         .bind(this, [type, email, activationSecret])
         .spread(Tokens.setEmailThrottleState)
         .then(isThrottled(false))
-        .then(Tokens.setEmailThrottleToken);
+        .then(() => Tokens.setEmailThrottleToken.call(this, type, email, activationSecret));
     })
     .then(function definedSubjectAndSend({ context, emailTemplate }) {
       const mail = {

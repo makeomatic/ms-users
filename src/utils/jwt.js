@@ -1,12 +1,9 @@
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 const FlakeId = require('flake-idgen');
-const noop = require('lodash/noop');
 const flakeIdGen = new FlakeId();
 const { User, Tokens } = require('../model/usermodel');
 const { ModelError, ERR_TOKEN_INVALID, ERR_TOKEN_AUDIENCE_MISMATCH } = require('../model/modelError');
-
-// TODO: merge this code with master!!!
 
 /**
  * Logs user in and returns JWT and User Object
@@ -41,15 +38,15 @@ exports.login = function login(username, _audience) {
     username,
     metadata: User.getMeta.call(this, username, audience),
   })
-  .then(function remap(props) {
-    return {
-      jwt: props.jwt,
-      user: {
-        username: props.username,
-        metadata: props.metadata,
-      },
-    };
-  });
+    .then(function remap(props) {
+      return {
+        jwt: props.jwt,
+        user: {
+          username: props.username,
+          metadata: props.metadata,
+        },
+      };
+    });
 };
 
 /**
@@ -80,8 +77,9 @@ exports.logout = function logout(token, audience) {
  * @param {String} username
  */
 exports.reset = function reset(username) {
-  return Tokens.drop(username);
+  return Tokens.drop.call(this, username);
 };
+
 
 /**
  * Verifies token and returns decoded version of it
@@ -101,15 +99,17 @@ exports.verify = function verifyToken(token, audience, peek) {
       this.log.debug('invalid token passed: %s', token, err);
       throw new ModelError(ERR_TOKEN_INVALID);
     })
-    .then(function decodedToken(decoded) {
+    .then(decoded => {
       if (audience.indexOf(decoded.aud) === -1) {
         throw new ModelError(ERR_TOKEN_AUDIENCE_MISMATCH);
       }
 
       const { username } = decoded;
-      const lastAccess = Tokens
-        .lastAccess(username, token)
-        .then(peek ? () => Tokens.add(username, token) : noop);
+      let lastAccess = Tokens.lastAccess.call(this, username, token);
+
+      if (!peek) {
+        lastAccess = lastAccess.then(() => Tokens.add.call(this, username, token));
+      }
 
       return lastAccess.return(decoded);
     });

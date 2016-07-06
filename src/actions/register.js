@@ -14,6 +14,7 @@ const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
 const noop = require('lodash/noop');
 const assignAlias = require('./alias.js');
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 /**
  * Verify ip limits
@@ -106,8 +107,8 @@ module.exports = function registerUser(message) {
 
   // message
   const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
-  const captcha = message.hasOwnProperty('captcha') ? message.captcha : false;
-  const metadata = message.hasOwnProperty('metadata') ? message.metadata : false;
+  const captcha = hasOwnProperty.call(message, 'captcha') ? message.captcha : false;
+  const metadata = hasOwnProperty.call(message, 'metadata') ? message.metadata : false;
 
   // task holder
   const logger = this.log.child({ username, action: 'register' });

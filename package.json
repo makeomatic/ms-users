@@ -38,7 +38,7 @@
     "moment": "^2.11.1",
     "ms-conf": "^2.0.0",
     "ms-amqp-transport": "^2.0.0",
-    "ms-mailer-client": "^2.0.0",
+    "ms-mailer-client": "^3.0.0",
     "ms-mailer-templates": "^0.6.1",
     "ms-validation": "^2.0.0",
     "mservice": "^2.3.0",

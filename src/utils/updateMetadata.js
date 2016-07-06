@@ -1,3 +1,5 @@
+/* eslint-disable no-mixed-operators */
+
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');

@@ -1,8 +1,10 @@
 const Promise = require('bluebird');
-const emailValidation = require('../utils/send-email.js');
+const challenge = require('../utils/send-challenge.js');
 const getInternalData = require('../utils/getInternalData.js');
+const generatePassword = require('password-generator');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
+const { MAIL_RESET, MAIL_PASSWORD } = require('../constants.js');
 
 /**
  * @api {amqp} <prefix>.requestPassword Reset Password
@@ -21,7 +23,15 @@ const isBanned = require('../utils/isBanned.js');
  */
 module.exports = function requestPassword(opts) {
   const { username, generateNewPassword } = opts;
-  const action = generateNewPassword ? 'password' : 'reset';
+  const { config: { pwdReset } } = this;
+
+  const ctx = {};
+  const template = generateNewPassword ? MAIL_PASSWORD : MAIL_RESET;
+  const type = 'email';
+
+  if (template === MAIL_PASSWORD) {
+    ctx.password = generatePassword(pwdReset.length, pwdReset.memorable);
+  }
 
   // TODO: make use of remoteip in security logs?
   // var remoteip = opts.remoteip;
@@ -31,6 +41,12 @@ module.exports = function requestPassword(opts) {
     .then(getInternalData)
     .tap(isActive)
     .tap(isBanned)
-    .then(() => emailValidation.send.call(this, username, action))
+    .return({
+      id: username,
+      type,
+      template,
+      ctx,
+    })
+    .then(challenge)
     .return({ success: true });
 };

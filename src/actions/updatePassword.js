@@ -2,20 +2,12 @@ const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
-const emailChallenge = require('../utils/send-email.js');
+const verify = require('../utils/tokens/verify.js');
 const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const userExists = require('../utils/userExists.js');
-const { USERS_DATA } = require('../constants.js');
-
-/**
- * Verifies token and deletes it if it matches
- * @param {Strong} token
- */
-function tokenReset(token) {
-  return emailChallenge.verify.call(this, token, 'reset', true);
-}
+const { USERS_DATA, MAIL_RESET } = require('../constants.js');
 
 /**
  * Verify that username and password match
@@ -78,17 +70,18 @@ module.exports = exports = function updatePassword(opts) {
   // 2 cases - token reset and current password reset
   let promise;
   if (opts.resetToken) {
-    promise = tokenReset.call(this, opts.resetToken);
+    promise = verify.call(this, opts.resetToken, MAIL_RESET, true);
   } else {
     promise = usernamePasswordReset.call(this, opts.username, opts.currentPassword);
   }
 
   // update password
   promise = promise
+    .bind(this)
     .then(username => setPassword.call(this, username, password));
 
   if (invalidateTokens) {
-    promise = promise.tap(username => jwt.reset.call(this, username));
+    promise = promise.tap(jwt.reset);
   }
 
   if (remoteip) {

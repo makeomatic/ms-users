@@ -1,11 +1,10 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
-const URLSafeBase64 = require('urlsafe-base64');
 
 describe('#activate', function activateSuite() {
   const headers = { routingKey: 'users.activate' };
-  const emailValidation = require('../../src/utils/send-email.js');
+  const crypto = require('../../src/utils/tokens/crypto.js');
+  const redisKey = require('../../src/utils/key.js');
   const email = 'v@aminev.me';
 
   beforeEach(global.startService);
@@ -14,7 +13,7 @@ describe('#activate', function activateSuite() {
   beforeEach(function genToken() {
     const { algorithm, secret } = this.users._config.validation;
     const token = this.uuid = 'incredible-secret';
-    this.token = URLSafeBase64.encode(emailValidation.encrypt(algorithm, secret, new Buffer(JSON.stringify({ email, token }))));
+    this.token = crypto.safeEncode(algorithm, secret, email, token);
   });
 
   it('must reject activation when challenge token is invalid', function test() {

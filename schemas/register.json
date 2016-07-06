@@ -38,16 +38,39 @@
       }
     },
     "metadata": {
-      "type": "object",
-      "minProperties": 1
+      "oneOf": [{
+        "type": "object",
+        "minProperties": 1
+      }, {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "minProperties": 1
+        }
+      }]
     },
     "activate": {
       "type": "boolean",
       "default": true
     },
     "audience": {
-      "type": "string",
-      "minLength": 1
+      "oneOf": [{
+        "type": "string",
+        "minLength": 1
+      }, {
+        "type": "array",
+        "minItems": {
+          "$data": "1/metadata/length"
+        },
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }]
+    },
+    "invite": {
+      "type": "string"
     },
     "ipaddress": {
       "type": "string",

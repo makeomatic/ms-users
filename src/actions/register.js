@@ -3,10 +3,12 @@ const Errors = require('common-errors');
 const setMetadata = require('../utils/updateMetadata.js');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
-const emailValidation = require('../utils/send-email.js');
+const generatePassword = require('password-generator');
+const challenge = require('../utils/send-challenge.js');
+const verify = require('../utils/tokens/verify.js');
 const jwt = require('../utils/jwt.js');
 const uuid = require('node-uuid');
-const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_REGISTER } = require('../constants.js');
+const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_REGISTER, MAIL_ACTIVATE, MAIL_INVITE } = require('../constants.js');
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
 const makeCaptchaCheck = require('../utils/checkCaptcha.js');
@@ -89,6 +91,7 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
  *
  * @apiParam (Payload) {String} username - currently only email is supported
  * @apiParam (Payload) {String} audience - will be used to write metadata to
+ * @apiParam (Payload) {String} invite
  * @apiParam (Payload) {String{3..15}} [alias] - alias for username, user will be marked as public. Can only be used when `activate` is `true`
  * @apiParam (Payload) {String} [password] - will be hashed and stored if provided, otherwise generated and sent via email
  * @apiParam (Payload) {Object} [captcha] - google recaptcha container
@@ -102,10 +105,10 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
  */
 module.exports = function registerUser(message) {
   const { redis, config } = this;
-  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
+  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits, pwdReset } = config;
 
   // message
-  const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
+  const { invite, username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
   const captcha = message.hasOwnProperty('captcha') ? message.captcha : false;
   const metadata = message.hasOwnProperty('metadata') ? message.metadata : false;
 
@@ -115,6 +118,10 @@ module.exports = function registerUser(message) {
   // make sure that if alias is truthy then activate is also truthy
   if (alias && !activate) {
     throw new Errors.HttpStatusError(400, 'Account must be activated when setting alias during registration');
+  }
+
+  if (invite && !activate) {
+    throw new Errors.HttpStatusError(400, 'Account must be activated when using invite token');
   }
 
   let promise = Promise.bind(this, username);
@@ -139,6 +146,11 @@ module.exports = function registerUser(message) {
     }
   }
 
+  if (invite) {
+    // do not delete it from DB if we have unsuccessful attempt of registration
+    promise = promise.tap(() => verify.call(this, invite, MAIL_INVITE, false));
+  }
+
   // shared user key
   const userDataKey = redisKey(username, USERS_DATA);
 
@@ -155,12 +167,20 @@ module.exports = function registerUser(message) {
         return password;
       }
 
+      // generate auto password
+      const autoPassword = generatePassword(pwdReset.length, pwdReset.memorable);
+
       // if no password was supplied - we auto-generate it and send it to an email that was provided
       // then we hash it and store in the db
-      return emailValidation
-        .send
-        .call(this, username, MAIL_REGISTER)
-        .then(ctx => ctx.context.password);
+      return challenge.call(this, {
+        id: username,
+        type: 'email',
+        tempalte: MAIL_REGISTER,
+        ctx: {
+          password: autoPassword,
+        },
+      })
+      .return(autoPassword);
     })
     .then(scrypt.hash)
     // step 4 - create user if it wasn't created by some1 else trying to use race-conditions
@@ -176,13 +196,25 @@ module.exports = function registerUser(message) {
         },
       },
     })
-    .then(setMetadata)
-    .return(username);
+    .then(setMetadata);
+
+  if (invite) {
+    promise = promise
+      .then(() => verify.call(this, invite, MAIL_INVITE, true))
+      .then(token => {
+
+      })
+  }
 
   // no instant activation -> send email or skip it based on the settings
   if (!activate) {
     return promise
-      .then(skipChallenge ? noop : emailValidation.send)
+      .return({
+        id: username,
+        type: 'email',
+        template: MAIL_ACTIVATE,
+      })
+      .then(skipChallenge ? noop : challenge)
       .return({ requiresActivation: true });
   }
 

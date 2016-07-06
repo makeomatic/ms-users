@@ -1,14 +1,14 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
 
 describe('#updatePassword', function updatePasswordSuite() {
+  const redisKey = require('../../src/utils/key.js');
+  const challenge = require('../../src/utils/send-challenge.js');
   const headers = { routingKey: 'users.updatePassword' };
   const username = 'v@makeomatic.ru';
   const password = '123';
   const audience = '*.localhost';
-  const emailValidation = require('../../src/utils/send-email.js');
-  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../src/constants.js');
+  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA, MAIL_RESET } = require('../../src/constants.js');
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
@@ -81,7 +81,7 @@ describe('#updatePassword', function updatePasswordSuite() {
 
     describe('token', function tokenSuite() {
       beforeEach(function pretest() {
-        return emailValidation.send.call(this.users, username, 'reset').then(data => {
+        return challenge.call(this.users, { id: username, type: 'email', template: MAIL_RESET }).then(data => {
           this.token = data.context.qs.slice(3);
         });
       });

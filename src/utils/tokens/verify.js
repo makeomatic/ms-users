@@ -43,6 +43,6 @@ module.exports = function verify(string, namespace, expires) {
 
           return null;
         })
-        .return(id);
+        .return(token);
     });
 };

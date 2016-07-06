@@ -14,12 +14,12 @@ const { THROTTLE_NAMESPACE } = require('../../constants.js');
  * @param  {String} [secret=uuid.v4()]
  * @return {Promise} contains { id, secret }
  */
-module.exports = function createToken(id, type, secret = uuid.v4()) {
+module.exports = function createToken({ id, challengeType, expire, secret = uuid.v4() }) {
   const { redis } = this;
-  const namespace = key(THROTTLE_NAMESPACE, type, id);
+  const namespace = key(THROTTLE_NAMESPACE, challengeType, id);
 
   return redis
     .get(namespace)
     .then(isThrottled)
-    .return({ namespace, secret, id });
+    .return({ namespace, expire, secret, id });
 };

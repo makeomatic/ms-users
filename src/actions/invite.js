@@ -1,4 +1,4 @@
-const stringify = JSON.stringify.bind(JSON);
+const stringify = value => JSON.stringify(value);
 const uuid = require('node-uuid');
 const mapValues = require('lodash/mapValues');
 const challenge = require('../utils/send-challenge.js');
@@ -63,6 +63,7 @@ module.exports = function generateInvite({ email, greeting, expire = 0, metadata
       type: MAIL_INVITE,
       wait: false,
       secret: token,
+      expire: parseInt(data[INVITATIONS_FIELD_EXPIRE], 10),
       ctx: {
         greeting,
       },

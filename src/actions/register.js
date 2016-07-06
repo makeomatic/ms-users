@@ -5,9 +5,10 @@ const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
 const generatePassword = require('password-generator');
 const challenge = require('../utils/send-challenge.js');
+const verify = require('../utils/tokens/verify.js');
 const jwt = require('../utils/jwt.js');
 const uuid = require('node-uuid');
-const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_REGISTER, MAIL_ACTIVATE } = require('../constants.js');
+const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_REGISTER, MAIL_ACTIVATE, MAIL_INVITE } = require('../constants.js');
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
 const makeCaptchaCheck = require('../utils/checkCaptcha.js');
@@ -90,6 +91,7 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
  *
  * @apiParam (Payload) {String} username - currently only email is supported
  * @apiParam (Payload) {String} audience - will be used to write metadata to
+ * @apiParam (Payload) {String} invite
  * @apiParam (Payload) {String{3..15}} [alias] - alias for username, user will be marked as public. Can only be used when `activate` is `true`
  * @apiParam (Payload) {String} [password] - will be hashed and stored if provided, otherwise generated and sent via email
  * @apiParam (Payload) {Object} [captcha] - google recaptcha container
@@ -145,7 +147,8 @@ module.exports = function registerUser(message) {
   }
 
   if (invite) {
-    promise = promise.tap(verifyInvitation(invite));
+    // do not delete it from DB if we have unsuccessful attempt of registration
+    promise = promise.tap(() => verify.call(this, invite, MAIL_INVITE, false));
   }
 
   // shared user key
@@ -193,16 +196,24 @@ module.exports = function registerUser(message) {
         },
       },
     })
-    .then(setMetadata)
-    .return({
-      id: username,
-      type: 'email',
-      template: MAIL_ACTIVATE,
-    });
+    .then(setMetadata);
+
+  if (invite) {
+    promise = promise
+      .then(() => verify.call(this, invite, MAIL_INVITE, true))
+      .then(token => {
+
+      })
+  }
 
   // no instant activation -> send email or skip it based on the settings
   if (!activate) {
     return promise
+      .return({
+        id: username,
+        type: 'email',
+        template: MAIL_ACTIVATE,
+      })
       .then(skipChallenge ? noop : challenge)
       .return({ requiresActivation: true });
   }

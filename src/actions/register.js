@@ -50,7 +50,7 @@ function checkLimits(redis, registrationLimits, ipaddress) {
 /**
  * Creates user with a given hash
  */
-function createUser(redis, username, activate, deleteInactiveAccounts, userDataKey) {
+function createUser(redis, username, activate, deleteInactiveAccounts, userDataKey, dateOfRegistration) {
   /**
    * Input from scrypt.hash
    */
@@ -59,6 +59,7 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
 
     pipeline.hsetnx(userDataKey, 'password', hash);
     pipeline.hsetnx(userDataKey, USERS_ACTIVE_FLAG, activate);
+    pipeline.hsetnx(userDataKey, 'dateOfRegistration', dateOfRegistration);
 
     return pipeline
       .exec()
@@ -143,6 +144,8 @@ module.exports = function registerUser(message) {
   // shared user key
   const userDataKey = redisKey(username, USERS_DATA);
 
+  const dateOfRegistration = Date.now()
+
   // step 2, verify that user _still_ does not exist
   promise = promise
     // verify user does not exist at this point
@@ -165,7 +168,7 @@ module.exports = function registerUser(message) {
     })
     .then(scrypt.hash)
     // step 4 - create user if it wasn't created by some1 else trying to use race-conditions
-    .then(createUser(redis, username, activate, deleteInactiveAccounts, userDataKey))
+    .then(createUser(redis, username, activate, deleteInactiveAccounts, userDataKey, dateOfRegistration))
     // step 5 - save metadata if present
     .return({
       username,
@@ -173,6 +176,7 @@ module.exports = function registerUser(message) {
       metadata: {
         $set: {
           username,
+          dateOfRegistration,
           ...metadata || {},
         },
       },

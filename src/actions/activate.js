@@ -2,7 +2,13 @@ const Promise = require('bluebird');
 const emailVerification = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const { User } = require('../model/usermodel');
+const { MAIL_ACTIVATE } = require('../constants');
 
+/**
+ * Activate existing users
+ * @param opts
+ * @return {Promise}
+ */
 module.exports = function verifyChallenge(opts) {
   // TODO: add security logs
   // var remoteip = opts.remoteip;
@@ -11,7 +17,7 @@ module.exports = function verifyChallenge(opts) {
   const audience = opts.audience || config.defaultAudience;
 
   function verifyToken() {
-    return emailVerification.verify.call(this, token, 'activate', config.validation.ttl > 0);
+    return emailVerification.verify.call(this, token, MAIL_ACTIVATE, config.validation.ttl > 0);
   }
 
   function hook(user) {

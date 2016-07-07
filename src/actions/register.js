@@ -176,7 +176,6 @@ module.exports = function registerUser(message) {
       metadata: {
         $set: {
           username,
-          dateOfRegistration,
           ...metadata || {},
         },
       },

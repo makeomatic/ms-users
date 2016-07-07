@@ -2,9 +2,7 @@ const Promise = require('bluebird');
 const emailChallenge = require('../utils/send-email.js');
 const isActive = require('../utils/isActive');
 const { User } = require('../model/usermodel');
-const { ModelError, 
-  ERR_ACCOUNT_NOT_ACTIVATED, 
-  ERR_USERNAME_ALREADY_ACTIVE } = require('../model/modelError');
+const { ModelError, ERR_ACCOUNT_NOT_ACTIVATED, ERR_USERNAME_ALREADY_ACTIVE } = require('../model/modelError');
 
 module.exports = function sendChallenge(message) {
   const { username } = message;

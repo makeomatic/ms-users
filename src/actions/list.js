@@ -2,8 +2,11 @@ const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const mapValues = require('lodash/mapValues');
 const fsort = require('redis-filtered-sort');
+const getMetadata = require('../utils/getMetadata.js');
+const getInternalData = require('../utils/getInternalData.js');
 const JSONParse = JSON.parse.bind(JSON);
 const { USERS_INDEX, USERS_PUBLIC_INDEX, USERS_METADATA } = require('../constants.js');
+const pick = require('lodash/pick');
 
 /**
  * @api {amqp} <prefix>.list Retrieve Registered Users
@@ -45,19 +48,24 @@ module.exports = function iterateOverActiveUsers(opts) {
         ];
       }
 
-      const pipeline = redis.pipeline();
-      ids.forEach(id => {
-        pipeline.hgetall(redisKey(id, USERS_METADATA, audience));
+      const internalFields = ['dateOfRegistration']
+
+      const data = Promise.map(ids, id => {
+        return Promise.all([
+          getMetadata(id, audience),
+          getInternalData(id).then(data => pick(data, internalFields)),
+        ]);
       });
+
       return Promise.all([
         ids,
-        pipeline.exec(),
+        data,
         length,
       ]);
     })
     .spread((ids, props, length) => {
       const users = ids.map(function remapData(id, idx) {
-        const data = props[idx][1];
+        const data = Object.assign({}, props[idx][0], props[idx][1]);
         const account = {
           id,
           metadata: {

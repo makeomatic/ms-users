@@ -4,7 +4,7 @@ const Errors = require('common-errors');
 const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
 const { NotImplementedError } = Errors;
-const defaultOpts = require('./defaults.js');
+const _defaultOpts = require('./defaults.js');
 
 /**
  * @namespace Users
@@ -15,7 +15,7 @@ module.exports = class Users extends Mservice {
    * Configuration options for the service
    * @type {Object}
    */
-  static defaultOpts = defaultOpts;
+  static defaultOpts = _defaultOpts;
 
   /**
    * @namespace Users

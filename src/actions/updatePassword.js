@@ -46,6 +46,22 @@ function setPassword(_username, password) {
     .then(User.setPassword);
 }
 
+/**
+ * @api {amqp} <prefix>.updatePassword Update Password
+ * @apiVersion 1.0.0
+ * @apiName UpdatePassword
+ * @apiGroup Users
+ *
+ * @apiDescription Allows one to update password via current password + username combo or via verification token. Optionally allows to invalidate
+ * all issued JWT token for a given user. Valid input includes combos of `username`, `currentPassword` OR `resetToken`.
+ *
+ * @apiParam (Payload) {String} [username] - currently only email is supported
+ * @apiParam (Payload) {String} [currentPassword] - current password
+ * @apiParam (Payload) {String} [resetToken] - must be present if `username` or `currentPassword` is not
+ * @apiParam (Payload) {String} newPassword - password will be changed to this
+ * @apiParam (Payload) {Boolean} [invalidateTokens=false] - if set to `true` will invalidate issued tokens
+ * @apiParam (Payload) {String} [remoteip] - will be used for rate limiting if supplied
+ */
 module.exports = exports = function updatePassword(opts) {
   const { newPassword: password, remoteip } = opts;
   const invalidateTokens = !!opts.invalidateTokens;

@@ -7,22 +7,41 @@ const { MAIL_REGISTER } = require('../constants.js');
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
 const noop = require('lodash/noop');
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 const { User, Utils } = require('../model/usermodel');
 const { ModelError, ERR_USERNAME_NOT_EXISTS, ERR_ACCOUNT_MUST_BE_ACTIVATED, ERR_USERNAME_ALREADY_EXISTS } = require('../model/modelError');
 
 /**
- * Registration handler
- * @param  {Object} message
- * @return {Promise}
+ * @api {amqp} <prefix>.register Create User
+ * @apiVersion 1.0.0
+ * @apiName RegisterUser
+ * @apiGroup Users
+ *
+ * @apiDescription Provides ability to register users, with optional throttling, captcha checks & email verification.
+ * Based on provided arguments either returns "OK" indicating that user needs to complete challenge or JWT token & user
+ * object
+ *
+ * @apiParam (Payload) {String} username - currently only email is supported
+ * @apiParam (Payload) {String} audience - will be used to write metadata to
+ * @apiParam (Payload) {String{3..15}} [alias] - alias for username, user will be marked as public. Can only be used when `activate` is `true`
+ * @apiParam (Payload) {String} [password] - will be hashed and stored if provided, otherwise generated and sent via email
+ * @apiParam (Payload) {Object} [captcha] - google recaptcha container
+ * @apiParam (Payload) {String} [captcha.response] - token passed from client to verify at google
+ * @apiParam (Payload) {String} [captcha.remoteip] - ip for security check at google
+ * @apiParam (Payload) {String} [captcha.secret] - shared secret between us and google
+ * @apiParam (Payload) {Object} [metadata] - metadata to be saved into `audience` upon completing registration
+ * @apiParam (Payload) {Boolean} [activate=false] - whether to activate the user instantly or not
+ * @apiParam (Payload) {String} [ipaddress] - used for security logging
+ * @apiParam (Payload) {Boolean} [skipChallenge=false] - if `activate` is `false` disables sending challenge
  */
 module.exports = function registerUser(message) {
   const { config: { registrationLimits } } = this;
 
   // message
   const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
-  const captcha = message.hasOwnProperty('captcha') ? message.captcha : false;
-  const metadata = message.hasOwnProperty('metadata') ? message.metadata : false;
+  const captcha = hasOwnProperty.call(message, 'captcha') ? message.captcha : false;
+  const metadata = hasOwnProperty.call(message, 'metadata') ? message.metadata : false;
 
   // task holder
   const logger = this.log.child({ username, action: 'register' });

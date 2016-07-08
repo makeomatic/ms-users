@@ -3,10 +3,16 @@ const jwt = require('../utils/jwt.js');
 const { User } = require('../model/usermodel');
 
 /**
- * Verifies that passed token is signed correctly, returns associated metadata with it
+ * @api {amqp} <prefix>.verify JWT verification
+ * @apiVersion 1.0.0
+ * @apiName verifyJWT
+ * @apiGroup Users
  *
- * @param  {Object}   opts
- * @returns {Promise}
+ * @apiDescription Verifies passed JWT and returns deserialized user object. Must be used for session management
+ *
+ * @apiParam (Payload) {String} token - signed JWT token
+ * @apiParam (Payload) {String[]} audience - which namespaces of metadata to return
+ *
  */
 module.exports = function verify(opts) {
   const { defaultAudience } = this.config.jwt;

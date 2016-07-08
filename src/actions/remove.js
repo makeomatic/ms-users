@@ -4,6 +4,16 @@ const { User } = require('../model/usermodel');
 const { ModelError, ERR_ADMIN_IS_UNTOUCHABLE } = require('../model/modelError');
 
 
+/**
+ * @api {amqp} <prefix>.remove Remove User
+ * @apiVersion 1.0.0
+ * @apiName RemoveUser
+ * @apiGroup Users
+ *
+ * @apiDescription Removes user from system. Be careful as this operation is not revertable.
+ *
+ * @apiParam (Payload) {String} username - currently only email is supported
+ */
 module.exports = function removeUser({ username }) {
   const audience = this.config.jwt.defaultAudience;
 

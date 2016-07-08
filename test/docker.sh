@@ -2,7 +2,7 @@
 
 set -x
 
-BIN=./node_modules/.bin
+BIN=node_modules/.bin
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DC="$DIR/docker-compose.yml"
 PATH=$PATH:$DIR/.bin/
@@ -11,6 +11,7 @@ MOCHA=$BIN/_mocha
 COVER="$BIN/isparta cover"
 NODE=$BIN/babel-node
 TESTS=${TESTS:-test/suites/*.js}
+COMPOSE_VER=${COMPOSE_VER:-1.7.1}
 COMPOSE="docker-compose -f $DC"
 
 if ! [ -x "$(which docker-compose)" ]; then
@@ -19,38 +20,35 @@ if ! [ -x "$(which docker-compose)" ]; then
   chmod +x $DIR/.bin/docker-compose
 fi
 
-# add trap handler
 if [[ x"$CI" == x"true" ]]; then
-  trap "$COMPOSE stop; $COMPOSE rm -v -f;" EXIT
+  trap "$COMPOSE stop; $COMPOSE rm -f -v;" EXIT
 else
-  WARN="containers are still running, please type the following commands to stop them:"
-  trap "printf \"$WARN\n\n${COMPOSE} stop;\n${COMPOSE} rm -v -f;\n\n\"" EXIT
+  trap "printf \"to remove containers use:\n\n$COMPOSE stop;\n$COMPOSE rm -f -v;\n\n\"" EXIT
 fi
 
-$COMPOSE up --remove-orphans -d
+# bring compose up
+$COMPOSE up -d
 
-# rebuild if needed
+echo "cleaning old coverage"
+rm -rf ./coverage
+
+set -e
+
 if [[ "$SKIP_REBUILD" != "1" ]]; then
   echo "rebuilding native dependencies..."
   docker exec tester npm rebuild
 fi
 
-# clean coverage
-echo "cleaning old coverage"
-rm -rf ./coverage
-
-# tests
 echo "running tests"
 for fn in $TESTS; do
-  echo "running $fn"
-  docker exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
+  echo "running tests for $fn"
+  docker exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn"
 done
 
-# coverage report
 echo "started generating combined coverage"
-docker exec tester node ./test/aggregate-report.js
+docker exec tester test/aggregate-report.js
 
-echo "uploading coverage report from ./coverage/lcov.info"
-if [[ "$CI" == "true" ]]; then
+if [[ x"$CI" == x"true" ]]; then
+  echo "uploading coverage report from ./coverage/lcov.info"
   $BIN/codecov -f ./coverage/lcov.info
 fi

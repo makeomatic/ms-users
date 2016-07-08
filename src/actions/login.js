@@ -6,6 +6,21 @@ const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const { User, Attempts } = require('../model/usermodel');
 
+/**
+ * @api {amqp} <prefix>.login User Authentication
+ * @apiVersion 1.0.0
+ * @apiName LoginUser
+ * @apiGroup Users
+ *
+ * @apiDescription Provides various strategies for user authentication. Returns signed JWT token that could be used
+ * for state resolution and authorization, as well as user object
+ *
+ * @apiParam (Payload) {String} username - currently only email
+ * @apiParam (Payload) {String} password - plain text password, will be compared to store hash
+ * @apiParam (Payload) {String} audience - metadata to be returned, as well embedded into JWT token
+ * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
+ *
+ */
 module.exports = function login(opts) {
   const config = this.config.jwt;
   const { password } = opts;

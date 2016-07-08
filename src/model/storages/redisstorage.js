@@ -261,21 +261,21 @@ exports.User = {
    */
   handleAudience(pipeline, key, metadata) {
     const $remove = metadata.$remove;
-    const $removeOps = ($remove && $remove.length || 0);
+    const $removeOps = ($remove && $remove.length) || 0;
     if ($removeOps > 0) {
       pipeline.hdel(key, $remove);
     }
 
     const $set = metadata.$set;
     const $setKeys = $set && Object.keys($set);
-    const $setLength = $setKeys && $setKeys.length || 0;
+    const $setLength = ($setKeys && $setKeys.length) || 0;
     if ($setLength > 0) {
       pipeline.hmset(key, mapValues($set, JSONStringify));
     }
 
     const $incr = metadata.$incr;
     const $incrFields = $incr && Object.keys($incr);
-    const $incrLength = $incrFields && $incrFields.length || 0;
+    const $incrLength = ($incrFields && $incrFields.length) || 0;
     if ($incrLength > 0) {
       $incrFields.forEach(fieldName => {
         pipeline.hincrby(key, fieldName, $incr[fieldName]);

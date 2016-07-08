@@ -132,7 +132,7 @@ exports.User = {
         return {
           users,
           cursor: offset + limit,
-          page: Math.floor(offset / limit + 1),
+          page: Math.floor((offset / limit) + 1),
           pages: Math.ceil(length / limit),
         };
       });
@@ -261,7 +261,7 @@ exports.User = {
    */
   handleAudience(pipeline, key, metadata) {
     const $remove = metadata.$remove;
-    const $removeOps = $remove && $remove.length || 0;
+    const $removeOps = ($remove && $remove.length || 0);
     if ($removeOps > 0) {
       pipeline.hdel(key, $remove);
     }

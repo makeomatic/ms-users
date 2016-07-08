@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
-const getInternalData = require('../utils/getInternalData.js');
 const pick = require('lodash/pick');
+const { User } = require('../model/usermodel');
 
 /**
  * @api {amqp} <prefix>.getInternalData Retrieve Internal Data
@@ -21,7 +21,7 @@ module.exports = function internalData(message) {
 
   return Promise
     .bind(this, message.username)
-    .then(getInternalData)
+    .then(User.getOne)
     .then(data => {
       return fields ? pick(data, fields) : data;
     });

@@ -1,13 +1,17 @@
 const Errors = require('common-errors');
 const Promise = require('bluebird'); // jshint ignore: line
 const uuid = require('node-uuid');
-const redisKey = require('../utils/key.js');
 const crypto = require('crypto');
 const URLSafeBase64 = require('urlsafe-base64');
 const render = require('ms-mailer-templates');
 const { updatePassword } = require('../actions/updatePassword.js');
 const generatePassword = require('password-generator');
 const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER } = require('../constants.js');
+const { Tokens } = require('../model/usermodel');
+const { ModelError, ERR_TOKEN_CANT_DECODE, ERR_EMAIL_ALREADY_SENT, ERR_TOKEN_BAD_EMAIL,
+  ERR_TOKEN_EXPIRED, ERR_TOKEN_MISS_EMAIL } = require('../model/modelError');
+
+// TODO: merge this code with master!!!
 
 /**
  * Throttled error
@@ -16,7 +20,7 @@ const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER } = require('../
 function isThrottled(compare) {
   return function comparator(reply) {
     if (!!reply === compare) {
-      throw new Errors.HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email'); // eslint-disable-line
+      throw new ModelError(ERR_EMAIL_ALREADY_SENT);
     }
   };
 }
@@ -86,7 +90,7 @@ exports.safeDecode = function safeDecode(algorithm, secret, string) {
     .bind(this)
     .catch(function remapError(err) {
       this.log.warn('cant decode token', err);
-      throw new Errors.HttpStatusError(403, 'could not decode token');
+      throw new ModelError(ERR_TOKEN_CANT_DECODE);
     });
 };
 
@@ -98,17 +102,17 @@ exports.safeDecode = function safeDecode(algorithm, secret, string) {
  * @return {Promise}
  */
 exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
-  const { redis, config, mailer } = this;
+  const { config, mailer } = this;
   const { validation, server } = config;
-  const { ttl, throttle, subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation; // eslint-disable-line
+  const { subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation; // eslint-disable-line
 
   // method specific stuff
-  const throttleEmailsKey = redisKey(`vthrottle-${type}`, email);
   const activationSecret = uuid.v4();
   const logger = this.log.child({ action: 'sendEmail', email });
 
-  return redis
-    .get(throttleEmailsKey)
+  return Promise
+    .bind(this, [type, email])
+    .spread(Tokens.getEmailThrottleState)
     .then(isThrottled(true))
     .then(function generateContent() {
       // generate context
@@ -148,21 +152,11 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
         return updatePassword.call(this, email, context.password);
       }
 
-      const throttleArgs = [throttleEmailsKey, 1, 'NX'];
-      if (throttle > 0) {
-        throttleArgs.splice(2, 0, 'EX', throttle);
-      }
-      return redis
-        .set(throttleArgs)
+      return Promise
+        .bind(this, [type, email, activationSecret])
+        .spread(Tokens.setEmailThrottleState)
         .then(isThrottled(false))
-        .then(function updateSecret() {
-          const secretKey = redisKey(`vsecret-${type}`, activationSecret);
-          const args = [secretKey, email];
-          if (ttl > 0) {
-            args.push('EX', ttl);
-          }
-          return redis.set(args);
-        });
+        .then(() => Tokens.setEmailThrottleToken.call(this, type, email, activationSecret));
     })
     .then(function definedSubjectAndSend({ context, emailTemplate }) {
       const mail = {
@@ -199,35 +193,35 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
  * @return {Promise}
  */
 exports.verify = function verifyToken(string, namespace = MAIL_ACTIVATE, expires) {
-  const { redis, config } = this;
-  const { validation } = config;
-  const { secret: validationSecret, algorithm } = validation;
+  const { config: { validation: { secret: validationSecret, algorithm } } } = this;
 
   return exports
     .safeDecode
     .call(this, algorithm, validationSecret, string)
-    .then(function inspectResult(message) {
+    .then(message => {
       const { email, token } = message;
 
       if (!email || !token) {
-        const msg = 'Decoded token misses references to email and/or secret';
-        throw new Errors.HttpStatusError(403, msg);
+        throw new ModelError(ERR_TOKEN_MISS_EMAIL);
       }
 
-      const secretKey = redisKey(`vsecret-${namespace}`, token);
-      return redis
-        .get(secretKey)
-        .then(function inspectAssociatedData(associatedEmail) {
+      return Promise
+//        .bind(this)
+//        .then(() => Tokens.getEmailThrottleToken(namespace, token))
+//        .then(function inspectAssociatedData(associatedEmail) {
+        .bind(this, [namespace, token])
+        .spread(Tokens.getEmailThrottleToken)
+        .then(associatedEmail => {
           if (!associatedEmail) {
-            throw new Errors.HttpStatusError(404, 'token expired or is invalid');
+            throw new ModelError(ERR_TOKEN_EXPIRED);
           }
 
           if (associatedEmail !== email) {
-            throw new Errors.HttpStatusError(412, 'associated email doesn\'t match token');
+            throw new ModelError(ERR_TOKEN_BAD_EMAIL);
           }
 
           if (expires) {
-            return redis.del(secretKey);
+            return Tokens.dropEmailThrottleToken.call(this, namespace, token);
           }
 
           return null;

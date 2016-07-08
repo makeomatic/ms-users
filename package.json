@@ -5,7 +5,7 @@
   "scripts": {
     "compile": "rm -rf ./lib; babel -d ./lib ./src",
     "prepublish": "npm run lint && npm run compile",
-    "test": "npm run lint && ./test/docker.sh",
+    "test": "npm run lint && bash ./test/docker.sh",
     "start": "node ./bin/mservice.js | bunyan -o short",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "doc": "apidoc -i ./src/actions -v -o ./docs",
@@ -49,9 +49,8 @@
   "devDependencies": {
     "apidoc": "^0.16.1",
     "babel-cli": "^6.10.1",
-    "babel-eslint": "^6.0.5",
+    "babel-eslint": "^6.1.0",
     "babel-plugin-transform-class-properties": "^6.10.2",
-    "babel-plugin-transform-es2015-spread": "^6.0.0",
     "babel-plugin-transform-object-rest-spread": "^6.0.0",
     "babel-plugin-transform-strict-mode": "^6.0.0",
     "babel-register": "^6.5.2",
@@ -64,7 +63,7 @@
     "eslint-plugin-mocha": "^4.0.0",
     "faker": "^3.0.1",
     "isparta": "^4.0.0",
-    "istanbul": "^0.4.2",
+    "istanbul": "^0.4.4",
     "json": "^9.0.4",
     "latest-version-cli": "^1.0.0",
     "mocha": "^2.4.5",

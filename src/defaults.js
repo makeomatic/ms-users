@@ -1,5 +1,5 @@
 const path = require('path');
-
+const resolveMessage = require('./messageResolver.js');
 /**
  * Contains default options for users microservice
  * @type {Object}
@@ -19,6 +19,8 @@ module.exports = {
     initRoutes: true,
     // automatically init router
     initRouter: true,
+    // onComplete handler with error wrapping
+    onComplete: resolveMessage,
   },
   captcha: {
     secret: 'put-your-real-gcaptcha-secret-here',

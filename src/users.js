@@ -4,7 +4,7 @@ const Errors = require('common-errors');
 const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
 const { NotImplementedError } = Errors;
-const defaultOpts = require('./defaults.js');
+const _defaultOpts = require('./defaults.js');
 
 /**
  * @namespace Users
@@ -15,7 +15,7 @@ module.exports = class Users extends Mservice {
    * Configuration options for the service
    * @type {Object}
    */
-  static defaultOpts = defaultOpts;
+  static defaultOpts = _defaultOpts;
 
   /**
    * @namespace Users
@@ -31,7 +31,7 @@ module.exports = class Users extends Mservice {
       this.log.fatal('Invalid configuration:', error.toJSON());
       throw error;
     }
-
+// повесить логику выбора адаптера можно повесить сюда, экшн долежн выполниться позже, можно лочить принятие сообщений внутри роута
     this.on('plugin:connect:amqp', (amqp) => {
       this._mailer = new Mailer(amqp, config.mailer);
     });
@@ -75,3 +75,4 @@ module.exports = class Users extends Mservice {
   initFakeAccounts = require('./accounts/init-dev.js');
 
 };
+

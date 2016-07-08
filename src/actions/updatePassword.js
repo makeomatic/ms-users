@@ -1,13 +1,11 @@
 const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
-const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const emailChallenge = require('../utils/send-email.js');
-const getInternalData = require('../utils/getInternalData.js');
-const isActive = require('../utils/isActive.js');
-const isBanned = require('../utils/isBanned.js');
-const userExists = require('../utils/userExists.js');
-const { USERS_DATA } = require('../constants.js');
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
+const { User, Attempts } = require('../model/usermodel');
+
 
 /**
  * Verifies token and deletes it if it matches
@@ -25,7 +23,7 @@ function tokenReset(token) {
 function usernamePasswordReset(username, password) {
   return Promise
     .bind(this, username)
-    .then(getInternalData)
+    .then(User.getOne)
     .tap(isActive)
     .tap(isBanned)
     .tap(data => scrypt.verify(data.password, password))
@@ -38,20 +36,14 @@ function usernamePasswordReset(username, password) {
  * @param {String} password
  */
 function setPassword(_username, password) {
-  const { redis } = this;
-
   return Promise
     .bind(this, _username)
-    .then(userExists)
+    .then(User.getUsername)
     .then(username => Promise.props({
       username,
       hash: scrypt.hash(password),
     }))
-    .then(({ username, hash }) =>
-      redis
-        .hset(redisKey(username, USERS_DATA), 'password', hash)
-        .return(username)
-    );
+    .then(User.setPassword);
 }
 
 /**
@@ -71,7 +63,6 @@ function setPassword(_username, password) {
  * @apiParam (Payload) {String} [remoteip] - will be used for rate limiting if supplied
  */
 module.exports = exports = function updatePassword(opts) {
-  const { redis } = this;
   const { newPassword: password, remoteip } = opts;
   const invalidateTokens = !!opts.invalidateTokens;
 
@@ -92,8 +83,8 @@ module.exports = exports = function updatePassword(opts) {
   }
 
   if (remoteip) {
-    promise = promise.tap(function resetLock(username) {
-      return redis.del(redisKey(username, 'ip', remoteip));
+    promise = promise.tap(username => {
+      return (new Attempts(this)).drop(username, remoteip);
     });
   }
 

@@ -1,6 +1,5 @@
 const Promise = require('bluebird');
-const updateMetadata = require('../utils/updateMetadata.js');
-const userExists = require('../utils/userExists.js');
+const { User } = require('../model/usermodel');
 
 /**
  * @api {amqp} <prefix>.updateMetadata Update Metadata
@@ -21,7 +20,7 @@ const userExists = require('../utils/userExists.js');
 module.exports = function updateMetadataAction(message) {
   return Promise
     .bind(this, message.username)
-    .then(userExists)
+    .then(User.getUsername)
     .then(username => ({ ...message, username }))
-    .then(updateMetadata);
+    .then(User.setMeta);
 };

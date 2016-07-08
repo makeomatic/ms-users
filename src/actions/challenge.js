@@ -1,8 +1,8 @@
 const Promise = require('bluebird');
-const Errors = require('common-errors');
 const emailChallenge = require('../utils/send-email.js');
-const getInternalData = require('../utils/getInternalData.js');
-const isActive = require('../utils/isActive.js');
+const isActive = require('../utils/isActive');
+const { User } = require('../model/usermodel');
+const { ModelError, ERR_ACCOUNT_NOT_ACTIVATED, ERR_USERNAME_ALREADY_ACTIVE } = require('../model/modelError');
 
 /**
  * @api {amqp} <prefix>.challenge Creates user challenges
@@ -28,9 +28,9 @@ module.exports = function sendChallenge(message) {
 
   return Promise
     .bind(this, username)
-    .then(getInternalData)
+    .then(User.getOne)
     .tap(isActive)
-    .throw(new Errors.HttpStatusError(417, `${username} is already active`))
-    .catchReturn({ statusCode: 412 }, username)
+    .throw(new ModelError(ERR_USERNAME_ALREADY_ACTIVE, username))
+    .catchReturn({ code: ERR_ACCOUNT_NOT_ACTIVATED }, username)
     .then(emailChallenge.send);
 };

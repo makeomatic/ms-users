@@ -1,8 +1,8 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
 
 describe('#requestPassword', function requestPasswordSuite() {
+  const redisKey = require('../../src/utils/key.js');
   const headers = { routingKey: 'users.requestPassword' };
   const username = 'v@makeomatic.ru';
   const audience = 'requestPassword';

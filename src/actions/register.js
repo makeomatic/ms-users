@@ -1,82 +1,16 @@
 const Promise = require('bluebird');
-const Errors = require('common-errors');
-const setMetadata = require('../utils/updateMetadata.js');
 const scrypt = require('../utils/scrypt.js');
-const redisKey = require('../utils/key.js');
 const emailValidation = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
-const uuid = require('node-uuid');
-const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_REGISTER } = require('../constants.js');
+const verifyGoogleCaptcha = require('../utils/verifyGoogleCaptcha');
+const { MAIL_REGISTER } = require('../constants.js');
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
-const makeCaptchaCheck = require('../utils/checkCaptcha.js');
-const userExists = require('../utils/userExists.js');
-const aliasExists = require('../utils/aliasExists.js');
 const noop = require('lodash/noop');
-const assignAlias = require('./alias.js');
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-/**
- * Verify ip limits
- * @param  {redisCluster} redis
- * @param  {Object} registrationLimits
- * @param  {String} ipaddress
- * @return {Function}
- */
-function checkLimits(redis, registrationLimits, ipaddress) {
-  const { ip: { time, times } } = registrationLimits;
-  const ipaddressLimitKey = redisKey('reg-limit', ipaddress);
-  const now = Date.now();
-  const old = now - time;
-
-  return function iplimits() {
-    return redis
-      .pipeline()
-      .zadd(ipaddressLimitKey, now, uuid.v4())
-      .pexpire(ipaddressLimitKey, time)
-      .zremrangebyscore(ipaddressLimitKey, '-inf', old)
-      .zcard(ipaddressLimitKey)
-      .exec()
-      .then(props => {
-        const cardinality = props[3][1];
-        if (cardinality > times) {
-          const msg = 'You can\'t register more users from your ipaddress now';
-          throw new Errors.HttpStatusError(429, msg);
-        }
-      });
-  };
-}
-
-/**
- * Creates user with a given hash
- */
-function createUser(redis, username, activate, deleteInactiveAccounts, userDataKey) {
-  /**
-   * Input from scrypt.hash
-   */
-  return function create(hash) {
-    const pipeline = redis.pipeline();
-
-    pipeline.hsetnx(userDataKey, 'password', hash);
-    pipeline.hsetnx(userDataKey, USERS_ACTIVE_FLAG, activate);
-
-    return pipeline
-      .exec()
-      .spread(function insertedUserData(passwordSetResponse) {
-        if (passwordSetResponse[1] === 0) {
-          throw new Errors.HttpStatusError(412, `User "${username}" already exists`);
-        }
-
-        if (!activate && deleteInactiveAccounts >= 0) {
-          // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
-          // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
-          return redis.expire(userDataKey, deleteInactiveAccounts);
-        }
-
-        return null;
-      });
-  };
-}
+const { User, Utils } = require('../model/usermodel');
+const { ModelError, ERR_USERNAME_NOT_EXISTS, ERR_ACCOUNT_MUST_BE_ACTIVATED, ERR_USERNAME_ALREADY_EXISTS } = require('../model/modelError');
 
 /**
  * @api {amqp} <prefix>.register Create User
@@ -102,8 +36,7 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
  * @apiParam (Payload) {Boolean} [skipChallenge=false] - if `activate` is `false` disables sending challenge
  */
 module.exports = function registerUser(message) {
-  const { redis, config } = this;
-  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
+  const { config: { registrationLimits } } = this;
 
   // message
   const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
@@ -115,7 +48,7 @@ module.exports = function registerUser(message) {
 
   // make sure that if alias is truthy then activate is also truthy
   if (alias && !activate) {
-    throw new Errors.HttpStatusError(400, 'Account must be activated when setting alias during registration');
+    throw new ModelError(ERR_ACCOUNT_MUST_BE_ACTIVATED);
   }
 
   let promise = Promise.bind(this, username);
@@ -123,7 +56,7 @@ module.exports = function registerUser(message) {
   // optional captcha verification
   if (captcha) {
     logger.debug('verifying captcha');
-    promise = promise.tap(makeCaptchaCheck(redis, username, captcha, captchaConfig));
+    promise = promise.tap(Utils.checkCaptcha.call(this, username, captcha, verifyGoogleCaptcha));
   }
 
   if (registrationLimits) {
@@ -136,20 +69,17 @@ module.exports = function registerUser(message) {
     }
 
     if (registrationLimits.ip && ipaddress) {
-      promise = promise.tap(checkLimits(redis, registrationLimits, ipaddress));
+      promise = promise.tap(Utils.checkIPLimits.call(this, ipaddress));
     }
   }
-
-  // shared user key
-  const userDataKey = redisKey(username, USERS_DATA);
 
   // step 2, verify that user _still_ does not exist
   promise = promise
     // verify user does not exist at this point
-    .tap(userExists)
-    .throw(new Errors.HttpStatusError(409, `"${username}" already exists`))
-    .catchReturn({ statusCode: 404 }, username)
-    .tap(alias ? aliasExists(alias, true) : noop)
+    .tap(User.getUsername)
+    .throw(new ModelError(ERR_USERNAME_ALREADY_EXISTS, username))
+    .catchReturn({ code: ERR_USERNAME_NOT_EXISTS }, username)
+    .tap(alias ? () => User.checkAlias.call(this, alias) : noop)
     // step 3 - encrypt password
     .then(() => {
       if (password) {
@@ -165,7 +95,7 @@ module.exports = function registerUser(message) {
     })
     .then(scrypt.hash)
     // step 4 - create user if it wasn't created by some1 else trying to use race-conditions
-    .then(createUser(redis, username, activate, deleteInactiveAccounts, userDataKey))
+    .then((hash) => User.create.call(this, username, alias, hash, activate))
     // step 5 - save metadata if present
     .return({
       username,
@@ -177,7 +107,7 @@ module.exports = function registerUser(message) {
         },
       },
     })
-    .then(setMetadata)
+    .then(User.setMeta)
     .return(username);
 
   // no instant activation -> send email or skip it based on the settings
@@ -189,21 +119,10 @@ module.exports = function registerUser(message) {
 
   // perform instant activation
   return promise
-    // add to redis index
-    .then(() => redis.sadd(USERS_INDEX, username))
-    // call hook
+  // call hook
     .return(['users:activate', username, audience])
     .spread(this.hook)
-    // assign alias if specified
-    .tap(() => {
-      if (!alias) {
-        return null;
-      }
-
-      // adds on-registration alias to the user
-      return assignAlias.call(this, { username, alias });
-    })
-    // login user
+  // login user
     .return([username, audience])
     .spread(jwt.login);
 };

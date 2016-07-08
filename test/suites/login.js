@@ -1,9 +1,9 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
 
 describe('#login', function loginSuite() {
+  const redisKey = require('../../src/utils/key.js');
   const headers = { routingKey: 'users.login' };
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };

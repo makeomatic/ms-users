@@ -1,8 +1,9 @@
 const Promise = require('bluebird');
 const emailValidation = require('../utils/send-email.js');
-const getInternalData = require('../utils/getInternalData.js');
-const isActive = require('../utils/isActive.js');
-const isBanned = require('../utils/isBanned.js');
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
+const { User } = require('../model/usermodel');
+
 
 /**
  * @api {amqp} <prefix>.requestPassword Reset Password
@@ -28,7 +29,7 @@ module.exports = function requestPassword(opts) {
 
   return Promise
     .bind(this, username)
-    .then(getInternalData)
+    .then(User.getOne)
     .tap(isActive)
     .tap(isBanned)
     .then(() => emailValidation.send.call(this, username, action))

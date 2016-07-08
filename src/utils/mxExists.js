@@ -1,7 +1,6 @@
-const Errors = require('common-errors');
 const Promise = require('bluebird');
 const dns = Promise.promisifyAll(require('dns'));
-
+const { ModelError, ERR_EMAIL_NO_MX } = require('../model/modelError');
 /**
  * Checks whether MX record exists or not
  * @param  {String} email
@@ -27,7 +26,7 @@ module.exports = function mxExists(email) {
           return null;
         }
 
-        throw new Errors.HttpStatusError(400, `no MX record was found for hostname ${hostname}`);
+        throw new ModelError(ERR_EMAIL_NO_MX, hostname);
       });
   };
 };

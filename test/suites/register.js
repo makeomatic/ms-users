@@ -47,7 +47,7 @@ describe('#register', function registerSuite() {
       audience: 'matic.ninja',
       alias: 'bondthebest',
     };
-
+    
     return this.users
       .router(opts, headers)
       .reflect()

@@ -78,7 +78,6 @@ describe('#updateMetadata', function getMetadataSuite() {
       .then(inspectPromise())
       .then(data => {
         const [mainData, extraData] = data;
-
         expect(mainData.$set).to.be.eq('OK');
         expect(mainData.$incr.b).to.be.eq(2);
         expect(extraData.$incr.b).to.be.eq(3);

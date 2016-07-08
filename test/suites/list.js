@@ -1,11 +1,11 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
 
 describe('#list', function listSuite() {
   this.timeout(10000);
 
+  const redisKey = require('../../src/utils/key.js');
   const faker = require('faker');
   const headers = { routingKey: 'users.list' };
 

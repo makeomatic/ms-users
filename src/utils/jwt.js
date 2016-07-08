@@ -1,11 +1,9 @@
-const Errors = require('common-errors');
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
-const redisKey = require('./key.js');
-const getMetadata = require('../utils/getMetadata.js');
 const FlakeId = require('flake-idgen');
 const flakeIdGen = new FlakeId();
-const { USERS_TOKENS } = require('../constants.js');
+const { User, Tokens } = require('../model/usermodel');
+const { ModelError, ERR_TOKEN_INVALID, ERR_TOKEN_AUDIENCE_MISMATCH } = require('../model/modelError');
 
 /**
  * Logs user in and returns JWT and User Object
@@ -14,7 +12,7 @@ const { USERS_TOKENS } = require('../constants.js');
  * @return {Promise}
  */
 exports.login = function login(username, _audience) {
-  const { redis, config } = this;
+  const { config } = this;
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, defaultAudience, secret } = jwtConfig;
   let audience = _audience || defaultAudience;
@@ -35,20 +33,20 @@ exports.login = function login(username, _audience) {
   }
 
   return Promise.props({
-    lastAccessUpdated: redis.zadd(redisKey(username, USERS_TOKENS), Date.now(), token),
+    lastAccessUpdated: Tokens.add.call(this, username, token),
     jwt: token,
     username,
-    metadata: getMetadata.call(this, username, audience),
+    metadata: User.getMeta.call(this, username, audience),
   })
-  .then(function remap(props) {
-    return {
-      jwt: props.jwt,
-      user: {
-        username: props.username,
-        metadata: props.metadata,
-      },
-    };
-  });
+    .then(function remap(props) {
+      return {
+        jwt: props.jwt,
+        user: {
+          username: props.username,
+          metadata: props.metadata,
+        },
+      };
+    });
 };
 
 /**
@@ -58,7 +56,7 @@ exports.login = function login(username, _audience) {
  * @return {Promise}
  */
 exports.logout = function logout(token, audience) {
-  const { redis, config } = this;
+  const { config } = this;
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
@@ -66,10 +64,10 @@ exports.logout = function logout(token, audience) {
     .verifyAsync(token, secret, { issuer, audience, algorithms: [algorithm] })
     .catch(err => {
       this.log.debug('error decoding token', err);
-      throw new Errors.HttpStatusError(403, 'Invalid Token');
+      throw new ModelError(ERR_TOKEN_INVALID);
     })
-    .then(function decodedToken(decoded) {
-      return redis.zrem(redisKey(decoded.username, USERS_TOKENS), token);
+    .then(decoded => {
+      return Tokens.drop.call(this, decoded.username, token);
     })
     .return({ success: true });
 };
@@ -79,8 +77,9 @@ exports.logout = function logout(token, audience) {
  * @param {String} username
  */
 exports.reset = function reset(username) {
-  return this.redis.del(redisKey(username, USERS_TOKENS));
+  return Tokens.drop.call(this, username);
 };
+
 
 /**
  * Verifies token and returns decoded version of it
@@ -90,39 +89,26 @@ exports.reset = function reset(username) {
  * @return {Promise}
  */
 exports.verify = function verifyToken(token, audience, peek) {
-  const { redis, config } = this;
+  const { config } = this;
   const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, secret, ttl, issuer } = jwtConfig;
+  const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
   return jwt
     .verifyAsync(token, secret, { issuer, algorithms: [algorithm] })
     .catch(err => {
       this.log.debug('invalid token passed: %s', token, err);
-      throw new Errors.HttpStatusError(403, 'invalid token');
+      throw new ModelError(ERR_TOKEN_INVALID);
     })
-    .then(function decodedToken(decoded) {
+    .then(decoded => {
       if (audience.indexOf(decoded.aud) === -1) {
-        throw new Errors.HttpStatusError(403, 'audience mismatch');
+        throw new ModelError(ERR_TOKEN_AUDIENCE_MISMATCH);
       }
 
       const { username } = decoded;
-      const tokensHolder = redisKey(username, USERS_TOKENS);
-      let lastAccess = redis.zscore(tokensHolder, token).then(function getLastAccess(_score) {
-        // parseResponse
-        const score = parseInt(_score, 10);
-
-        // throw if token not found or expired
-        if (isNaN(score) || Date.now() > score + ttl) {
-          throw new Errors.HttpStatusError(403, 'token has expired or was forged');
-        }
-
-        return score;
-      });
+      let lastAccess = Tokens.lastAccess.call(this, username, token);
 
       if (!peek) {
-        lastAccess = lastAccess.then(function refreshLastAccess() {
-          return redis.zadd(tokensHolder, Date.now(), token);
-        });
+        lastAccess = lastAccess.then(() => Tokens.add.call(this, username, token));
       }
 
       return lastAccess.return(decoded);

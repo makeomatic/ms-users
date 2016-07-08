@@ -31,3 +31,8 @@ node_modules
 # compiled source code
 lib
 .env
+
+src/db/sandbox/
+.idea
+*-compiled.js
+*-compiled.js.map

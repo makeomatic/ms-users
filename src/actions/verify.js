@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const jwt = require('../utils/jwt.js');
-const getMetadata = require('../utils/getMetadata.js');
+const { User } = require('../model/usermodel');
 
 /**
  * @api {amqp} <prefix>.verify JWT verification
@@ -31,7 +31,7 @@ module.exports = function verify(opts) {
       const username = decoded.username;
       return Promise.props({
         username,
-        metadata: getMetadata.call(this, username, audience),
+        metadata: User.getMeta.call(this, username, audience),
       });
     });
 };

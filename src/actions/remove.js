@@ -12,6 +12,11 @@ const {
   USERS_TOKENS,
   USERS_ALIAS_FIELD,
   USERS_ADMIN_ROLE,
+  MAIL_ACTIVATE,
+  MAIL_RESET,
+  MAIL_PASSWORD,
+  MAIL_REGISTER,
+  THROTTLE_PREFIX,
 } = require('../constants');
 
 /**
@@ -53,6 +58,12 @@ module.exports = function removeUser({ username }) {
 
     // remove auth tokens
     transaction.del(key(username, USERS_TOKENS));
+
+    // remove throttling on actions
+    transaction.del(key(THROTTLE_PREFIX, MAIL_ACTIVATE, username));
+    transaction.del(key(THROTTLE_PREFIX, MAIL_PASSWORD, username));
+    transaction.del(key(THROTTLE_PREFIX, MAIL_REGISTER, username));
+    transaction.del(key(THROTTLE_PREFIX, MAIL_RESET, username));
 
     // complete it
     return transaction.exec();

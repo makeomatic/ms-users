@@ -7,7 +7,7 @@ const URLSafeBase64 = require('urlsafe-base64');
 const render = require('ms-mailer-templates');
 const { updatePassword } = require('../actions/updatePassword.js');
 const generatePassword = require('password-generator');
-const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER } = require('../constants.js');
+const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER, THROTTLE_PREFIX } = require('../constants.js');
 
 /**
  * Throttled error
@@ -103,7 +103,7 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
   const { ttl, throttle, subjects, senders, paths, secret, algorithm, email: mailingAccount } = validation; // eslint-disable-line
 
   // method specific stuff
-  const throttleEmailsKey = redisKey(`vthrottle-${type}`, email);
+  const throttleEmailsKey = redisKey(THROTTLE_PREFIX, type, email);
   const activationSecret = uuid.v4();
   const logger = this.log.child({ action: 'sendEmail', email });
 

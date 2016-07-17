@@ -15,4 +15,5 @@ module.exports = {
   MAIL_RESET: 'reset',
   MAIL_PASSWORD: 'password',
   MAIL_REGISTER: 'register',
+  THROTTLE_PREFIX: 'vthrottle',
 };

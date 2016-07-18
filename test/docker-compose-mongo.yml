@@ -1,0 +1,64 @@
+version: '2'
+
+services:
+  mongo-conf:
+    container_name: mongo-conf
+    hostname: mongo-conf
+    expose:
+      - "27010"
+      - "28017"
+    image: stainwoortsel/mongo-config
+
+  mongo-sh-01:
+    container_name: mongo-sh-01
+    hostname: mongo-sh-01
+    expose:
+      - "27020"
+      - "28017"
+    image: stainwoortsel/mongo-shard
+
+  mongo-sh-02:
+    container_name: mongo-sh-02
+    hostname: mongo-sh-02
+    links:
+      - mongo-sh-01
+    expose:
+      - "27020"
+      - "28017"
+    image: stainwoortsel/mongo-shard
+
+  mongos:
+    container_name: mongos
+    hostname: mongos
+    links:
+      - mongo-conf
+      - mongo-sh-01
+      - mongo-sh-02
+    command: mongos --configdb mongo-conf:27010 --port 27100
+    expose:
+      - "27010"
+      - "27020"
+      - "27017"
+      - "28017"
+      - "27100"
+    ports:
+      - "27100:27100"
+    image: stainwoortsel/mongo-mongos
+
+  tester:
+    container_name: tester
+    image: makeomatic/node:6.2.2-tester
+    links:
+      - mongo-conf
+      - mongo-sh-01
+      - mongo-sh-02
+      - rabbitmq
+      - mongos
+    working_dir: /src
+    volumes:
+      - ${PWD}:/src
+    environment:
+      NODE_ENV: "test"
+      DEBUG: ${DEBUG}
+      SKIP_REBUILD: ${SKIP_REBUILD}
+    command: tail -f /dev/null

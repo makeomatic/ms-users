@@ -10,7 +10,7 @@ describe('#verify', function verifySuite() {
   it('must reject on an invalid JWT token', function test() {
     const { defaultAudience: audience } = this.users._config.jwt;
 
-    return this.users.router({ token: 'invalid-token', audience }, headers)
+    return this.users.router.dispatch('users.verify', { params: { token: 'invalid-token', audience }, transport: 'amqp' })
       .reflect()
       .then(inspectPromise(false))
       .then(verify => {

@@ -10,15 +10,19 @@ module.exports = {
   deleteInactiveAccounts: 30 * 24 * 60 * 60,
   // amqp plugin configuration
   amqp: {
-    queue: 'ms-users',
-    // prefix routes with users.
-    prefix: 'users',
-    // postfixes for routes that we support
-    postfix: path.join(__dirname, 'actions'),
-    // automatically init routes
-    initRoutes: true,
-    // automatically init router
-    initRouter: true,
+    transport: {
+      queue: 'ms-users',
+    },
+  },
+  router: {
+    routes: {
+      directory: path.join(__dirname, 'actions'),
+      enabled: {
+        verify: 'verify',
+      },
+      prefix: 'users',
+      transports: ['amqp'],
+    },
   },
   captcha: {
     secret: 'put-your-real-gcaptcha-secret-here',
@@ -92,7 +96,7 @@ module.exports = {
   },
   admins: [],
   // enable all plugins
-  plugins: ['validator', 'logger', 'amqp', 'redisCluster'],
+  plugins: ['validator', 'logger', 'router', 'amqp', 'redisCluster'],
   // by default only ringBuffer logger is enabled in prod
   logger: process.env.NODE_ENV === 'development',
   // init local schemas

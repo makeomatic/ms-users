@@ -18,7 +18,9 @@ global.REDIS = {
 };
 
 const config = {
-  amqp: global.AMQP,
+  amqp: {
+    transport: global.AMQP
+  },
   redis: global.REDIS,
   logger: true,
   debug: true,

@@ -14,9 +14,9 @@ const getMetadata = require('../utils/getMetadata.js');
  * @apiParam (Payload) {String[]} audience - which namespaces of metadata to return
  *
  */
-module.exports = function verify(opts) {
+function verify(request) {
   const { defaultAudience } = this.config.jwt;
-  const { token, audience: _audience, peek } = opts;
+  const { token, audience: _audience, peek } = request.params;
   const audience = Array.isArray(_audience) ? _audience : [_audience];
 
   return Promise
@@ -34,4 +34,10 @@ module.exports = function verify(opts) {
         metadata: getMetadata.call(this, username, audience),
       });
     });
+}
+
+module.exports = {
+  handler: verify,
+  schema: 'verify',
+  transports: ['amqp'],
 };

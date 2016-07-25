@@ -1,12 +1,12 @@
 /* eslint-disable no-mixed-operators */
-
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
-const JSONStringify = JSON.stringify.bind(JSON);
 const is = require('is');
 const sha256 = require('./sha256.js');
 const { USERS_METADATA } = require('../constants.js');
+
+const JSONStringify = data => JSON.stringify(data);
 
 /**
  * Process metadata update operation for a passed audience

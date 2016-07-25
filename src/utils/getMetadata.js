@@ -2,9 +2,10 @@ const mapValues = require('lodash/mapValues');
 const pick = require('lodash/pick');
 const redisKey = require('../utils/key.js');
 const Promise = require('bluebird');
-const { isArray } = Array;
-const JSONParse = JSON.parse.bind(JSON);
 const { USERS_METADATA } = require('../constants.js');
+
+const isArray = Array.isArray;
+const JSONParse = data => JSON.parse(data);
 
 module.exports = function getMetadata(username, _audiences, fields = {}) {
   const { redis } = this;

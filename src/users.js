@@ -3,8 +3,9 @@ const Mailer = require('ms-mailer-client');
 const Errors = require('common-errors');
 const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
-const { NotImplementedError } = Errors;
 const defaultOpts = require('./defaults.js');
+
+const { NotImplementedError } = Errors;
 
 /**
  * @namespace Users

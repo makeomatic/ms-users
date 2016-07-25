@@ -1,13 +1,13 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
-const stringify = JSON.stringify.bind(JSON);
-
 const redisKey = require('../utils/key.js');
 const userExists = require('../utils/userExists.js');
 const {
   USERS_DATA, USERS_METADATA,
   USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
 } = require('../constants.js');
+
+const stringify = JSON.stringify.bind(JSON);
 
 function lockUser({ username, reason, whom, remoteip }) {
   const { redis, config } = this;

@@ -14,6 +14,7 @@ const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
 const noop = require('lodash/noop');
 const assignAlias = require('./alias.js');
+
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 /**

@@ -4,8 +4,8 @@ const register = require('../actions/register.js');
 
 module.exports = function initFakeAccounts() {
   const faker = require('faker');
-  const config = this.config;
 
+  const config = this.config;
   const accounts = times(103, () => ({
     id: faker.internet.email(),
     metadata: {

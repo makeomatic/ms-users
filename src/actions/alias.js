@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const getInternalData = require('../utils/getInternalData.js');
@@ -20,9 +21,9 @@ const { USERS_DATA, USERS_METADATA, USERS_PUBLIC_INDEX, USERS_ALIAS_TO_LOGIN, US
  * @apiParam (Payload) {String{3..15}} alias - chosen alias
  *
  */
-module.exports = function assignAlias(opts) {
+function assignAlias(request) {
   const { redis, config: { jwt: { defaultAudience } } } = this;
-  const { username, alias } = opts;
+  const { username, alias } = request.params;
 
   return Promise
     .bind(this, username)
@@ -48,4 +49,10 @@ module.exports = function assignAlias(opts) {
         .hset(key(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias))
         .exec();
     });
-};
+}
+
+assignAlias.schema = 'alias';
+
+assignAlias.transports = [ActionTransport.amqp];
+
+module.exports = assignAlias;

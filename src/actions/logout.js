@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const jwt = require('../utils/jwt.js');
 
 /**
@@ -12,7 +13,13 @@ const jwt = require('../utils/jwt.js');
  * @apiParam (Payload) {String} audience - verifies that JWT is for this audience
  *
  */
-module.exports = function logout(opts) {
-  const { jwt: token, audience } = opts;
+function logout(request) {
+  const { jwt: token, audience } = request.params;
   return jwt.logout.call(this, token, audience);
-};
+}
+
+logout.schema = 'logout';
+
+logout.transports = [ActionTransport.amqp];
+
+module.exports = logout;

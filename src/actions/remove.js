@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const key = require('../utils/key');
@@ -29,7 +30,8 @@ const {
  *
  * @apiParam (Payload) {String} username - currently only email is supported
  */
-module.exports = function removeUser({ username }) {
+function removeUser(request) {
+  const { username } = request.params;
   const audience = this.config.jwt.defaultAudience;
 
   return Promise.props({
@@ -68,4 +70,10 @@ module.exports = function removeUser({ username }) {
     // complete it
     return transaction.exec();
   });
-};
+}
+
+removeUser.schema = 'remove';
+
+removeUser.transports = [ActionTransport.amqp];
+
+module.exports = removeUser;

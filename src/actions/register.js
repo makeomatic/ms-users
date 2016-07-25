@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const setMetadata = require('../utils/updateMetadata.js');
@@ -101,14 +102,15 @@ function createUser(redis, username, activate, deleteInactiveAccounts, userDataK
  * @apiParam (Payload) {String} [ipaddress] - used for security logging
  * @apiParam (Payload) {Boolean} [skipChallenge=false] - if `activate` is `false` disables sending challenge
  */
-module.exports = function registerUser(message) {
+function registerUser(request) {
   const { redis, config } = this;
   const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
 
-  // message
-  const { username, alias, password, audience, ipaddress, skipChallenge, activate } = message;
-  const captcha = hasOwnProperty.call(message, 'captcha') ? message.captcha : false;
-  const metadata = hasOwnProperty.call(message, 'metadata') ? message.metadata : false;
+  // request
+  const params = request.params;
+  const { username, alias, password, audience, ipaddress, skipChallenge, activate } = params;
+  const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
+  const metadata = hasOwnProperty.call(params, 'metadata') ? params.metadata : false;
 
   // task holder
   const logger = this.log.child({ username, action: 'register' });
@@ -206,4 +208,10 @@ module.exports = function registerUser(message) {
     // login user
     .return([username, audience])
     .spread(jwt.login);
-};
+}
+
+registerUser.schema = 'register';
+
+registerUser.transports = [ActionTransport.amqp];
+
+module.exports = registerUser;

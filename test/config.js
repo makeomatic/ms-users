@@ -3,13 +3,6 @@ const { expect } = require('chai');
 
 global.Promise = require('bluebird');
 
-global.AMQP = {
-  connection: {
-    host: 'rabbitmq',
-    port: 5672,
-  },
-};
-
 global.REDIS = {
   hosts: Array.from({ length: 3 }).map((_, i) => ({
     host: `redis-${i + 1}`,
@@ -19,7 +12,12 @@ global.REDIS = {
 
 const config = {
   amqp: {
-    transport: global.AMQP
+    transport: {
+      connection: {
+        host: 'rabbitmq',
+        port: 5672,
+      },
+    }
   },
   redis: global.REDIS,
   logger: true,

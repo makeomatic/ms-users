@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const updateMetadata = require('../utils/updateMetadata.js');
 const userExists = require('../utils/userExists.js');
@@ -18,10 +19,16 @@ const userExists = require('../utils/userExists.js');
  * @apiParam (Payload) {Object} [script] - if present will be called with passed metadata keys & username, provides direct scripting access.
  * 	Be careful with granting access to this function.
  */
-module.exports = function updateMetadataAction(message) {
+function updateMetadataAction(request) {
   return Promise
-    .bind(this, message.username)
+    .bind(this, request.params.username)
     .then(userExists)
-    .then(username => ({ ...message, username }))
+    .then(username => ({ ...request.params, username }))
     .then(updateMetadata);
-};
+}
+
+updateMetadataAction.schema = 'updateMetadata';
+
+updateMetadataAction.transports = [ActionTransport.amqp];
+
+module.exports = updateMetadataAction;

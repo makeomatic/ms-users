@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
@@ -70,17 +71,19 @@ function setPassword(_username, password) {
  * @apiParam (Payload) {Boolean} [invalidateTokens=false] - if set to `true` will invalidate issued tokens
  * @apiParam (Payload) {String} [remoteip] - will be used for rate limiting if supplied
  */
-module.exports = exports = function updatePassword(opts) {
+function updatePassword(request) {
   const { redis } = this;
-  const { newPassword: password, remoteip } = opts;
-  const invalidateTokens = !!opts.invalidateTokens;
+  const { newPassword: password, remoteip } = request.params;
+  const invalidateTokens = !!request.params.invalidateTokens;
 
   // 2 cases - token reset and current password reset
   let promise;
-  if (opts.resetToken) {
-    promise = tokenReset.call(this, opts.resetToken);
+  if (request.params.resetToken) {
+    promise = tokenReset.call(this, request.params.resetToken);
   } else {
-    promise = usernamePasswordReset.call(this, opts.username, opts.currentPassword);
+    promise = usernamePasswordReset.call(
+      this, request.params.username, request.params.currentPassword
+    );
   }
 
   // update password
@@ -98,9 +101,15 @@ module.exports = exports = function updatePassword(opts) {
   }
 
   return promise.return({ success: true });
-};
+}
 
 /**
  * Update password handler
  */
-exports.updatePassword = setPassword;
+updatePassword.updatePassword = setPassword;
+
+updatePassword.schema = 'updatePassword';
+
+updatePassword.transports = [ActionTransport.amqp];
+
+module.exports = updatePassword;

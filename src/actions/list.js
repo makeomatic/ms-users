@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const mapValues = require('lodash/mapValues');
@@ -23,15 +24,15 @@ const { USERS_INDEX, USERS_PUBLIC_INDEX, USERS_METADATA } = require('../constant
  * @apiParam (Payload) {Boolean} [public=false] - when `true` returns only publicly marked users
  * @apiParam (Payload) {Object} - filter to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
  */
-module.exports = function iterateOverActiveUsers(opts) {
+function iterateOverActiveUsers(request) {
   const { redis } = this;
-  const { criteria, audience, filter } = opts;
+  const { criteria, audience, filter } = request.params;
   const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
-  const order = opts.order || 'ASC';
-  const offset = opts.offset || 0;
-  const limit = opts.limit || 10;
+  const order = request.params.order || 'ASC';
+  const offset = request.params.offset || 0;
+  const limit = request.params.limit || 10;
   const metaKey = redisKey('*', USERS_METADATA, audience);
-  const index = opts.public ? USERS_PUBLIC_INDEX : USERS_INDEX;
+  const index = request.params.public ? USERS_PUBLIC_INDEX : USERS_INDEX;
 
   return redis
     .fsort(index, metaKey, criteria, order, strFilter, offset, limit)
@@ -75,4 +76,10 @@ module.exports = function iterateOverActiveUsers(opts) {
         pages: Math.ceil(length / limit),
       };
     });
-};
+}
+
+iterateOverActiveUsers.schema = 'list';
+
+iterateOverActiveUsers.transports = [ActionTransport.amqp];
+
+module.exports = iterateOverActiveUsers;

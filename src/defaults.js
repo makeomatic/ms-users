@@ -17,9 +17,6 @@ module.exports = {
   router: {
     routes: {
       directory: path.join(__dirname, 'actions'),
-      enabled: {
-        verify: 'verify',
-      },
       prefix: 'users',
       transports: ['amqp'],
     },

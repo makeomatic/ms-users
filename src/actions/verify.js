@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const jwt = require('../utils/jwt.js');
 const getMetadata = require('../utils/getMetadata.js');
@@ -36,8 +37,8 @@ function verify(request) {
     });
 }
 
-module.exports = {
-  handler: verify,
-  schema: 'verify',
-  transports: ['amqp'],
-};
+verify.schema = 'verify';
+
+verify.transports = [ActionTransport.amqp];
+
+module.exports = verify;

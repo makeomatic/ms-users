@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const emailChallenge = require('../utils/send-email.js');
@@ -20,8 +21,8 @@ const isActive = require('../utils/isActive.js');
  * @apiParam (Payload) {String} [metadata] - not used, but in the future this would be associated with user when challenge is required
  *
  */
-module.exports = function sendChallenge(message) {
-  const { username } = message;
+function sendChallenge(request) {
+  const { username } = request.params;
 
   // TODO: record all attemps
   // TODO: add metadata processing on successful email challenge
@@ -33,4 +34,10 @@ module.exports = function sendChallenge(message) {
     .throw(new Errors.HttpStatusError(417, `${username} is already active`))
     .catchReturn({ statusCode: 412 }, username)
     .then(emailChallenge.send);
-};
+}
+
+sendChallenge.schema = 'challenge';
+
+sendChallenge.transports = [ActionTransport.amqp];
+
+module.exports = sendChallenge;

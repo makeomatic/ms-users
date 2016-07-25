@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
@@ -23,12 +24,12 @@ const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG } = require('../constants.js'
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
  */
-module.exports = function verifyChallenge(opts) {
+function verifyChallenge(request) {
   // TODO: add security logs
-  // var remoteip = opts.remoteip;
-  const { token, username } = opts;
+  // var remoteip = request.params.remoteip;
+  const { token, username } = request.params;
   const { redis, config } = this;
-  const audience = opts.audience || config.defaultAudience;
+  const audience = request.params.audience || config.defaultAudience;
 
   function verifyToken() {
     return emailVerification.verify.call(this, token, 'activate', config.validation.ttl > 0);
@@ -65,4 +66,12 @@ module.exports = function verifyChallenge(opts) {
     .tap(hook)
     .then(user => [user, audience])
     .spread(jwt.login);
-};
+}
+
+// @todo default schema in mservice
+verifyChallenge.schema = 'activate';
+
+// @todo default transport in mservice
+verifyChallenge.transports = [ActionTransport.amqp];
+
+module.exports = verifyChallenge;

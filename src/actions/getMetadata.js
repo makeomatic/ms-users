@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const getMetadata = require('../utils/getMetadata.js');
@@ -41,8 +42,8 @@ function isPublic(username, audiences) {
  * @apiParam (Payload) {String[]} fields.* - fields to return from a passed audience
  *
  */
-module.exports = function getMetadataAction(message) {
-  const { audience: _audience, username, fields } = message;
+function getMetadataAction(request) {
+  const { audience: _audience, username, fields } = request.params;
   const audience = isArray(_audience) ? _audience : [_audience];
 
   return Promise
@@ -50,5 +51,11 @@ module.exports = function getMetadataAction(message) {
     .then(userExists)
     .then(realUsername => [realUsername, audience, fields])
     .spread(getMetadata)
-    .tap(message.public ? isPublic(username, audience) : noop);
-};
+    .tap(request.params.public ? isPublic(username, audience) : noop);
+}
+
+getMetadataAction.schema = 'getMetadata';
+
+getMetadataAction.transports = [ActionTransport.amqp];
+
+module.exports = getMetadataAction;

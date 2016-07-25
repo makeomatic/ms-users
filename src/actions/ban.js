@@ -1,3 +1,4 @@
+const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const stringify = JSON.stringify.bind(JSON);
@@ -58,10 +59,16 @@ function unlockUser({ username }) {
  * @apiParam (Payload) {String} [whom] - id of the person, who banned the user
  *
  */
-module.exports = function banUser(opts) {
+function banUser(request) {
   return Promise
-    .bind(this, opts.username)
+    .bind(this, request.params.username)
     .then(userExists)
-    .then(username => ({ ...opts, username }))
-    .then(opts.ban ? lockUser : unlockUser);
-};
+    .then(username => ({ ...request.params, username }))
+    .then(request.params.ban ? lockUser : unlockUser);
+}
+
+banUser.schema = 'ban';
+
+banUser.transports = [ActionTransport.amqp];
+
+module.exports = banUser;

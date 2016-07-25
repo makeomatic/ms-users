@@ -4,8 +4,9 @@ const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 const redisKey = require('./key.js');
 const getMetadata = require('../utils/getMetadata.js');
 const FlakeId = require('flake-idgen');
-const flakeIdGen = new FlakeId();
 const { USERS_TOKENS } = require('../constants.js');
+
+const flakeIdGen = new FlakeId();
 
 /**
  * Logs user in and returns JWT and User Object

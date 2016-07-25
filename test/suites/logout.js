@@ -1,16 +1,15 @@
 /* global inspectPromise */
 const { expect } = require('chai');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#logout', function logoutSuite() {
-  const headers = { routingKey: 'users.logout' };
-
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
   it('must reject logout on an invalid JWT token', function test() {
     const { defaultAudience: audience } = this.users._config.jwt;
 
-    return this.users.router({ jwt: 'tests', audience }, headers)
+    return simpleDispatcher(this.users.router)('users.logout', { jwt: 'tests', audience })
       .reflect()
       .then(inspectPromise(false))
       .then(logout => {
@@ -24,7 +23,7 @@ describe('#logout', function logoutSuite() {
     const { hashingFunction: algorithm, secret, issuer, defaultAudience } = this.users._config.jwt;
     const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
 
-    return this.users.router({ jwt: token, audience: defaultAudience }, headers)
+    return simpleDispatcher(this.users.router)('users.logout', { jwt: token, audience: defaultAudience })
       .reflect()
       .then(inspectPromise())
       .then(logout => {

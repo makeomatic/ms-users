@@ -1,8 +1,8 @@
 /* global inspectPromise */
 const { expect } = require('chai');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#updateMetadata', function getMetadataSuite() {
-  const headers = { routingKey: 'users.updateMetadata' };
   const username = 'v@makeomatic.ru';
   const audience = '*.localhost';
   const extra = 'extra.localhost';
@@ -11,11 +11,11 @@ describe('#updateMetadata', function getMetadataSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    return this.users.router({ username, password: '123', audience }, { routingKey: 'users.register' });
+    return simpleDispatcher(this.users.router)('users.register', { username, password: '123', audience })
   });
 
   it('must reject updating metadata on a non-existing user', function test() {
-    return this.users.router({ username: 'ok google', audience, metadata: { $remove: ['test'] } }, headers)
+    return simpleDispatcher(this.users.router)('users.updateMetadata', { username: 'ok google', audience, metadata: { $remove: ['test'] } })
       .reflect()
       .then(inspectPromise(false))
       .then(getMetadata => {
@@ -25,14 +25,13 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('must be able to add metadata for a single audience of an existing user', function test() {
-    return this.users.router({ username, audience, metadata: { $set: { x: 10 } } }, headers)
+    return simpleDispatcher(this.users.router)('users.updateMetadata', { username, audience, metadata: { $set: { x: 10 } } })
       .reflect()
       .then(inspectPromise());
   });
 
   it('must be able to remove metadata for a single audience of an existing user', function test() {
-    return this.users
-      .router({ username, audience, metadata: { $remove: ['x'] } }, headers)
+    return simpleDispatcher(this.users.router)('users.updateMetadata', { username, audience, metadata: { $remove: ['x'] } })
       .reflect()
       .then(inspectPromise())
       .then(data => {
@@ -41,40 +40,36 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('rejects on mismatch of audience & metadata arrays', function test() {
-    return this.users
-      .router({
-        username, audience: [audience],
-        metadata: [{ $set: { x: 10 } }, { $remove: ['x'] }],
-      }, headers)
-      .reflect()
+    return simpleDispatcher(this.users.router)('users.updateMetadata', {
+      username, audience: [audience],
+      metadata: [{ $set: { x: 10 } }, { $remove: ['x'] }],
+    }).reflect()
       .then(inspectPromise(false));
   });
 
   it('must be able to perform batch operations for multiple audiences of an existing user', function test() {
-    return this.users
-      .router({
-        username,
-        audience: [
-          audience,
-          extra,
-        ],
-        metadata: [
-          {
-            $set: {
-              x: 10,
-            },
-            $incr: {
-              b: 2,
-            },
+    return simpleDispatcher(this.users.router)('users.updateMetadata', {
+      username,
+      audience: [
+        audience,
+        extra,
+      ],
+      metadata: [
+        {
+          $set: {
+            x: 10,
           },
-          {
-            $incr: {
-              b: 3,
-            },
+          $incr: {
+            b: 2,
           },
-        ],
-      }, headers)
-      .reflect()
+        },
+        {
+          $incr: {
+            b: 3,
+          },
+        },
+      ],
+    }).reflect()
       .then(inspectPromise())
       .then(data => {
         const [mainData, extraData] = data;
@@ -86,13 +81,12 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('must be able to run dynamic scripts', function test() {
-    return this.users.router({ username, audience: [audience, extra], script: {
+    return simpleDispatcher(this.users.router)('users.updateMetadata', { username, audience: [audience, extra], script: {
       balance: {
         lua: 'return {KEYS[1],KEYS[2],ARGV[1]}',
         argv: ['nom-nom'],
       },
-    } }, headers)
-    .reflect()
+    } }).reflect()
     .then(inspectPromise())
     .then(data => {
       expect(data.balance).to.be.deep.eq([

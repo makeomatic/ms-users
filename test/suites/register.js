@@ -1,15 +1,14 @@
 /* global inspectPromise */
 const { expect } = require('chai');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 const times = require('lodash/times');
 
 describe('#register', function registerSuite() {
-  const headers = { routingKey: 'users.register' };
-
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
   it('must reject invalid registration params and return detailed error', function test() {
-    return this.users.router({}, headers)
+    return simpleDispatcher(this.users.router)('users.register', {})
       .reflect()
       .then(inspectPromise(false))
       .then(registered => {
@@ -25,8 +24,7 @@ describe('#register', function registerSuite() {
       audience: 'matic.ninja',
     };
 
-    return this.users
-      .router(opts, headers)
+    return simpleDispatcher(this.users.router)('users.register', opts)
       .reflect()
       .then(inspectPromise(true))
       .then(registered => {
@@ -48,8 +46,7 @@ describe('#register', function registerSuite() {
       alias: 'bondthebest',
     };
 
-    return this.users
-      .router(opts, headers)
+    return simpleDispatcher(this.users.router)('users.register', opts)
       .reflect()
       .then(inspectPromise(true))
       .then(registered => {
@@ -71,8 +68,7 @@ describe('#register', function registerSuite() {
       audience: 'matic.ninja',
     };
 
-    return this.users
-      .router(opts, headers)
+    return simpleDispatcher(this.users.router)('users.register', opts)
       .reflect()
       .then(inspectPromise(true))
       .then(registered => {
@@ -95,7 +91,7 @@ describe('#register', function registerSuite() {
       activate: false,
     };
 
-    return this.users.router(opts, headers)
+    return simpleDispatcher(this.users.router)('users.register', opts)
       .reflect()
       .then(inspectPromise())
       .then(value => {
@@ -112,7 +108,7 @@ describe('#register', function registerSuite() {
       activate: false,
     };
 
-    return this.users.router(opts, headers)
+    return simpleDispatcher(this.users.router)('users.register', opts)
       .reflect()
       .then(inspectPromise())
       .then(value => {
@@ -131,11 +127,11 @@ describe('#register', function registerSuite() {
     };
 
     beforeEach(function pretest() {
-      return this.users.router(opts, headers);
+      return simpleDispatcher(this.users.router)('users.register', opts)
     });
 
     it('must reject registration for an already existing user', function test() {
-      return this.users.router(opts, headers)
+      return simpleDispatcher(this.users.router)('users.register', opts)
         .reflect()
         .then(inspectPromise(false))
         .then(registered => {
@@ -157,12 +153,12 @@ describe('#register', function registerSuite() {
 
     beforeEach(function pretest() {
       return Promise.all(
-        times(3, n => this.users.router({ ...opts, username: `${n + 1}${opts.username}` }, headers))
+        times(3, n => simpleDispatcher(this.users.router)('users.register', { ...opts, username: `${n + 1}${opts.username}` }))
       );
     });
 
     it('must reject more than 3 registration a day per ipaddress if it is specified', function test() {
-      return this.users.router(opts, headers)
+      return simpleDispatcher(this.users.router)('users.register', opts)
         .reflect()
         .then(inspectPromise(false))
         .then(failed => {
@@ -180,7 +176,7 @@ describe('#register', function registerSuite() {
       audience: 'matic.ninja',
     };
 
-    return this.users.router(opts, headers)
+    return simpleDispatcher(this.users.router)('users.register', opts)
       .reflect()
       .then(inspectPromise(false))
       .then(failed => {
@@ -197,7 +193,7 @@ describe('#register', function registerSuite() {
       audience: 'matic.ninja',
     };
 
-    return this.users.router(opts, headers)
+    return simpleDispatcher(this.users.router)('users.register', opts)
       .reflect()
       .then(inspectPromise(false))
       .then(failed => {

@@ -203,7 +203,7 @@ function registerUser(request) {
       }
 
       // adds on-registration alias to the user
-      return assignAlias.call(this, { username, alias });
+      return assignAlias.call(this, { params: { username, alias } });
     })
     // login user
     .return([username, audience])

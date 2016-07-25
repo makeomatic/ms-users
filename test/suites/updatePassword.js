@@ -1,9 +1,9 @@
 /* global inspectPromise */
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#updatePassword', function updatePasswordSuite() {
-  const headers = { routingKey: 'users.updatePassword' };
   const username = 'v@makeomatic.ru';
   const password = '123';
   const audience = '*.localhost';
@@ -14,11 +14,11 @@ describe('#updatePassword', function updatePasswordSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    return this.users.router({ username, password, audience }, { routingKey: 'users.register' });
+    return simpleDispatcher(this.users.router)('users.register', { username, password, audience });
   });
 
   it('must reject updating password for a non-existing user on username+password update', function test() {
-    return this.users.router({ username: 'mcdon@tour.de.france', currentPassword: 'xxx', newPassword: 'vvv' }, headers)
+    return simpleDispatcher(this.users.router)('users.updatePassword', { username: 'mcdon@tour.de.france', currentPassword: 'xxx', newPassword: 'vvv' })
       .reflect()
       .then(inspectPromise(false))
       .then(updatePassword => {
@@ -33,7 +33,7 @@ describe('#updatePassword', function updatePasswordSuite() {
     });
 
     it('must reject updating password for an inactive account on username+password update', function test() {
-      return this.users.router({ username, currentPassword: password, newPassword: 'vvv' }, headers)
+      return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: password, newPassword: 'vvv' })
         .reflect()
         .then(inspectPromise(false))
         .then(updatePassword => {
@@ -49,7 +49,7 @@ describe('#updatePassword', function updatePasswordSuite() {
     });
 
     it('must reject updating password for an inactive account on username+password update', function test() {
-      return this.users.router({ username, currentPassword: password, newPassword: 'vvv' }, headers)
+      return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: password, newPassword: 'vvv' })
         .reflect()
         .then(inspectPromise(false))
         .then(updatePassword => {
@@ -61,7 +61,7 @@ describe('#updatePassword', function updatePasswordSuite() {
 
   describe('user: active', function suite() {
     it('must reject updating password with an invalid username/password combination', function test() {
-      return this.users.router({ username, currentPassword: 'xxx', newPassword: 'vvv' }, headers)
+      return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: 'xxx', newPassword: 'vvv' })
         .reflect()
         .then(inspectPromise(false))
         .then(updatePassword => {
@@ -71,7 +71,7 @@ describe('#updatePassword', function updatePasswordSuite() {
     });
 
     it('must update password with a valid username/password combination and different newPassword', function test() {
-      return this.users.router({ username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0' }, headers)
+      return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0' })
         .reflect()
         .then(inspectPromise())
         .then(updatePassword => {
@@ -87,7 +87,7 @@ describe('#updatePassword', function updatePasswordSuite() {
       });
 
       it('must reject updating password for an invalid challenge token', function test() {
-        return this.users.router({ resetToken: 'wrong', newPassword: 'vvv' }, headers)
+        return simpleDispatcher(this.users.router)('users.updatePassword', { resetToken: 'wrong', newPassword: 'vvv' })
           .reflect()
           .then(inspectPromise(false))
           .then(updatePassword => {
@@ -97,7 +97,7 @@ describe('#updatePassword', function updatePasswordSuite() {
       });
 
       it('must update password passed with a valid challenge token', function test() {
-        return this.users.router({ resetToken: this.token, newPassword: 'vvv' }, headers)
+        return simpleDispatcher(this.users.router)('users.updatePassword', { resetToken: this.token, newPassword: 'vvv' })
           .reflect()
           .then(inspectPromise())
           .then(updatePassword => {

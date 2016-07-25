@@ -1,8 +1,8 @@
 /* global inspectPromise */
 const { expect } = require('chai');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#ban', function banSuite() {
-  const headers = { routingKey: 'users.ban' };
   const username = 'v@aminev.me';
   const password = '123';
   const audience = '*.localhost';
@@ -11,9 +11,7 @@ describe('#ban', function banSuite() {
   afterEach(global.clearRedis);
 
   it('must reject banning a non-existing user', function test() {
-    return this
-      .users
-      .router({ username: 'doesntexist', ban: true }, headers)
+    return simpleDispatcher(this.users.router)('users.ban', { username: 'doesntexist', ban: true })
       .reflect()
       .then(inspectPromise(false))
       .then(ban => {
@@ -24,15 +22,11 @@ describe('#ban', function banSuite() {
 
   describe('user: active', function suite() {
     beforeEach(function pretest() {
-      return this
-        .users
-        .router({ username, password, audience }, { routingKey: 'users.register' });
+      return simpleDispatcher(this.users.router)('users.register', { username, password, audience });
     });
 
     it('must reject (un)banning a user without action being implicitly set', function test() {
-      return this
-        .users
-        .router({ username }, headers)
+      return simpleDispatcher(this.users.router)('users.ban', { username })
         .reflect()
         .then(inspectPromise(false))
         .then(ban => {
@@ -41,9 +35,7 @@ describe('#ban', function banSuite() {
     });
 
     it('must be able to ban an existing user', function test() {
-      return this
-        .users
-        .router({ username, ban: true }, headers)
+      return simpleDispatcher(this.users.router)('users.ban', { username, ban: true })
         .reflect()
         .then(inspectPromise())
         .then(ban => {
@@ -53,10 +45,8 @@ describe('#ban', function banSuite() {
     });
 
     it('must be able to unban an existing user', function test() {
-      return this
-        .users
-        .router({ username, ban: true }, headers)
-        .then(() => this.users.router({ username, ban: false }, headers))
+      return simpleDispatcher(this.users.router)('users.ban', { username, ban: true })
+        .then(() => simpleDispatcher(this.users.router)('users.ban', { username, ban: false }))
         .reflect()
         .then(inspectPromise())
         .then(ban => {

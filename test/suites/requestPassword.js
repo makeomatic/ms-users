@@ -1,9 +1,9 @@
 /* global inspectPromise */
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#requestPassword', function requestPasswordSuite() {
-  const headers = { routingKey: 'users.requestPassword' };
   const username = 'v@makeomatic.ru';
   const audience = 'requestPassword';
   const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../src/constants.js');
@@ -12,11 +12,11 @@ describe('#requestPassword', function requestPasswordSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    return this.users.router({ username, password: '123', audience }, { routingKey: 'users.register' });
+    return simpleDispatcher(this.users.router)('users.register', { username, password: '123', audience })
   });
 
   it('must fail when user does not exist', function test() {
-    return this.users.router({ username: 'noob' }, headers)
+    return simpleDispatcher(this.users.router)('users.requestPassword', { username: 'noob' })
       .reflect()
       .then(inspectPromise(false))
       .then(requestPassword => {
@@ -31,7 +31,7 @@ describe('#requestPassword', function requestPasswordSuite() {
     });
 
     it('must fail when account is inactive', function test() {
-      return this.users.router({ username }, headers)
+      return simpleDispatcher(this.users.router)('users.requestPassword', { username })
         .reflect()
         .then(inspectPromise(false))
         .then(requestPassword => {
@@ -47,7 +47,7 @@ describe('#requestPassword', function requestPasswordSuite() {
     });
 
     it('must fail when account is banned', function test() {
-      return this.users.router({ username }, headers)
+      return simpleDispatcher(this.users.router)('users.requestPassword', { username })
         .reflect()
         .then(inspectPromise(false))
         .then(requestPassword => {
@@ -59,7 +59,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
   describe('account: active', function suite() {
     it('must send challenge email for an existing user with an active account', function test() {
-      return this.users.router({ username }, headers)
+      return simpleDispatcher(this.users.router)('users.requestPassword', { username })
         .reflect()
         .then(requestPassword => {
           expect(requestPassword.isFulfilled()).to.be.eq(true);
@@ -68,9 +68,9 @@ describe('#requestPassword', function requestPasswordSuite() {
     });
 
     it('must reject sending reset password emails for an existing user more than once in 3 hours', function test() {
-      return this.users.router({ username }, headers)
+      return simpleDispatcher(this.users.router)('users.requestPassword', { username })
         .then(() => (
-          this.users.router({ username }, headers)
+          simpleDispatcher(this.users.router)('users.requestPassword', { username })
             .reflect()
             .then(inspectPromise(false))
             .then(requestPassword => {

@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const emailChallenge = require('../utils/send-email.js');
@@ -35,9 +34,5 @@ function sendChallenge(request) {
     .catchReturn({ statusCode: 412 }, username)
     .then(emailChallenge.send);
 }
-
-sendChallenge.schema = 'challenge';
-
-sendChallenge.transports = [ActionTransport.amqp];
 
 module.exports = sendChallenge;

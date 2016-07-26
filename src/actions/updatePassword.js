@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
@@ -107,9 +106,5 @@ function updatePassword(request) {
  * Update password handler
  */
 updatePassword.updatePassword = setPassword;
-
-updatePassword.schema = 'updatePassword';
-
-updatePassword.transports = [ActionTransport.amqp];
 
 module.exports = updatePassword;

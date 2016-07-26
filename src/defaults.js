@@ -1,4 +1,5 @@
 const path = require('path');
+const schemaLessAction = require('mservice/lib/plugins/router/extensions/validate/schemaLessAction');
 
 /**
  * Contains default options for users microservice
@@ -18,7 +19,12 @@ module.exports = {
     routes: {
       directory: path.join(__dirname, 'actions'),
       prefix: 'users',
+      setTransportsAsDefault: true,
       transports: ['amqp'],
+    },
+    extensions: {
+      enabled: ['postRequest'],
+      register: [schemaLessAction],
     },
   },
   captcha: {

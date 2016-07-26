@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const updateMetadata = require('../utils/updateMetadata.js');
 const userExists = require('../utils/userExists.js');
@@ -26,9 +25,5 @@ function updateMetadataAction(request) {
     .then(username => ({ ...request.params, username }))
     .then(updateMetadata);
 }
-
-updateMetadataAction.schema = 'updateMetadata';
-
-updateMetadataAction.transports = [ActionTransport.amqp];
 
 module.exports = updateMetadataAction;

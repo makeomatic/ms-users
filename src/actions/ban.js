@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const stringify = JSON.stringify.bind(JSON);
@@ -66,9 +65,5 @@ function banUser(request) {
     .then(username => ({ ...request.params, username }))
     .then(request.params.ban ? lockUser : unlockUser);
 }
-
-banUser.schema = 'ban';
-
-banUser.transports = [ActionTransport.amqp];
 
 module.exports = banUser;

@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const mapValues = require('lodash/mapValues');
@@ -77,9 +76,5 @@ function iterateOverActiveUsers(request) {
       };
     });
 }
-
-iterateOverActiveUsers.schema = 'list';
-
-iterateOverActiveUsers.transports = [ActionTransport.amqp];
 
 module.exports = iterateOverActiveUsers;

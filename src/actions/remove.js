@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const key = require('../utils/key');
@@ -71,9 +70,5 @@ function removeUser(request) {
     return transaction.exec();
   });
 }
-
-removeUser.schema = 'remove';
-
-removeUser.transports = [ActionTransport.amqp];
 
 module.exports = removeUser;

@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const jwt = require('../utils/jwt.js');
 
 /**
@@ -17,9 +16,5 @@ function logout(request) {
   const { jwt: token, audience } = request.params;
   return jwt.logout.call(this, token, audience);
 }
-
-logout.schema = 'logout';
-
-logout.transports = [ActionTransport.amqp];
 
 module.exports = logout;

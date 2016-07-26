@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const emailValidation = require('../utils/send-email.js');
 const getInternalData = require('../utils/getInternalData.js');
@@ -35,9 +34,5 @@ function requestPassword(request) {
     .then(() => emailValidation.send.call(this, username, action))
     .return({ success: true });
 }
-
-requestPassword.schema = 'requestPassword';
-
-requestPassword.transports = [ActionTransport.amqp];
 
 module.exports = requestPassword;

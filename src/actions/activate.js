@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
@@ -67,11 +66,5 @@ function verifyChallenge(request) {
     .then(user => [user, audience])
     .spread(jwt.login);
 }
-
-// @todo default schema in mservice
-verifyChallenge.schema = 'activate';
-
-// @todo default transport in mservice
-verifyChallenge.transports = [ActionTransport.amqp];
 
 module.exports = verifyChallenge;

@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const getInternalData = require('../utils/getInternalData.js');
 const pick = require('lodash/pick');
@@ -27,9 +26,5 @@ function internalData(request) {
       return fields ? pick(data, fields) : data;
     });
 }
-
-internalData.schema = 'getInternalData';
-
-internalData.transports = [ActionTransport.amqp];
 
 module.exports = internalData;

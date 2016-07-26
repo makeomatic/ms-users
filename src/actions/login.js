@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const scrypt = require('../utils/scrypt.js');
@@ -98,9 +97,5 @@ function login(request) {
     .then(getUserInfo)
     .catch(verifyIp ? enrichError : e => { throw e; });
 }
-
-login.schema = 'login';
-
-login.transports = [ActionTransport.amqp];
 
 module.exports = login;

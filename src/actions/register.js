@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const setMetadata = require('../utils/updateMetadata.js');
@@ -209,9 +208,5 @@ function registerUser(request) {
     .return([username, audience])
     .spread(jwt.login);
 }
-
-registerUser.schema = 'register';
-
-registerUser.transports = [ActionTransport.amqp];
 
 module.exports = registerUser;

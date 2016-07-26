@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const getInternalData = require('../utils/getInternalData.js');
@@ -50,9 +49,5 @@ function assignAlias(request) {
         .exec();
     });
 }
-
-assignAlias.schema = 'alias';
-
-assignAlias.transports = [ActionTransport.amqp];
 
 module.exports = assignAlias;

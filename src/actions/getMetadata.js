@@ -1,4 +1,3 @@
-const { ActionTransport } = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const getMetadata = require('../utils/getMetadata.js');
@@ -53,9 +52,5 @@ function getMetadataAction(request) {
     .spread(getMetadata)
     .tap(request.params.public ? isPublic(username, audience) : noop);
 }
-
-getMetadataAction.schema = 'getMetadata';
-
-getMetadataAction.transports = [ActionTransport.amqp];
 
 module.exports = getMetadataAction;

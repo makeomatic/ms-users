@@ -14,6 +14,9 @@ module.exports = {
     transport: {
       queue: 'ms-users',
     },
+    router: {
+      enabled: true,
+    },
   },
   router: {
     routes: {

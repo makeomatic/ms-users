@@ -38,7 +38,7 @@
     "ms-mailer-client": "^3.0.0",
     "ms-mailer-templates": "^0.7.1",
     "ms-validation": "^2.0.0",
-    "mservice": "^2.6.0",
+    "mservice": "^3.1.1",
     "node-uuid": "^1.4.7",
     "password-generator": "^2.0.2",
     "redis-filtered-sort": "^1.2.0",

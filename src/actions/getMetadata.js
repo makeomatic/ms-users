@@ -6,7 +6,7 @@ const noop = require('lodash/noop');
 const get = require('lodash/get');
 const { USERS_ALIAS_FIELD } = require('../constants.js');
 
-const isArray = Array.isArray;
+const { isArray } = Array;
 
 function isPublic(username, audiences) {
   return metadata => {
@@ -42,8 +42,8 @@ function isPublic(username, audiences) {
  * @apiParam (Payload) {String[]} fields.* - fields to return from a passed audience
  *
  */
-module.exports = function getMetadataAction(message) {
-  const { audience: _audience, username, fields } = message;
+function getMetadataAction(request) {
+  const { audience: _audience, username, fields } = request.params;
   const audience = isArray(_audience) ? _audience : [_audience];
 
   return Promise
@@ -51,5 +51,7 @@ module.exports = function getMetadataAction(message) {
     .then(userExists)
     .then(realUsername => [realUsername, audience, fields])
     .spread(getMetadata)
-    .tap(message.public ? isPublic(username, audience) : noop);
-};
+    .tap(request.params.public ? isPublic(username, audience) : noop);
+}
+
+module.exports = getMetadataAction;

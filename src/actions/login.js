@@ -24,13 +24,13 @@ const noop = require('lodash/noop');
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function login(opts) {
+function login(request) {
   const config = this.config.jwt;
   const { redis } = this;
-  const { password } = opts;
+  const { password } = request.params;
   const { lockAfterAttempts, defaultAudience } = config;
-  const audience = opts.audience || defaultAudience;
-  const remoteip = opts.remoteip || false;
+  const audience = request.params.audience || defaultAudience;
+  const remoteip = request.params.remoteip || false;
   const verifyIp = remoteip && lockAfterAttempts > 0;
 
   // references for data from login attempts
@@ -87,7 +87,7 @@ module.exports = function login(opts) {
   }
 
   return Promise
-    .bind(this, opts.username)
+    .bind(this, request.params.username)
     .then(getInternalData)
     .tap(verifyIp ? checkLoginAttempts : noop)
     .tap(verifyHash)
@@ -96,4 +96,6 @@ module.exports = function login(opts) {
     .tap(isBanned)
     .then(getUserInfo)
     .catch(verifyIp ? enrichError : e => { throw e; });
-};
+}
+
+module.exports = login;

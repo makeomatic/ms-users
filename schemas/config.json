@@ -71,10 +71,6 @@
         }
       }
     },
-    "amqp": {
-      "required": [ "prefix", "postfix" ],
-      "type": "object"
-    },
     "redis": {
       "type": "object",
       "required": [ "options" ],

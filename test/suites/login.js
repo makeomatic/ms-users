@@ -2,9 +2,9 @@
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#login', function loginSuite() {
-  const headers = { routingKey: 'users.login' };
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
   const { USERS_BANNED_FLAG, USERS_DATA } = require('../../src/constants.js');
@@ -13,7 +13,7 @@ describe('#login', function loginSuite() {
   afterEach(global.clearRedis);
 
   it('must reject login on a non-existing username', function test() {
-    return this.users.router(user, headers)
+    return simpleDispatcher(this.users.router)('users.login', user)
       .reflect()
       .then(inspectPromise(false))
       .then(login => {
@@ -24,15 +24,15 @@ describe('#login', function loginSuite() {
 
   describe('existing user: inactivate', function userSuite() {
     beforeEach(function pretest() {
-      return this.users.router({
+      return simpleDispatcher(this.users.router)('users.register', {
         ...userWithValidPassword,
         activate: false,
         skipChallenge: true,
-      }, { routingKey: 'users.register' });
+      });
     });
 
     it('must reject login on an inactive account', function test() {
-      return this.users.router(userWithValidPassword, headers)
+      return simpleDispatcher(this.users.router)('users.login', userWithValidPassword)
         .reflect()
         .then(inspectPromise(false))
         .then(login => {
@@ -48,11 +48,11 @@ describe('#login', function loginSuite() {
 
   describe('existing user: active', function userSuite() {
     beforeEach(function pretest() {
-      return this.users.router(userWithValidPassword, { routingKey: 'users.register' });
+      return simpleDispatcher(this.users.router)('users.register', userWithValidPassword);
     });
 
     it('must reject login on an invalid password', function test() {
-      return this.users.router(user, headers)
+      return simpleDispatcher(this.users.router)('users.login', user)
         .reflect()
         .then(inspectPromise(false))
         .then(login => {
@@ -65,13 +65,11 @@ describe('#login', function loginSuite() {
       const alias = 'bond';
 
       beforeEach(function pretest() {
-        return this.users.router({ username: userWithValidPassword.username, alias }, { routingKey: 'users.alias' });
+        return simpleDispatcher(this.users.router)('users.alias', { username: userWithValidPassword.username, alias });
       });
 
       it('allows to sign in with a valid alias', function test() {
-        return this
-          .users
-          .router({ ...userWithValidPassword, username: alias }, { routingKey: 'users.login' })
+        return simpleDispatcher(this.users.router)('users.login', { ...userWithValidPassword, username: alias })
           .reflect()
           .then(inspectPromise());
       });
@@ -83,7 +81,7 @@ describe('#login', function loginSuite() {
       });
 
       it('must reject login', function test() {
-        return this.users.router(userWithValidPassword, headers)
+        return simpleDispatcher(this.users.router)('users.login', userWithValidPassword)
           .reflect()
           .then(inspectPromise(false))
           .then(login => {
@@ -94,7 +92,7 @@ describe('#login', function loginSuite() {
     });
 
     it('must login on a valid account with correct credentials', function test() {
-      return this.users.router(userWithValidPassword, headers)
+      return simpleDispatcher(this.users.router)('users.login', userWithValidPassword)
         .reflect()
         .then(inspectPromise());
     });
@@ -105,7 +103,7 @@ describe('#login', function loginSuite() {
 
       ld.times(5, () => {
         promises.push(
-          this.users.router(userWithRemoteIP, headers)
+          simpleDispatcher(this.users.router)('users.login', userWithRemoteIP)
             .reflect()
             .then(inspectPromise(false))
             .then(login => {
@@ -116,7 +114,7 @@ describe('#login', function loginSuite() {
       });
 
       promises.push(
-        this.users.router(userWithRemoteIP, headers)
+        simpleDispatcher(this.users.router)('users.login', userWithRemoteIP)
           .reflect()
           .then(inspectPromise(false))
           .then(login => {

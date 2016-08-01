@@ -16,13 +16,15 @@ const pick = require('lodash/pick');
  * @apiParam (Payload) {String[]} [fields] - return only these fields of user's internal data
  *
  */
-module.exports = function internalData(message) {
-  const { fields } = message;
+function internalData(request) {
+  const { fields } = request.params;
 
   return Promise
-    .bind(this, message.username)
+    .bind(this, request.params.username)
     .then(getInternalData)
     .then(data => {
       return fields ? pick(data, fields) : data;
     });
-};
+}
+
+module.exports = internalData;

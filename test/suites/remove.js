@@ -1,6 +1,7 @@
 /* global inspectPromise, globalRegisterUser */
 const assert = require('assert');
 const { USERS_ADMIN_ROLE } = require('../../src/constants');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#remove', function registerSuite() {
   const headers = { routingKey: 'users.remove' };
@@ -13,8 +14,7 @@ describe('#remove', function registerSuite() {
   beforeEach(globalRegisterUser('normal-1@me.com'));
 
   it('must reject invalid registration params and return detailed error', function test() {
-    return this.users
-      .router({}, headers)
+    return simpleDispatcher(this.users.router)('users.remove', {})
       .reflect()
       .then(inspectPromise(false))
       .then(registered => {
@@ -24,8 +24,7 @@ describe('#remove', function registerSuite() {
   });
 
   it('must reject to remove an admin user', function test() {
-    return this.users
-      .router({ username: 'admin@me.com' }, headers)
+    return simpleDispatcher(this.users.router)('users.remove', { username: 'admin@me.com' })
       .reflect()
       .then(inspectPromise(false))
       .then(registered => {
@@ -35,8 +34,7 @@ describe('#remove', function registerSuite() {
   });
 
   it('must fail to remove non-existing user', function test() {
-    return this.users
-      .router({ username: 'normal-2@me.com' }, headers)
+    return simpleDispatcher(this.users.router)('users.remove', { username: 'normal-2@me.com' })
       .reflect()
       .then(inspectPromise(false))
       .then(registered => {
@@ -46,8 +44,7 @@ describe('#remove', function registerSuite() {
   });
 
   it('must remove registered user', function test() {
-    return this.users
-      .router({ username: 'normal-1@me.com' }, headers)
+    return simpleDispatcher(this.users.router)('users.remove', { username: 'normal-1@me.com' })
       .reflect()
       .then(inspectPromise());
   });

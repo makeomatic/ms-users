@@ -1,5 +1,6 @@
 /* global inspectPromise, globalRegisterUser */
 const { expect } = require('chai');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#alias', function activateSuite() {
   const headers = { routingKey: 'users.alias' };
@@ -8,9 +9,7 @@ describe('#alias', function activateSuite() {
   after(global.clearRedis);
 
   it('must reject adding alias to a non-existing user', function test() {
-    return this
-      .users
-      .router({ username: 'doesntexist', alias: 'marvelous' }, headers)
+    return simpleDispatcher(this.users.router)('users.alias', { username: 'doesntexist', alias: 'marvelous' })
       .reflect()
       .then(inspectPromise(false))
       .then(response => {
@@ -23,9 +22,7 @@ describe('#alias', function activateSuite() {
     before('add user', globalRegisterUser('locked@me.com', { locked: true }));
 
     it('must reject adding alias to a locked user', function test() {
-      return this
-        .users
-        .router({ username: 'locked@me.com', alias: 'marvelous' }, headers)
+      return simpleDispatcher(this.users.router)('users.alias', { username: 'locked@me.com', alias: 'marvelous' })
         .reflect()
         .then(inspectPromise(false))
         .then(response => {
@@ -39,9 +36,7 @@ describe('#alias', function activateSuite() {
     before(globalRegisterUser('inactive@me.com', { inactive: true }));
 
     it('must reject adding alias to an inactive user', function test() {
-      return this
-        .users
-        .router({ username: 'inactive@me.com', alias: 'marvelous' }, headers)
+      return simpleDispatcher(this.users.router)('users.alias', { username: 'inactive@me.com', alias: 'marvelous' })
         .reflect()
         .then(inspectPromise(false))
         .then(response => {
@@ -56,41 +51,31 @@ describe('#alias', function activateSuite() {
     before(globalRegisterUser('active-2@me.com'));
 
     it('adds alias', function test() {
-      return this
-        .users
-        .router({ username: 'active@me.com', alias: 'marvelous' }, headers)
+      return simpleDispatcher(this.users.router)('users.alias', { username: 'active@me.com', alias: 'marvelous' })
         .reflect()
         .then(inspectPromise());
     });
 
     it('returns metadata based on alias', function test() {
-      return this
-        .users
-        .router({ username: 'marvelous', audience: '*.localhost' }, { routingKey: 'users.getMetadata' })
+      return simpleDispatcher(this.users.router)('users.getMetadata', { username: 'marvelous', audience: '*.localhost' })
         .reflect()
         .then(inspectPromise());
     });
 
     it('returns metadata based on username', function test() {
-      return this
-        .users
-        .router({ username: 'active@me.com', audience: '*.localhost' }, { routingKey: 'users.getMetadata' })
+      return simpleDispatcher(this.users.router)('users.getMetadata', { username: 'active@me.com', audience: '*.localhost' })
         .reflect()
         .then(inspectPromise());
     });
 
     it('returns public metadata based on alias', function test() {
-      return this
-        .users
-        .router({ public: true, username: 'marvelous', audience: '*.localhost' }, { routingKey: 'users.getMetadata' })
+      return simpleDispatcher(this.users.router)('users.getMetadata', { public: true, username: 'marvelous', audience: '*.localhost' })
         .reflect()
         .then(inspectPromise());
     });
 
     it('returns 404 for public metadata based on username', function test() {
-      return this
-        .users
-        .router({ public: true, username: 'active@me.com', audience: '*.localhost' }, { routingKey: 'users.getMetadata' })
+      return simpleDispatcher(this.users.router)('users.getMetadata', { public: true, username: 'active@me.com', audience: '*.localhost' })
         .reflect()
         .then(inspectPromise(false))
         .then(response => {
@@ -100,9 +85,7 @@ describe('#alias', function activateSuite() {
     });
 
     it('rejects to change alias', function test() {
-      return this
-        .users
-        .router({ username: 'active@me.com', alias: 'filezila' }, headers)
+      return simpleDispatcher(this.users.router)('users.alias', { username: 'active@me.com', alias: 'filezila' })
         .reflect()
         .then(inspectPromise(false))
         .then(response => {
@@ -112,9 +95,7 @@ describe('#alias', function activateSuite() {
     });
 
     it('rejects to add existing alias', function test() {
-      return this
-        .users
-        .router({ username: 'active-2@me.com', alias: 'marvelous' }, headers)
+      return simpleDispatcher(this.users.router)('users.alias', { username: 'active-2@me.com', alias: 'marvelous' })
         .reflect()
         .then(inspectPromise(false))
         .then(response => {

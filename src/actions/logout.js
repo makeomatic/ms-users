@@ -12,7 +12,9 @@ const jwt = require('../utils/jwt.js');
  * @apiParam (Payload) {String} audience - verifies that JWT is for this audience
  *
  */
-module.exports = function logout(opts) {
-  const { jwt: token, audience } = opts;
+function logout(request) {
+  const { jwt: token, audience } = request.params;
   return jwt.logout.call(this, token, audience);
-};
+}
+
+module.exports = logout;

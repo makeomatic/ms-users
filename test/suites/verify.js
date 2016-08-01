@@ -1,16 +1,15 @@
 /* global inspectPromise */
 const { expect } = require('chai');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#verify', function verifySuite() {
-  const headers = { routingKey: 'users.verify' };
-
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
   it('must reject on an invalid JWT token', function test() {
     const { defaultAudience: audience } = this.users._config.jwt;
 
-    return this.users.router({ token: 'invalid-token', audience }, headers)
+    return simpleDispatcher(this.users.router)('users.verify', { token: 'invalid-token', audience })
       .reflect()
       .then(inspectPromise(false))
       .then(verify => {
@@ -25,7 +24,7 @@ describe('#verify', function verifySuite() {
     const { hashingFunction: algorithm, secret, issuer, defaultAudience } = this.users._config.jwt;
     const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
 
-    return this.users.router({ token, audience: defaultAudience }, headers)
+    return simpleDispatcher(this.users.router)('users.verify', { token, audience: defaultAudience })
       .reflect()
       .then(inspectPromise(false))
       .then(verify => {
@@ -39,7 +38,7 @@ describe('#verify', function verifySuite() {
     const jwt = require('../../src/utils/jwt.js');
 
     beforeEach(function pretest() {
-      return this.users.router({ username: 'v@makeomatic.ru', password: '123', audience: 'test' }, { routingKey: 'users.register' });
+      return simpleDispatcher(this.users.router)('users.register', { username: 'v@makeomatic.ru', password: '123', audience: 'test' });
     });
 
     beforeEach(function pretest() {
@@ -49,7 +48,7 @@ describe('#verify', function verifySuite() {
     });
 
     it('must return user object and required audiences information on a valid JWT token', function test() {
-      return this.users.router({ token: this.token, audience: 'test' }, headers)
+      return simpleDispatcher(this.users.router)('users.verify', { token: this.token, audience: 'test' })
         .reflect()
         .then(inspectPromise())
         .then(verify => {

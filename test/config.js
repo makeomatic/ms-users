@@ -1,14 +1,8 @@
 require('chai').config.includeStack = true;
 const { expect } = require('chai');
+const simpleDispatcher = require('./helpers/simpleDispatcher');
 
 global.Promise = require('bluebird');
-
-global.AMQP = {
-  connection: {
-    host: 'rabbitmq',
-    port: 5672,
-  },
-};
 
 global.REDIS = {
   hosts: Array.from({ length: 3 }).map((_, i) => ({
@@ -18,7 +12,14 @@ global.REDIS = {
 };
 
 const config = {
-  amqp: global.AMQP,
+  amqp: {
+    transport: {
+      connection: {
+        host: 'rabbitmq',
+        port: 5672,
+      },
+    }
+  },
   redis: global.REDIS,
   logger: true,
   debug: true,
@@ -41,18 +42,18 @@ const config = {
 
 function registerUser(username, opts = {}) {
   return function register() {
-    return this.users
-      .router({
-        username,
-        password: '123',
-        audience: '*.localhost',
-        activate: !opts.inactive,
-        skipChallenge: true,
-        metadata: opts.metadata || undefined,
-      }, { routingKey: 'users.register' })
-      .then(() => {
+    const dispatch = simpleDispatcher(this.users.router);
+
+    return dispatch('users.register', {
+      username,
+      password: '123',
+      audience: '*.localhost',
+      activate: !opts.inactive,
+      skipChallenge: true,
+      metadata: opts.metadata || undefined,
+    }).then(() => {
         if (opts.locked) {
-          return this.users.router({ username, ban: true }, { routingKey: 'users.ban' });
+          return dispatch('users.ban', { username, ban: true });
         }
 
         return null;
@@ -93,11 +94,12 @@ function startService() {
 function clearRedis() {
   const nodes = this.users.redis.nodes('master');
   return Promise
-  .map(nodes, node => node.flushdb())
-  .finally(() => this.users.close())
-  .finally(() => {
-    this.users = null;
-  });
+    .map(nodes, node => node.flushdb())
+    .reflect()
+    .finally(() => this.users.close().reflect())
+    .finally(() => {
+      this.users = null;
+    });
 }
 
 global.startService = startService;

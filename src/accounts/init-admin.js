@@ -10,8 +10,8 @@ module.exports = function initAdminAccounts() {
   return Promise
     .delay(config.initAdminAccountsDelay)
     .return(accounts)
-    .map(account => (
-      register.call(this, {
+    .map(account => register
+      .call(this, {
         username: account.username,
         password: account.password,
         audience,
@@ -23,7 +23,7 @@ module.exports = function initAdminAccounts() {
         activate: true,
       })
       .reflect()
-    ))
+    )
     .bind(this)
     .then(function reportStats(users) {
       const totalAccounts = users.length;

@@ -7,7 +7,8 @@ const {
   USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
 } = require('../constants.js');
 
-const stringify = JSON.stringify.bind(JSON);
+// helper
+const stringify = data => JSON.stringify(data);
 
 function lockUser({ username, reason, whom, remoteip }) {
   const { redis, config } = this;
@@ -58,10 +59,12 @@ function unlockUser({ username }) {
  * @apiParam (Payload) {String} [whom] - id of the person, who banned the user
  *
  */
-module.exports = function banUser(opts) {
+function banUser(request) {
   return Promise
-    .bind(this, opts.username)
+    .bind(this, request.params.username)
     .then(userExists)
-    .then(username => ({ ...opts, username }))
-    .then(opts.ban ? lockUser : unlockUser);
-};
+    .then(username => ({ ...request.params, username }))
+    .then(request.params.ban ? lockUser : unlockUser);
+}
+
+module.exports = banUser;

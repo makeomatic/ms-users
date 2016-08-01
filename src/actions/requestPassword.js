@@ -19,12 +19,12 @@ const isBanned = require('../utils/isBanned.js');
  * @apiParam (Payload) {String} remoteip - ip address of the requester
  * @apiParam (Payload) {Boolean} [generateNewPassword=false] - send password immediately
  */
-module.exports = function requestPassword(opts) {
-  const { username, generateNewPassword } = opts;
+function requestPassword(request) {
+  const { username, generateNewPassword } = request.params;
   const action = generateNewPassword ? 'password' : 'reset';
 
   // TODO: make use of remoteip in security logs?
-  // var remoteip = opts.remoteip;
+  // var remoteip = request.params.remoteip;
 
   return Promise
     .bind(this, username)
@@ -33,4 +33,6 @@ module.exports = function requestPassword(opts) {
     .tap(isBanned)
     .then(() => emailValidation.send.call(this, username, action))
     .return({ success: true });
-};
+}
+
+module.exports = requestPassword;

@@ -18,8 +18,8 @@ module.exports = function initFakeAccounts() {
   const audience = config.jwt.defaultAudience;
 
   return Promise
-    .map(accounts, account => (
-      register.call(this, {
+    .map(accounts, account => register
+      .call(this, {
         username: account.id,
         password: (Math.random() * 20).toFixed(20),
         audience,
@@ -30,7 +30,7 @@ module.exports = function initFakeAccounts() {
         activate: true,
       })
       .reflect()
-    ))
+    )
     .bind(this)
     .then(function reportStats(users) {
       const totalAccounts = users.length;

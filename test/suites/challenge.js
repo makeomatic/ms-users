@@ -1,5 +1,6 @@
 /* global inspectPromise */
 const { expect } = require('chai');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#challenge', function challengeSuite() {
   const headers = { routingKey: 'users.challenge' };
@@ -8,8 +9,7 @@ describe('#challenge', function challengeSuite() {
   afterEach(global.clearRedis);
 
   it('must fail to send a challenge for a non-existing user', function test() {
-    return this.users
-      .router({ username: 'oops@gmail.com', type: 'email' }, headers)
+    return simpleDispatcher(this.users.router)('users.challenge', { username: 'oops@gmail.com', type: 'email' })
       .reflect()
       .then(inspectPromise(false))
       .then(validation => {
@@ -20,13 +20,11 @@ describe('#challenge', function challengeSuite() {
 
   describe('challenge for an already active user', function suite() {
     beforeEach(function pretest() {
-      return this.users
-        .router({ username: 'oops@gmail.com', password: '123', audience: 'matic.ninja' }, { routingKey: 'users.register' });
+      return simpleDispatcher(this.users.router)('users.register', { username: 'oops@gmail.com', password: '123', audience: 'matic.ninja' });
     });
 
     it('must fail to send', function test() {
-      return this.users
-        .router({ username: 'oops@gmail.com', type: 'email' }, headers)
+      return simpleDispatcher(this.users.router)('users.challenge', { username: 'oops@gmail.com', type: 'email' })
         .reflect()
         .then(inspectPromise(false))
         .then(validation => {
@@ -38,12 +36,12 @@ describe('#challenge', function challengeSuite() {
 
   describe('challenge for an inactive user', function suite() {
     function requestChallange() {
-      return this.users.router({ username: 'oops@gmail.com', type: 'email' }, headers);
+      return simpleDispatcher(this.users.router)('users.challenge', { username: 'oops@gmail.com', type: 'email' });
     }
 
     beforeEach(function pretest() {
       const msg = { username: 'oops@gmail.com', password: '123', audience: 'matic.ninja', activate: false, skipChallenge: true };
-      return this.users.router(msg, { routingKey: 'users.register' });
+      return simpleDispatcher(this.users.router)('users.register', msg);
     });
 
     it('must be able to send challenge email', function test() {

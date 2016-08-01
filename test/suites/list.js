@@ -1,39 +1,35 @@
 /* global inspectPromise */
 const { expect } = require('chai');
+const { User } = require('../../src/model/usermodel');
 const ld = require('lodash');
 
 describe('#list', function listSuite() {
   this.timeout(10000);
 
-  const redisKey = require('../../src/utils/key.js');
   const faker = require('faker');
   const headers = { routingKey: 'users.list' };
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
-  beforeEach(function populateRedis() {
+  beforeEach(function populateUsers() {
     const audience = this.users._config.jwt.defaultAudience;
     const promises = [];
     const { USERS_INDEX, USERS_METADATA } = require('../../src/constants.js');
 
     ld.times(105, () => {
-      const user = {
-        id: faker.internet.email(),
+      const userData = {
+        username: faker.internet.email(),
+        audience,
         metadata: {
-          firstName: faker.name.firstName(),
-          lastName: faker.name.lastName(),
+          $set: {
+            firstName: faker.name.firstName(),
+            lastName: faker.name.lastName(),
+          },
         },
       };
-
-      promises.push(this.users._redis
-        .pipeline()
-        .sadd(USERS_INDEX, user.id)
-        .hmset(
-          redisKey(user.id, USERS_METADATA, audience),
-          ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
-        )
-        .exec()
+      promises.push(
+        User.create.call(this.users, userData.username, '', '123', true).then(() => User.setMeta.call(this.users, userData))
       );
     });
 
@@ -52,6 +48,7 @@ describe('#list', function listSuite() {
     }, headers)
     .reflect()
     .then(result => {
+
       try {
         expect(result.isFulfilled()).to.be.eq(true);
         expect(result.value().page).to.be.eq(6);

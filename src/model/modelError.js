@@ -52,6 +52,8 @@ const ErrorTypes = {
     genErr(121, 412, 'Account hasn\'t been activated'),
   ERR_ACCOUNT_ALREADY_ACTIVATED:
     genErr(122, 417, (user) => (`Account ${user} was already activated`)),
+  ERR_ACCOUNT_ALREADY_DISACTIVATED:
+    genErr(122, 417, (user) => (`Account ${user} was already disactivated`)),
   ERR_ACCOUNT_IS_LOCKED:
     genErr(123, 423, 'Account has been locked'),
   ERR_ACCOUNT_IS_ALREADY_EXISTS:

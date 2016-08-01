@@ -3,7 +3,7 @@ const { expect } = require('chai');
 const URLSafeBase64 = require('urlsafe-base64');
 
 describe('#activate', function activateSuite() {
-  const redisKey = require('../../src/utils/key.js');
+  const { Tokens } = require('../../src/model/usermodel');
   const headers = { routingKey: 'users.activate' };
   const emailValidation = require('../../src/utils/send-email.js');
   const email = 'v@aminev.me';
@@ -44,8 +44,7 @@ describe('#activate', function activateSuite() {
     });
 
     beforeEach(function pretest() {
-      const secretKey = redisKey('vsecret-activate', this.uuid);
-      return this.users.redis.set(secretKey, email);
+      return Tokens.setEmailThrottleToken.call(this.users, 'activate', email, this.uuid);
     });
 
     it('must reject activation when account is already activated', function test() {
@@ -66,8 +65,7 @@ describe('#activate', function activateSuite() {
     });
 
     beforeEach('insert token', function pretest() {
-      const secretKey = redisKey('vsecret-activate', this.uuid);
-      return this.users.redis.set(secretKey, email);
+      return Tokens.setEmailThrottleToken.call(this.users, 'activate', email, this.uuid);
     });
 
     it('must activate account when challenge token is correct and not expired', function test() {

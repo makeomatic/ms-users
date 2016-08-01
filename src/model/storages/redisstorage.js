@@ -15,6 +15,7 @@ const {
   ERR_ALIAS_ALREADY_ASSIGNED, ERR_ALIAS_ALREADY_TAKEN, ERR_USERNAME_NOT_EXISTS, ERR_USERNAME_NOT_FOUND,
   ERR_TOKEN_FORGED, ERR_CAPTCHA_WRONG_USERNAME, ERR_ATTEMPTS_TO_MUCH_REGISTERED,
   ERR_ALIAS_ALREADY_EXISTS, ERR_ACCOUNT_IS_ALREADY_EXISTS, ERR_ACCOUNT_ALREADY_ACTIVATED,
+  ERR_ACCOUNT_ALREADY_DISACTIVATED,
 } = require('../modelError');
 /*
   ERR_USERNAME_ALREADY_ACTIVE,
@@ -446,6 +447,28 @@ exports.User = {
   },
 
   /**
+   * Disactivate user
+   * @param username
+   * @returns {*}
+   */
+  disactivate(username) {
+    const { redis } = this;
+    const userKey = generateKey(username, USERS_DATA);
+
+    return redis
+      .pipeline()
+      .hget(userKey, USERS_ACTIVE_FLAG)
+      .hset(userKey, USERS_ACTIVE_FLAG, 'false')
+      .exec()
+      .spread(function pipeResponse(isActive) {
+        const status = isActive[1];
+        if (status === 'false') {
+          throw new ModelError(ERR_ACCOUNT_ALREADY_DISACTIVATED, username);
+        }
+      });
+  },
+
+  /**
    * Ban user
    * @param username
    * @param opts
@@ -721,3 +744,4 @@ exports.Utils = {
     };
   },
 };
+

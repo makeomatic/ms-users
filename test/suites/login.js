@@ -3,7 +3,7 @@ const { expect } = require('chai');
 const ld = require('lodash');
 
 describe('#login', function loginSuite() {
-  const redisKey = require('../../src/utils/key.js');
+  const { User } = require('../../src/model/usermodel');
   const headers = { routingKey: 'users.login' };
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
@@ -79,7 +79,7 @@ describe('#login', function loginSuite() {
 
     describe('account: banned', function suite() {
       beforeEach(function pretest() {
-        return this.users.redis.hset(redisKey(user.username, USERS_DATA), USERS_BANNED_FLAG, 'true');
+        return User.lock.call(this.users, { username: user.username });
       });
 
       it('must reject login', function test() {

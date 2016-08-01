@@ -120,6 +120,15 @@ exports.User = {
   },
 
   /**
+   * Disactivate user
+   * @param username
+   * @returns {*}
+   */
+  disactivate(username) {
+    return storage.User.disactivate.call(this, username);
+  },
+
+  /**
    * Ban user
    * @param username
    * @param opts

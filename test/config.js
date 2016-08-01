@@ -3,6 +3,13 @@ const { expect } = require('chai');
 
 global.Promise = require('bluebird');
 
+global.MONGO = {
+  standalone: {
+    connectionString: 'mongodb://mongo/msusers',
+    options: {},
+  }
+};
+
 global.AMQP = {
   connection: {
     host: 'rabbitmq',
@@ -20,6 +27,7 @@ global.REDIS = {
 const config = {
   amqp: global.AMQP,
   redis: global.REDIS,
+  mongo: global.MONGO,
   logger: true,
   debug: true,
   validation: {

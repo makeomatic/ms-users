@@ -2,7 +2,7 @@
 const { expect } = require('chai');
 
 describe('#updatePassword', function updatePasswordSuite() {
-  const redisKey = require('../../src/utils/key.js');
+  const { User } = require('../../src/model/usermodel');
   const headers = { routingKey: 'users.updatePassword' };
   const username = 'v@makeomatic.ru';
   const password = '123';
@@ -29,7 +29,7 @@ describe('#updatePassword', function updatePasswordSuite() {
 
   describe('user: inactive', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
+      return User.disactivate.call(this.users, username);
     });
 
     it('must reject updating password for an inactive account on username+password update', function test() {
@@ -45,7 +45,7 @@ describe('#updatePassword', function updatePasswordSuite() {
 
   describe('user: banned', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true');
+      return User.lock.call(this.users, { username });
     });
 
     it('must reject updating password for an inactive account on username+password update', function test() {

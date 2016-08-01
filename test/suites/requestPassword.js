@@ -2,7 +2,7 @@
 const { expect } = require('chai');
 
 describe('#requestPassword', function requestPasswordSuite() {
-  const redisKey = require('../../src/utils/key.js');
+  const { User } = require('../../src/model/usermodel');
   const headers = { routingKey: 'users.requestPassword' };
   const username = 'v@makeomatic.ru';
   const audience = 'requestPassword';
@@ -27,7 +27,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
   describe('account: inactive', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
+      return User.disactivate.call(this.users, username);
     });
 
     it('must fail when account is inactive', function test() {
@@ -43,7 +43,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
   describe('account: banned', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true');
+      return User.lock.call(this.users, { username });
     });
 
     it('must fail when account is banned', function test() {

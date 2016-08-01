@@ -2,8 +2,10 @@ const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const mapValues = require('lodash/mapValues');
 const fsort = require('redis-filtered-sort');
-const JSONParse = JSON.parse.bind(JSON);
 const { USERS_INDEX, USERS_PUBLIC_INDEX, USERS_METADATA } = require('../constants.js');
+
+// helper
+const JSONParse = data => JSON.parse(data);
 
 /**
  * @api {amqp} <prefix>.list Retrieve Registered Users

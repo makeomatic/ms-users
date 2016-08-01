@@ -127,7 +127,7 @@ describe('#register', function registerSuite() {
     };
 
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', opts)
+      return simpleDispatcher(this.users.router)('users.register', opts);
     });
 
     it('must reject registration for an already existing user', function test() {

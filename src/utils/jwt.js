@@ -2,10 +2,11 @@ const Errors = require('common-errors');
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 const redisKey = require('./key.js');
+const { USERS_TOKENS } = require('../constants.js');
 const getMetadata = require('../utils/getMetadata.js');
 const FlakeId = require('flake-idgen');
+
 const flakeIdGen = new FlakeId();
-const { USERS_TOKENS } = require('../constants.js');
 
 /**
  * Logs user in and returns JWT and User Object
@@ -34,21 +35,22 @@ exports.login = function login(username, _audience) {
     audience = [audience];
   }
 
-  return Promise.props({
-    lastAccessUpdated: redis.zadd(redisKey(username, USERS_TOKENS), Date.now(), token),
-    jwt: token,
-    username,
-    metadata: getMetadata.call(this, username, audience),
-  })
-  .then(function remap(props) {
-    return {
-      jwt: props.jwt,
-      user: {
-        username: props.username,
-        metadata: props.metadata,
-      },
-    };
-  });
+  return Promise
+    .props({
+      lastAccessUpdated: redis.zadd(redisKey(username, USERS_TOKENS), Date.now(), token),
+      jwt: token,
+      username,
+      metadata: getMetadata.call(this, username, audience),
+    })
+    .then(function remap(props) {
+      return {
+        jwt: props.jwt,
+        user: {
+          username: props.username,
+          metadata: props.metadata,
+        },
+      };
+    });
 };
 
 /**

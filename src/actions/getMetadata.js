@@ -4,8 +4,9 @@ const getMetadata = require('../utils/getMetadata.js');
 const userExists = require('../utils/userExists.js');
 const noop = require('lodash/noop');
 const get = require('lodash/get');
-const isArray = Array.isArray;
 const { USERS_ALIAS_FIELD } = require('../constants.js');
+
+const { isArray } = Array;
 
 function isPublic(username, audiences) {
   return metadata => {

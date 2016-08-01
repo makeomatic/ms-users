@@ -49,9 +49,9 @@
   },
   "devDependencies": {
     "apidoc": "^0.16.1",
-    "babel-cli": "^6.10.1",
+    "babel-cli": "^6.11.4",
     "babel-eslint": "^6.1.2",
-    "babel-plugin-transform-class-properties": "^6.10.2",
+    "babel-plugin-transform-class-properties": "^6.11.5",
     "babel-plugin-transform-es2015-spread": "^6.0.0",
     "babel-plugin-transform-object-rest-spread": "^6.0.0",
     "babel-plugin-transform-strict-mode": "^6.11.3",

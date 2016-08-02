@@ -20,14 +20,16 @@ module.exports = function initFakeAccounts() {
   return Promise
     .map(accounts, account => register
       .call(this, {
-        username: account.id,
-        password: (Math.random() * 20).toFixed(20),
-        audience,
-        metadata: {
-          firstName: account.metadata.firstName,
-          lastName: account.metadata.lastName,
+        params: {
+          username: account.id,
+          password: (Math.random() * 20).toFixed(20),
+          audience,
+          metadata: {
+            firstName: account.metadata.firstName,
+            lastName: account.metadata.lastName,
+          },
+          activate: true,
         },
-        activate: true,
       })
       .reflect()
     )

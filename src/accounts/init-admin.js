@@ -12,15 +12,17 @@ module.exports = function initAdminAccounts() {
     .return(accounts)
     .map(account => register
       .call(this, {
-        username: account.username,
-        password: account.password,
-        audience,
-        metadata: {
-          firstName: account.firstName,
-          lastName: account.lastName,
-          roles: [USERS_ADMIN_ROLE],
+        params: {
+          username: account.username,
+          password: account.password,
+          audience,
+          metadata: {
+            firstName: account.firstName,
+            lastName: account.lastName,
+            roles: [USERS_ADMIN_ROLE],
+          },
+          activate: true,
         },
-        activate: true,
       })
       .reflect()
     )

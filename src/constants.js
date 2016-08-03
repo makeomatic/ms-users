@@ -11,9 +11,10 @@ module.exports = {
   USERS_ADMIN_ROLE: 'admin',
   USERS_TESTER_ROLE: 'tester',
   USERS_BANNED_DATA: 'bannedData',
+
+  // email namespaces
   MAIL_ACTIVATE: 'activate',
   MAIL_RESET: 'reset',
   MAIL_PASSWORD: 'password',
   MAIL_REGISTER: 'register',
-  THROTTLE_PREFIX: 'vthrottle',
 };

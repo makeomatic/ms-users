@@ -43,6 +43,16 @@ module.exports = {
       dropBufferSupport: false,
     },
   },
+  tokenManager: {
+    backend: {
+      name: 'redis',
+      prefix: 'tmanager!1.0.0',
+    },
+    encrypt: {
+      algorithm: 'aes256',
+      sharedSecret: 'replace-shared-secret-at-least-24-chars-long',
+    },
+  },
   pwdReset: {
     memorable: true,
     length: 10,
@@ -57,8 +67,10 @@ module.exports = {
     keepLoginAttempts: 60 * 60, // 1 hour
   },
   validation: {
-    secret: 'please-replace-this-as-a-long-nice-secret',
-    algorithm: 'aes-256-ctr',
+    secret: {
+      encrypt: true,
+      type: 'uuid',
+    },
     throttle: 2 * 60 * 60, // dont send emails more than once in 2 hours
     ttl: 4 * 60 * 60, // do not let password to be reset with expired codes
     paths: {

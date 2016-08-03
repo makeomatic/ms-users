@@ -18,13 +18,15 @@ describe('#updatePassword', function updatePasswordSuite() {
   });
 
   it('must reject updating password for a non-existing user on username+password update', function test() {
-    return simpleDispatcher(this.users.router)('users.updatePassword', { username: 'mcdon@tour.de.france', currentPassword: 'xxx', newPassword: 'vvv' })
-      .reflect()
-      .then(inspectPromise(false))
-      .then(updatePassword => {
-        expect(updatePassword.name).to.be.eq('HttpStatusError');
-        expect(updatePassword.statusCode).to.be.eq(404);
-      });
+    return simpleDispatcher(this.users.router)('users.updatePassword', {
+      username: 'mcdon@tour.de.france', currentPassword: 'xxx', newPassword: 'vvv',
+    })
+    .reflect()
+    .then(inspectPromise(false))
+    .then(updatePassword => {
+      expect(updatePassword.name).to.be.eq('HttpStatusError');
+      expect(updatePassword.statusCode).to.be.eq(404);
+    });
   });
 
   describe('user: inactive', function suite() {
@@ -71,18 +73,20 @@ describe('#updatePassword', function updatePasswordSuite() {
     });
 
     it('must update password with a valid username/password combination and different newPassword', function test() {
-      return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0' })
-        .reflect()
-        .then(inspectPromise())
-        .then(updatePassword => {
-          expect(updatePassword).to.be.deep.eq({ success: true });
-        });
+      return simpleDispatcher(this.users.router)('users.updatePassword', {
+        username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0',
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then(updatePassword => {
+        expect(updatePassword).to.be.deep.eq({ success: true });
+      });
     });
 
     describe('token', function tokenSuite() {
       beforeEach(function pretest() {
         return emailValidation.send.call(this.users, username, 'reset').then(data => {
-          this.token = data.context.qs.slice(3);
+          this.token = data.context.token.secret;
         });
       });
 

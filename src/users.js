@@ -3,6 +3,7 @@ const Mailer = require('ms-mailer-client');
 const Errors = require('common-errors');
 const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
+const TokenManager = require('ms-token');
 const defaultOpts = require('./defaults.js');
 
 const { NotImplementedError } = Errors;
@@ -43,6 +44,10 @@ module.exports = class Users extends Mservice {
 
     this.on('plugin:connect:redisCluster', (redis) => {
       fsort.attach(redis, 'fsort');
+
+      // init token manager
+      const tokenManagerOpts = { backend: { connection: redis } };
+      this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
     });
   }
 

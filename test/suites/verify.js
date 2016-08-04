@@ -43,7 +43,7 @@ describe('#verify', function verifySuite() {
         username: 'v@makeomatic.ru',
         password: '123',
         audience: 'test',
-        meta: {
+        metadata: {
           fine: true,
         },
       });

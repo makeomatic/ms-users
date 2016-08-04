@@ -12,6 +12,7 @@ module.exports = {
   USERS_TESTER_ROLE: 'tester',
   USERS_BANNED_DATA: 'bannedData',
   USERS_CREATED_FIELD: 'created',
+  USERS_USERNAME_FIELD: 'username',
 
   // email namespaces
   MAIL_ACTIVATE: 'activate',

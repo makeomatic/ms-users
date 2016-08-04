@@ -28,7 +28,7 @@
     "bytes": "^2.4.0",
     "common-errors": "^1.0.0",
     "disposable-email-domains": "^1.0.9",
-    "dlock": "^6.1.0",
+    "dlock": "^6.2.0",
     "flake-idgen": "^1.1.0",
     "ioredis": "github:luin/ioredis#f1cadffc39f745caab4d6f636412799a8a2749d7",
     "jsonwebtoken": "^7.1.7",

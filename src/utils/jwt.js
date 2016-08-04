@@ -42,15 +42,13 @@ exports.login = function login(username, _audience) {
       username,
       metadata: getMetadata.call(this, username, audience),
     })
-    .then(function remap(props) {
-      return {
-        jwt: props.jwt,
-        user: {
-          username: props.username,
-          metadata: props.metadata,
-        },
-      };
-    });
+    .then(props => ({
+      jwt: props.jwt,
+      user: {
+        username: props.username,
+        metadata: props.metadata,
+      },
+    }));
 };
 
 /**

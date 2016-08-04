@@ -26,6 +26,7 @@ const {
   USERS_DATA,
   USERS_ACTIVE_FLAG,
   USERS_CREATED_FIELD,
+  USERS_USERNAME_FIELD,
   lockAlias,
   lockRegister,
   MAIL_INVITE,
@@ -182,14 +183,12 @@ function registerUser(request) {
         .return({
           username,
           audience,
-          metadata: Object.keys(metadata)
-            .map(metaAudience => ({
-              $set: Object.assign(metadata[metaAudience], metaAudience === defaultAudience && {
-                username,
-                [USERS_CREATED_FIELD]: created,
-              }),
-            })
-          ),
+          metadata: audience.map(metaAudience => ({
+            $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
+              [USERS_USERNAME_FIELD]: username,
+              [USERS_CREATED_FIELD]: created,
+            }),
+          })),
         })
         .then(setMetadata)
         // activate user or queue challenge

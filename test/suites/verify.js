@@ -61,8 +61,10 @@ describe('#verify', function verifySuite() {
         .then(inspectPromise())
         .then(verify => {
           expect(verify.username).to.be.eq('v@makeomatic.ru');
-          expect(verify.metadata['*.localhost']).to.be.deep.eq({});
-          expect(verify.metadata.test.username).to.be.eq('v@makeomatic.ru');
+          expect(verify.metadata['*.localhost'].username).to.be.eq('v@makeomatic.ru');
+          expect(verify.metadata.test).to.be.deep.eq({
+            fine: true,
+          });
         });
     });
   });

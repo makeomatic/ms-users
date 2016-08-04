@@ -41,6 +41,8 @@ module.exports = {
       keyPrefix: '{ms-users}',
       // pass this to constructor
       dropBufferSupport: false,
+      // lazyConnect
+      lazyConnect: false,
     },
     luaScripts: path.resolve(__dirname, '../scripts'),
   },

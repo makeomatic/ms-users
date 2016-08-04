@@ -1,3 +1,4 @@
+const Promise = require('bluebird');
 const Mservice = require('mservice');
 const Mailer = require('ms-mailer-client');
 const Errors = require('common-errors');
@@ -44,21 +45,10 @@ module.exports = class Users extends Mservice {
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
       this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
-
-      // lock manager
-      this.dlock = new LockManager({
-        ...config.lockManager,
-        // main connection
-        client: redis,
-        // second connection
-        pubsub: new RedisCluster(config.redis.hosts, config.redis.options),
-        log: this.log,
-      });
     });
 
     // cleanup connections
     this.on('plugin:close:redisCluster', () => {
-      this.dlock.pubsub.disconnect().reflect();
       this.dlock = null;
       this.tokenManager = null;
     });
@@ -79,6 +69,39 @@ module.exports = class Users extends Mservice {
    */
   get config() {
     return this._config;
+  }
+
+  /**
+   * Gracefully connect to cluster
+   * @return {Promise}
+   */
+  connect() {
+    const config = this.config;
+    this._pubsub = new RedisCluster(config.redis.hosts, {
+      ...config.redis.options,
+      lazyConnect: true,
+    });
+
+    return Promise
+      .join(super.connect(), this._pubsub.connect())
+      .tap(() => {
+        // lock manager
+        this.dlock = new LockManager({
+          ...config.lockManager,
+          client: this._redis,
+          pubsub: this._pubsub,
+          log: this.log,
+        });
+      });
+  }
+
+  /**
+   * Gracefully disconnect from the cluster
+   * @return {Promise}
+   */
+  close() {
+    return Promise
+      .join(super.close(), this._pubsub.quit().reflect());
   }
 
   /**

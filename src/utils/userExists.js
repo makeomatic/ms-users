@@ -1,6 +1,6 @@
-const Errors = require('common-errors');
-const redisKey = require('../utils/key.js');
+const { HttpStatusError } = require('common-errors');
 const { USERS_DATA, USERS_ALIAS_TO_LOGIN } = require('../constants.js');
+const redisKey = require('../utils/key.js');
 
 module.exports = function userExists(username) {
   return this
@@ -15,7 +15,7 @@ module.exports = function userExists(username) {
       }
 
       if (!exists[1]) {
-        throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
+        throw new HttpStatusError(404, `"${username}" does not exists`);
       }
 
       return username;

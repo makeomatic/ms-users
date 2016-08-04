@@ -3,6 +3,7 @@ const Promise = require('bluebird');
 const render = require('ms-mailer-templates');
 const { updatePassword } = require('../actions/updatePassword.js');
 const generatePassword = require('password-generator');
+const partial = require('lodash/partial');
 const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER } = require('../constants.js');
 
 // eslint-disable-next-line max-len
@@ -35,7 +36,7 @@ exports.generateLink = generateLink;
  * @param  {String} type
  * @return {Promise}
  */
-exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
+function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
   const { config, mailer, tokenManager } = this;
   const { validation, server } = config;
   const { ttl, throttle, subjects, senders, paths, secret, email: mailingAccount } = validation;
@@ -122,4 +123,8 @@ exports.send = function sendEmail(email, type = MAIL_ACTIVATE, wait = false) {
         context,
       };
     });
-};
+}
+exports.send = sendEmail;
+
+// util function to password generator
+exports.sendPassword = partial(sendEmail, partial.placeholder, MAIL_REGISTER);

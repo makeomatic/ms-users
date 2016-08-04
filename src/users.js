@@ -4,7 +4,9 @@ const Errors = require('common-errors');
 const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
 const TokenManager = require('ms-token');
+const LockManager = require('dlock');
 const defaultOpts = require('./defaults.js');
+const RedisCluster = require('ioredis').Cluster;
 
 const { NotImplementedError } = Errors;
 
@@ -28,12 +30,6 @@ module.exports = class Users extends Mservice {
     super(merge({}, Users.defaultOpts, opts));
     const config = this.config;
 
-    const { error } = this.validateSync('config', config);
-    if (error) {
-      this.log.fatal('Invalid configuration:', error.toJSON());
-      throw error;
-    }
-
     this.on('plugin:connect:amqp', (amqp) => {
       this._mailer = new Mailer(amqp, config.mailer);
     });
@@ -48,6 +44,16 @@ module.exports = class Users extends Mservice {
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
       this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
+
+      // lock manager
+      this.dlock = new LockManager({
+        ...config.lockManager,
+        // main connection
+        client: redis,
+        // second connection
+        pubsub: new RedisCluster(config.redis.hosts, config.redis.options),
+        log: this.log,
+      });
     });
   }
 

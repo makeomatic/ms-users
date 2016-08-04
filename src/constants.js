@@ -11,10 +11,15 @@ module.exports = {
   USERS_ADMIN_ROLE: 'admin',
   USERS_TESTER_ROLE: 'tester',
   USERS_BANNED_DATA: 'bannedData',
+  USERS_CREATED_FIELD: 'created',
 
   // email namespaces
   MAIL_ACTIVATE: 'activate',
   MAIL_RESET: 'reset',
   MAIL_PASSWORD: 'password',
   MAIL_REGISTER: 'register',
+
+  // lock names
+  lockAlias: alias => `users:alias:${alias}`,
+  lockRegister: username => `users:register:${username}`,
 };

@@ -23,11 +23,20 @@ describe('#getMetadata', function getMetadataSuite() {
     const audience = '*.localhost';
 
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', { username, password: '123', audience, metadata: { name: { q: 'verynicedata' } } });
+      return simpleDispatcher(this.users.router)('users.register', {
+        username, password: '123', audience, metadata: { name: { q: 'verynicedata' } },
+      });
     });
 
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.updateMetadata', { username, audience: 'matic.ninja', metadata: { $set: { iat: 10 } } });
+      return simpleDispatcher(this.users.router)('users.updateMetadata', {
+        username,
+        audience: ['matic.ninja', audience],
+        metadata: [
+          { $set: { iat: 10 } },
+          { $remove: ['created'] },
+        ],
+      });
     });
 
     it('must return metadata for a default audience', function test() {
@@ -35,14 +44,11 @@ describe('#getMetadata', function getMetadataSuite() {
         .reflect()
         .then(inspectPromise())
         .then(getMetadata => {
-          expect(getMetadata).to.be.deep.eq({
-            [audience]: {
-              name: {
-                q: 'verynicedata',
-              },
-              username,
-            },
+          expect(getMetadata[audience].name).to.be.deep.eq({
+            q: 'verynicedata',
           });
+
+          expect(getMetadata[audience].username).to.be.eq(username);
         });
     });
 

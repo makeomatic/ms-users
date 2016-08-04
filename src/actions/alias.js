@@ -22,7 +22,7 @@ const { USERS_DATA, USERS_METADATA, USERS_PUBLIC_INDEX, USERS_ALIAS_TO_LOGIN, US
  */
 function assignAlias(request) {
   const { redis, config: { jwt: { defaultAudience } } } = this;
-  const { username, alias } = request.params;
+  const { username, alias, internal } = request.params;
 
   return Promise
     .bind(this, username)
@@ -34,19 +34,34 @@ function assignAlias(request) {
         throw new Errors.HttpStatusError(417, 'alias is already assigned');
       }
 
-      return redis.hsetnx(USERS_ALIAS_TO_LOGIN, alias, username);
-    })
-    .then(assigned => {
-      if (assigned === 0) {
-        throw new Errors.HttpStatusError(409, 'alias was already taken');
+      // perform set alias
+      const setAlias = () => redis
+        .hsetnx(USERS_ALIAS_TO_LOGIN, alias, username)
+        .then(assigned => {
+          if (assigned === 0) {
+            throw new Errors.HttpStatusError(409, 'alias was already taken');
+          }
+
+          return redis
+            .pipeline()
+            .sadd(USERS_PUBLIC_INDEX, username)
+            .hset(key(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
+            .hset(key(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias))
+            .exec();
+        });
+
+      // if we access assign alias from register user
+      // we do not need the lock
+      if (internal) {
+        return setAlias();
       }
 
-      return redis
-        .pipeline()
-        .sadd(USERS_PUBLIC_INDEX, username)
-        .hset(key(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
-        .hset(key(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias))
-        .exec();
+      return this.dlock
+        .once(`users:alias:${alias}`)
+        .then(lock => setAlias().finally(() => {
+          lock.release().reflect();
+          return null;
+        }));
     });
 }
 

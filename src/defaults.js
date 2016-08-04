@@ -43,6 +43,15 @@ module.exports = {
       dropBufferSupport: false,
     },
   },
+  lockManager: {
+    lockPrefix: 'dlock!',
+    pubsubChannel: '{ms-users}:dlock',
+    lock: {
+      timeout: 15000,
+      retries: 1,
+      delay: 50,
+    },
+  },
   tokenManager: {
     backend: {
       name: 'redis',

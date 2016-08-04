@@ -76,9 +76,11 @@ describe('#activate', function activateSuite() {
     });
 
     it('must activate account when only username is specified as a service action', function test() {
-      return simpleDispatcher(this.users.router)('users.activate', { username: 'v@makeomatic.ru' })
-        .reflect()
-        .then(inspectPromise());
+      return simpleDispatcher(this.users.router)('users.activate', {
+        username: 'v@makeomatic.ru',
+      })
+      .reflect()
+      .then(inspectPromise());
     });
   });
 

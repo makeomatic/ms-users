@@ -4,6 +4,7 @@ const request = require('request-promise');
 const defaults = require('lodash/defaults');
 const pick = require('lodash/pick');
 const fmt = require('util').format;
+const handlePipeline = require('../utils/pipelineError.js');
 
 /**
  * Performs captcha check, returns thukn
@@ -22,8 +23,9 @@ module.exports = function makeCaptchaCheck(redis, username, captcha, captchaConf
       .set(captchaCacheKey, username, 'EX', ttl, 'NX')
       .get(captchaCacheKey)
       .exec()
+      .then(handlePipeline)
       .spread(function captchaCacheResponse(setResponse, getResponse) {
-        if (getResponse[1] !== username) {
+        if (getResponse !== username) {
           const msg = 'Captcha challenge you\'ve solved can not be used, please complete it again';
           throw new Errors.HttpStatusError(412, msg);
         }

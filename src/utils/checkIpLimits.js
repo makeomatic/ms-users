@@ -1,6 +1,7 @@
 const { HttpStatusError } = require('common-errors');
 const redisKey = require('./key');
 const uuid = require('node-uuid');
+const handlePipeline = require('../utils/pipelineError.js');
 
 /**
  * Verify ip limits
@@ -23,8 +24,9 @@ module.exports = function checkLimits(redis, registrationLimits, ipaddress) {
       .zremrangebyscore(ipaddressLimitKey, '-inf', old)
       .zcard(ipaddressLimitKey)
       .exec()
+      .then(handlePipeline)
       .then(props => {
-        const cardinality = props[3][1];
+        const cardinality = props[3];
         if (cardinality > times) {
           const msg = 'You can\'t register more users from your ipaddress now';
           throw new HttpStatusError(429, msg);

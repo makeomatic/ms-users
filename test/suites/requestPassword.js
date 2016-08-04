@@ -12,7 +12,14 @@ describe('#requestPassword', function requestPasswordSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    return simpleDispatcher(this.users.router)('users.register', { username, password: '123', audience })
+    return simpleDispatcher(this.users.router)('users.register', {
+      username,
+      password: '123',
+      audience,
+      metadata: {
+        rpass: true,
+      },
+    });
   });
 
   it('must fail when user does not exist', function test() {

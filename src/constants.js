@@ -18,6 +18,17 @@ module.exports = {
   MAIL_RESET: 'reset',
   MAIL_PASSWORD: 'password',
   MAIL_REGISTER: 'register',
+  MAIL_INVITE: 'invite',
+
+  // invitations constants
+  INVITATIONS_INDEX: 'user-invitations',
+  INVITATIONS_FIELD_METADATA: '1',
+  INVITATIONS_FIELD_SENT: '2',
+  INVITATIONS_FIELD_CTX: '3',
+
+  // challenge types
+  CHALLENGE_TYPE_EMAIL: 'email',
+  CHALLENGE_TYPE_PHONE: 'phone',
 
   // lock names
   lockAlias: alias => `users:alias:${alias}`,

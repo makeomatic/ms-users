@@ -22,6 +22,9 @@ describe('#register', function registerSuite() {
       username: 'v@makeomatic.ru',
       password: 'mynicepassword',
       audience: 'matic.ninja',
+      metadata: {
+        service: 'craft',
+      },
     };
 
     return simpleDispatcher(this.users.router)('users.register', opts)
@@ -44,6 +47,9 @@ describe('#register', function registerSuite() {
       username: 'v@makeomatic.ru',
       audience: 'matic.ninja',
       alias: 'bondthebest',
+      metadata: {
+        service: 'craft',
+      },
     };
 
     return simpleDispatcher(this.users.router)('users.register', opts)
@@ -66,6 +72,9 @@ describe('#register', function registerSuite() {
     const opts = {
       username: 'v@makeomatic.ru',
       audience: 'matic.ninja',
+      metadata: {
+        service: 'craft',
+      },
     };
 
     return simpleDispatcher(this.users.router)('users.register', opts)
@@ -89,6 +98,9 @@ describe('#register', function registerSuite() {
       password: 'mynicepassword',
       audience: 'matic.ninja',
       activate: false,
+      metadata: {
+        service: 'craft',
+      },
     };
 
     return simpleDispatcher(this.users.router)('users.register', opts)
@@ -106,6 +118,9 @@ describe('#register', function registerSuite() {
       username: 'v@makeomatic.ru',
       audience: 'matic.ninja',
       activate: false,
+      metadata: {
+        wolf: true,
+      },
     };
 
     return simpleDispatcher(this.users.router)('users.register', opts)
@@ -124,6 +139,9 @@ describe('#register', function registerSuite() {
       password: 'mynicepassword',
       audience: 'matic.ninja',
       activate: false,
+      metadata: {
+        service: 'craft',
+      },
     };
 
     beforeEach(function pretest() {
@@ -149,6 +167,9 @@ describe('#register', function registerSuite() {
       audience: 'matic.ninja',
       activate: false,
       ipaddress: '192.168.1.1',
+      metadata: {
+        service: 'craft',
+      },
     };
 
     beforeEach(function pretest() {
@@ -174,6 +195,9 @@ describe('#register', function registerSuite() {
       username: 'v@mailinator.com',
       password: 'mynicepassword',
       audience: 'matic.ninja',
+      metadata: {
+        service: 'craft',
+      },
     };
 
     return simpleDispatcher(this.users.router)('users.register', opts)
@@ -191,6 +215,9 @@ describe('#register', function registerSuite() {
       username: 'v@aminev.co',
       password: 'mynicepassword',
       audience: 'matic.ninja',
+      metadata: {
+        service: 'craft',
+      },
     };
 
     return simpleDispatcher(this.users.router)('users.register', opts)

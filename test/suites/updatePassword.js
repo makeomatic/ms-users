@@ -4,11 +4,12 @@ const redisKey = require('../../src/utils/key.js');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#updatePassword', function updatePasswordSuite() {
+  const challenge = require('../../src/utils/challenges/challenge.js');
+  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../src/constants.js');
+
   const username = 'v@makeomatic.ru';
   const password = '123';
   const audience = '*.localhost';
-  const emailValidation = require('../../src/utils/send-email.js');
-  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../src/constants.js');
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
@@ -85,9 +86,14 @@ describe('#updatePassword', function updatePasswordSuite() {
 
     describe('token', function tokenSuite() {
       beforeEach(function pretest() {
-        return emailValidation.send.call(this.users, username, 'reset').then(data => {
-          this.token = data.context.token.secret;
-        });
+        return challenge
+          .call(this.users, 'email', {
+            id: username,
+            action: 'reset',
+          })
+          .then(data => {
+            this.token = data.context.token.secret;
+          });
       });
 
       it('must reject updating password for an invalid challenge token', function test() {

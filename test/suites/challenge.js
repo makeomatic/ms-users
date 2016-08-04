@@ -3,8 +3,6 @@ const { expect } = require('chai');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#challenge', function challengeSuite() {
-  const headers = { routingKey: 'users.challenge' };
-
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
@@ -20,7 +18,14 @@ describe('#challenge', function challengeSuite() {
 
   describe('challenge for an already active user', function suite() {
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', { username: 'oops@gmail.com', password: '123', audience: 'matic.ninja' });
+      return simpleDispatcher(this.users.router)('users.register', {
+        username: 'oops@gmail.com',
+        password: '123',
+        audience: 'matic.ninja',
+        metadata: {
+          wolf: true,
+        },
+      });
     });
 
     it('must fail to send', function test() {
@@ -40,7 +45,16 @@ describe('#challenge', function challengeSuite() {
     }
 
     beforeEach(function pretest() {
-      const msg = { username: 'oops@gmail.com', password: '123', audience: 'matic.ninja', activate: false, skipChallenge: true };
+      const msg = {
+        username: 'oops@gmail.com',
+        password: '123',
+        audience: 'matic.ninja',
+        activate: false,
+        skipChallenge: true,
+        metadata: {
+          wolf: true,
+        },
+      };
       return simpleDispatcher(this.users.router)('users.register', msg);
     });
 

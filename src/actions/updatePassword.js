@@ -7,6 +7,7 @@ const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const userExists = require('../utils/userExists.js');
+const partialRight = require('lodash/partialRight');
 const { USERS_DATA, MAIL_RESET } = require('../constants.js');
 
 // cache error
@@ -81,19 +82,19 @@ function updatePassword(request) {
         },
       })
       .catchThrow(Forbidden)
-      .get('id');
+      .get('id')
+      .bind(this);
   } else {
-    promise = usernamePasswordReset.call(
-      this, request.params.username, request.params.currentPassword
-    );
+    promise = Promise
+      .bind(this, [request.params.username, request.params.currentPassword])
+      .spread(usernamePasswordReset);
   }
 
   // update password
-  promise = promise
-    .then(username => setPassword.call(this, username, password));
+  promise = promise.then(partialRight(setPassword, password));
 
   if (invalidateTokens) {
-    promise = promise.tap(username => jwt.reset.call(this, username));
+    promise = promise.tap(jwt.reset);
   }
 
   if (remoteip) {

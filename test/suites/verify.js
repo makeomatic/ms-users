@@ -39,7 +39,14 @@ describe('#verify', function verifySuite() {
     const jwt = require('../../src/utils/jwt.js');
 
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', { username: 'v@makeomatic.ru', password: '123', audience: 'test' });
+      return simpleDispatcher(this.users.router)('users.register', {
+        username: 'v@makeomatic.ru',
+        password: '123',
+        audience: 'test',
+        meta: {
+          fine: true,
+        },
+      });
     });
 
     beforeEach(function pretest() {

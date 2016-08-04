@@ -7,6 +7,7 @@ const moment = require('moment');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const getInternalData = require('../utils/getInternalData.js');
+const handlePipeline = require('../utils/pipelineError.js');
 const noop = require('lodash/noop');
 
 /**
@@ -49,14 +50,9 @@ function login(request) {
 
     return pipeline
       .exec()
+      .then(handlePipeline)
       .spread(function incremented(incrementValue) {
-        const err = incrementValue[0];
-        if (err) {
-          this.log.error('Redis error:', err);
-          return;
-        }
-
-        loginAttempts = incrementValue[1];
+        loginAttempts = incrementValue;
         if (loginAttempts > lockAfterAttempts) {
           const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
           const msg = `You are locked from making login attempts for the next ${duration}`;

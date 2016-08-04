@@ -3,6 +3,7 @@ const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const userExists = require('../utils/userExists.js');
+const handlePipeline = require('../utils/pipelineError.js');
 const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_ACTIVATE } = require('../constants.js');
 
 // cache error
@@ -55,8 +56,9 @@ function verifyChallenge(request) {
       .persist(userKey)
       .sadd(USERS_INDEX, user)
       .exec()
+      .then(handlePipeline)
       .spread(function pipeResponse(isActive) {
-        const status = isActive[1];
+        const status = isActive;
         if (status === 'true') {
           throw new Errors.HttpStatusError(417, `Account ${user} was already activated`);
         }

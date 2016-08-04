@@ -1,20 +1,26 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const noop = require('lodash/noop');
+const merge = require('lodash/merge');
+const passThrough = require('lodash/constant');
+const reduce = require('lodash/reduce');
+const is = require('is');
+
+// internal deps
 const setMetadata = require('../utils/updateMetadata.js');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
-const emailValidation = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
 const makeCaptchaCheck = require('../utils/checkCaptcha.js');
 const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
-const noop = require('lodash/noop');
 const assignAlias = require('./alias.js');
 const checkLimits = require('../utils/checkIpLimits.js');
-const passThrough = require('lodash/constant');
-const is = require('is');
+const { register: AutoPassword } = require('../utils/challenges/generateEmail.js');
+const challenge = require('../utils/challenges/challenge.js');
+const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,
   USERS_DATA,
@@ -22,6 +28,9 @@ const {
   USERS_CREATED_FIELD,
   lockAlias,
   lockRegister,
+  MAIL_INVITE,
+  MAIL_ACTIVATE,
+  INVITATIONS_FIELD_METADATA,
 } = require('../constants.js');
 
 // cached helpers
@@ -51,21 +60,40 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
  * @apiParam (Payload) {Boolean} [skipChallenge=false] - if `activate` is `false` disables sending challenge
  */
 function registerUser(request) {
-  const { redis, config } = this;
-  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
+  const { redis, config, tokenManager } = this;
+  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits, validation } = config;
+  const { throttle, ttl } = validation;
+  const { defaultAudience } = config.jwt;
 
   // request
   const params = request.params;
-  const { username, alias, password, audience, ipaddress, skipChallenge, activate } = params;
+  const { username, alias, password, ipaddress, skipChallenge, activate, inviteToken, anyUsername } = params;
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
-  const metadata = hasOwnProperty.call(params, 'metadata') ? params.metadata : false;
   const userDataKey = redisKey(username, USERS_DATA);
   const created = Date.now();
+
+  // inject default audience if it's not present
+  const audience = params.audience === defaultAudience
+    ? [params.audience]
+    : [params.audience, defaultAudience];
+
+  if (audience.length === 2 && !params.metadata && !inviteToken) {
+    throw new Errors.HttpStatusError(400, 'non-default audience must be accompanied by non-empty metadata or inviteToken');
+  }
 
   // make sure that if alias is truthy then activate is also truthy
   if (alias && !activate) {
     throw new Errors.HttpStatusError(400, 'Account must be activated when setting alias during registration');
   }
+
+  if (inviteToken && !activate) {
+    throw new Errors.HttpStatusError(400, 'Account must be activated when using invite token');
+  }
+
+  // cache metadata
+  const metadata = {
+    [params.audience]: params.metadata || {},
+  };
 
   // 1. perform logic checks
   // 2. acquire registration lock
@@ -92,6 +120,23 @@ function registerUser(request) {
     }
   }
 
+  // metadata merger
+  // comes in the format of audience.data
+  const mergeMetadata = (accumulator, value, prop) => {
+    accumulator[prop] = merge(accumulator[prop] || {}, value);
+    return accumulator;
+  };
+
+  // we must ensure that token matches supplied ID
+  // it can be overwritten by sending `anyUsername: true`
+  const control = { action: MAIL_INVITE };
+  if (!anyUsername) control.id = username;
+  const verifyToken = () => tokenManager
+    .verify(inviteToken, { erase: false, control })
+    .get('metadata')
+    .get(INVITATIONS_FIELD_METADATA)
+    .then(meta => reduce(meta, mergeMetadata, metadata));
+
   // acquire lock now!
   return promise
     .then(() => (
@@ -101,15 +146,19 @@ function registerUser(request) {
     .then(lock => (
       Promise
         .bind(this, username)
+
         // do verifications of DB state
         .tap(userExists)
         .throw(new Errors.HttpStatusError(409, `"${username}" already exists`))
         .catchReturn({ statusCode: 404 }, username)
         .tap(alias ? aliasExists(alias, true) : noop)
+
         // generate password hash
-        .then(password ? passThrough(password) : emailValidation.sendPassword)
+        .tap(inviteToken ? verifyToken : noop)
+        .then(password ? passThrough(password) : AutoPassword)
         .then(ctx => (is.string(ctx) ? ctx : ctx.context.password))
         .then(scrypt.hash)
+
         // create user
         .then(hash => {
           const pipeline = redis.pipeline();
@@ -127,19 +176,20 @@ function registerUser(request) {
             pipeline.expire(userDataKey, deleteInactiveAccounts);
           }
 
-          return pipeline.exec();
+          return pipeline.exec().then(handlePipeline);
         })
-        // basic metadata
+        // passed metadata
         .return({
           username,
           audience,
-          metadata: {
-            $set: {
-              username,
-              [USERS_CREATED_FIELD]: created,
-              ...metadata || {},
-            },
-          },
+          metadata: Object.keys(metadata)
+            .map(metaAudience => ({
+              $set: Object.assign(metadata[metaAudience], metaAudience === defaultAudience && {
+                username,
+                [USERS_CREATED_FIELD]: created,
+              }),
+            })
+          ),
         })
         .then(setMetadata)
         // activate user or queue challenge
@@ -147,8 +197,14 @@ function registerUser(request) {
           // Option 1. Activation
           if (!activate) {
             return Promise
-              .bind(this, username)
-              .then(skipChallenge ? noop : emailValidation.send)
+              // TODO: add different validation types
+              .bind(this, ['email', {
+                id: username,
+                action: MAIL_ACTIVATE,
+                ttl,
+                throttle,
+              }])
+              .spread(skipChallenge ? noop : challenge)
               .return({ requiresActivation: true });
           }
 
@@ -158,13 +214,13 @@ function registerUser(request) {
             .sadd(USERS_INDEX, username)
             // custom actions
             .bind(this)
-            .return(['users:activate', username, audience])
+            .return(['users:activate', username, params.audience])
             .spread(this.hook)
             // alias if present
             .return({ params: { username, alias, internal: true } })
-            .tap(alias ? assignAlias : noop)
+            .then(alias ? assignAlias : noop)
             // login & return JWT
-            .return([username, audience])
+            .return([username, params.audience])
             .spread(jwt.login);
         })
         .finally(() => {

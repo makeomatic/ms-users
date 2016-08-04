@@ -1,6 +1,5 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#activate', function activateSuite() {
@@ -34,7 +33,15 @@ describe('#activate', function activateSuite() {
 
   describe('activate existing user', function suite() {
     beforeEach(function pretest() {
-      const params = { username: email, password: '123', audience: 'ok', activate: true };
+      const params = {
+        username: email,
+        password: '123',
+        audience: 'ok',
+        activate: true,
+        metadata: {
+          wolf: true,
+        },
+      };
       return simpleDispatcher(this.users.router)('users.register', params);
     });
 
@@ -53,17 +60,12 @@ describe('#activate', function activateSuite() {
 
   describe('activate inactive user', function suite() {
     beforeEach(function pretest() {
-      const params = { username: email, password: '123', audience: 'ok', activate: false };
+      const params = { username: email, password: '123', audience: 'ok', metadata: { wolf: true }, activate: false };
       return simpleDispatcher(this.users.router)('users.register', params);
     });
 
-    beforeEach('insert token', function pretest() {
-      const secretKey = redisKey('vsecret-activate', this.uuid);
-      return this.users.redis.set(secretKey, email);
-    });
-
     it('must activate account when challenge token is correct and not expired', function test() {
-      return simpleDispatcher(this.users.router)('users.activate', { token: this.token, namespace: 'activate' })
+      return simpleDispatcher(this.users.router)('users.activate', { token: this.token })
         .reflect()
         .then(inspectPromise());
     });
@@ -71,7 +73,7 @@ describe('#activate', function activateSuite() {
 
   describe('activate inactive existing user', function suite() {
     beforeEach(function pretest() {
-      const params = { username: 'v@makeomatic.ru', password: '123', audience: 'ok', activate: false };
+      const params = { username: 'v@makeomatic.ru', password: '123', audience: 'ok', metadata: { wolf: true }, activate: false };
       return simpleDispatcher(this.users.router)('users.register', params);
     });
 

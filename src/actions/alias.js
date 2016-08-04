@@ -4,6 +4,7 @@ const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const key = require('../utils/key.js');
+const handlePipeline = require('../utils/pipelineError.js');
 const { USERS_DATA, USERS_METADATA, USERS_PUBLIC_INDEX, USERS_ALIAS_TO_LOGIN, USERS_ALIAS_FIELD } = require('../constants.js');
 
 /**
@@ -47,7 +48,8 @@ function assignAlias(request) {
             .sadd(USERS_PUBLIC_INDEX, username)
             .hset(key(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
             .hset(key(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias))
-            .exec();
+            .exec()
+            .then(handlePipeline);
         });
 
       // if we access assign alias from register user

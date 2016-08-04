@@ -55,6 +55,13 @@ module.exports = class Users extends Mservice {
         log: this.log,
       });
     });
+
+    // cleanup connections
+    this.on('plugin:close:redisCluster', () => {
+      this.dlock.pubsub.disconnect().reflect();
+      this.dlock = null;
+      this.tokenManager = null;
+    });
   }
 
   /**

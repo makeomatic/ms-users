@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const mapValues = require('lodash/mapValues');
 const fsort = require('redis-filtered-sort');
+const handlePipeline = require('../utils/pipelineError.js');
 const { USERS_INDEX, USERS_PUBLIC_INDEX, USERS_METADATA } = require('../constants.js');
 
 // helper
@@ -53,13 +54,13 @@ function iterateOverActiveUsers(request) {
       });
       return Promise.all([
         ids,
-        pipeline.exec(),
+        pipeline.exec().then(handlePipeline),
         length,
       ]);
     })
     .spread((ids, props, length) => {
       const users = ids.map(function remapData(id, idx) {
-        const data = props[idx][1];
+        const data = props[idx];
         const account = {
           id,
           metadata: {

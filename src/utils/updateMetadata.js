@@ -4,6 +4,7 @@ const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
 const is = require('is');
 const sha256 = require('./sha256.js');
+const handlePipeline = require('../utils/pipelineError.js');
 const { USERS_METADATA } = require('../constants.js');
 
 const JSONStringify = data => JSON.stringify(data);
@@ -54,19 +55,19 @@ function mapMetaResponse(operations, responses) {
       const output = {};
 
       if ($removeOps > 0) {
-        output.$remove = responses[cursor][1];
+        output.$remove = responses[cursor];
         cursor++;
       }
 
       if ($setLength > 0) {
-        output.$set = responses[cursor][1];
+        output.$set = responses[cursor];
         cursor++;
       }
 
       if ($incrLength > 0) {
         const $incrResponse = output.$incr = {};
         $incrFields.forEach(fieldName => {
-          $incrResponse[fieldName] = responses[cursor][1];
+          $incrResponse[fieldName] = responses[cursor];
           cursor++;
         });
       }
@@ -107,7 +108,9 @@ module.exports = function updateMetadata(opts) {
     const pipe = redis.pipeline();
     const metaOps = is.array(metadata) ? metadata : [metadata];
     const operations = metaOps.map((meta, idx) => handleAudience(pipe, keys[idx], meta));
-    return pipe.exec().then(res => mapMetaResponse(operations, res));
+    return pipe.exec()
+      .then(handlePipeline)
+      .then(res => mapMetaResponse(operations, res));
   }
 
   // dynamic scripts

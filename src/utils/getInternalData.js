@@ -1,5 +1,6 @@
 const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
+const handlePipeline = require('../utils/pipelineError.js');
 const { USERS_DATA, USERS_ALIAS_TO_LOGIN } = require('../constants.js');
 
 module.exports = function getInternalData(username) {
@@ -12,15 +13,16 @@ module.exports = function getInternalData(username) {
     .exists(userKey)
     .hgetallBuffer(userKey)
     .exec()
+    .then(handlePipeline)
     .spread((aliasToUsername, exists, data) => {
-      if (aliasToUsername[1]) {
-        return getInternalData.call(this, aliasToUsername[1]);
+      if (aliasToUsername) {
+        return getInternalData.call(this, aliasToUsername);
       }
 
-      if (!exists[1]) {
+      if (!exists) {
         throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
       }
 
-      return { ...data[1], username };
+      return { ...data, username };
     });
 };

@@ -21,7 +21,7 @@ const challenge = require('../utils/challenges/challenge.js');
  * @apiParam (Payload) {Boolean} [generateNewPassword=false] - send password immediately
  */
 function requestPassword(request) {
-  const { username, generateNewPassword } = request.params;
+  const { username: usernameOrAlias, generateNewPassword } = request.params;
   const { throttle, ttl } = this.config.validation;
   const action = generateNewPassword ? MAIL_PASSWORD : MAIL_RESET;
 
@@ -29,11 +29,11 @@ function requestPassword(request) {
   // var remoteip = request.params.remoteip;
 
   return Promise
-    .bind(this, username)
+    .bind(this, usernameOrAlias)
     .then(getInternalData)
     .tap(isActive)
     .tap(isBanned)
-    .return(['email', {
+    .then(username => ['email', {
       id: username,
       action,
       ttl,

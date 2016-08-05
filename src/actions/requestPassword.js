@@ -33,12 +33,12 @@ function requestPassword(request) {
     .then(getInternalData)
     .tap(isActive)
     .tap(isBanned)
-    .then(username => ['email', {
-      id: username,
+    .then(data => (['email', {
+      id: data.username,
       action,
       ttl,
       throttle,
-    }])
+    }]))
     .spread(challenge)
     .return({ success: true });
 }

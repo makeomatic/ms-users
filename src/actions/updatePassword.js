@@ -25,7 +25,7 @@ function usernamePasswordReset(username, password) {
     .tap(isActive)
     .tap(isBanned)
     .tap(data => scrypt.verify(data.password, password))
-    .return(username);
+    .then(data => data.username);
 }
 
 /**

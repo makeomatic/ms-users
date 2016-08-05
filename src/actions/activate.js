@@ -30,8 +30,10 @@ function verifyChallenge(request) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
   const { token, username } = request.params;
-  const { redis, config } = this;
+  const { redis, config, log } = this;
   const audience = request.params.audience || config.defaultAudience;
+
+  log.debug('incoming request params %j', request.params);
 
   // token verification
   const verifyToken = () => this.tokenManager

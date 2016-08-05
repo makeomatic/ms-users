@@ -1,6 +1,6 @@
 /* global inspectPromise */
 const { expect } = require('chai');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const simpleDispatcher = require('../helpers/simpleDispatcher');
 
 describe('#activate', function activateSuite() {
   const email = 'v@aminev.me';
@@ -9,6 +9,8 @@ describe('#activate', function activateSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function genToken() {
+    this.dispatch = simpleDispatcher(this.users.router);
+
     return this
       .users.tokenManager.create({
         id: email,
@@ -21,7 +23,7 @@ describe('#activate', function activateSuite() {
 
   it('must reject activation when challenge token is invalid', function test() {
     const params = { token: 'useless-token' };
-    return simpleDispatcher(this.users.router)('users.activate', params)
+    return this.dispatch('users.activate', params)
       .reflect()
       .then(inspectPromise(false))
       .then(activation => {
@@ -33,7 +35,7 @@ describe('#activate', function activateSuite() {
 
   describe('activate existing user', function suite() {
     beforeEach(function pretest() {
-      const params = {
+      return this.dispatch('users.register', {
         username: email,
         password: '123',
         audience: 'ok',
@@ -41,13 +43,12 @@ describe('#activate', function activateSuite() {
         metadata: {
           wolf: true,
         },
-      };
-      return simpleDispatcher(this.users.router)('users.register', params);
+      });
     });
 
     it('must reject activation when account is already activated', function test() {
       const params = { token: this.token };
-      return simpleDispatcher(this.users.router)('users.activate', params)
+      return this.dispatch('users.activate', params)
         .reflect()
         .then(inspectPromise(false))
         .then(activation => {
@@ -60,12 +61,20 @@ describe('#activate', function activateSuite() {
 
   describe('activate inactive user', function suite() {
     beforeEach(function pretest() {
-      const params = { username: email, password: '123', audience: 'ok', metadata: { wolf: true }, activate: false };
-      return simpleDispatcher(this.users.router)('users.register', params);
+      return this.dispatch('users.register', {
+        username: email,
+        password: '123',
+        audience: 'ok',
+        metadata: {
+          wolf: true,
+        },
+        activate: false,
+        skipChallenge: true,
+      });
     });
 
     it('must activate account when challenge token is correct and not expired', function test() {
-      return simpleDispatcher(this.users.router)('users.activate', { token: this.token })
+      return this.dispatch('users.activate', { token: this.token })
         .reflect()
         .then(inspectPromise());
     });
@@ -74,11 +83,11 @@ describe('#activate', function activateSuite() {
   describe('activate inactive existing user', function suite() {
     beforeEach(function pretest() {
       const params = { username: 'v@makeomatic.ru', password: '123', audience: 'ok', metadata: { wolf: true }, activate: false };
-      return simpleDispatcher(this.users.router)('users.register', params);
+      return this.dispatch('users.register', params);
     });
 
     it('must activate account when only username is specified as a service action', function test() {
-      return simpleDispatcher(this.users.router)('users.activate', {
+      return this.dispatch('users.activate', {
         username: 'v@makeomatic.ru',
       })
       .reflect()
@@ -87,7 +96,7 @@ describe('#activate', function activateSuite() {
   });
 
   it('must fail to activate account when only username is specified as a service action and the user does not exist', function test() {
-    return simpleDispatcher(this.users.router)('users.activate', { username: 'v@makeomatic.ru' })
+    return this.dispatch('users.activate', { username: 'v@makeomatic.ru' })
       .reflect()
       .then(inspectPromise(false))
       .then(activation => {

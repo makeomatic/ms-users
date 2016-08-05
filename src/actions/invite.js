@@ -47,6 +47,6 @@ module.exports = function generateInvite(request) {
   .then(token => Promise
     .bind(this, [email, MAIL_INVITE, { token }, { send: true }])
     .spread(generateEmail)
-    .tap(() => redis.sadd(INVITATIONS_INDEX, token.uid))
+    .tap(() => redis.sadd(INVITATIONS_INDEX, email))
   );
 };

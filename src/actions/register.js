@@ -37,6 +37,13 @@ const {
 // cached helpers
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
+// metadata merger
+// comes in the format of audience.data
+const mergeMetadata = (accumulator, value, prop) => {
+  accumulator[prop] = merge(accumulator[prop] || {}, value);
+  return accumulator;
+};
+
 /**
  * @api {amqp} <prefix>.register Create User
  * @apiVersion 1.0.0
@@ -121,19 +128,19 @@ function registerUser(request) {
     }
   }
 
-  // metadata merger
-  // comes in the format of audience.data
-  const mergeMetadata = (accumulator, value, prop) => {
-    accumulator[prop] = merge(accumulator[prop] || {}, value);
-    return accumulator;
-  };
-
   // we must ensure that token matches supplied ID
   // it can be overwritten by sending `anyUsername: true`
   const control = { action: MAIL_INVITE };
   if (!anyUsername) control.id = username;
   const verifyToken = () => tokenManager
     .verify(inviteToken, { erase: false, control })
+    .then(token => {
+      if (!token.isFirstVerification) {
+        throw new Errors.HttpStatusError(400, 'Invitation has expired or already been used');
+      }
+
+      return token;
+    })
     .get('metadata')
     .get(INVITATIONS_FIELD_METADATA)
     .then(meta => reduce(meta, mergeMetadata, metadata));

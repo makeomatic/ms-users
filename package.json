@@ -38,7 +38,7 @@
     "ms-conf": "^2.1.0",
     "ms-mailer-client": "^4.0.0",
     "ms-mailer-templates": "^0.8.0",
-    "ms-token": "^1.1.1",
+    "ms-token": "^1.2.0",
     "ms-validation": "^3.0.0",
     "mservice": "^3.3.1",
     "node-uuid": "^1.4.7",

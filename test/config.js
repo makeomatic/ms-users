@@ -28,6 +28,7 @@ const config = {
       activate: 'cappasity-activate',
       password: 'cappasity-password',
       register: 'cappasity-register',
+      invite: 'rfx-invite',
     },
   },
   registrationLimits: {

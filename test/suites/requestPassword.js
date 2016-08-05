@@ -12,11 +12,19 @@ describe('#requestPassword', function requestPasswordSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    return simpleDispatcher(this.users.router)('users.register', { username, password: '123', audience })
+    this.dispatch = simpleDispatcher(this.users.router);
+    return this.dispatch('users.register', {
+      username,
+      password: '123',
+      audience,
+      metadata: {
+        rpass: true,
+      },
+    });
   });
 
   it('must fail when user does not exist', function test() {
-    return simpleDispatcher(this.users.router)('users.requestPassword', { username: 'noob' })
+    return this.dispatch('users.requestPassword', { username: 'noob' })
       .reflect()
       .then(inspectPromise(false))
       .then(requestPassword => {
@@ -31,7 +39,7 @@ describe('#requestPassword', function requestPasswordSuite() {
     });
 
     it('must fail when account is inactive', function test() {
-      return simpleDispatcher(this.users.router)('users.requestPassword', { username })
+      return this.dispatch('users.requestPassword', { username })
         .reflect()
         .then(inspectPromise(false))
         .then(requestPassword => {
@@ -47,7 +55,7 @@ describe('#requestPassword', function requestPasswordSuite() {
     });
 
     it('must fail when account is banned', function test() {
-      return simpleDispatcher(this.users.router)('users.requestPassword', { username })
+      return this.dispatch('users.requestPassword', { username })
         .reflect()
         .then(inspectPromise(false))
         .then(requestPassword => {
@@ -59,18 +67,18 @@ describe('#requestPassword', function requestPasswordSuite() {
 
   describe('account: active', function suite() {
     it('must send challenge email for an existing user with an active account', function test() {
-      return simpleDispatcher(this.users.router)('users.requestPassword', { username })
+      return this.dispatch('users.requestPassword', { username })
         .reflect()
+        .then(inspectPromise())
         .then(requestPassword => {
-          expect(requestPassword.isFulfilled()).to.be.eq(true);
-          expect(requestPassword.value()).to.be.deep.eq({ success: true });
+          expect(requestPassword).to.be.deep.eq({ success: true });
         });
     });
 
     it('must reject sending reset password emails for an existing user more than once in 3 hours', function test() {
-      return simpleDispatcher(this.users.router)('users.requestPassword', { username })
+      return this.dispatch('users.requestPassword', { username })
         .then(() => (
-          simpleDispatcher(this.users.router)('users.requestPassword', { username })
+          this.dispatch('users.requestPassword', { username })
             .reflect()
             .then(inspectPromise(false))
             .then(requestPassword => {

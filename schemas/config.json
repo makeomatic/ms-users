@@ -157,15 +157,8 @@
     },
     "validation": {
       "type": "object",
-      "required": [ "secret", "algorithm", "ttl", "paths", "subjects", "email", "senders", "templates" ],
+      "required": [ "ttl", "paths", "subjects", "email", "senders", "templates" ],
       "properties": {
-        "secret": {
-          "type": "string",
-          "minLength": 32
-        },
-        "algorithm": {
-          "type": "string"
-        },
         "ttl": {
           "type": "integer",
           "minimum": 0

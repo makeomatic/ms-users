@@ -11,9 +11,27 @@ module.exports = {
   USERS_ADMIN_ROLE: 'admin',
   USERS_TESTER_ROLE: 'tester',
   USERS_BANNED_DATA: 'bannedData',
+  USERS_CREATED_FIELD: 'created',
+  USERS_USERNAME_FIELD: 'username',
+
+  // email namespaces
   MAIL_ACTIVATE: 'activate',
   MAIL_RESET: 'reset',
   MAIL_PASSWORD: 'password',
   MAIL_REGISTER: 'register',
-  THROTTLE_PREFIX: 'vthrottle',
+  MAIL_INVITE: 'invite',
+
+  // invitations constants
+  INVITATIONS_INDEX: 'user-invitations',
+  INVITATIONS_FIELD_METADATA: '1',
+  INVITATIONS_FIELD_SENT: '2',
+  INVITATIONS_FIELD_CTX: '3',
+
+  // challenge types
+  CHALLENGE_TYPE_EMAIL: 'email',
+  CHALLENGE_TYPE_PHONE: 'phone',
+
+  // lock names
+  lockAlias: alias => `users:alias:${alias}`,
+  lockRegister: username => `users:register:${username}`,
 };

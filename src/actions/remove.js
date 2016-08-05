@@ -3,6 +3,7 @@ const Errors = require('common-errors');
 const key = require('../utils/key');
 const getInternalData = require('../utils/getInternalData');
 const getMetadata = require('../utils/getMetadata');
+const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,
   USERS_PUBLIC_INDEX,
@@ -68,7 +69,7 @@ function removeUser(request) {
       transaction.del(key(THROTTLE_PREFIX, MAIL_RESET, username));
 
     // complete it
-      return transaction.exec();
+      return transaction.exec().then(handlePipeline);
     });
 }
 

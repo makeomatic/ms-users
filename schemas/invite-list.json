@@ -1,7 +1,6 @@
 {
-  "id": "list",
+  "id": "invite-list",
   "type": "object",
-  "required": [ "audience" ],
   "properties": {
     "offset": {
       "type": "integer",
@@ -18,12 +17,6 @@
     },
     "criteria": {
       "type": "string"
-    },
-    "audience": {
-      "type": "string"
-    },
-    "public": {
-      "type": "boolean"
     },
     "filter": {
       "$ref": "common#/definitions/filter"

@@ -39,8 +39,8 @@ describe('#ban', function banSuite() {
         .reflect()
         .then(inspectPromise())
         .then(ban => {
-          expect(ban[0][1]).to.be.eq(1);
-          expect(ban[1][1]).to.be.eq('OK');
+          expect(ban[0]).to.be.eq(1);
+          expect(ban[1]).to.be.eq('OK');
         });
     });
 
@@ -50,8 +50,8 @@ describe('#ban', function banSuite() {
         .reflect()
         .then(inspectPromise())
         .then(ban => {
-          expect(ban[0][1]).to.be.eq(1);
-          expect(ban[1][1]).to.be.eq(2);
+          expect(ban[0]).to.be.eq(1);
+          expect(ban[1]).to.be.eq(2);
         });
     });
   });

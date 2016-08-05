@@ -1,21 +1,17 @@
 const Promise = require('bluebird');
 const scrypt = require('../utils/scrypt.js');
+const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
-const emailChallenge = require('../utils/send-email.js');
 const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const userExists = require('../utils/userExists.js');
-const { USERS_DATA } = require('../constants.js');
+const partialRight = require('lodash/partialRight');
+const { USERS_DATA, MAIL_RESET } = require('../constants.js');
 
-/**
- * Verifies token and deletes it if it matches
- * @param {Strong} token
- */
-function tokenReset(token) {
-  return emailChallenge.verify.call(this, token, 'reset', true);
-}
+// cache error
+const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
 
 /**
  * Verify that username and password match
@@ -29,7 +25,7 @@ function usernamePasswordReset(username, password) {
     .tap(isActive)
     .tap(isBanned)
     .tap(data => scrypt.verify(data.password, password))
-    .return(username);
+    .then(data => data.username);
 }
 
 /**
@@ -78,19 +74,27 @@ function updatePassword(request) {
   // 2 cases - token reset and current password reset
   let promise;
   if (request.params.resetToken) {
-    promise = tokenReset.call(this, request.params.resetToken);
+    promise = this.tokenManager
+      .verify(request.params.resetToken, {
+        erase: true,
+        control: {
+          action: MAIL_RESET,
+        },
+      })
+      .catchThrow(Forbidden)
+      .get('id')
+      .bind(this);
   } else {
-    promise = usernamePasswordReset.call(
-      this, request.params.username, request.params.currentPassword
-    );
+    promise = Promise
+      .bind(this, [request.params.username, request.params.currentPassword])
+      .spread(usernamePasswordReset);
   }
 
   // update password
-  promise = promise
-    .then(username => setPassword.call(this, username, password));
+  promise = promise.then(partialRight(setPassword, password));
 
   if (invalidateTokens) {
-    promise = promise.tap(username => jwt.reset.call(this, username));
+    promise = promise.tap(jwt.reset);
   }
 
   if (remoteip) {

@@ -41,6 +41,28 @@ module.exports = {
       keyPrefix: '{ms-users}',
       // pass this to constructor
       dropBufferSupport: false,
+      // lazyConnect
+      lazyConnect: false,
+    },
+    luaScripts: path.resolve(__dirname, '../scripts'),
+  },
+  lockManager: {
+    lockPrefix: 'dlock!',
+    pubsubChannel: '{ms-users}:dlock',
+    lock: {
+      timeout: 15000,
+      retries: 1,
+      delay: 50,
+    },
+  },
+  tokenManager: {
+    backend: {
+      name: 'redis',
+      prefix: 'tmanager!1.0.0',
+    },
+    encrypt: {
+      algorithm: 'aes256',
+      sharedSecret: 'replace-shared-secret-at-least-24-chars-long',
     },
   },
   pwdReset: {
@@ -57,25 +79,30 @@ module.exports = {
     keepLoginAttempts: 60 * 60, // 1 hour
   },
   validation: {
-    secret: 'please-replace-this-as-a-long-nice-secret',
-    algorithm: 'aes-256-ctr',
+    secret: {
+      encrypt: true,
+      type: 'uuid',
+    },
     throttle: 2 * 60 * 60, // dont send emails more than once in 2 hours
     ttl: 4 * 60 * 60, // do not let password to be reset with expired codes
     paths: {
       activate: '/activate',
       reset: '/reset',
+      invite: '/register',
     },
     subjects: {
       activate: 'Activate your account',
       reset: 'Reset your password',
       password: 'Account Recovery',
       register: 'Account Registration',
+      invite: 'Invitation to Register',
     },
     senders: {
       activate: 'noreply <support@example.com>',
       reset: 'noreply <support@example.com>',
       password: 'noreply <support@example.com>',
       register: 'noreply <support@example.com>',
+      invite: 'noreply <support@example.com>',
     },
     templates: {
       // specify template names here

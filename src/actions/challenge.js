@@ -1,8 +1,9 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const emailChallenge = require('../utils/send-email.js');
 const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
+const challenge = require('../utils/challenges/challenge.js');
+const { MAIL_ACTIVATE } = require('../constants.js');
 
 /**
  * @api {amqp} <prefix>.challenge Creates user challenges
@@ -21,7 +22,8 @@ const isActive = require('../utils/isActive.js');
  *
  */
 function sendChallenge(request) {
-  const { username } = request.params;
+  const { username, type } = request.params;
+  const { throttle, ttl } = this.config.validation;
 
   // TODO: record all attemps
   // TODO: add metadata processing on successful email challenge
@@ -31,8 +33,15 @@ function sendChallenge(request) {
     .then(getInternalData)
     .tap(isActive)
     .throw(new Errors.HttpStatusError(417, `${username} is already active`))
-    .catchReturn({ statusCode: 412 }, username)
-    .then(emailChallenge.send);
+    .catchReturn({ statusCode: 412 }, [
+      type, {
+        id: username,
+        action: MAIL_ACTIVATE,
+        ttl,
+        throttle,
+      },
+    ])
+    .spread(challenge);
 }
 
 module.exports = sendChallenge;

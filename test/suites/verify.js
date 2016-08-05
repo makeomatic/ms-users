@@ -21,6 +21,7 @@ describe('#verify', function verifySuite() {
 
   it('must reject on an expired JWT token', function test() {
     const jwt = require('jsonwebtoken');
+
     const { hashingFunction: algorithm, secret, issuer, defaultAudience } = this.users._config.jwt;
     const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
 
@@ -38,7 +39,14 @@ describe('#verify', function verifySuite() {
     const jwt = require('../../src/utils/jwt.js');
 
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', { username: 'v@makeomatic.ru', password: '123', audience: 'test' });
+      return simpleDispatcher(this.users.router)('users.register', {
+        username: 'v@makeomatic.ru',
+        password: '123',
+        audience: 'test',
+        metadata: {
+          fine: true,
+        },
+      });
     });
 
     beforeEach(function pretest() {
@@ -52,14 +60,10 @@ describe('#verify', function verifySuite() {
         .reflect()
         .then(inspectPromise())
         .then(verify => {
-          expect(verify).to.be.deep.eq({
-            username: 'v@makeomatic.ru',
-            metadata: {
-              '*.localhost': {},
-              test: {
-                username: 'v@makeomatic.ru',
-              },
-            },
+          expect(verify.username).to.be.eq('v@makeomatic.ru');
+          expect(verify.metadata['*.localhost'].username).to.be.eq('v@makeomatic.ru');
+          expect(verify.metadata.test).to.be.deep.eq({
+            fine: true,
           });
         });
     });

@@ -11,7 +11,8 @@
   ],
   "properties": {
     "username": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "token": {
       "type": "string",

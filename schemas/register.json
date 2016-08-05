@@ -49,6 +49,10 @@
       "type": "string",
       "minLength": 1
     },
+    "inviteToken": {
+      "type": "string",
+      "minLength": 1
+    },
     "ipaddress": {
       "type": "string",
       "oneOf": [

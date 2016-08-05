@@ -1,10 +1,13 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
-const emailVerification = require('../utils/send-email.js');
 const jwt = require('../utils/jwt.js');
 const userExists = require('../utils/userExists.js');
-const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG } = require('../constants.js');
+const handlePipeline = require('../utils/pipelineError.js');
+const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_ACTIVATE } = require('../constants.js');
+
+// cache error
+const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
 
 /**
  * @api {amqp} <prefix>.activate Activate User
@@ -27,12 +30,21 @@ function verifyChallenge(request) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
   const { token, username } = request.params;
-  const { redis, config } = this;
+  const { redis, config, log } = this;
   const audience = request.params.audience || config.defaultAudience;
 
-  function verifyToken() {
-    return emailVerification.verify.call(this, token, 'activate', config.validation.ttl > 0);
-  }
+  log.debug('incoming request params %j', request.params);
+
+  // token verification
+  const verifyToken = () => this.tokenManager
+    .verify(token, {
+      erase: config.validation.ttl > 0,
+      control: {
+        action: MAIL_ACTIVATE,
+      },
+    })
+    .catchThrow(Forbidden)
+    .get('id');
 
   function activateAccount(user) {
     const userKey = redisKey(user, USERS_DATA);
@@ -46,8 +58,9 @@ function verifyChallenge(request) {
       .persist(userKey)
       .sadd(USERS_INDEX, user)
       .exec()
+      .then(handlePipeline)
       .spread(function pipeResponse(isActive) {
-        const status = isActive[1];
+        const status = isActive;
         if (status === 'true') {
           throw new Errors.HttpStatusError(417, `Account ${user} was already activated`);
         }

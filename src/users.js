@@ -1,9 +1,13 @@
+const Promise = require('bluebird');
 const Mservice = require('mservice');
 const Mailer = require('ms-mailer-client');
 const Errors = require('common-errors');
 const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
+const TokenManager = require('ms-token');
+const LockManager = require('dlock');
 const defaultOpts = require('./defaults.js');
+const RedisCluster = require('ioredis').Cluster;
 
 const { NotImplementedError } = Errors;
 
@@ -27,12 +31,6 @@ module.exports = class Users extends Mservice {
     super(merge({}, Users.defaultOpts, opts));
     const config = this.config;
 
-    const { error } = this.validateSync('config', config);
-    if (error) {
-      this.log.fatal('Invalid configuration:', error.toJSON());
-      throw error;
-    }
-
     this.on('plugin:connect:amqp', (amqp) => {
       this._mailer = new Mailer(amqp, config.mailer);
     });
@@ -43,6 +41,16 @@ module.exports = class Users extends Mservice {
 
     this.on('plugin:connect:redisCluster', (redis) => {
       fsort.attach(redis, 'fsort');
+
+      // init token manager
+      const tokenManagerOpts = { backend: { connection: redis } };
+      this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
+    });
+
+    // cleanup connections
+    this.on('plugin:close:redisCluster', () => {
+      this.dlock = null;
+      this.tokenManager = null;
     });
   }
 
@@ -61,6 +69,39 @@ module.exports = class Users extends Mservice {
    */
   get config() {
     return this._config;
+  }
+
+  /**
+   * Gracefully connect to cluster
+   * @return {Promise}
+   */
+  connect() {
+    const config = this.config;
+    this._pubsub = new RedisCluster(config.redis.hosts, {
+      ...config.redis.options,
+      lazyConnect: true,
+    });
+
+    return Promise
+      .join(super.connect(), this._pubsub.connect())
+      .tap(() => {
+        // lock manager
+        this.dlock = new LockManager({
+          ...config.lockManager,
+          client: this._redis,
+          pubsub: this._pubsub,
+          log: this.log,
+        });
+      });
+  }
+
+  /**
+   * Gracefully disconnect from the cluster
+   * @return {Promise}
+   */
+  close() {
+    return Promise
+      .join(super.close(), this._pubsub.quit().reflect());
   }
 
   /**

@@ -18,7 +18,7 @@ const config = {
         host: 'rabbitmq',
         port: 5672,
       },
-    }
+    },
   },
   redis: global.REDIS,
   logger: true,
@@ -28,6 +28,7 @@ const config = {
       activate: 'cappasity-activate',
       password: 'cappasity-password',
       register: 'cappasity-register',
+      invite: 'rfx-invite',
     },
   },
   registrationLimits: {
@@ -52,12 +53,12 @@ function registerUser(username, opts = {}) {
       skipChallenge: true,
       metadata: opts.metadata || undefined,
     }).then(() => {
-        if (opts.locked) {
-          return dispatch('users.ban', { username, ban: true });
-        }
+      if (opts.locked) {
+        return dispatch('users.ban', { username, ban: true });
+      }
 
-        return null;
-      });
+      return null;
+    });
   };
 }
 
@@ -83,6 +84,7 @@ function inspectPromise(mustBeFulfilled = true) {
 
 function startService() {
   const Users = require('../src');
+
   this.users = new Users(config);
   this.users.on('plugin:connect:amqp', () => {
     this.users._mailer = { send: () => Promise.resolve() };

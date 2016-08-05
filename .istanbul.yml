@@ -4,3 +4,4 @@ instrumentation:
 reporting:
   reports:
     - lcovonly
+    - html

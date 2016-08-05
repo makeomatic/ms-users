@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
 const userExists = require('../utils/userExists.js');
+const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_DATA, USERS_METADATA,
   USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
@@ -64,7 +65,8 @@ function banUser(request) {
     .bind(this, request.params.username)
     .then(userExists)
     .then(username => ({ ...request.params, username }))
-    .then(request.params.ban ? lockUser : unlockUser);
+    .then(request.params.ban ? lockUser : unlockUser)
+    .then(handlePipeline);
 }
 
 module.exports = banUser;

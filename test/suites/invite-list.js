@@ -1,0 +1,57 @@
+/* global inspectPromise */
+const Promise = require('bluebird');
+const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const assert = require('assert');
+const times = require('lodash/times');
+const faker = require('faker');
+
+describe('#invite', function registerSuite() {
+  before(global.startService);
+  after(global.clearRedis);
+
+  const {
+    INVITATIONS_FIELD_METADATA,
+    INVITATIONS_FIELD_SENT,
+    INVITATIONS_FIELD_CTX,
+  } = require('../../src/constants.js');
+
+  before(function init() {
+    this.dispatch = simpleDispatcher(this.users.router);
+    return Promise.all(times(100, n => this.dispatch('users.invite', {
+      email: `${n}@yandex.ru`,
+      ctx: {
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+      },
+      metadata: {
+        '*.localhost': {
+          company: faker.company.companyName(),
+        },
+      },
+    })));
+  });
+
+  it('returns expanded list of issued invites', function test() {
+    return this.dispatch('users.invite-list', {})
+      .reflect()
+      .then(inspectPromise())
+      .then(result => {
+        assert.equal(result.invites.length, 10);
+        assert.equal(result.pages, 10);
+        assert.equal(result.page, 1);
+
+        result.invites.forEach(invite => {
+          assert(invite.created);
+          assert(invite.id);
+          assert(invite.action);
+          assert(invite.secret);
+          assert(invite.metadata[INVITATIONS_FIELD_METADATA]['*.localhost'].company);
+          assert(invite.metadata[INVITATIONS_FIELD_SENT]);
+          assert(invite.metadata[INVITATIONS_FIELD_CTX].firstName);
+          assert(invite.metadata[INVITATIONS_FIELD_CTX].lastName);
+          assert(invite.uid);
+          assert.ifError(invite.ctx);
+        });
+      });
+  });
+});

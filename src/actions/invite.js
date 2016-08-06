@@ -18,8 +18,9 @@ const {
  * is complete. Can only be used once and could have an expiration date.
  *
  * @apiParam (Payload) {String} email - used to send the invitation
- * @apiParam (Payload) {String} greeting - greeting to be used in the email
- * @apiParam (Payload) {Number} [expire] - if set, token will expire in `expire` seconds
+ * @apiParam (Payload) {Object} [ctx] - context to be passed into email
+ * @apiParam (Payload) {Number} [throttle] - if set, rejects to send another invite to the same email during that time
+ * @apiParam (Payload) {Number} [ttl] - if set, invitation will expire in that time
  * @apiParam (Payload) {Object} [metadata] - metadata to be added to the user upon registration
  * @apiParam (Payload) {Object} [metadata.*] - `*` is a namespace for which metadata would be added
  * @apiParam (Payload) {Mixed}  [metadata.*.*] - `*` is a key, for which associated value must be passed. It can be anything that

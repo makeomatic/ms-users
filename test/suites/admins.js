@@ -1,46 +1,38 @@
-const { expect } = require('chai');
+/* global inspectPromise */
+const assert = require('assert');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#service', function verifySuite() {
   after(global.clearRedis.bind(this));
 
-  it('should create admins accounts', done => {
-    const Users = require('./../../src');
+  it('should create admins accounts', () => {
+    const Users = require('../../src');
+    const constants = require('../../src/constants.js');
+
     const service = this.users = new Users({
-      amqp: {
-        transport: {
-          connection: {
-            host: 'rabbitmq',
-            port: 5672,
-          },
-        }
-      },
-      redis: {
-        hosts: [
-          { host: 'redis-1', port: 6379 },
-          { host: 'redis-2', port: 6379 },
-          { host: 'redis-3', port: 6379 },
-        ]
-      },
+      amqp: global.AMQP_OPTS,
+      redis: global.REDIS,
       admins: [
         {
           username: 'foobaz@bar.ru',
           password: 'megalongsuperpasswordfortest',
-          firstName: 'Foo',
-          lastName: 'Baz',
+          metadata: {
+            firstName: 'Foo',
+            lastName: 'Baz',
+            roles: [constants.USERS_ADMIN_ROLE],
+          },
         },
       ],
-      initAdminAccountsDelay: 1,
+      initAdminAccountsDelay: 0,
     });
 
-    service.connect()
+    return service.connect()
       .then(() => service.initAdminAccounts())
       .then(() => simpleDispatcher(this.users.router)('users.list', { audience: '*.localhost' }))
       .reflect()
-      .then(inspection => {
-        expect(inspection.isFulfilled()).to.be.eq(true);
-        expect(inspection.value().users[0].id).to.be.eq('foobaz@bar.ru');
-        done();
+      .then(inspectPromise())
+      .then(result => {
+        assert(result.users[0].id).to.be.eq('foobaz@bar.ru');
       });
   });
 });

@@ -9,6 +9,7 @@ module.exports = {
   USERS_BANNED_FLAG: 'ban',
   USERS_ACTIVE_FLAG: 'active',
   USERS_ADMIN_ROLE: 'admin',
+  USERS_SUPER_ADMIN_ROLE: 'root',
   USERS_TESTER_ROLE: 'tester',
   USERS_BANNED_DATA: 'bannedData',
   USERS_CREATED_FIELD: 'created',

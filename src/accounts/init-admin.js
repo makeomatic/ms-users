@@ -1,8 +1,9 @@
 const Promise = require('bluebird');
-const { USERS_ADMIN_ROLE } = require('../constants.js');
+const defaults = require('lodash/defaults');
 const register = require('../actions/register.js');
+const { USERS_ADMIN_ROLE } = require('../constants.js');
 
-module.exports = function initAdminAccounts() {
+module.exports = function initAccounts() {
   const config = this.config;
   const accounts = config.admins;
   const audience = config.jwt.defaultAudience;
@@ -13,14 +14,14 @@ module.exports = function initAdminAccounts() {
     .map(account => register
       .call(this, {
         params: {
+          audience,
           username: account.username,
           password: account.password,
-          audience,
-          metadata: {
+          metadata: defaults(account.metadata || {}, {
             firstName: account.firstName,
             lastName: account.lastName,
             roles: [USERS_ADMIN_ROLE],
-          },
+          }),
           activate: true,
         },
       })

@@ -11,15 +11,17 @@ global.REDIS = {
   })),
 };
 
-const config = {
-  amqp: {
-    transport: {
-      connection: {
-        host: 'rabbitmq',
-        port: 5672,
-      },
+global.AMQP_OPTS = {
+  transport: {
+    connection: {
+      host: 'rabbitmq',
+      port: 5672,
     },
   },
+};
+
+const config = {
+  amqp: global.AMQP_OPTS,
   redis: global.REDIS,
   logger: true,
   debug: true,

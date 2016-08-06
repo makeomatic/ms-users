@@ -24,6 +24,8 @@ exports.verify = function verifyPassword(hash, password) {
       if (result !== true) {
         throw new Errors.HttpStatusError(403, 'incorrect password');
       }
+
+      return result;
     });
 };
 

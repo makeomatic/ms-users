@@ -56,5 +56,7 @@ module.exports = function initFakeAccounts() {
           this.log.warn(err.stack);
         }
       });
+
+      return null;
     });
 };

@@ -50,6 +50,8 @@ module.exports = function initAccounts() {
           this.log.warn(err.stack);
         }
       });
+
+      return null;
     })
     .finally(() => {
       this.log.info('removing account references from memory');

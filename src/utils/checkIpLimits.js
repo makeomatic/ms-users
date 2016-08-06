@@ -31,6 +31,8 @@ module.exports = function checkLimits(redis, registrationLimits, ipaddress) {
           const msg = 'You can\'t register more users from your ipaddress now';
           throw new HttpStatusError(429, msg);
         }
+
+        return props;
       });
   };
 };

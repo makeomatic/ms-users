@@ -32,7 +32,7 @@ describe('#service', function verifySuite() {
       .reflect()
       .then(inspectPromise())
       .then(result => {
-        assert(result.users[0].id).to.be.eq('foobaz@bar.ru');
+        assert.equal(result.users[0].id, 'foobaz@bar.ru');
       });
   });
 });

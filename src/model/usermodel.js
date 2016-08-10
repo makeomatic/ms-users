@@ -10,6 +10,14 @@ const moment = require('moment');
  * Adapter pattern class with user model methods
  */
 exports.User = {
+
+  /**
+   * Initialize the model
+   */
+  init() {
+    storage.User.init.call(this);
+  },
+
   /**
    * Get user by username
    * @param username

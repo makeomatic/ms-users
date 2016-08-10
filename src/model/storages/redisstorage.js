@@ -52,6 +52,13 @@ const generateKey = (...args) => {
 exports.User = {
 
   /**
+   * Initialize the storage
+   */
+  init() {
+    // ...
+  },
+
+  /**
    * Get user by username
    * @param username
    * @returns {Object}

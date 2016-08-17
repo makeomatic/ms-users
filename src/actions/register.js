@@ -90,11 +90,6 @@ function registerUser(request) {
     throw new Errors.HttpStatusError(400, 'non-default audience must be accompanied by non-empty metadata or inviteToken');
   }
 
-  // make sure that if alias is truthy then activate is also truthy
-  if (alias && !activate) {
-    throw new Errors.HttpStatusError(400, 'Account must be activated when setting alias during registration');
-  }
-
   if (inviteToken && !activate) {
     throw new Errors.HttpStatusError(400, 'Account must be activated when using invite token');
   }
@@ -199,6 +194,10 @@ function registerUser(request) {
           })),
         })
         .then(setMetadata)
+        // NOTE: alias: if present, if account is not activated - it will lock that alias
+        // until it's manually cleaned from the DB somehow
+        .return({ params: { username, alias, internal: true } })
+        .then(alias ? assignAlias : noop)
         // activate user or queue challenge
         .then(() => {
           // Option 1. Activation
@@ -223,9 +222,6 @@ function registerUser(request) {
             .bind(this)
             .return(['users:activate', username, params.audience])
             .spread(this.hook)
-            // alias if present
-            .return({ params: { username, alias, internal: true } })
-            .then(alias ? assignAlias : noop)
             // login & return JWT
             .return([username, params.audience])
             .spread(jwt.login);

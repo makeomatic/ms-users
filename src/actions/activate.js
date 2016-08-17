@@ -2,9 +2,17 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
+const getInternalData = require('../utils/getInternalData.js');
 const userExists = require('../utils/userExists.js');
 const handlePipeline = require('../utils/pipelineError.js');
-const { USERS_INDEX, USERS_DATA, USERS_ACTIVE_FLAG, MAIL_ACTIVATE } = require('../constants.js');
+const {
+  USERS_INDEX,
+  USERS_DATA,
+  USERS_PUBLIC_INDEX,
+  USERS_ACTIVE_FLAG,
+  USERS_ALIAS_FIELD,
+  MAIL_ACTIVATE,
+} = require('../constants.js');
 
 // cache error
 const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
@@ -46,17 +54,25 @@ function verifyChallenge(request) {
     .catchThrow(Forbidden)
     .get('id');
 
-  function activateAccount(user) {
+  function activateAccount(data) {
+    const user = data.username;
+    const alias = data[USERS_ALIAS_FIELD];
     const userKey = redisKey(user, USERS_DATA);
 
     // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
     // set to active & persist
-    return redis
+    const pipeline = redis
       .pipeline()
       .hget(userKey, USERS_ACTIVE_FLAG)
       .hset(userKey, USERS_ACTIVE_FLAG, 'true')
       .persist(userKey)
-      .sadd(USERS_INDEX, user)
+      .sadd(USERS_INDEX, user);
+
+    if (alias) {
+      pipeline.sadd(USERS_PUBLIC_INDEX, user);
+    }
+
+    return pipeline
       .exec()
       .then(handlePipeline)
       .spread(function pipeResponse(isActive) {
@@ -74,6 +90,7 @@ function verifyChallenge(request) {
   return Promise
     .bind(this, username)
     .then(username ? userExists : verifyToken)
+    .then(getInternalData)
     .tap(activateAccount)
     .tap(hook)
     .then(user => [user, audience])

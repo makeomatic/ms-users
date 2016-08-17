@@ -9,7 +9,7 @@ module.exports = function getInternalData(username) {
 
   return redis
     .pipeline()
-    .hget(USERS_ALIAS_TO_LOGIN, username)
+    .hget(USERS_ALIAS_TO_LOGIN, username.toLowerCase())
     .exists(userKey)
     .hgetallBuffer(userKey)
     .exec()

@@ -7,7 +7,12 @@
     "transform-es2015-modules-commonjs",
     ["transform-runtime", {
       "polyfill": false,
-      "regenerator": false
+      "regenerator": true
+    }],
+    "syntax-async-functions",
+    ["transform-async-to-module-method", {
+      "module": "bluebird",
+      "method": "coroutine"
     }]
   ]
 }

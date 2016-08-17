@@ -1,19 +1,10 @@
 local aliasHash = KEYS[2];
-local cursor = 0;
 local lower = string.lower;
+local hashKeys = redis.call('HKEYS', aliasHash);
 
--- hscan and go around
-repeat
-  local scanned = redis.call('hscan', aliasHash, cursor, 'COUNT', '50');
-  -- update cursor
-  cursor = tonumber(scanned[1]);
-
-  -- iterate over results
-  local results = scanned[2];
-  for i, hash in ipairs(results) do
-    if lower(hash) ~= hash then
-      local curValue = redis.call('hget', aliasHash, hash);
-      redis.call('hset', aliasHash, lower(hash), curValue);
-    end
+for i, hash in ipairs(hashKeys) do
+  if lower(hash) ~= hash then
+    local curValue = redis.call('hget', aliasHash, hash);
+    redis.call('hset', aliasHash, lower(hash), curValue);
   end
-until cursor == 0
+end

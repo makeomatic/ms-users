@@ -5,7 +5,14 @@ const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const key = require('../utils/key.js');
 const handlePipeline = require('../utils/pipelineError.js');
-const { USERS_DATA, USERS_METADATA, USERS_PUBLIC_INDEX, USERS_ALIAS_TO_LOGIN, USERS_ALIAS_FIELD } = require('../constants.js');
+const {
+  USERS_DATA,
+  USERS_METADATA,
+  USERS_ALIAS_TO_LOGIN,
+  USERS_ALIAS_FIELD,
+  USERS_PUBLIC_INDEX,
+  lockAlias,
+} = require('../constants.js');
 
 /**
  * @api {amqp} <prefix>.alias Add alias to user
@@ -31,7 +38,6 @@ function assignAlias(request) {
   return Promise
     .bind(this, username)
     .then(getInternalData)
-    .tap(isActive)
     .tap(isBanned)
     .then(data => {
       if (data[USERS_ALIAS_FIELD]) {
@@ -39,30 +45,40 @@ function assignAlias(request) {
       }
 
       // perform set alias
-      const setAlias = () => redis
+      const setAlias = (active) => redis
         .hsetnx(USERS_ALIAS_TO_LOGIN, alias, username)
         .then(assigned => {
           if (assigned === 0) {
             throw new Errors.HttpStatusError(409, 'alias was already taken');
           }
 
-          return redis
+          const pipeline = redis
             .pipeline()
-            .sadd(USERS_PUBLIC_INDEX, username)
             .hset(key(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
-            .hset(key(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias))
+            .hset(key(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias));
+
+          if (active) {
+            pipeline.sadd(USERS_PUBLIC_INDEX, username);
+          }
+
+          return pipeline
             .exec()
             .then(handlePipeline);
         });
 
+      // determine if user is active
+      const activeUser = isActive(data, true);
+
       // if we access assign alias from register user
       // we do not need the lock
       if (internal) {
-        return setAlias();
+        return setAlias(activeUser);
+      } else if (!activeUser) {
+        throw new Errors.HttpStatusError(412, 'Account hasn\'t been activated');
       }
 
       return this.dlock
-        .once(`users:alias:${alias}`)
+        .once(lockAlias(alias))
         .then(lock => setAlias().finally(() => {
           lock.release().reflect();
           return null;

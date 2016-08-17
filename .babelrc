@@ -3,6 +3,11 @@
     "transform-strict-mode",
     "transform-es2015-spread",
     "transform-object-rest-spread",
-    "transform-class-properties"
+    "transform-class-properties",
+    "transform-es2015-modules-commonjs",
+    ["transform-runtime", {
+      "polyfill": false,
+      "regenerator": false
+    }]
   ]
 }

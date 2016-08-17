@@ -127,6 +127,11 @@ module.exports = {
       planGet: 'plan.get',
     },
   },
+  // flake id generation
+  flake: {
+    workerID: 0,
+    outputType: 'base10',
+  },
   admins: [],
   // enable all plugins
   plugins: ['validator', 'logger', 'router', 'amqp', 'redisCluster'],

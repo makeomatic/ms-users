@@ -1,8 +1,9 @@
 require('chai').config.includeStack = true;
+const Promise = require('bluebird');
 const { expect } = require('chai');
 const simpleDispatcher = require('./helpers/simpleDispatcher');
 
-global.Promise = require('bluebird');
+global.Promise = Promise;
 
 global.REDIS = {
   hosts: Array.from({ length: 3 }).map((_, i) => ({

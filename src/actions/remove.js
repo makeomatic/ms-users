@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const intersection = require('lodash/intersection');
 const key = require('../utils/key');
 const getInternalData = require('../utils/getInternalData');
 const getMetadata = require('../utils/getMetadata');
@@ -13,12 +14,16 @@ const {
   USERS_TOKENS,
   USERS_ALIAS_FIELD,
   USERS_ADMIN_ROLE,
+  USERS_SUPER_ADMIN_ROLE,
   MAIL_ACTIVATE,
   MAIL_RESET,
   MAIL_PASSWORD,
   MAIL_REGISTER,
   THROTTLE_PREFIX,
 } = require('../constants');
+
+// intersection of priority users
+const ADMINS = [USERS_ADMIN_ROLE, USERS_SUPER_ADMIN_ROLE];
 
 /**
  * @api {amqp} <prefix>.remove Remove User
@@ -40,15 +45,15 @@ function removeUser(request) {
       meta: getMetadata.call(this, username, audience),
     })
     .then(({ internal, meta }) => {
-      const isAdmin = (meta[audience].roles || []).indexOf(USERS_ADMIN_ROLE) >= 0;
-      if (isAdmin) {
+      const roles = (meta[audience].roles || []);
+      if (intersection(roles, ADMINS).length > 0) {
         throw new Errors.HttpStatusError(400, 'can\'t remove admin user from the system');
       }
 
       const transaction = this.redis.multi();
       const alias = internal[USERS_ALIAS_FIELD];
       if (alias) {
-        transaction.hdel(USERS_ALIAS_TO_LOGIN, alias);
+        transaction.hdel(USERS_ALIAS_TO_LOGIN, alias.toLowerCase(), alias);
       }
 
     // clean indices

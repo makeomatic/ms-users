@@ -48,7 +48,7 @@ function removeUser(request) {
       const transaction = this.redis.multi();
       const alias = internal[USERS_ALIAS_FIELD];
       if (alias) {
-        transaction.hdel(USERS_ALIAS_TO_LOGIN, alias);
+        transaction.hdel(USERS_ALIAS_TO_LOGIN, alias.toLowerCase());
       }
 
     // clean indices

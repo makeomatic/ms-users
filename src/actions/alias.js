@@ -23,7 +23,10 @@ const { USERS_DATA, USERS_METADATA, USERS_PUBLIC_INDEX, USERS_ALIAS_TO_LOGIN, US
  */
 function assignAlias(request) {
   const { redis, config: { jwt: { defaultAudience } } } = this;
-  const { username, alias, internal } = request.params;
+  const { username, internal } = request.params;
+
+  // lowercase alias
+  const alias = request.params.alias.toLowerCase();
 
   return Promise
     .bind(this, username)

@@ -75,7 +75,8 @@ function registerUser(request) {
 
   // request
   const params = request.params;
-  const { username, alias, password, ipaddress, skipChallenge, activate, inviteToken, anyUsername } = params;
+  const { username, password, ipaddress, skipChallenge, activate, inviteToken, anyUsername } = params;
+  const alias = params.alias && params.alias.toLowerCase();
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
   const userDataKey = redisKey(username, USERS_DATA);
   const created = Date.now();

@@ -8,6 +8,7 @@ const TokenManager = require('ms-token');
 const LockManager = require('dlock');
 const defaultOpts = require('./defaults.js');
 const RedisCluster = require('ioredis').Cluster;
+const Flakeless = require('ms-flakeless');
 
 const { NotImplementedError } = Errors;
 
@@ -31,6 +32,9 @@ module.exports = class Users extends Mservice {
     super(merge({}, Users.defaultOpts, opts));
     const config = this.config;
 
+    // id generator
+    this.flake = new Flakeless(config.flake);
+
     this.on('plugin:connect:amqp', (amqp) => {
       this._mailer = new Mailer(amqp, config.mailer);
     });
@@ -45,6 +49,9 @@ module.exports = class Users extends Mservice {
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
       this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
+
+      // run migrations
+      this.migrate('redis', `${__dirname}/migrations`);
     });
 
     // cleanup connections

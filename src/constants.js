@@ -1,10 +1,14 @@
 module.exports = {
+  // indices
   USERS_INDEX: 'user-iterator-set',
   USERS_PUBLIC_INDEX: 'users-public',
   USERS_ALIAS_TO_LOGIN: 'users-alias',
+
+  // hashes
   USERS_DATA: 'data',
   USERS_METADATA: 'metadata',
   USERS_TOKENS: 'tokens',
+
   USERS_ALIAS_FIELD: 'alias',
   USERS_BANNED_FLAG: 'ban',
   USERS_ACTIVE_FLAG: 'active',
@@ -14,6 +18,7 @@ module.exports = {
   USERS_BANNED_DATA: 'bannedData',
   USERS_CREATED_FIELD: 'created',
   USERS_USERNAME_FIELD: 'username',
+  USERS_IS_ORG_FIELD: 'org',
 
   // email namespaces
   MAIL_ACTIVATE: 'activate',

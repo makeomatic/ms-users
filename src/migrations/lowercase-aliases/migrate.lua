@@ -10,7 +10,7 @@ repeat
   -- iterate over results
   local results = scanned[2];
   for i, hash in ipairs(results) do
-    if lower(hash) ~= hash do
+    if lower(hash) ~= hash then
       local curValue = redis.call('hget', aliasHash, hash);
       redis.call('hset', aliasHash, lower(hash), curValue);
     end

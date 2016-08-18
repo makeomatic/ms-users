@@ -19,6 +19,7 @@ module.exports = {
   USERS_CREATED_FIELD: 'created',
   USERS_USERNAME_FIELD: 'username',
   USERS_IS_ORG_FIELD: 'org',
+  USERS_PASSWORD_FIELD: 'password',
 
   // email namespaces
   MAIL_ACTIVATE: 'activate',

@@ -41,7 +41,9 @@ function removeUser(request) {
 
   return Promise
     .props({
+      // returns Buffers
       internal: getInternalData.call(this, username),
+      // returns meta
       meta: getMetadata.call(this, username, audience),
     })
     .then(({ internal, meta }) => {
@@ -56,24 +58,24 @@ function removeUser(request) {
         transaction.hdel(USERS_ALIAS_TO_LOGIN, alias.toLowerCase(), alias);
       }
 
-    // clean indices
+      // clean indices
       transaction.srem(USERS_PUBLIC_INDEX, username);
       transaction.srem(USERS_INDEX, username);
 
-    // remove metadata & internal data
+      // remove metadata & internal data
       transaction.del(key(username, USERS_DATA));
       transaction.del(key(username, USERS_METADATA, audience));
 
-    // remove auth tokens
+      // remove auth tokens
       transaction.del(key(username, USERS_TOKENS));
 
-    // remove throttling on actions
+      // remove throttling on actions
       transaction.del(key(THROTTLE_PREFIX, MAIL_ACTIVATE, username));
       transaction.del(key(THROTTLE_PREFIX, MAIL_PASSWORD, username));
       transaction.del(key(THROTTLE_PREFIX, MAIL_REGISTER, username));
       transaction.del(key(THROTTLE_PREFIX, MAIL_RESET, username));
 
-    // complete it
+      // complete it
       return transaction.exec().then(handlePipeline);
     });
 }

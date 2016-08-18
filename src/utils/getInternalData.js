@@ -1,7 +1,27 @@
 const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
 const handlePipeline = require('../utils/pipelineError.js');
-const { USERS_DATA, USERS_ALIAS_TO_LOGIN } = require('../constants.js');
+const reduce = require('lodash/reduce');
+const {
+  USERS_DATA,
+  USERS_ALIAS_TO_LOGIN,
+  USERS_PASSWORD_FIELD,
+} = require('../constants.js');
+
+const hasOwnProperty = Object.prototype.hasOwnProperty;
+const reducer = (accumulator, value, prop) => {
+  if (hasOwnProperty.call(accumulator, prop)) {
+    return accumulator;
+  }
+
+  if (prop === USERS_PASSWORD_FIELD) {
+    accumulator[prop] = value;
+  } else {
+    accumulator[prop] = value.toString();
+  }
+
+  return accumulator;
+};
 
 module.exports = function getInternalData(username) {
   const { redis } = this;
@@ -23,6 +43,6 @@ module.exports = function getInternalData(username) {
         throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
       }
 
-      return { ...data, username };
+      return reduce(data, reducer, { username });
     });
 };

@@ -11,6 +11,7 @@ const {
   USERS_PUBLIC_INDEX,
   USERS_ACTIVE_FLAG,
   USERS_ALIAS_FIELD,
+  USERS_USERNAME_FIELD,
   MAIL_ACTIVATE,
 } = require('../constants.js');
 
@@ -91,6 +92,7 @@ function verifyChallenge(request) {
     .bind(this, username)
     .then(username ? userExists : verifyToken)
     .then(getInternalData)
+    .get(USERS_USERNAME_FIELD)
     .tap(activateAccount)
     .tap(hook)
     .then(user => [user, audience])

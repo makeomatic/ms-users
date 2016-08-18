@@ -56,7 +56,7 @@ function verifyChallenge(request) {
     .get('id');
 
   function activateAccount(data) {
-    const user = data.username;
+    const user = data[USERS_USERNAME_FIELD];
     const alias = data[USERS_ALIAS_FIELD];
     const userKey = redisKey(user, USERS_DATA);
 
@@ -81,7 +81,8 @@ function verifyChallenge(request) {
         if (status === 'true') {
           throw new Errors.HttpStatusError(417, `Account ${user} was already activated`);
         }
-      });
+      })
+      .return(user);
   }
 
   function hook(user) {
@@ -92,8 +93,7 @@ function verifyChallenge(request) {
     .bind(this, username)
     .then(username ? userExists : verifyToken)
     .then(getInternalData)
-    .get(USERS_USERNAME_FIELD)
-    .tap(activateAccount)
+    .then(activateAccount)
     .tap(hook)
     .then(user => [user, audience])
     .spread(jwt.login);

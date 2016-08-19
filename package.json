@@ -39,7 +39,7 @@
     "ms-conf": "^2.1.0",
     "ms-flakeless": "^4.0.1",
     "ms-mailer-client": "^4.0.0",
-    "ms-mailer-templates": "^0.10.0",
+    "ms-mailer-templates": "^0.11.0",
     "ms-token": "^1.2.1",
     "ms-validation": "^3.0.0",
     "mservice": "^3.5.2",

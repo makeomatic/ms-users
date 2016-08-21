@@ -21,6 +21,9 @@
         }
       }
     },
+    "nodemailer": {
+      "type": "object"
+    },
     "throttle": {
       "type": "integer",
       "minimum": 0

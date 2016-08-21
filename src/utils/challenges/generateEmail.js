@@ -9,7 +9,7 @@ const { InvalidOperationError } = require('common-errors');
 const { updatePassword } = require('../../actions/updatePassword.js');
 const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER, MAIL_INVITE } = require('../../constants.js');
 
-function generateEmail(email, type, ctx = {}, opts = {}) {
+function generateEmail(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   const { config } = this;
   const { validation, server, pwdReset } = config;
   const { paths } = validation;
@@ -50,6 +50,7 @@ function generateEmail(email, type, ctx = {}, opts = {}) {
       type,
       email,
       context,
+      nodemailer,
       emailTemplate: render(templateName, context),
     })
     .bind(this)

@@ -22,6 +22,7 @@ const {
  * @apiParam (Payload) {Object} [ctx] - context to be passed into email
  * @apiParam (Payload) {Number} [throttle] - if set, rejects to send another invite to the same email during that time
  * @apiParam (Payload) {Number} [ttl] - if set, invitation will expire in that time
+ * @apiParam (Payload) {Object} [nodemailer] - if set, would be passed to nodemailer options
  * @apiParam (Payload) {Object} [metadata] - metadata to be added to the user upon registration
  * @apiParam (Payload) {Object} [metadata.*] - `*` is a namespace for which metadata would be added
  * @apiParam (Payload) {Mixed}  [metadata.*.*] - `*` is a key, for which associated value must be passed. It can be anything that
@@ -30,7 +31,7 @@ const {
  */
 module.exports = function generateInvite(request) {
   const { redis, tokenManager } = this;
-  const { email, ctx = {}, throttle = 0, ttl = 0, metadata = {} } = request.params;
+  const { email, ctx = {}, throttle = 0, ttl = 0, metadata = {}, nodemailer = {} } = request.params;
   const now = Date.now();
 
   // do not throttle
@@ -47,7 +48,7 @@ module.exports = function generateInvite(request) {
     },
   })
   .then(token => Promise
-    .bind(this, [email, MAIL_INVITE, { ...ctx, token }, { send: true }])
+    .bind(this, [email, MAIL_INVITE, { ...ctx, token }, { send: true }, nodemailer])
     .spread(generateEmail)
     .tap(() => redis.sadd(INVITATIONS_INDEX, email))
   );

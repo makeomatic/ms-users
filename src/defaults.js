@@ -86,13 +86,6 @@ module.exports = {
     keepLoginAttempts: 60 * 60, // 1 hour
   },
   validation: {
-    // TODO remove
-    // secret: {
-    //   encrypt: true,
-    //   type: 'uuid',
-    // },
-    // throttle: 2 * 60 * 60, // dont send emails more than once in 2 hours
-    // ttl: 4 * 60 * 60, // do not let password to be reset with expired codes
     paths: {
       activate: '/activate',
       reset: '/reset',

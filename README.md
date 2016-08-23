@@ -46,10 +46,6 @@ that contains description of routes and their capabilities. Aims to provide a co
     * `lockAfterAttempts` if set to val > 0 - locks account for `keepLoginAttempts` seconds after this many unsuccessful login attempts
     * `keepLoginAttempts` defaults to 3600 seconds
   * `validation` - configuration for validation emails
-    * `secret` - specify your own, encodes json data with it so that people can't tamper tokens
-    * `algorithm` - `aes-256-ctr`
-    * `throttle` - don't send email more frequently than this, seconds
-    * `ttl` - expire token in seconds
     * `paths` - generate URLs with these paths:
     * `subjects` - generate emails with these subjects
     * `senders` - generate emails with these senders
@@ -65,6 +61,22 @@ that contains description of routes and their capabilities. Aims to provide a co
   * `plugins` - enabled microservice plugins
   * `hooks`:
     `users:activate` - set to array of functions or a function. Will be performed after user is activated. Example of custom action is placed in src/custom
+  * `token` - tokens config
+    * `email` - token for email challenge
+      * `secret` - specify your own, encodes json data with it so that people can't tamper tokens
+      * `throttle` - don't send email more frequently than this, seconds
+      * `ttl` - expire token in seconds
+    * `phone` - token for email challenge
+      * `secret` - specify your own, encodes json data with it so that people can't tamper tokens
+      * `throttle` - don't send sms more frequently than this, seconds
+      * `ttl` - expire token in seconds
+    * `erase`
+  * `phone` - configuration for phone microservice
+    * `account`
+    * `messages` - templates for phone challenges
+    * `prefix`
+
+
 
 ## Usage
 
@@ -92,4 +104,3 @@ Currently consult `schemas` for message format that is required by any route. Fi
 ## Docker images
 
 Built docker images are available: https://hub.docker.com/r/makeomatic/ms-users/
-

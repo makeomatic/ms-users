@@ -5,7 +5,10 @@
   "properties": {
     "username": {
       "type": "string",
-      "format": "email"
+      "oneOf": [
+        { "pattern": "\\+\\d{10}" },
+        { "format": "email" }
+      ]
     },
     "alias": {
       "type": "string",
@@ -61,6 +64,13 @@
       ]
     },
     "skipChallenge": {
+      "type": "boolean"
+    },
+    "challengeType": {
+      "default": "email",
+      "$ref": "common#/definitions/challengeType"
+    },
+    "waitChallenge": {
       "type": "boolean"
     }
   }

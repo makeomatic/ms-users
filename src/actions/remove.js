@@ -15,10 +15,10 @@ const {
   USERS_ALIAS_FIELD,
   USERS_ADMIN_ROLE,
   USERS_SUPER_ADMIN_ROLE,
-  MAIL_ACTIVATE,
-  MAIL_RESET,
-  MAIL_PASSWORD,
-  MAIL_REGISTER,
+  USERS_ACTION_ACTIVATE,
+  USERS_ACTION_RESET,
+  USERS_ACTION_PASSWORD,
+  USERS_ACTION_REGISTER,
   THROTTLE_PREFIX,
 } = require('../constants');
 
@@ -70,10 +70,10 @@ function removeUser(request) {
       transaction.del(key(username, USERS_TOKENS));
 
       // remove throttling on actions
-      transaction.del(key(THROTTLE_PREFIX, MAIL_ACTIVATE, username));
-      transaction.del(key(THROTTLE_PREFIX, MAIL_PASSWORD, username));
-      transaction.del(key(THROTTLE_PREFIX, MAIL_REGISTER, username));
-      transaction.del(key(THROTTLE_PREFIX, MAIL_RESET, username));
+      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_ACTIVATE, username));
+      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_PASSWORD, username));
+      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_REGISTER, username));
+      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_RESET, username));
 
       // complete it
       return transaction.exec().then(handlePipeline);

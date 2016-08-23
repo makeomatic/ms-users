@@ -42,6 +42,9 @@ const config = {
     noDisposable: true,
     checkMX: true,
   },
+  phone: {
+    account: 'twilio',
+  },
 };
 
 function registerUser(username, opts = {}) {

@@ -21,12 +21,12 @@ module.exports = {
   USERS_IS_ORG_FIELD: 'org',
   USERS_PASSWORD_FIELD: 'password',
 
-  // email namespaces
-  MAIL_ACTIVATE: 'activate',
-  MAIL_RESET: 'reset',
-  MAIL_PASSWORD: 'password',
-  MAIL_REGISTER: 'register',
-  MAIL_INVITE: 'invite',
+  // actions
+  USERS_ACTION_ACTIVATE: 'activate',
+  USERS_ACTION_PASSWORD: 'password',
+  USERS_ACTION_RESET: 'reset',
+  USERS_ACTION_REGISTER: 'register',
+  USERS_ACTION_INVITE: 'invite',
 
   // invitations constants
   INVITATIONS_INDEX: 'user-invitations',

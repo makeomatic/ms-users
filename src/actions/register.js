@@ -18,7 +18,8 @@ const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
 const assignAlias = require('./alias.js');
 const checkLimits = require('../utils/checkIpLimits.js');
-const { register: AutoPassword } = require('../utils/challenges/generateEmail.js');
+const { register: emailAutoPassword } = require('../utils/challenges/generateEmail.js');
+const { register: phoneAutoPassword } = require('../utils/challenges/phone/sendSms');
 const challenge = require('../utils/challenges/challenge.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const {
@@ -29,8 +30,10 @@ const {
   USERS_USERNAME_FIELD,
   lockAlias,
   lockRegister,
-  MAIL_INVITE,
-  MAIL_ACTIVATE,
+  USERS_ACTION_INVITE,
+  USERS_ACTION_ACTIVATE,
+  CHALLENGE_TYPE_EMAIL,
+  CHALLENGE_TYPE_PHONE,
   INVITATIONS_FIELD_METADATA,
 } = require('../constants.js');
 
@@ -43,6 +46,17 @@ const mergeMetadata = (accumulator, value, prop) => {
   accumulator[prop] = merge(accumulator[prop] || {}, value);
   return accumulator;
 };
+
+function getAutoPassword(challengeType) {
+  switch (challengeType) {
+    case CHALLENGE_TYPE_EMAIL:
+      return emailAutoPassword;
+    case CHALLENGE_TYPE_PHONE:
+      return phoneAutoPassword;
+    default:
+      throw new Errors.NotImplementedError(`Auto password for ${challengeType}`);
+  }
+}
 
 /**
  * @api {amqp} <prefix>.register Create User
@@ -63,23 +77,36 @@ const mergeMetadata = (accumulator, value, prop) => {
  * @apiParam (Payload) {String} [captcha.remoteip] - ip for security check at google
  * @apiParam (Payload) {String} [captcha.secret] - shared secret between us and google
  * @apiParam (Payload) {Object} [metadata] - metadata to be saved into `audience` upon completing registration
- * @apiParam (Payload) {Boolean} [activate=false] - whether to activate the user instantly or not
+ * @apiParam (Payload) {Boolean} [activate=true] - whether to activate the user instantly or not
  * @apiParam (Payload) {String} [ipaddress] - used for security logging
  * @apiParam (Payload) {Boolean} [skipChallenge=false] - if `activate` is `false` disables sending challenge
+ * @apiParam (Payload) {String} [challengeType="email"] - challenge type
+ * @apiParam (Payload) {Boolean} [waitChallenge=false] - wait challenge
  */
 function registerUser(request) {
   const { redis, config, tokenManager } = this;
-  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits, validation } = config;
-  const { throttle, ttl } = validation;
+  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
   const { defaultAudience } = config.jwt;
 
   // request
   const params = request.params;
-  const { username, password, ipaddress, skipChallenge, activate, inviteToken, anyUsername } = params;
+  const {
+    activate,
+    anyUsername,
+    challengeType,
+    inviteToken,
+    ipaddress,
+    password,
+    skipChallenge,
+    username,
+    waitChallenge,
+  } = params;
   const alias = params.alias && params.alias.toLowerCase();
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
   const userDataKey = redisKey(username, USERS_DATA);
   const created = Date.now();
+  const { [challengeType]: tokenOptions } = this.config.token;
+  const autoPassword = getAutoPassword(challengeType);
 
   // inject default audience if it's not present
   const audience = params.audience === defaultAudience
@@ -115,7 +142,7 @@ function registerUser(request) {
       promise = promise.tap(isDisposable(username));
     }
 
-    if (registrationLimits.checkMX) {
+    if (challengeType === CHALLENGE_TYPE_EMAIL && registrationLimits.checkMX) {
       promise = promise.tap(mxExists(username));
     }
 
@@ -126,7 +153,7 @@ function registerUser(request) {
 
   // we must ensure that token matches supplied ID
   // it can be overwritten by sending `anyUsername: true`
-  const control = { action: MAIL_INVITE };
+  const control = { action: USERS_ACTION_INVITE };
   if (!anyUsername) control.id = username;
   const verifyToken = () => tokenManager
     .verify(inviteToken, { erase: false, control })
@@ -159,7 +186,8 @@ function registerUser(request) {
 
         // generate password hash
         .tap(inviteToken ? verifyToken : noop)
-        .then(password ? passThrough(password) : AutoPassword)
+        .return([username, waitChallenge])
+        .spread(password ? passThrough(password) : autoPassword)
         .then(ctx => (is.string(ctx) ? ctx : ctx.context.password))
         .then(scrypt.hash)
 
@@ -203,13 +231,11 @@ function registerUser(request) {
           // Option 1. Activation
           if (!activate) {
             return Promise
-              // TODO: add different validation types
-              .bind(this, ['email', {
+              .bind(this, [challengeType, {
                 id: username,
-                action: MAIL_ACTIVATE,
-                ttl,
-                throttle,
-              }])
+                action: USERS_ACTION_ACTIVATE,
+                ...tokenOptions,
+              }, {}, waitChallenge])
               .spread(skipChallenge ? noop : challenge)
               .return({ requiresActivation: true });
           }

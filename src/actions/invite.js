@@ -5,7 +5,7 @@ const {
   INVITATIONS_FIELD_METADATA,
   INVITATIONS_FIELD_CTX,
   INVITATIONS_FIELD_SENT,
-  MAIL_INVITE,
+  USERS_ACTION_INVITE,
 } = require('../constants.js');
 
 /**
@@ -37,7 +37,7 @@ module.exports = function generateInvite(request) {
   // do not throttle
   return tokenManager.create({
     id: email,
-    action: MAIL_INVITE,
+    action: USERS_ACTION_INVITE,
     regenerate: true,
     ttl, // defaults to never expiring
     throttle, // defaults to no throttle
@@ -48,7 +48,7 @@ module.exports = function generateInvite(request) {
     },
   })
   .then(token => Promise
-    .bind(this, [email, MAIL_INVITE, { ...ctx, token }, { send: true }, nodemailer])
+    .bind(this, [email, USERS_ACTION_INVITE, { ...ctx, token }, { send: true }, nodemailer])
     .spread(generateEmail)
     .tap(() => redis.sadd(INVITATIONS_INDEX, email))
   );

@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const times = require('lodash/times');
 const register = require('../actions/register.js');
+const { CHALLENGE_TYPE_EMAIL } = require('../constants.js');
 
 module.exports = function initFakeAccounts() {
   const faker = require('faker');
@@ -29,6 +30,7 @@ module.exports = function initFakeAccounts() {
             lastName: account.metadata.lastName,
           },
           activate: true,
+          challengeType: CHALLENGE_TYPE_EMAIL,
         },
       })
       .reflect()

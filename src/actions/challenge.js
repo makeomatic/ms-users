@@ -3,7 +3,7 @@ const Errors = require('common-errors');
 const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const challenge = require('../utils/challenges/challenge.js');
-const { MAIL_ACTIVATE } = require('../constants.js');
+const { USERS_ACTION_ACTIVATE, CHALLENGE_TYPE_EMAIL } = require('../constants.js');
 
 /**
  * @api {amqp} <prefix>.challenge Creates user challenges
@@ -23,7 +23,7 @@ const { MAIL_ACTIVATE } = require('../constants.js');
  */
 function sendChallenge(request) {
   const { username, type } = request.params;
-  const { throttle, ttl } = this.config.validation;
+  const { throttle, ttl } = this.config.token[CHALLENGE_TYPE_EMAIL];
 
   // TODO: record all attemps
   // TODO: add metadata processing on successful email challenge
@@ -36,7 +36,7 @@ function sendChallenge(request) {
     .catchReturn({ statusCode: 412 }, [
       type, {
         id: username,
-        action: MAIL_ACTIVATE,
+        action: USERS_ACTION_ACTIVATE,
         ttl,
         throttle,
       },

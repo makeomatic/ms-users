@@ -1,5 +1,8 @@
 /* global inspectPromise */
 const { expect } = require('chai');
+const assert = require('assert');
+const is = require('is');
+const sinon = require('sinon');
 const simpleDispatcher = require('../helpers/simpleDispatcher');
 
 describe('#activate', function activateSuite() {
@@ -106,6 +109,41 @@ describe('#activate', function activateSuite() {
         } catch (e) {
           throw activation;
         }
+      });
+  });
+
+  it('should be able to activate an account by sms', function test() {
+    const opts = {
+      activate: false,
+      audience: '*.localhost',
+      challengeType: 'phone',
+      password: 'mynicepassword',
+      username: '+79215555555',
+      waitChallenge: true,
+    };
+    const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
+
+    amqpStub.withArgs('phone.message.predefined')
+      .returns(Promise.resolve({ queued: true }));
+
+    return simpleDispatcher(this.users.router)('users.register', opts)
+      .reflect()
+      .then(inspectPromise())
+      .then(value => {
+        const message = amqpStub.args[0][1].message;
+        const code = message.match(/^(\d{4}) is your activation code/)[1];
+
+        amqpStub.restore();
+
+        return code;
+      })
+      .bind(this)
+      .then(code => this.dispatch('users.activate', { token: code, username: '+79215555555' }))
+      .reflect()
+      .then(inspectPromise())
+      .then(response => {
+        assert.equal(is.string(response.jwt), true);
+        assert.equal(response.user.username, '+79215555555');
       });
   });
 });

@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const defaults = require('lodash/defaults');
 const register = require('../actions/register.js');
-const { USERS_ADMIN_ROLE } = require('../constants.js');
+const { USERS_ADMIN_ROLE, CHALLENGE_TYPE_EMAIL } = require('../constants.js');
 
 module.exports = function initAccounts() {
   const config = this.config;
@@ -23,6 +23,7 @@ module.exports = function initAccounts() {
             roles: [USERS_ADMIN_ROLE],
           }),
           activate: true,
+          challengeType: CHALLENGE_TYPE_EMAIL,
         },
       })
       .reflect()

@@ -119,14 +119,13 @@ describe('#activate', function activateSuite() {
       challengeType: 'phone',
       password: 'mynicepassword',
       username: '+79215555555',
-      waitChallenge: true,
     };
     const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
 
     amqpStub.withArgs('phone.message.predefined')
       .returns(Promise.resolve({ queued: true }));
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
       .then(value => {

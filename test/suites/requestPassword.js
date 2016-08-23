@@ -107,7 +107,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
-          assert.equal(/\d{4} is your password/.test(message.message), true);
+          assert.equal(/\d{4} is your code for reset password/.test(message.message), true);
           assert.equal(message.to, '+79215555555');
           assert.deepEqual(requestPassword, { success: true });
 

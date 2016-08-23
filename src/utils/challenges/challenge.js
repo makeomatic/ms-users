@@ -16,12 +16,12 @@ const CHALLENGES = {
   [CHALLENGE_TYPE_EMAIL]: (action, ctx, wait = false) =>
     partial(generateEmail, partial.placeholder, action, ctx, { wait, send: true }),
 
-  [CHALLENGE_TYPE_PHONE]: (action, ctx, wait = false) =>
-    partial(sendSms, partial.placeholder, action, ctx, wait),
+  [CHALLENGE_TYPE_PHONE]: (action, ctx) =>
+    partial(sendSms, partial.placeholder, action, ctx),
 };
 
 // select challenge helper
-const selectChallenge = (type, template, ctx, wait) => CHALLENGES[type](template, ctx, wait);
+const selectChallenge = (type, action, ctx) => CHALLENGES[type](action, ctx);
 
 /**
  * Send an email with appropriate content
@@ -45,5 +45,6 @@ function generateChallenge(type, opts, ctx = {}, wait = false) {
     .then(selectChallenge(type, opts.action, ctx, wait));
 }
 
-// basic method
-module.exports = exports = generateChallenge;
+generateChallenge.selectChallenge = selectChallenge;
+
+module.exports = generateChallenge;

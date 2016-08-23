@@ -69,9 +69,6 @@
     "challengeType": {
       "default": "email",
       "$ref": "common#/definitions/challengeType"
-    },
-    "waitChallenge": {
-      "type": "boolean"
     }
   }
 }

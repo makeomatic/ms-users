@@ -8,8 +8,8 @@ const {
   USERS_ACTION_RESET,
 } = require('../../../constants');
 
-function sendSms(tel, action, context = {}, wait = false) {
-  const { account, prefix, messages } = this.config.phone;
+function sendSms(tel, action, context = {}) {
+  const { account, prefix, messages, waitChallenge } = this.config.phone;
   const template = messages[action];
   let message;
 
@@ -35,7 +35,7 @@ function sendSms(tel, action, context = {}, wait = false) {
     to: tel,
   });
 
-  if (wait) {
+  if (waitChallenge) {
     return sendSmsPromise.return({ context });
   }
 

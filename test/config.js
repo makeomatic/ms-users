@@ -44,6 +44,7 @@ const config = {
   },
   phone: {
     account: 'twilio',
+    waitChallenge: true,
   },
 };
 

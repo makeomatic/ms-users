@@ -160,6 +160,7 @@ module.exports = {
       },
       throttle: 5 * 60, // dont send sms more than once in 5 minutes
       ttl: 10 * 60,
+      regenerate: true,
     },
     erase: true,
   },
@@ -168,8 +169,9 @@ module.exports = {
     messages: {
       [USERS_ACTION_ACTIVATE]: '%s is your activation code',
       [USERS_ACTION_REGISTER]: '%s is your password',
-      [USERS_ACTION_RESET]: '%s is your password',
+      [USERS_ACTION_RESET]: '%s is your code for reset password',
     },
     prefix: 'phone',
+    waitChallenge: false,
   },
 };

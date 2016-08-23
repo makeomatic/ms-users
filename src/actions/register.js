@@ -81,7 +81,6 @@ function getAutoPassword(challengeType) {
  * @apiParam (Payload) {String} [ipaddress] - used for security logging
  * @apiParam (Payload) {Boolean} [skipChallenge=false] - if `activate` is `false` disables sending challenge
  * @apiParam (Payload) {String} [challengeType="email"] - challenge type
- * @apiParam (Payload) {Boolean} [waitChallenge=false] - wait challenge
  */
 function registerUser(request) {
   const { redis, config, tokenManager } = this;
@@ -99,7 +98,6 @@ function registerUser(request) {
     password,
     skipChallenge,
     username,
-    waitChallenge,
   } = params;
   const alias = params.alias && params.alias.toLowerCase();
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
@@ -186,8 +184,8 @@ function registerUser(request) {
 
         // generate password hash
         .tap(inviteToken ? verifyToken : noop)
-        .return([username, waitChallenge])
-        .spread(password ? passThrough(password) : autoPassword)
+        .return(username)
+        .then(password ? passThrough(password) : autoPassword)
         .then(ctx => (is.string(ctx) ? ctx : ctx.context.password))
         .then(scrypt.hash)
 
@@ -235,9 +233,18 @@ function registerUser(request) {
                 id: username,
                 action: USERS_ACTION_ACTIVATE,
                 ...tokenOptions,
-              }, {}, waitChallenge])
+              }])
               .spread(skipChallenge ? noop : challenge)
-              .return({ requiresActivation: true });
+              .then(challengeResponse => {
+                const response = { requiresActivation: true };
+                const uid = challengeResponse ? challengeResponse.context.token.uid : null;
+
+                if (uid) {
+                  response.uid = uid;
+                }
+
+                return response;
+              });
           }
 
           // perform instant activation

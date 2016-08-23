@@ -1,16 +1,20 @@
 /* global inspectPromise */
 const { expect } = require('chai');
 const assert = require('assert');
+const is = require('is');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 const sinon = require('sinon');
 const times = require('lodash/times');
 
 describe('#register', function registerSuite() {
   beforeEach(global.startService);
+  beforeEach('set dispatcher', function setDispatcher() {
+    this.dispatch = simpleDispatcher(this.users.router);
+  });
   afterEach(global.clearRedis);
 
   it('must reject invalid registration params and return detailed error', function test() {
-    return simpleDispatcher(this.users.router)('users.register', {})
+    return this.dispatch('users.register', {})
       .reflect()
       .then(inspectPromise(false))
       .then(registered => {
@@ -29,7 +33,7 @@ describe('#register', function registerSuite() {
       },
     };
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(true))
       .then(registered => {
@@ -54,7 +58,7 @@ describe('#register', function registerSuite() {
       },
     };
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(true))
       .then(registered => {
@@ -79,7 +83,7 @@ describe('#register', function registerSuite() {
       },
     };
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(true))
       .then(registered => {
@@ -105,7 +109,7 @@ describe('#register', function registerSuite() {
       },
     };
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
       .then(value => {
@@ -125,7 +129,7 @@ describe('#register', function registerSuite() {
       },
     };
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
       .then(value => {
@@ -147,11 +151,11 @@ describe('#register', function registerSuite() {
     };
 
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', opts);
+      return this.dispatch('users.register', opts);
     });
 
     it('must reject registration for an already existing user', function test() {
-      return simpleDispatcher(this.users.router)('users.register', opts)
+      return this.dispatch('users.register', opts)
         .reflect()
         .then(inspectPromise(false))
         .then(registered => {
@@ -176,12 +180,12 @@ describe('#register', function registerSuite() {
 
     beforeEach(function pretest() {
       return Promise.all(
-        times(3, n => simpleDispatcher(this.users.router)('users.register', { ...opts, username: `${n + 1}${opts.username}` }))
+        times(3, n => this.dispatch('users.register', { ...opts, username: `${n + 1}${opts.username}` }))
       );
     });
 
     it('must reject more than 3 registration a day per ipaddress if it is specified', function test() {
-      return simpleDispatcher(this.users.router)('users.register', opts)
+      return this.dispatch('users.register', opts)
         .reflect()
         .then(inspectPromise(false))
         .then(failed => {
@@ -202,7 +206,7 @@ describe('#register', function registerSuite() {
       },
     };
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(false))
       .then(failed => {
@@ -222,7 +226,7 @@ describe('#register', function registerSuite() {
       },
     };
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(false))
       .then(failed => {
@@ -245,13 +249,12 @@ describe('#register', function registerSuite() {
       challengeType: 'phone',
       password: 'mynicepassword',
       username: '+79215555555',
-      waitChallenge: true,
     };
 
     amqpStub.withArgs('phone.message.predefined')
       .returns(Promise.resolve({ queued: true }));
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
       .then(value => {
@@ -265,7 +268,8 @@ describe('#register', function registerSuite() {
         assert.equal(message.account, 'twilio');
         assert.equal(/\d{4} is your activation code/.test(message.message), true);
         assert.equal(message.to, '+79215555555');
-        assert.deepEqual(value, { requiresActivation: true });
+        assert.equal(value.requiresActivation, true);
+        assert.equal(is.string(value.uid), true);
 
         amqpStub.restore();
       });
@@ -278,13 +282,12 @@ describe('#register', function registerSuite() {
       audience: '*.localhost',
       challengeType: 'phone',
       username: '+79215555555',
-      waitChallenge: true,
     };
 
     amqpStub.withArgs('phone.message.predefined')
       .returns(Promise.resolve({ queued: true }));
 
-    return simpleDispatcher(this.users.router)('users.register', opts)
+    return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
       .then(value => {

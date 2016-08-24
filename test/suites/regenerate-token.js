@@ -103,7 +103,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
   });
 
   describe('with challenge type equals `email`', function emailSuite() {
-    it.only('should be able to regenerate invitation from uid', function test() {
+    it('should be able to regenerate invitation from uid', function test() {
       const mailerStub = sinon.stub(this.users.mailer, 'send');
       mailerStub.withArgs('support@example.com')
         .returns(Promise.resolve());

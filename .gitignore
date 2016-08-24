@@ -34,3 +34,4 @@ lib
 
 # documentation
 docs
+.nyc_output

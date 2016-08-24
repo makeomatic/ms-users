@@ -14,5 +14,10 @@
       "module": "bluebird",
       "method": "coroutine"
     }]
-  ]
+  ],
+  "env": {
+    "test": {
+      "plugins": ["istanbul"]
+    }
+  }
 }

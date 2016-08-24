@@ -34,6 +34,7 @@ Makefile
 .env
 src
 .git
+.nyc_output
 
 # this is all that's still pretty useless
 .npmrc

@@ -2,4 +2,5 @@
  --require ./test/config.js
  --timeout 30000
  --bail
+ --recursive
  -R spec

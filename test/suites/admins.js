@@ -1,6 +1,6 @@
 /* global inspectPromise */
 const assert = require('assert');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const simpleDispatcher = require('../helpers/simpleDispatcher');
 
 describe('#service', function verifySuite() {
   after(global.clearRedis.bind(this));
@@ -26,13 +26,15 @@ describe('#service', function verifySuite() {
       initAdminAccountsDelay: 0,
     });
 
-    return service.connect()
+    return service
+      .connect()
       .then(() => service.initAdminAccounts())
       .then(() => simpleDispatcher(this.users.router)('users.list', { audience: '*.localhost' }))
       .reflect()
       .then(inspectPromise())
       .then(result => {
         assert.equal(result.users[0].id, 'foobaz@bar.ru');
+        return null;
       });
   });
 });

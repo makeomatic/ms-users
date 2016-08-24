@@ -42,6 +42,10 @@ const config = {
     noDisposable: true,
     checkMX: true,
   },
+  phone: {
+    account: 'twilio',
+    waitChallenge: true,
+  },
 };
 
 function registerUser(username, opts = {}) {

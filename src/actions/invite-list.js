@@ -3,7 +3,7 @@ const fsort = require('redis-filtered-sort');
 const is = require('is');
 const {
   INVITATIONS_INDEX,
-  MAIL_INVITE,
+  USERS_ACTION_INVITE,
 } = require('../constants.js');
 
 /**
@@ -27,7 +27,7 @@ function iterateOverInvites(request) {
   const order = request.params.order || 'ASC';
   const offset = request.params.offset || 0;
   const limit = request.params.limit || 10;
-  const metaKey = tokenManager.backend.key('*', MAIL_INVITE);
+  const metaKey = tokenManager.backend.key('*', USERS_ACTION_INVITE);
 
   return redis
     .fsort(INVITATIONS_INDEX, metaKey, criteria, order, strFilter, offset, limit)
@@ -42,7 +42,7 @@ function iterateOverInvites(request) {
       }
 
       return Promise.join(
-        Promise.all(ids.map(id => tokenManager.info({ id, action: MAIL_INVITE }))),
+        Promise.all(ids.map(id => tokenManager.info({ id, action: USERS_ACTION_INVITE }))),
         length
       );
     })

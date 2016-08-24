@@ -8,7 +8,7 @@ const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const userExists = require('../utils/userExists.js');
 const partialRight = require('lodash/partialRight');
-const { USERS_DATA, MAIL_RESET, USERS_PASSWORD_FIELD } = require('../constants.js');
+const { USERS_DATA, USERS_ACTION_RESET, USERS_PASSWORD_FIELD } = require('../constants.js');
 
 // cache error
 const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
@@ -78,7 +78,7 @@ function updatePassword(request) {
       .verify(request.params.resetToken, {
         erase: true,
         control: {
-          action: MAIL_RESET,
+          action: USERS_ACTION_RESET,
         },
       })
       .catchThrow(Forbidden)

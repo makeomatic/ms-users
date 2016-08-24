@@ -21,18 +21,20 @@ module.exports = {
   USERS_IS_ORG_FIELD: 'org',
   USERS_PASSWORD_FIELD: 'password',
 
-  // email namespaces
-  MAIL_ACTIVATE: 'activate',
-  MAIL_RESET: 'reset',
-  MAIL_PASSWORD: 'password',
-  MAIL_REGISTER: 'register',
-  MAIL_INVITE: 'invite',
+  // actions
+  USERS_ACTION_ACTIVATE: 'activate',
+  USERS_ACTION_PASSWORD: 'password',
+  USERS_ACTION_RESET: 'reset',
+  USERS_ACTION_REGISTER: 'register',
+  USERS_ACTION_INVITE: 'invite',
 
   // invitations constants
   INVITATIONS_INDEX: 'user-invitations',
-  INVITATIONS_FIELD_METADATA: '1',
-  INVITATIONS_FIELD_SENT: '2',
-  INVITATIONS_FIELD_CTX: '3',
+
+  // token
+  TOKEN_METADATA_FIELD_METADATA: '1',
+  TOKEN_METADATA_FIELD_SENDED_AT: '2',
+  TOKEN_METADATA_FIELD_CONTEXT: '3',
 
   // challenge types
   CHALLENGE_TYPE_EMAIL: 'email',

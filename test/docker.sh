@@ -47,6 +47,6 @@ done
 
 if [[ x"$CI" == x"true" ]]; then
   echo "Combining & uploading coverage report"
-  docker exec "$BIN/lcov-result-merger" './coverage/**/*.info' './coverage/lcov.info'
+  docker exec tester "$BIN/lcov-result-merger" './coverage/**/lcov.info' './coverage/lcov.info'
   $BIN/codecov --root src -f ./coverage/lcov.info
 fi

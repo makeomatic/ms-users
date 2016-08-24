@@ -57,6 +57,7 @@
     "apidoc-plugin-schema": "0.0.6",
     "babel-cli": "^6.11.4",
     "babel-eslint": "^6.1.2",
+    "babel-plugin-istanbul": "^2.0.0",
     "babel-plugin-syntax-async-functions": "^6.13.0",
     "babel-plugin-transform-async-to-module-method": "^6.8.0",
     "babel-plugin-transform-class-properties": "^6.11.5",
@@ -72,17 +73,31 @@
     "eslint": "^3.3.1",
     "eslint-config-airbnb-base": "^5.0.3",
     "eslint-plugin-import": "^1.14.0",
-    "eslint-plugin-mocha": "^4.3.0",
+    "eslint-plugin-mocha": "^4.4.0",
     "eslint-plugin-promise": "^2.0.1",
     "faker": "^3.0.1",
     "glob": "^7.0.5",
-    "isparta": "^4.0.0",
-    "istanbul": "^0.4.5",
     "json": "^9.0.4",
     "latest-version-cli": "^1.0.0",
+    "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
+    "nyc": "^8.1.0-candidate",
     "semantic-release": "^6.0.0",
     "sinon": "^1.17.5"
+  },
+  "nyc": {
+    "include": [
+      "src/**.js"
+    ],
+    "require": [
+      "babel-register"
+    ],
+    "reporter": [
+      "lcovonly",
+      "text-summary"
+    ],
+    "sourceMap": false,
+    "instrument": false
   },
   "release": {
     "verifyConditions": []

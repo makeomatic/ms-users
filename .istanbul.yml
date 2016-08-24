@@ -5,3 +5,4 @@ reporting:
   reports:
     - lcovonly
     - html
+    - text-summary

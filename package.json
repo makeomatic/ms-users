@@ -93,7 +93,8 @@
       "babel-register"
     ],
     "reporter": [
-      "text-lcov"
+      "lcovonly",
+      "text"
     ],
     "sourceMap": false,
     "instrument": false

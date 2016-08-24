@@ -1,4 +1,5 @@
 require('chai').config.includeStack = true;
+const _ = require('lodash');
 const Promise = require('bluebird');
 const { expect } = require('chai');
 const simpleDispatcher = require('./helpers/simpleDispatcher');
@@ -85,15 +86,18 @@ function inspectPromise(mustBeFulfilled = true) {
   };
 }
 
-function startService() {
+function startService(testConfig = {}) {
   const Users = require('../src');
 
-  this.users = new Users(config);
+  this.users = new Users(_.merge({}, config, testConfig));
   this.users.on('plugin:connect:amqp', () => {
     this.users._mailer = { send: () => Promise.resolve() };
   });
 
-  return this.users.connect();
+  return this.users.connect()
+    .tap(() => {
+      this.dispatch = simpleDispatcher(this.users.router);
+    });
 }
 
 function clearRedis() {
@@ -104,6 +108,7 @@ function clearRedis() {
     .finally(() => this.users.close().reflect())
     .finally(() => {
       this.users = null;
+      this.dispatch = null;
     });
 }
 

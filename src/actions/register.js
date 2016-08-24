@@ -220,7 +220,7 @@ function registerUser(request) {
             .sadd(USERS_INDEX, username)
             // custom actions
             .bind(this)
-            .return(['users:activate', username, params.audience])
+            .return(['users:activate', username, params, metadata])
             .spread(this.hook)
             // login & return JWT
             .return([username, params.audience])

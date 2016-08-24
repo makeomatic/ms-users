@@ -15,14 +15,14 @@
     },
     "action": {
       "type": "string",
-      "enum": ["activate", "reset"]
+      "enum": ["activate", "invite", "reset"]
     },
     "id": {
       "type": "string"
     },
     "challengeType": {
-      "type": "string",
-      "constant": "phone"
+      "default": "email",
+      "$ref": "common#/definitions/challengeType"
     }
   }
 }

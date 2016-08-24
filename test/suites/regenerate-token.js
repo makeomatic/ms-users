@@ -10,7 +10,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
   });
   afterEach(global.clearRedis);
 
-  describe('with phone challenge type', function phoneSuite() {
+  describe('with challenge type equals `phone`', function phoneSuite() {
     it('should be able to regenerate activation token from uid', function test() {
       const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
       const opts = {
@@ -62,7 +62,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         audience: '*.localhost',
         challengeType: 'phone',
         password: '123',
-        username: '+79215555555',
+        username,
       };
       const requestPasswordParams = { username, challengeType: 'phone' };
 
@@ -98,6 +98,49 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
           assert.equal(message.to, '+79215555555');
 
           amqpStub.restore();
+        });
+    });
+  });
+
+  describe('with challenge type equals `email`', function emailSuite() {
+    it.only('should be able to regenerate invitation from uid', function test() {
+      const mailerStub = sinon.stub(this.users.mailer, 'send');
+      mailerStub.withArgs('support@example.com')
+        .returns(Promise.resolve());
+
+      return this.dispatch('users.invite', {
+          email: 'foo@yandex.ru',
+          ctx: {
+            firstName: 'Alex',
+            lastName: 'Bon',
+          },
+          metadata: {
+            '*.localhost': { plan: 'premium' },
+          },
+        })
+        .reflect()
+        .then(inspectPromise())
+        .then(response => {
+          assert.ok(response.queued);
+          assert.ok(mailerStub.args[0][1].html.includes(response.context.token.secret));
+
+          return this.dispatch('users.regenerate-token', {
+            challengeType: 'email',
+            uid: response.context.token.uid,
+          });
+        })
+        .reflect()
+        .then(inspectPromise())
+        .then(response => {
+          assert.ok(response.regenerated);
+          assert.ok(response.uid);
+
+          return this.users.tokenManager.info({ uid: response.uid });
+        })
+        .then(token => {
+          assert.ok(mailerStub.args[1][1].html.includes(token.secret));
+
+          mailerStub.restore();
         });
     });
   });

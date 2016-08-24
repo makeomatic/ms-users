@@ -2,9 +2,9 @@ const Promise = require('bluebird');
 const generateEmail = require('../utils/challenges/generateEmail.js');
 const {
   INVITATIONS_INDEX,
-  INVITATIONS_FIELD_METADATA,
-  INVITATIONS_FIELD_CTX,
-  INVITATIONS_FIELD_SENT,
+  TOKEN_METADATA_FIELD_METADATA,
+  TOKEN_METADATA_FIELD_CONTEXT,
+  TOKEN_METADATA_FIELD_SENDED_AT,
   USERS_ACTION_INVITE,
 } = require('../constants.js');
 
@@ -42,9 +42,9 @@ module.exports = function generateInvite(request) {
     ttl, // defaults to never expiring
     throttle, // defaults to no throttle
     metadata: {
-      [INVITATIONS_FIELD_METADATA]: metadata,
-      [INVITATIONS_FIELD_CTX]: ctx,
-      [INVITATIONS_FIELD_SENT]: now,
+      [TOKEN_METADATA_FIELD_METADATA]: metadata,
+      [TOKEN_METADATA_FIELD_CONTEXT]: ctx,
+      [TOKEN_METADATA_FIELD_SENDED_AT]: now,
     },
   })
   .then(token => Promise

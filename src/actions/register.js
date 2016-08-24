@@ -34,7 +34,7 @@ const {
   USERS_ACTION_ACTIVATE,
   CHALLENGE_TYPE_EMAIL,
   CHALLENGE_TYPE_PHONE,
-  INVITATIONS_FIELD_METADATA,
+  TOKEN_METADATA_FIELD_METADATA,
 } = require('../constants.js');
 
 // cached helpers
@@ -163,7 +163,7 @@ function registerUser(request) {
       return token;
     })
     .get('metadata')
-    .get(INVITATIONS_FIELD_METADATA)
+    .get(TOKEN_METADATA_FIELD_METADATA)
     .then(meta => reduce(meta, mergeMetadata, metadata));
 
   // acquire lock now!

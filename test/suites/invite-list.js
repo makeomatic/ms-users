@@ -10,9 +10,9 @@ describe('#invite', function registerSuite() {
   after(global.clearRedis);
 
   const {
-    INVITATIONS_FIELD_METADATA,
-    INVITATIONS_FIELD_SENT,
-    INVITATIONS_FIELD_CTX,
+    TOKEN_METADATA_FIELD_METADATA,
+    TOKEN_METADATA_FIELD_SENDED_AT,
+    TOKEN_METADATA_FIELD_CONTEXT,
   } = require('../../src/constants.js');
 
   before(function init() {
@@ -45,10 +45,10 @@ describe('#invite', function registerSuite() {
           assert(invite.id);
           assert(invite.action);
           assert(invite.secret);
-          assert(invite.metadata[INVITATIONS_FIELD_METADATA]['*.localhost'].company);
-          assert(invite.metadata[INVITATIONS_FIELD_SENT]);
-          assert(invite.metadata[INVITATIONS_FIELD_CTX].firstName);
-          assert(invite.metadata[INVITATIONS_FIELD_CTX].lastName);
+          assert(invite.metadata[TOKEN_METADATA_FIELD_METADATA]['*.localhost'].company);
+          assert(invite.metadata[TOKEN_METADATA_FIELD_SENDED_AT]);
+          assert(invite.metadata[TOKEN_METADATA_FIELD_CONTEXT].firstName);
+          assert(invite.metadata[TOKEN_METADATA_FIELD_CONTEXT].lastName);
           assert(invite.uid);
           assert.ifError(invite.ctx);
         });

@@ -30,9 +30,11 @@ module.exports = {
 
   // invitations constants
   INVITATIONS_INDEX: 'user-invitations',
-  INVITATIONS_FIELD_METADATA: '1',
-  INVITATIONS_FIELD_SENT: '2',
-  INVITATIONS_FIELD_CTX: '3',
+
+  // token
+  TOKEN_METADATA_FIELD_METADATA: '1',
+  TOKEN_METADATA_FIELD_SENDED_AT: '2',
+  TOKEN_METADATA_FIELD_CONTEXT: '3',
 
   // challenge types
   CHALLENGE_TYPE_EMAIL: 'email',

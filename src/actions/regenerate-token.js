@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const { selectChallenge } = require('../utils/challenges/challenge');
+const { TOKEN_METADATA_FIELD_CONTEXT } = require('../constants');
 
 /**
  * @api {amqp} <prefix>.regenerate-token Regenerate expired token
@@ -22,7 +23,13 @@ function regenerateToken(request) {
     .then(tokenManager.info)
     .bind(this)
     .then(token => {
-      const challenge = selectChallenge(challengeType, token.action, { token });
+      let context = {};
+
+      if (token.metadata && token.metadata[TOKEN_METADATA_FIELD_CONTEXT]) {
+        context = token.metadata[TOKEN_METADATA_FIELD_CONTEXT];
+      }
+
+      const challenge = selectChallenge(challengeType, token.action, { ...context, token });
       return challenge.call(this, token.id);
     })
     .then(challengeResponse => {

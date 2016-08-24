@@ -68,7 +68,7 @@
     },
     "challengeType": {
       "default": "email",
-      "$ref": "common#/definitions/challengeType"
+      "$ref": "common.json#/definitions/challengeType"
     }
   }
 }

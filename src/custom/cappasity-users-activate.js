@@ -7,8 +7,9 @@ const setMetadata = require('../utils/updateMetadata.js');
  * @param  {String} username
  * @return {Promise}
  */
-module.exports = function mixPlan(username, audience) {
+module.exports = function mixPlan(username, params) {
   const { amqp, config } = this;
+  const { audience } = params;
   const { payments } = config;
   const route = [payments.prefix, payments.routes.planGet].join('.');
   const id = 'free';

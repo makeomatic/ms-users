@@ -144,6 +144,14 @@ module.exports = {
   hooks: {},
   // make sure we wait for admin accounts to init
   initAdminAccountsDelay: 10000,
+  chat: {
+    router: {
+      prefix: 'chat',
+      routes: {
+        'internal.rooms.create': 'internal.rooms.create',
+      },
+    },
+  },
   token: {
     [CHALLENGE_TYPE_EMAIL]: {
       secret: {

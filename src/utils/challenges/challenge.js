@@ -5,6 +5,7 @@ const {
   CHALLENGE_TYPE_EMAIL,
   CHALLENGE_TYPE_PHONE,
 } = require('../../constants.js');
+const sendSms = require('./phone/sendSms');
 
 // eslint-disable-next-line max-len
 const isThrottled = new HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email');
@@ -15,14 +16,12 @@ const CHALLENGES = {
   [CHALLENGE_TYPE_EMAIL]: (action, ctx, wait = false) =>
     partial(generateEmail, partial.placeholder, action, ctx, { wait, send: true }),
 
-  // eslint-disable-next-line no-unused-vars
-  [CHALLENGE_TYPE_PHONE]: (action, ctx, wait) => function send(data) {
-    throw new Error('not implemented yet');
-  },
+  [CHALLENGE_TYPE_PHONE]: (action, ctx) =>
+    partial(sendSms, partial.placeholder, action, ctx),
 };
 
 // select challenge helper
-const selectChallenge = (type, template, ctx) => CHALLENGES[type](template, ctx);
+const selectChallenge = (type, action, ctx) => CHALLENGES[type](action, ctx);
 
 /**
  * Send an email with appropriate content
@@ -46,5 +45,6 @@ function generateChallenge(type, opts, ctx = {}, wait = false) {
     .then(selectChallenge(type, opts.action, ctx, wait));
 }
 
-// basic method
-module.exports = exports = generateChallenge;
+generateChallenge.selectChallenge = selectChallenge;
+
+module.exports = generateChallenge;

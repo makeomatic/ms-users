@@ -1,7 +1,7 @@
 {
   "id": "activate",
   "type": "object",
-  "oneOf": [
+  "anyOf": [
     {
       "required": ["token"]
     },

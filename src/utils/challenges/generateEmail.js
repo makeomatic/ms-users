@@ -7,7 +7,13 @@ const identity = require('lodash/identity');
 const sendEmail = require('./sendEmail.js');
 const { InvalidOperationError } = require('common-errors');
 const { updatePassword } = require('../../actions/updatePassword.js');
-const { MAIL_ACTIVATE, MAIL_RESET, MAIL_PASSWORD, MAIL_REGISTER, MAIL_INVITE } = require('../../constants.js');
+const {
+  USERS_ACTION_ACTIVATE,
+  USERS_ACTION_RESET,
+  USERS_ACTION_PASSWORD,
+  USERS_ACTION_REGISTER,
+  USERS_ACTION_INVITE,
+} = require('../../constants.js');
 
 function generateEmail(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   const { config } = this;
@@ -21,16 +27,16 @@ function generateEmail(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   const templateName = validation.templates[type] || type;
 
   switch (type) {
-    case MAIL_ACTIVATE:
-    case MAIL_RESET:
-    case MAIL_INVITE:
+    case USERS_ACTION_ACTIVATE:
+    case USERS_ACTION_RESET:
+    case USERS_ACTION_INVITE:
       // generate secret
       context.qs = `?q=${context.token.secret}`;
       context.link = generateLink(server, paths[type]);
       break;
 
-    case MAIL_PASSWORD:
-    case MAIL_REGISTER:
+    case USERS_ACTION_PASSWORD:
+    case USERS_ACTION_REGISTER:
       context.password = generatePassword(pwdReset.length, pwdReset.memorable);
       context.login = email;
       break;
@@ -40,7 +46,7 @@ function generateEmail(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   }
 
   // in case we need to setup a new password
-  if (type === MAIL_PASSWORD) {
+  if (type === USERS_ACTION_PASSWORD) {
     actions.updatePassword = updatePassword.call(this, email, context.password);
   }
 
@@ -62,11 +68,11 @@ function generateEmail(email, type, ctx = {}, opts = {}, nodemailer = {}) {
 module.exports = exports = generateEmail;
 
 // short-hand methods
-exports.newPassword = partial(generateEmail, partial.placeholder, MAIL_PASSWORD, {}, { send: true });
-exports.register = partial(generateEmail, partial.placeholder, MAIL_REGISTER, {}, partial.placeholder);
+exports.newPassword = partial(generateEmail, partial.placeholder, USERS_ACTION_PASSWORD, {}, { send: true });
+exports.register = partial(generateEmail, partial.placeholder, USERS_ACTION_REGISTER, {}, partial.placeholder);
 
 // these should simply generate an email
 // as they are likely to be used from withing createChallenge or require custom context
-exports.activation = partial(generateEmail, partial.placeholder, MAIL_ACTIVATE);
-exports.resetPassword = partial(generateEmail, partial.placeholder, MAIL_RESET);
-exports.invite = partial(generateEmail, partial.placeholder, MAIL_INVITE);
+exports.activation = partial(generateEmail, partial.placeholder, USERS_ACTION_ACTIVATE);
+exports.resetPassword = partial(generateEmail, partial.placeholder, USERS_ACTION_RESET);
+exports.invite = partial(generateEmail, partial.placeholder, USERS_ACTION_INVITE);

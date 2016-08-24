@@ -53,6 +53,11 @@
           ]
         }
       }
+    },
+    "challengeType": {
+      "description": "Challenge type",
+      "enum": ["email", "phone"],
+      "type": "string"
     }
   }
 }

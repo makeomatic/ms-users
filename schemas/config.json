@@ -1,7 +1,19 @@
 {
   "id": "config",
   "type": "object",
-  "required": [ "amqp", "redis", "deleteInactiveAccounts", "jwt", "validation", "server", "mailer", "pwdReset", "hooks" ],
+  "required": [
+    "amqp",
+    "redis",
+    "deleteInactiveAccounts",
+    "jwt",
+    "validation",
+    "server",
+    "mailer",
+    "pwdReset",
+    "hooks",
+    "token",
+    "phone"
+  ],
   "properties": {
     "debug": {
       "type": "boolean"
@@ -157,16 +169,8 @@
     },
     "validation": {
       "type": "object",
-      "required": [ "ttl", "paths", "subjects", "email", "senders", "templates" ],
+      "required": [ "paths", "subjects", "email", "senders", "templates" ],
       "properties": {
-        "ttl": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "throttle": {
-          "type": "integer",
-          "minimum": 0
-        },
         "paths": {
           "type": "object",
           "required": [ "activate", "reset" ],
@@ -283,6 +287,96 @@
     },
     "payments": {
       "type": "object"
+    },
+    "token": {
+      "type": "object",
+      "required": ["erase", "email", "phone"],
+      "properties": {
+        "erase": {
+          "type": "boolean",
+          "default": false
+        },
+        "email": {
+          "type": "object",
+          "required": ["secret", "throttle", "ttl"],
+          "properties": {
+            "secret": {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "length": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "encrypt": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "ttl": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "throttle": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "phone": {
+          "type": "object",
+          "required": ["secret", "throttle", "ttl"],
+          "properties": {
+            "secret": {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "length": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "encrypt": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "ttl": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "throttle": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "phone": {
+      "type": "object",
+      "required": ["account", "messages", "prefix"],
+      "properties": {
+        "account": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "object",
+          "patternProperties": {
+            "^.+$": {
+              "type": "string"
+            }
+          }
+        },
+        "prefix": {
+          "type": "string"
+        }
+      }
     }
   }
 }

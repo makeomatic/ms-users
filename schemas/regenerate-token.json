@@ -1,0 +1,28 @@
+{
+  "id": "regenerate-token",
+  "type": "object",
+  "oneOf": [
+    {
+      "required": [ "uid", "challengeType" ]
+    },
+    {
+      "required": [ "action", "id", "challengeType" ]
+    }
+  ],
+  "properties": {
+    "uid": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["activate", "invite", "reset"]
+    },
+    "id": {
+      "type": "string"
+    },
+    "challengeType": {
+      "default": "email",
+      "$ref": "common#/definitions/challengeType"
+    }
+  }
+}

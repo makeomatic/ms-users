@@ -2,10 +2,10 @@ const Promise = require('bluebird');
 const generateEmail = require('../utils/challenges/generateEmail.js');
 const {
   INVITATIONS_INDEX,
-  INVITATIONS_FIELD_METADATA,
-  INVITATIONS_FIELD_CTX,
-  INVITATIONS_FIELD_SENT,
-  MAIL_INVITE,
+  TOKEN_METADATA_FIELD_METADATA,
+  TOKEN_METADATA_FIELD_CONTEXT,
+  TOKEN_METADATA_FIELD_SENDED_AT,
+  USERS_ACTION_INVITE,
 } = require('../constants.js');
 
 /**
@@ -37,18 +37,18 @@ module.exports = function generateInvite(request) {
   // do not throttle
   return tokenManager.create({
     id: email,
-    action: MAIL_INVITE,
+    action: USERS_ACTION_INVITE,
     regenerate: true,
     ttl, // defaults to never expiring
     throttle, // defaults to no throttle
     metadata: {
-      [INVITATIONS_FIELD_METADATA]: metadata,
-      [INVITATIONS_FIELD_CTX]: ctx,
-      [INVITATIONS_FIELD_SENT]: now,
+      [TOKEN_METADATA_FIELD_METADATA]: metadata,
+      [TOKEN_METADATA_FIELD_CONTEXT]: ctx,
+      [TOKEN_METADATA_FIELD_SENDED_AT]: now,
     },
   })
   .then(token => Promise
-    .bind(this, [email, MAIL_INVITE, { ...ctx, token }, { send: true }, nodemailer])
+    .bind(this, [email, USERS_ACTION_INVITE, { ...ctx, token }, { send: true }, nodemailer])
     .spread(generateEmail)
     .tap(() => redis.sadd(INVITATIONS_INDEX, email))
   );

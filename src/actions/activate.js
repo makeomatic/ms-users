@@ -12,7 +12,7 @@ const {
   USERS_ACTIVE_FLAG,
   USERS_ALIAS_FIELD,
   USERS_USERNAME_FIELD,
-  MAIL_ACTIVATE,
+  USERS_ACTION_ACTIVATE,
 } = require('../constants.js');
 
 // cache error
@@ -24,13 +24,17 @@ const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
  * @apiName ActivateUser
  * @apiGroup Users
  *
- * @apiDescription This method allows one to activate user by 2 means: providing a username or encoded verification token.
- * When only username is provided, no verifications will be performed and user will be set to active. In contrary, `token`
- * would be verified. This allows for 2 scenarios: admin activating a user, or user completing verification challenge. In
- * case of success output would contain user object
+ * @apiDescription This method allows one to activate user by 3 means:
+ * 1) When only `username` is provided, no verifications will be performed and user will be set
+ *    to active. This case is used when admin activates a user.
+ * 2) When only `token` is provided that means that token is encrypted and would be verified.
+ *    This case is used when user completes verification challenge.
+ * 3) This case is similar to the previous, but used both `username` and `token` for
+ *    verification. Use this when the token isn't decrypted.
+ * Success response contains user object.
  *
- * @apiParam (Payload) {String} username - currently email of the user
- * @apiParam (Payload) {String} token - if present, would be used against test challenge
+ * @apiParam (Payload) {String} username - id of the user
+ * @apiParam (Payload) {String} token - verification token
  * @apiParam (Payload) {String} [remoteip] - not used, but is reserved for security log in the future
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
@@ -44,16 +48,26 @@ function verifyChallenge(request) {
 
   log.debug('incoming request params %j', request.params);
 
-  // token verification
-  const verifyToken = () => this.tokenManager
-    .verify(token, {
-      erase: config.validation.ttl > 0,
-      control: {
-        action: MAIL_ACTIVATE,
-      },
-    })
-    .catchThrow(Forbidden)
-    .get('id');
+  function verifyToken() {
+    let args;
+    const action = USERS_ACTION_ACTIVATE;
+    const opts = { erase: config.token.erase };
+
+    if (username) {
+      args = {
+        action,
+        id: username,
+        token,
+      };
+    } else {
+      args = token;
+      opts.control = { action };
+    }
+
+    return this.tokenManager.verify(args, opts)
+      .catchThrow(Forbidden)
+      .get('id');
+  }
 
   function activateAccount(data) {
     const user = data[USERS_USERNAME_FIELD];
@@ -91,7 +105,7 @@ function verifyChallenge(request) {
 
   return Promise
     .bind(this, username)
-    .then(username ? userExists : verifyToken)
+    .then(token ? verifyToken : userExists)
     .then(getInternalData)
     .then(activateAccount)
     .tap(hook)

@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
-const { MAIL_PASSWORD, MAIL_RESET } = require('../constants.js');
+const { USERS_ACTION_PASSWORD, USERS_ACTION_RESET } = require('../constants.js');
 const challenge = require('../utils/challenges/challenge.js');
 
 /**
@@ -12,18 +12,17 @@ const challenge = require('../utils/challenges/challenge.js');
  * @apiGroup Users
  *
  * @apiDescription Allows one either to request new password instantly, or generate a challenge.
- * In the first case would send new password to email instantly and will change it in the system. Use-case is discouraged, because
- * it can be used to DOS account (throttling not implemented). Second case sends reset token to email and it can be used in `updatePassword`
- * endpoint alongside new password to generate it
+ * In the first case would send new password to email instantly and will change it in the system.
+ * Use-case is discouraged, because it can be used to DOS account (throttling not implemented).
+ * Second case sends reset token to email and it can be used in `updatePassword` endpoint
+ * alongside new password to generate it
  *
- * @apiParam (Payload) {String} username - currently only email is supported
- * @apiParam (Payload) {String} remoteip - ip address of the requester
- * @apiParam (Payload) {Boolean} [generateNewPassword=false] - send password immediately
+ * @apiSchema {jsonschema=../../schemas/requestPassword.json} apiParam
  */
 function requestPassword(request) {
-  const { username: usernameOrAlias, generateNewPassword } = request.params;
-  const { throttle, ttl } = this.config.validation;
-  const action = generateNewPassword ? MAIL_PASSWORD : MAIL_RESET;
+  const { challengeType, username: usernameOrAlias, generateNewPassword } = request.params;
+  const { [challengeType]: tokenOptions } = this.config.token;
+  const action = generateNewPassword ? USERS_ACTION_PASSWORD : USERS_ACTION_RESET;
 
   // TODO: make use of remoteip in security logs?
   // var remoteip = request.params.remoteip;
@@ -33,11 +32,10 @@ function requestPassword(request) {
     .then(getInternalData)
     .tap(isActive)
     .tap(isBanned)
-    .then(data => (['email', {
+    .then(data => ([challengeType, {
       id: data.username,
       action,
-      ttl,
-      throttle,
+      ...tokenOptions,
     }]))
     .spread(challenge)
     .return({ success: true });

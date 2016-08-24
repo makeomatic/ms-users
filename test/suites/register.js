@@ -1,10 +1,11 @@
+/* eslint-disable promise/always-return, no-prototype-builtins */
 /* global inspectPromise */
-const { expect } = require('chai');
-const assert = require('assert');
+const Promise = require('bluebird');
 const is = require('is');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const simpleDispatcher = require('../helpers/simpleDispatcher');
 const sinon = require('sinon');
 const times = require('lodash/times');
+const assert = require('assert');
 
 describe('#register', function registerSuite() {
   beforeEach(global.startService);
@@ -13,13 +14,17 @@ describe('#register', function registerSuite() {
   });
   afterEach(global.clearRedis);
 
+  beforeEach(function registerDispatch() {
+    this.dispatch = simpleDispatcher(this.users.router);
+  });
+
   it('must reject invalid registration params and return detailed error', function test() {
     return this.dispatch('users.register', {})
       .reflect()
       .then(inspectPromise(false))
       .then(registered => {
-        expect(registered.name).to.be.eq('ValidationError');
-        expect(registered.errors).to.have.length.of(2);
+        assert.equal(registered.name, 'ValidationError');
+        assert.equal(registered.errors.length, 2);
       });
   });
 
@@ -37,14 +42,14 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then(registered => {
-        expect(registered).to.have.ownProperty('jwt');
-        expect(registered).to.have.ownProperty('user');
-        expect(registered.user.username).to.be.eq(opts.username);
-        expect(registered.user).to.have.ownProperty('metadata');
-        expect(registered.user.metadata).to.have.ownProperty('matic.ninja');
-        expect(registered.user.metadata).to.have.ownProperty('*.localhost');
-        expect(registered.user).to.not.have.ownProperty('password');
-        expect(registered.user).to.not.have.ownProperty('audience');
+        assert(registered.hasOwnProperty('jwt'));
+        assert(registered.hasOwnProperty('user'));
+        assert.equal(registered.user.username, opts.username);
+        assert(registered.user.hasOwnProperty('metadata'));
+        assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+        assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+        assert.ifError(registered.user.password);
+        assert.ifError(registered.user.audience);
       });
   });
 
@@ -62,16 +67,45 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then(registered => {
-        expect(registered).to.have.ownProperty('jwt');
-        expect(registered).to.have.ownProperty('user');
-        expect(registered.user.username).to.be.eq(opts.username);
-        expect(registered.user).to.have.ownProperty('metadata');
-        expect(registered.user.metadata).to.have.ownProperty('matic.ninja');
-        expect(registered.user.metadata).to.have.ownProperty('*.localhost');
-        expect(registered.user.metadata['*.localhost'].alias).to.be.eq(opts.alias);
-        expect(registered.user).to.not.have.ownProperty('password');
-        expect(registered.user).to.not.have.ownProperty('audience');
+        assert(registered.hasOwnProperty('jwt'));
+        assert(registered.hasOwnProperty('user'));
+        assert.equal(registered.user.username, opts.username);
+        assert(registered.user.hasOwnProperty('metadata'));
+        assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+        assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+        assert.equal(registered.user.metadata['*.localhost'].alias, opts.alias);
+        assert.ifError(registered.user.password);
+        assert.ifError(registered.user.audience);
       });
+  });
+
+  describe('must reject creating user', function suite() {
+    const opts = {
+      username: 'v@makeomatic.ru',
+      audience: 'matic.ninja',
+      alias: 'bondthebest',
+      metadata: {
+        service: 'craft',
+      },
+    };
+
+    beforeEach(function injectUser() {
+      return this.dispatch('users.register', opts);
+    });
+
+    it('with an already existing alias', function test() {
+      return this.dispatch('users.register', {
+        ...opts,
+        username: 'test@makeomatic.ru',
+      })
+      .reflect()
+      .then(inspectPromise(false))
+      .then(error => {
+        assert.equal(error.message, `"${opts.alias}" already exists`);
+        assert.equal(error.name, 'HttpStatusError');
+        assert.equal(error.statusCode, 409);
+      });
+    });
   });
 
   it('must be able to create user without validations and return user object and jwt token, password is auto-generated', function test() {
@@ -87,14 +121,14 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then(registered => {
-        expect(registered).to.have.ownProperty('jwt');
-        expect(registered).to.have.ownProperty('user');
-        expect(registered.user.username).to.be.eq(opts.username);
-        expect(registered.user).to.have.ownProperty('metadata');
-        expect(registered.user.metadata).to.have.ownProperty('matic.ninja');
-        expect(registered.user.metadata).to.have.ownProperty('*.localhost');
-        expect(registered.user).to.not.have.ownProperty('password');
-        expect(registered.user).to.not.have.ownProperty('audience');
+        assert(registered.hasOwnProperty('jwt'));
+        assert(registered.hasOwnProperty('user'));
+        assert.equal(registered.user.username, opts.username);
+        assert(registered.user.hasOwnProperty('metadata'));
+        assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+        assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+        assert.ifError(registered.user.password);
+        assert.ifError(registered.user.audience);
       });
   });
 
@@ -113,9 +147,7 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise())
       .then(value => {
-        expect(value).to.be.deep.eq({
-          requiresActivation: true,
-        });
+        assert.deepEqual(value, { requiresActivation: true });
       });
   });
 
@@ -133,9 +165,7 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise())
       .then(value => {
-        expect(value).to.be.deep.eq({
-          requiresActivation: true,
-        });
+        assert.deepEqual(value, { requiresActivation: true });
       });
   });
 
@@ -159,9 +189,9 @@ describe('#register', function registerSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then(registered => {
-          expect(registered.name).to.be.eq('HttpStatusError');
-          expect(registered.statusCode).to.be.eq(409);
-          expect(registered.message).to.match(/"v@makeomatic\.ru" already exists/);
+          assert.equal(registered.name, 'HttpStatusError');
+          assert.equal(registered.statusCode, 409);
+          assert(/"v@makeomatic\.ru" already exists/.test(registered.message));
         });
     });
   });
@@ -189,9 +219,9 @@ describe('#register', function registerSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then(failed => {
-          expect(failed.name).to.be.eq('HttpStatusError');
-          expect(failed.statusCode).to.be.eq(429);
-          expect(failed.message).to.be.eq('You can\'t register more users from your ipaddress now');
+          assert.equal(failed.name, 'HttpStatusError');
+          assert.equal(failed.statusCode, 429);
+          assert.equal(failed.message, 'You can\'t register more users from your ipaddress now');
         });
     });
   });
@@ -210,9 +240,9 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise(false))
       .then(failed => {
-        expect(failed.name).to.be.eq('HttpStatusError');
-        expect(failed.statusCode).to.be.eq(400);
-        expect(failed.message).to.be.eq('you must use non-disposable email to register');
+        assert.equal(failed.name, 'HttpStatusError');
+        assert.equal(failed.statusCode, 400);
+        assert.equal(failed.message, 'you must use non-disposable email to register');
       });
   });
 
@@ -230,9 +260,9 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise(false))
       .then(failed => {
-        expect(failed.name).to.be.eq('HttpStatusError');
-        expect(failed.statusCode).to.be.eq(400);
-        expect(failed.message).to.be.eq('no MX record was found for hostname aminev.co');
+        assert.equal(failed.name, 'HttpStatusError');
+        assert.equal(failed.statusCode, 400);
+        assert.equal(failed.message, 'no MX record was found for hostname aminev.co');
       });
   });
 

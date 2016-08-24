@@ -19,7 +19,7 @@
       "type": "string"
     },
     "filter": {
-      "$ref": "common#/definitions/filter"
+      "$ref": "common.json#/definitions/filter"
     }
   }
 }

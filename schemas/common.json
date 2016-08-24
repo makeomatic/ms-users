@@ -1,5 +1,5 @@
 {
-  "id": "common",
+  "id": "common.json",
   "definitions": {
     "filter": {
       "type": "object",

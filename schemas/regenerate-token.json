@@ -11,18 +11,21 @@
   ],
   "properties": {
     "uid": {
-      "type": "string"
+      "type": "string",
+      "description": "Token unique identificator"
     },
     "action": {
       "type": "string",
-      "enum": ["activate", "invite", "reset"]
+      "enum": ["activate", "invite", "reset"],
+      "description": "User action"
     },
     "id": {
-      "type": "string"
+      "type": "string",
+      "description": "User `id`"
     },
     "challengeType": {
       "default": "email",
-      "$ref": "common#/definitions/challengeType"
+      "$ref": "common.json#/definitions/challengeType"
     }
   }
 }

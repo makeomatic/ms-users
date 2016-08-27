@@ -32,7 +32,10 @@ describe('#invite', function registerSuite() {
   });
 
   it('returns expanded list of issued invites', function test() {
-    return this.dispatch('users.invite-list', {})
+    return this
+      .dispatch('users.invite-list', {
+        criteria: 'id',
+      })
       .reflect()
       .then(inspectPromise())
       .then(result => {
@@ -52,6 +55,8 @@ describe('#invite', function registerSuite() {
           assert(invite.uid);
           assert.ifError(invite.ctx);
         });
+
+        return null;
       });
   });
 });

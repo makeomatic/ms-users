@@ -1,3 +1,4 @@
+const { HttpStatusError } = require('common-errors');
 const {
   INVITATIONS_INDEX,
   USERS_ACTION_INVITE,
@@ -20,5 +21,8 @@ module.exports = function generateInvite(request) {
 
   return tokenManager
     .remove({ id, action: USERS_ACTION_INVITE })
-    .tap(() => redis.srem(INVITATIONS_INDEX, id));
+    .tap(() => redis.srem(INVITATIONS_INDEX, id))
+    .catch({ message: 404 }, () => {
+      throw new HttpStatusError(`Invite with id "${id}" not found`);
+    });
 };

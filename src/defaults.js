@@ -2,7 +2,7 @@ const path = require('path');
 const routerExtension = require('mservice').routerExtension;
 
 const autoSchema = routerExtension('validate/schemaLessAction');
-const auditLog = routerExtension('validate/audit');
+const auditLog = routerExtension('audit/log');
 
 const {
   CHALLENGE_TYPE_EMAIL,

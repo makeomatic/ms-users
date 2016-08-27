@@ -8,10 +8,6 @@ describe('#invite-remove', function registerSuite() {
 
   const email = 'v@yandex.ru';
 
-  before(function init() {
-    this.dispatch = simpleDispatcher(this.users.router);
-  });
-
   before('must be able to create invitation', function test() {
     return this
       .dispatch('users.invite', {

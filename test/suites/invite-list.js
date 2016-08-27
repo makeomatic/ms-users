@@ -1,6 +1,5 @@
 /* global inspectPromise */
 const Promise = require('bluebird');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
 const assert = require('assert');
 const times = require('lodash/times');
 const faker = require('faker');
@@ -16,7 +15,6 @@ describe('#invite', function registerSuite() {
   } = require('../../src/constants.js');
 
   before(function init() {
-    this.dispatch = simpleDispatcher(this.users.router);
     return Promise.all(times(100, n => this.dispatch('users.invite', {
       email: `${n}@yandex.ru`,
       ctx: {

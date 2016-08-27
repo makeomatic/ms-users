@@ -15,7 +15,7 @@ const {
  * @apiParam (Payload) {Object} id - id of the invitation
  *
  */
-module.exports = function generateInvite(request) {
+module.exports = function removeInvite(request) {
   const { redis, tokenManager } = this;
   const { id } = request.params;
 
@@ -23,6 +23,6 @@ module.exports = function generateInvite(request) {
     .remove({ id, action: USERS_ACTION_INVITE })
     .tap(() => redis.srem(INVITATIONS_INDEX, id))
     .catch({ message: 404 }, () => {
-      throw new HttpStatusError(`Invite with id "${id}" not found`);
+      throw new HttpStatusError(404, `Invite with id "${id}" not found`);
     });
 };

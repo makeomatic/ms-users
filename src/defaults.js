@@ -37,7 +37,7 @@ module.exports = {
       transports: ['amqp'],
     },
     extensions: {
-      enabled: ['postRequest', 'preRequest', 'postResponse'],
+      enabled: ['postRequest', 'preRequest', 'preResponse'],
       register: [autoSchema, auditLog],
     },
   },

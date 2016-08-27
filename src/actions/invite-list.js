@@ -27,7 +27,7 @@ function iterateOverInvites(request) {
   const order = request.params.order || 'ASC';
   const offset = request.params.offset || 0;
   const limit = request.params.limit || 10;
-  const metaKey = tokenManager.backend.key('*', USERS_ACTION_INVITE);
+  const metaKey = tokenManager.backend.key(USERS_ACTION_INVITE, '*');
 
   return redis
     .fsort(INVITATIONS_INDEX, metaKey, criteria, order, strFilter, offset, limit)

@@ -1,5 +1,9 @@
 const path = require('path');
-const schemaLessAction = require('mservice/lib/plugins/router/extensions/validate/schemaLessAction');
+const routerExtension = require('mservice').routerExtension;
+
+const autoSchema = routerExtension('validate/schemaLessAction');
+const auditLog = routerExtension('validate/audit');
+
 const {
   CHALLENGE_TYPE_EMAIL,
   CHALLENGE_TYPE_PHONE,
@@ -33,8 +37,8 @@ module.exports = {
       transports: ['amqp'],
     },
     extensions: {
-      enabled: ['postRequest'],
-      register: [schemaLessAction],
+      enabled: ['postRequest', 'preResponse', 'postResponse'],
+      register: [autoSchema, auditLog],
     },
   },
   captcha: {
@@ -48,8 +52,6 @@ module.exports = {
       keyPrefix: '{ms-users}',
       // pass this to constructor
       dropBufferSupport: false,
-      // lazyConnect
-      lazyConnect: false,
     },
     luaScripts: path.resolve(__dirname, '../scripts'),
   },

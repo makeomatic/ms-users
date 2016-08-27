@@ -2,21 +2,13 @@
 /* global inspectPromise */
 const Promise = require('bluebird');
 const is = require('is');
-const simpleDispatcher = require('../helpers/simpleDispatcher');
 const sinon = require('sinon');
 const times = require('lodash/times');
 const assert = require('assert');
 
 describe('#register', function registerSuite() {
   beforeEach(global.startService);
-  beforeEach('set dispatcher', function setDispatcher() {
-    this.dispatch = simpleDispatcher(this.users.router);
-  });
   afterEach(global.clearRedis);
-
-  beforeEach(function registerDispatch() {
-    this.dispatch = simpleDispatcher(this.users.router);
-  });
 
   it('must reject invalid registration params and return detailed error', function test() {
     return this.dispatch('users.register', {})

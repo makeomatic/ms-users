@@ -3,7 +3,6 @@ const { expect } = require('chai');
 const assert = require('assert');
 const is = require('is');
 const sinon = require('sinon');
-const simpleDispatcher = require('../helpers/simpleDispatcher');
 
 describe('#activate', function activateSuite() {
   const email = 'v@aminev.me';
@@ -12,8 +11,6 @@ describe('#activate', function activateSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function genToken() {
-    this.dispatch = simpleDispatcher(this.users.router);
-
     return this
       .users.tokenManager.create({
         id: email,

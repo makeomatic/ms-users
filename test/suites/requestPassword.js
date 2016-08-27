@@ -2,7 +2,6 @@
 const { expect } = require('chai');
 const assert = require('assert');
 const redisKey = require('../../src/utils/key.js');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
 const sinon = require('sinon');
 
 describe('#requestPassword', function requestPasswordSuite() {
@@ -14,7 +13,6 @@ describe('#requestPassword', function requestPasswordSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    this.dispatch = simpleDispatcher(this.users.router);
     return this.dispatch('users.register', {
       username,
       password: '123',

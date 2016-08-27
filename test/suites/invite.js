@@ -1,5 +1,4 @@
 /* global inspectPromise */
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
 const assert = require('assert');
 
 describe('#invite', function registerSuite() {
@@ -7,10 +6,6 @@ describe('#invite', function registerSuite() {
   after(global.clearRedis);
 
   const email = 'v@yandex.ru';
-
-  before(function init() {
-    this.dispatch = simpleDispatcher(this.users.router);
-  });
 
   it('must reject invalid input', function test() {
     return this

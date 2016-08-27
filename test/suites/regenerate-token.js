@@ -1,13 +1,9 @@
 const assert = require('assert');
 const is = require('is');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
 const sinon = require('sinon');
 
 describe('`regenerate-token` action', function regenerateTokenSuite() {
   beforeEach(global.startService);
-  beforeEach('set dispatcher', function setDispatcher() {
-    this.dispatch = simpleDispatcher(this.users.router);
-  });
   afterEach(global.clearRedis);
 
   describe('with challenge type equals `phone`', function phoneSuite() {

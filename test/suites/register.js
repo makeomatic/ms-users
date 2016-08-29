@@ -328,4 +328,43 @@ describe('#register', function registerSuite() {
         amqpStub.restore();
       });
   });
+
+  it.only('should be able to register without password', function test() {
+    const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
+    const opts = {
+      activate: false,
+      audience: '*.localhost',
+      challengeType: 'phone',
+      username: '+79215555555',
+      skipPassword: true,
+    };
+
+    amqpStub.withArgs('phone.message.predefined')
+      .returns(Promise.resolve({ queued: true }));
+
+    return this.dispatch('users.register', opts)
+      .reflect()
+      .then(inspectPromise())
+      .then(() => {
+        const args = amqpStub.args[0][1];
+        const code = args.message.match(/^(\d+)/)[0];
+
+        amqpStub.restore();
+
+        return this.dispatch('users.activate', { token: code, username: '+79215555555' });
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then(response => {
+        assert.equal(is.string(response.jwt), true);
+        assert.equal(response.user.username, '+79215555555');
+
+        return this.dispatch('users.getInternalData', { username: '+79215555555' })
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then(response => {
+        assert.equal(is.undefined(response.password), true);
+      });
+  });
 });

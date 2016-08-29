@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const noop = require('lodash/noop');
@@ -24,6 +25,7 @@ const {
   USERS_ACTIVE_FLAG,
   USERS_CREATED_FIELD,
   USERS_USERNAME_FIELD,
+  USERS_PASSWORD_FIELD,
   lockAlias,
   lockRegister,
   USERS_ACTION_INVITE,
@@ -64,6 +66,7 @@ const mergeMetadata = (accumulator, value, prop) => {
  * @apiParam (Payload) {Boolean} [activate=true] - whether to activate the user instantly or not
  * @apiParam (Payload) {String} [ipaddress] - used for security logging
  * @apiParam (Payload) {Boolean} [skipChallenge=false] - if `activate` is `false` disables sending challenge
+ * @apiParam (Payload) {Boolean} [skipPassword=false] - disable setting password
  * @apiParam (Payload) {String} [challengeType="email"] - challenge type
  */
 function registerUser(request) {
@@ -81,6 +84,7 @@ function registerUser(request) {
     ipaddress,
     password,
     skipChallenge,
+    skipPassword,
     username,
   } = params;
   const alias = params.alias && params.alias.toLowerCase();
@@ -168,18 +172,21 @@ function registerUser(request) {
         // generate password hash
         .tap(inviteToken ? verifyToken : noop)
         .return([password, challengeType, username])
-        .spread(hashPassword)
+        .spread(skipPassword === false ? hashPassword : _.constant(null))
 
         // create user
         .then(hash => {
           const pipeline = redis.pipeline();
-
-          // basic internal info
-          pipeline.hmset(userDataKey, {
-            password: hash,
+          const basicInfo = {
             [USERS_CREATED_FIELD]: created,
             [USERS_ACTIVE_FLAG]: activate,
-          });
+          };
+
+          if (hash !== null) {
+            basicInfo[USERS_PASSWORD_FIELD] = hash;
+          }
+
+          pipeline.hmset(userDataKey, basicInfo);
 
           // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
           // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE

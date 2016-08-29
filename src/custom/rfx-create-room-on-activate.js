@@ -10,7 +10,7 @@ const setMetadata = require('../utils/updateMetadata.js');
 function createRoom(username, params, metadata) {
   const { audience, inviteToken } = params;
 
-  if (is.undefined(inviteToken) === true) {
+  if (is.undefined(inviteToken)) {
     return Promise.resolve();
   }
 
@@ -19,7 +19,7 @@ function createRoom(username, params, metadata) {
   const route = `${router.prefix}.${router.routes['internal.rooms.create']}`;
   const roomParams = {
     createdBy: username,
-    name: `${metadata[audience].station} | ${metadata[audience].scool}`,
+    name: `${metadata[audience].stationName} | ${metadata[audience].stationSchool}`,
   };
 
   return amqp.publishAndWait(route, roomParams, { timeout: 5000 })
@@ -30,7 +30,7 @@ function createRoom(username, params, metadata) {
         audience,
         metadata: {
           $set: {
-            roomId: room.id,
+            stationChatId: room.id,
           },
         },
       };

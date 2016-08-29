@@ -2,13 +2,10 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const noop = require('lodash/noop');
 const merge = require('lodash/merge');
-const passThrough = require('lodash/constant');
 const reduce = require('lodash/reduce');
-const is = require('is');
 
 // internal deps
 const setMetadata = require('../utils/updateMetadata.js');
-const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const isDisposable = require('../utils/isDisposable.js');
@@ -18,10 +15,9 @@ const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
 const assignAlias = require('./alias.js');
 const checkLimits = require('../utils/checkIpLimits.js');
-const { register: emailAutoPassword } = require('../utils/challenges/email/generate.js');
-const { register: phoneAutoPassword } = require('../utils/challenges/phone/send');
 const challenge = require('../utils/challenges/challenge.js');
 const handlePipeline = require('../utils/pipelineError.js');
+const hashPassword = require('../utils/register/password/hash');
 const {
   USERS_INDEX,
   USERS_DATA,
@@ -33,7 +29,6 @@ const {
   USERS_ACTION_INVITE,
   USERS_ACTION_ACTIVATE,
   CHALLENGE_TYPE_EMAIL,
-  CHALLENGE_TYPE_PHONE,
   TOKEN_METADATA_FIELD_METADATA,
 } = require('../constants.js');
 
@@ -46,17 +41,6 @@ const mergeMetadata = (accumulator, value, prop) => {
   accumulator[prop] = merge(accumulator[prop] || {}, value);
   return accumulator;
 };
-
-function getAutoPassword(challengeType) {
-  switch (challengeType) {
-    case CHALLENGE_TYPE_EMAIL:
-      return emailAutoPassword;
-    case CHALLENGE_TYPE_PHONE:
-      return phoneAutoPassword;
-    default:
-      throw new Errors.NotImplementedError(`Auto password for ${challengeType}`);
-  }
-}
 
 /**
  * @api {amqp} <prefix>.register Create User
@@ -104,7 +88,6 @@ function registerUser(request) {
   const userDataKey = redisKey(username, USERS_DATA);
   const created = Date.now();
   const { [challengeType]: tokenOptions } = this.config.token;
-  const autoPassword = getAutoPassword(challengeType);
 
   // inject default audience if it's not present
   const audience = params.audience === defaultAudience
@@ -184,10 +167,8 @@ function registerUser(request) {
 
         // generate password hash
         .tap(inviteToken ? verifyToken : noop)
-        .return(username)
-        .then(password ? passThrough(password) : autoPassword)
-        .then(ctx => (is.string(ctx) ? ctx : ctx.context.password))
-        .then(scrypt.hash)
+        .return([password, challengeType, username])
+        .spread(hashPassword)
 
         // create user
         .then(hash => {

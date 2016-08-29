@@ -8,7 +8,7 @@ const {
   USERS_ACTION_RESET,
 } = require('../../../constants');
 
-function sendSms(tel, action, context = {}) {
+function send(tel, action, context = {}) {
   const { account, prefix, messages, waitChallenge } = this.config.phone;
   const template = messages[action];
   let message;
@@ -29,14 +29,14 @@ function sendSms(tel, action, context = {}) {
       throw new Errors.NotImplementedError(`Message for action ${action}`);
   }
 
-  const sendSmsPromise = this.amqp.publishAndWait(`${prefix}.message.predefined`, {
+  const sendingPromise = this.amqp.publishAndWait(`${prefix}.message.predefined`, {
     account,
     message,
     to: tel,
   });
 
   if (waitChallenge) {
-    return sendSmsPromise.return({ context });
+    return sendingPromise.return({ context });
   }
 
   return {
@@ -45,12 +45,12 @@ function sendSms(tel, action, context = {}) {
   };
 }
 
-sendSms.register = function register(tel, wait) {
+send.register = function register(tel, wait) {
   const { pwdReset } = this.config;
   const password = generatePassword(pwdReset.length, pwdReset.memorable);
 
   return Promise.bind(this, [tel, USERS_ACTION_REGISTER, { password }, wait])
-    .spread(sendSms);
+    .spread(send);
 };
 
-module.exports = sendSms;
+module.exports = send;

@@ -1,11 +1,11 @@
 const partial = require('lodash/partial');
-const generateEmail = require('./generateEmail.js');
+const generateEmail = require('./email/generate.js');
 const { HttpStatusError } = require('common-errors');
 const {
   CHALLENGE_TYPE_EMAIL,
   CHALLENGE_TYPE_PHONE,
 } = require('../../constants.js');
-const sendSms = require('./phone/sendSms');
+const sendSms = require('./phone/send');
 
 // eslint-disable-next-line max-len
 const isThrottled = new HttpStatusError(429, 'We\'ve already sent you an email, if it doesn\'t come - please try again in a little while or send us an email');

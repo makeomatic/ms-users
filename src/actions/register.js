@@ -18,8 +18,8 @@ const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
 const assignAlias = require('./alias.js');
 const checkLimits = require('../utils/checkIpLimits.js');
-const { register: emailAutoPassword } = require('../utils/challenges/generateEmail.js');
-const { register: phoneAutoPassword } = require('../utils/challenges/phone/sendSms');
+const { register: emailAutoPassword } = require('../utils/challenges/email/generate.js');
+const { register: phoneAutoPassword } = require('../utils/challenges/phone/send');
 const challenge = require('../utils/challenges/challenge.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const {

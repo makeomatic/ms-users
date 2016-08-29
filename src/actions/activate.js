@@ -100,7 +100,7 @@ function verifyChallenge(request) {
   }
 
   function hook(user) {
-    return this.hook.call(this, 'users:activate', user, audience);
+    return this.hook.call(this, 'users:activate', user, { audience });
   }
 
   return Promise

@@ -1,8 +1,9 @@
-/* global inspectPromise */
+const assert = require('assert');
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const sinon = require('sinon');
 
 describe('#login', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
@@ -124,6 +125,54 @@ describe('#login', function loginSuite() {
       );
 
       return Promise.all(promises);
+    });
+
+    it('should be able to login by disposable password', function test() {
+      const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
+      const opts = {
+        activate: true,
+        audience: '*.localhost',
+        challengeType: 'phone',
+        skipPassword: true,
+        username: '+79215555555',
+      };
+
+      amqpStub.withArgs('phone.message.predefined')
+        .returns(Promise.resolve({ queued: true }));
+
+      return this.dispatch('users.register', opts)
+        .then(() => {
+          const params = {
+            challengeType: 'phone',
+            id: '+79215555555',
+          };
+
+          return this.dispatch('users.disposable-password', params)
+        })
+        .then(response => {
+          assert.ok(response.uid, true);
+
+          const args = amqpStub.args[0][1];
+          const code = args.message.match(/(\d{4})/)[0];
+
+          amqpStub.restore();
+
+          return code;
+        })
+        .then(code => {
+          const params = {
+            audience: '*.localhost',
+            isDisposablePassword: true,
+            password: code,
+            username: '+79215555555',
+          };
+
+          return this.dispatch('users.login', params);
+        })
+        .then(response => {
+          assert.ok(response.jwt);
+          assert.equal(response.user.username, '+79215555555');
+        });
     });
   });
 });

@@ -10,7 +10,7 @@
     },
     "password": {
       "type": "string",
-      "minLength": 6,
+      "minLength": 4,
       "maxLength": 50
     },
     "audience": {
@@ -20,6 +20,10 @@
     "remoteip": {
       "type": "string",
       "format": "ipv4"
+    },
+    "isDisposablePassword": {
+      "default": false,
+      "type": "boolean"
     }
   }
 }

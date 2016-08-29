@@ -4,6 +4,7 @@ const is = require('is');
 const Promise = require('bluebird');
 const {
   USERS_ACTION_ACTIVATE,
+  USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_ACTION_REGISTER,
   USERS_ACTION_RESET,
 } = require('../../../constants');
@@ -19,6 +20,7 @@ function send(tel, action, context = {}) {
 
   switch (action) {
     case USERS_ACTION_ACTIVATE:
+    case USERS_ACTION_DISPOSABLE_PASSWORD:
     case USERS_ACTION_RESET:
       message = template.replace('%s', context.token.secret);
       break;

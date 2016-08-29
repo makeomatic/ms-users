@@ -21,7 +21,7 @@
     },
     "id": {
       "type": "string",
-      "description": "User `id`"
+      "description": "User identificator"
     },
     "challengeType": {
       "default": "email",

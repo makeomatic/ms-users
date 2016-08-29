@@ -8,6 +8,7 @@ const {
   CHALLENGE_TYPE_EMAIL,
   CHALLENGE_TYPE_PHONE,
   USERS_ACTION_ACTIVATE,
+  USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_ACTION_REGISTER,
   USERS_ACTION_RESET,
 } = require('./constants');
@@ -178,6 +179,7 @@ module.exports = {
     account: 'replace-with-your-account',
     messages: {
       [USERS_ACTION_ACTIVATE]: '%s is your activation code',
+      [USERS_ACTION_DISPOSABLE_PASSWORD]: '%s is your disposable password',
       [USERS_ACTION_REGISTER]: '%s is your password',
       [USERS_ACTION_RESET]: '%s is your code for reset password',
     },

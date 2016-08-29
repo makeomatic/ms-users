@@ -55,7 +55,7 @@ describe('Hook `rfx-create-room-on-activate`', function suite() {
 
       assert.equal(result.user.username, 'foo@gmail.com');
       assert.equal(
-        result.user.metadata['*.localhost'].roomId,
+        result.user.metadata['*.localhost'].stationChatId,
         'ee39afd6-b99a-47d0-a43b-a942cfd5451f'
       );
 

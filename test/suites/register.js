@@ -329,7 +329,7 @@ describe('#register', function registerSuite() {
       });
   });
 
-  it.only('should be able to register without password', function test() {
+  it('should be able to register without password', function test() {
     const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
     const opts = {
       activate: false,

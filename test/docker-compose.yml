@@ -52,7 +52,7 @@ services:
 
   tester:
     container_name: tester
-    image: makeomatic/node:6.2.2-tester
+    image: makeomatic/node:6.5.0-tester
     links:
       - redis-1
       - redis-2

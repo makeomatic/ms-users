@@ -1,5 +1,5 @@
 require('chai').config.includeStack = true;
-const _ = require('lodash');
+const merge = require('lodash/merge');
 const Promise = require('bluebird');
 const { expect } = require('chai');
 const simpleDispatcher = require('./helpers/simpleDispatcher');
@@ -93,7 +93,7 @@ function inspectPromise(mustBeFulfilled = true) {
 function startService(testConfig = {}) {
   const Users = require('../src');
 
-  this.users = new Users(_.merge({}, config, testConfig));
+  this.users = new Users(merge({}, config, testConfig));
   this.users.on('plugin:connect:amqp', () => {
     this.users._mailer = { send: () => Promise.resolve() };
   });

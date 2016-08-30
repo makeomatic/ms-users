@@ -1,9 +1,9 @@
-const _ = require('lodash');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const noop = require('lodash/noop');
 const merge = require('lodash/merge');
 const reduce = require('lodash/reduce');
+const constant = require('lodash/constant');
 
 // internal deps
 const setMetadata = require('../utils/updateMetadata.js');
@@ -36,6 +36,7 @@ const {
 
 // cached helpers
 const hasOwnProperty = Object.prototype.hasOwnProperty;
+const retNull = constant(null);
 
 // metadata merger
 // comes in the format of audience.data
@@ -172,7 +173,7 @@ function registerUser(request) {
         // generate password hash
         .tap(inviteToken ? verifyToken : noop)
         .return([password, challengeType, username])
-        .spread(skipPassword === false ? hashPassword : _.constant(null))
+        .spread(skipPassword === false ? hashPassword : retNull)
 
         // create user
         .then(hash => {

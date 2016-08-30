@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const generateEmail = require('../utils/challenges/generateEmail.js');
+const generateEmail = require('../utils/challenges/email/generate.js');
 const {
   INVITATIONS_INDEX,
   TOKEN_METADATA_FIELD_METADATA,

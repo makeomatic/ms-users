@@ -23,6 +23,7 @@ module.exports = {
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
+  USERS_ACTION_DISPOSABLE_PASSWORD: 'disposable-password',
   USERS_ACTION_PASSWORD: 'password',
   USERS_ACTION_RESET: 'reset',
   USERS_ACTION_REGISTER: 'register',

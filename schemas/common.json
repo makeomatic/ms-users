@@ -58,6 +58,13 @@
       "description": "Challenge type",
       "enum": ["email", "phone"],
       "type": "string"
+    },
+    "userId": {
+      "type": "string",
+      "oneOf": [
+        { "pattern": "\\+\\d{10}" },
+        { "format": "email" }
+      ]
     }
   }
 }

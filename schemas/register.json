@@ -4,11 +4,7 @@
   "required": ["username", "audience"],
   "properties": {
     "username": {
-      "type": "string",
-      "oneOf": [
-        { "pattern": "\\+\\d{10}" },
-        { "format": "email" }
-      ]
+      "$ref": "common.json#/definitions/userId"
     },
     "alias": {
       "type": "string",
@@ -64,6 +60,10 @@
       ]
     },
     "skipChallenge": {
+      "type": "boolean"
+    },
+    "skipPassword": {
+      "default": false,
       "type": "boolean"
     },
     "challengeType": {

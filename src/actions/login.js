@@ -9,6 +9,7 @@ const isBanned = require('../utils/isBanned.js');
 const getInternalData = require('../utils/getInternalData.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const noop = require('lodash/noop');
+const { USERS_ACTION_DISPOSABLE_PASSWORD } = require('../constants');
 
 /**
  * @api {amqp} <prefix>.login User Authentication
@@ -23,12 +24,12 @@ const noop = require('lodash/noop');
  * @apiParam (Payload) {String} password - plain text password, will be compared to store hash
  * @apiParam (Payload) {String} audience - metadata to be returned, as well embedded into JWT token
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
- *
+ * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  */
 function login(request) {
   const config = this.config.jwt;
-  const { redis } = this;
-  const { password } = request.params;
+  const { redis, tokenManager } = this;
+  const { isDisposablePassword, password } = request.params;
   const { lockAfterAttempts, defaultAudience } = config;
   const audience = request.params.audience || defaultAudience;
   const remoteip = request.params.remoteip || false;
@@ -65,6 +66,22 @@ function login(request) {
     return scrypt.verify(data.password, password);
   }
 
+  function verifyDisposablePassword(data) {
+    return tokenManager.verify({
+      action: USERS_ACTION_DISPOSABLE_PASSWORD,
+      id: data.username,
+      token: password,
+    });
+  }
+
+  function getVerifyStrategy() {
+    if (isDisposablePassword === true) {
+      return verifyDisposablePassword;
+    }
+
+    return verifyHash;
+  }
+
   function dropLoginCounter() {
     loginAttempts = 0;
     return redis.del(remoteipKey);
@@ -86,7 +103,7 @@ function login(request) {
     .bind(this, request.params.username)
     .then(getInternalData)
     .tap(verifyIp ? checkLoginAttempts : noop)
-    .tap(verifyHash)
+    .tap(getVerifyStrategy())
     .tap(verifyIp ? dropLoginCounter : noop)
     .tap(isActive)
     .tap(isBanned)

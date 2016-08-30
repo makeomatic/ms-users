@@ -1,21 +1,21 @@
 const Promise = require('bluebird');
 const render = require('ms-mailer-templates');
-const generateLink = require('../generateBacklink.js');
+const generateLink = require('../../generateBacklink.js');
 const generatePassword = require('password-generator');
 const partial = require('lodash/partial');
 const identity = require('lodash/identity');
-const sendEmail = require('./sendEmail.js');
+const sendEmail = require('./send.js');
 const { InvalidOperationError } = require('common-errors');
-const { updatePassword } = require('../../actions/updatePassword.js');
+const { updatePassword } = require('../../../actions/updatePassword.js');
 const {
   USERS_ACTION_ACTIVATE,
   USERS_ACTION_RESET,
   USERS_ACTION_PASSWORD,
   USERS_ACTION_REGISTER,
   USERS_ACTION_INVITE,
-} = require('../../constants.js');
+} = require('../../../constants.js');
 
-function generateEmail(email, type, ctx = {}, opts = {}, nodemailer = {}) {
+function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   const { config } = this;
   const { validation, server, pwdReset } = config;
   const { paths } = validation;
@@ -65,14 +65,14 @@ function generateEmail(email, type, ctx = {}, opts = {}, nodemailer = {}) {
 }
 
 // main export
-module.exports = exports = generateEmail;
+module.exports = exports = generate;
 
 // short-hand methods
-exports.newPassword = partial(generateEmail, partial.placeholder, USERS_ACTION_PASSWORD, {}, { send: true });
-exports.register = partial(generateEmail, partial.placeholder, USERS_ACTION_REGISTER, {}, partial.placeholder);
+exports.newPassword = partial(generate, partial.placeholder, USERS_ACTION_PASSWORD, {}, { send: true });
+exports.register = partial(generate, partial.placeholder, USERS_ACTION_REGISTER, {}, partial.placeholder);
 
 // these should simply generate an email
 // as they are likely to be used from withing createChallenge or require custom context
-exports.activation = partial(generateEmail, partial.placeholder, USERS_ACTION_ACTIVATE);
-exports.resetPassword = partial(generateEmail, partial.placeholder, USERS_ACTION_RESET);
-exports.invite = partial(generateEmail, partial.placeholder, USERS_ACTION_INVITE);
+exports.activation = partial(generate, partial.placeholder, USERS_ACTION_ACTIVATE);
+exports.resetPassword = partial(generate, partial.placeholder, USERS_ACTION_RESET);
+exports.invite = partial(generate, partial.placeholder, USERS_ACTION_INVITE);

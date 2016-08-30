@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
+const hasPassword = require('../utils/hasPassword.js');
 const { USERS_ACTION_PASSWORD, USERS_ACTION_RESET } = require('../constants.js');
 const challenge = require('../utils/challenges/challenge.js');
 
@@ -32,6 +33,7 @@ function requestPassword(request) {
     .then(getInternalData)
     .tap(isActive)
     .tap(isBanned)
+    .tap(hasPassword)
     .then(data => ([challengeType, {
       id: data.username,
       action,

@@ -6,6 +6,7 @@ const jwt = require('../utils/jwt.js');
 const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
+const hasPassword = require('../utils/hasPassword.js');
 const userExists = require('../utils/userExists.js');
 const partialRight = require('lodash/partialRight');
 const { USERS_DATA, USERS_ACTION_RESET, USERS_PASSWORD_FIELD } = require('../constants.js');
@@ -24,6 +25,7 @@ function usernamePasswordReset(username, password) {
     .then(getInternalData)
     .tap(isActive)
     .tap(isBanned)
+    .tap(hasPassword)
     .tap(data => scrypt.verify(data.password, password))
     .then(data => data.username);
 }

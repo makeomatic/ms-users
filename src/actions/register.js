@@ -2,13 +2,11 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const noop = require('lodash/noop');
 const merge = require('lodash/merge');
-const passThrough = require('lodash/constant');
 const reduce = require('lodash/reduce');
-const is = require('is');
+const constant = require('lodash/constant');
 
 // internal deps
 const setMetadata = require('../utils/updateMetadata.js');
-const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const isDisposable = require('../utils/isDisposable.js');
@@ -18,27 +16,27 @@ const userExists = require('../utils/userExists.js');
 const aliasExists = require('../utils/aliasExists.js');
 const assignAlias = require('./alias.js');
 const checkLimits = require('../utils/checkIpLimits.js');
-const { register: emailAutoPassword } = require('../utils/challenges/generateEmail.js');
-const { register: phoneAutoPassword } = require('../utils/challenges/phone/sendSms');
 const challenge = require('../utils/challenges/challenge.js');
 const handlePipeline = require('../utils/pipelineError.js');
+const hashPassword = require('../utils/register/password/hash');
 const {
   USERS_INDEX,
   USERS_DATA,
   USERS_ACTIVE_FLAG,
   USERS_CREATED_FIELD,
   USERS_USERNAME_FIELD,
+  USERS_PASSWORD_FIELD,
   lockAlias,
   lockRegister,
   USERS_ACTION_INVITE,
   USERS_ACTION_ACTIVATE,
   CHALLENGE_TYPE_EMAIL,
-  CHALLENGE_TYPE_PHONE,
   TOKEN_METADATA_FIELD_METADATA,
 } = require('../constants.js');
 
 // cached helpers
 const hasOwnProperty = Object.prototype.hasOwnProperty;
+const retNull = constant(null);
 
 // metadata merger
 // comes in the format of audience.data
@@ -46,17 +44,6 @@ const mergeMetadata = (accumulator, value, prop) => {
   accumulator[prop] = merge(accumulator[prop] || {}, value);
   return accumulator;
 };
-
-function getAutoPassword(challengeType) {
-  switch (challengeType) {
-    case CHALLENGE_TYPE_EMAIL:
-      return emailAutoPassword;
-    case CHALLENGE_TYPE_PHONE:
-      return phoneAutoPassword;
-    default:
-      throw new Errors.NotImplementedError(`Auto password for ${challengeType}`);
-  }
-}
 
 /**
  * @api {amqp} <prefix>.register Create User
@@ -80,6 +67,7 @@ function getAutoPassword(challengeType) {
  * @apiParam (Payload) {Boolean} [activate=true] - whether to activate the user instantly or not
  * @apiParam (Payload) {String} [ipaddress] - used for security logging
  * @apiParam (Payload) {Boolean} [skipChallenge=false] - if `activate` is `false` disables sending challenge
+ * @apiParam (Payload) {Boolean} [skipPassword=false] - disable setting password
  * @apiParam (Payload) {String} [challengeType="email"] - challenge type
  */
 function registerUser(request) {
@@ -97,6 +85,7 @@ function registerUser(request) {
     ipaddress,
     password,
     skipChallenge,
+    skipPassword,
     username,
   } = params;
   const alias = params.alias && params.alias.toLowerCase();
@@ -104,7 +93,6 @@ function registerUser(request) {
   const userDataKey = redisKey(username, USERS_DATA);
   const created = Date.now();
   const { [challengeType]: tokenOptions } = this.config.token;
-  const autoPassword = getAutoPassword(challengeType);
 
   // inject default audience if it's not present
   const audience = params.audience === defaultAudience
@@ -184,21 +172,22 @@ function registerUser(request) {
 
         // generate password hash
         .tap(inviteToken ? verifyToken : noop)
-        .return(username)
-        .then(password ? passThrough(password) : autoPassword)
-        .then(ctx => (is.string(ctx) ? ctx : ctx.context.password))
-        .then(scrypt.hash)
+        .return([password, challengeType, username])
+        .spread(skipPassword === false ? hashPassword : retNull)
 
         // create user
         .then(hash => {
           const pipeline = redis.pipeline();
-
-          // basic internal info
-          pipeline.hmset(userDataKey, {
-            password: hash,
+          const basicInfo = {
             [USERS_CREATED_FIELD]: created,
             [USERS_ACTIVE_FLAG]: activate,
-          });
+          };
+
+          if (hash !== null) {
+            basicInfo[USERS_PASSWORD_FIELD] = hash;
+          }
+
+          pipeline.hmset(userDataKey, basicInfo);
 
           // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
           // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE

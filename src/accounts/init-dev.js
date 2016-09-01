@@ -31,6 +31,7 @@ module.exports = function initFakeAccounts() {
           },
           activate: true,
           challengeType: CHALLENGE_TYPE_EMAIL,
+          skipPassword: false,
         },
       })
       .reflect()

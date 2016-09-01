@@ -62,8 +62,8 @@
     "userId": {
       "type": "string",
       "oneOf": [
-        { "pattern": "\\d+" },
-        { "format": "email" }
+        { "format": "email" },
+        { "pattern": "^\\d+$" }
       ]
     }
   }

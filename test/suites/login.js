@@ -134,7 +134,7 @@ describe('#login', function loginSuite() {
         audience: '*.localhost',
         challengeType: 'phone',
         skipPassword: true,
-        username: '+79215555555',
+        username: '79215555555',
       };
 
       amqpStub.withArgs('phone.message.predefined')
@@ -144,7 +144,7 @@ describe('#login', function loginSuite() {
         .then(() => {
           const params = {
             challengeType: 'phone',
-            id: '+79215555555',
+            id: '79215555555',
           };
 
           return this.dispatch('users.disposable-password', params)
@@ -164,14 +164,14 @@ describe('#login', function loginSuite() {
             audience: '*.localhost',
             isDisposablePassword: true,
             password: code,
-            username: '+79215555555',
+            username: '79215555555',
           };
 
           return this.dispatch('users.login', params);
         })
         .then(response => {
           assert.ok(response.jwt);
-          assert.equal(response.user.username, '+79215555555');
+          assert.equal(response.user.username, '79215555555');
         });
     });
   });

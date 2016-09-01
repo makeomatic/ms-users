@@ -77,7 +77,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
     it('must send challenge sms for an existing user with an active account', function test() {
       const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
-      const username = '+79215555555';
+      const username = '79215555555';
       const registerParams = {
         username,
         password: '123',
@@ -106,7 +106,7 @@ describe('#requestPassword', function requestPasswordSuite() {
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
           assert.equal(/\d{4} is your code for reset password/.test(message.message), true);
-          assert.equal(message.to, '+79215555555');
+          assert.equal(message.to, '79215555555');
           assert.deepEqual(requestPassword, { success: true });
 
           amqpStub.restore();

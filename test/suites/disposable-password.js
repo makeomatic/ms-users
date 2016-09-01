@@ -13,7 +13,7 @@ describe('`disposable-password` action', function regenerateTokenSuite() {
         audience: '*.localhost',
         challengeType: 'phone',
         skipPassword: true,
-        username: '+79215555555',
+        username: '79215555555',
       };
 
       amqpStub.withArgs('phone.message.predefined')
@@ -23,7 +23,7 @@ describe('`disposable-password` action', function regenerateTokenSuite() {
         .then(() => {
           const params = {
             challengeType: 'phone',
-            id: '+79215555555',
+            id: '79215555555',
           };
 
           return this.dispatch('users.disposable-password', params)
@@ -40,7 +40,7 @@ describe('`disposable-password` action', function regenerateTokenSuite() {
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
           assert.equal(/\d{4} is your disposable password/.test(message.message), true);
-          assert.equal(message.to, '+79215555555');
+          assert.equal(message.to, '79215555555');
 
           amqpStub.restore();
         });

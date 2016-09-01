@@ -15,7 +15,7 @@ describe('#register stubbed', function suite() {
       audience: '*.localhost',
       challengeType: 'phone',
       password: 'mynicepassword',
-      username: '+79215555555',
+      username: '79215555555',
     };
 
     amqpStub.withArgs('phone.message.predefined')
@@ -34,7 +34,7 @@ describe('#register stubbed', function suite() {
         assert.equal(action, 'phone.message.predefined');
         assert.equal(message.account, 'twilio');
         assert.equal(/\d{4} is your activation code/.test(message.message), true);
-        assert.equal(message.to, '+79215555555');
+        assert.equal(message.to, '79215555555');
         assert.equal(value.requiresActivation, true);
         assert.equal(is.string(value.uid), true);
 
@@ -48,7 +48,7 @@ describe('#register stubbed', function suite() {
       activate: true,
       audience: '*.localhost',
       challengeType: 'phone',
-      username: '+79215555555',
+      username: '79215555555',
     };
 
     amqpStub.withArgs('phone.message.predefined')
@@ -67,8 +67,8 @@ describe('#register stubbed', function suite() {
         assert.equal(action, 'phone.message.predefined');
         assert.equal(message.account, 'twilio');
         assert.equal(/^.{10} is your password/.test(message.message), true);
-        assert.equal(message.to, '+79215555555');
-        assert.deepEqual(value.user.username, '+79215555555');
+        assert.equal(message.to, '79215555555');
+        assert.deepEqual(value.user.username, '79215555555');
 
         amqpStub.restore();
       });
@@ -80,7 +80,7 @@ describe('#register stubbed', function suite() {
       activate: false,
       audience: '*.localhost',
       challengeType: 'phone',
-      username: '+79215555555',
+      username: '79215555555',
       skipPassword: true,
     };
 
@@ -96,15 +96,15 @@ describe('#register stubbed', function suite() {
 
         amqpStub.restore();
 
-        return this.dispatch('users.activate', { token: code, username: '+79215555555' });
+        return this.dispatch('users.activate', { token: code, username: '79215555555' });
       })
       .reflect()
       .then(inspectPromise())
       .then(response => {
         assert.equal(is.string(response.jwt), true);
-        assert.equal(response.user.username, '+79215555555');
+        assert.equal(response.user.username, '79215555555');
 
-        return this.dispatch('users.getInternalData', { username: '+79215555555' });
+        return this.dispatch('users.getInternalData', { username: '79215555555' });
       })
       .reflect()
       .then(inspectPromise())

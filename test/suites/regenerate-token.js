@@ -14,7 +14,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         audience: '*.localhost',
         challengeType: 'phone',
         password: 'mynicepassword',
-        username: '+79215555555',
+        username: '79215555555',
       };
 
       amqpStub.withArgs('phone.message.predefined')
@@ -45,7 +45,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
           assert.equal(/\d{4} is your activation code/.test(message.message), true);
-          assert.equal(message.to, '+79215555555');
+          assert.equal(message.to, '79215555555');
 
           amqpStub.restore();
         });
@@ -53,7 +53,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
 
     it('should be able to regenerate reset password token from id and action', function test() {
       const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
-      const username = '+79215555555';
+      const username = '79215555555';
       const registerParams = {
         audience: '*.localhost',
         challengeType: 'phone',
@@ -75,7 +75,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
           return this.dispatch('users.regenerate-token', {
             action: 'reset',
             challengeType: 'phone',
-            id: '+79215555555',
+            id: '79215555555',
           });
         })
         .reflect()
@@ -91,7 +91,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
           assert.equal(/\d{4} is your code for reset password/.test(message.message), true);
-          assert.equal(message.to, '+79215555555');
+          assert.equal(message.to, '79215555555');
 
           amqpStub.restore();
         });

@@ -11,6 +11,7 @@ module.exports = function initAccounts() {
   return Promise
     .delay(config.initAdminAccountsDelay)
     .return(accounts)
+    // @todo use router dispatch, because a schema can contains default params
     .map(account => register
       .call(this, {
         params: {
@@ -24,6 +25,7 @@ module.exports = function initAccounts() {
           }),
           activate: true,
           challengeType: CHALLENGE_TYPE_EMAIL,
+          skipPassword: false,
         },
       })
       .reflect()

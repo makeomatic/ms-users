@@ -21,7 +21,7 @@ const CHALLENGES = {
 };
 
 // select challenge helper
-const selectChallenge = (type, action, ctx) => CHALLENGES[type](action, ctx);
+const selectChallenge = (type, action, ctx, wait) => CHALLENGES[type](action, ctx, wait);
 
 /**
  * Send an email with appropriate content

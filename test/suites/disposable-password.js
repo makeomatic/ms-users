@@ -1,3 +1,4 @@
+const Promise = require('bluebird');
 const assert = require('assert');
 const sinon = require('sinon');
 
@@ -19,15 +20,15 @@ describe('`disposable-password` action', function regenerateTokenSuite() {
       amqpStub.withArgs('phone.message.predefined')
         .returns(Promise.resolve({ queued: true }));
 
-      return this.dispatch('users.register', opts)
-        .then(() => {
-          const params = {
-            challengeType: 'phone',
-            id: '79215555555',
-          };
+      const params = {
+        challengeType: 'phone',
+        id: '79215555555',
+      };
 
-          return this.dispatch('users.disposable-password', params)
-        })
+      return this.dispatch('users.register', opts)
+        .then(() =>
+          this.dispatch('users.disposable-password', params)
+        )
         .then(response => {
           assert.equal(response.requested, true);
           assert.ok(response.uid, true);

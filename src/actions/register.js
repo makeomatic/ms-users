@@ -225,7 +225,7 @@ function registerUser(request) {
               }])
               .spread(skipChallenge ? noop : challenge)
               .then(challengeResponse => {
-                const response = { requiresActivation: true };
+                const response = { requiresActivation: true, id: username };
                 const uid = challengeResponse ? challengeResponse.context.token.uid : null;
 
                 if (uid) {

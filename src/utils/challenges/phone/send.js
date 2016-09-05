@@ -34,7 +34,7 @@ function send(tel, action, context = {}) {
   const sendingPromise = this.amqp.publishAndWait(`${prefix}.message.predefined`, {
     account,
     message,
-    to: tel,
+    to: `+${tel}`,
   });
 
   if (waitChallenge) {

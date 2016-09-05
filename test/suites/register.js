@@ -137,7 +137,7 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise())
       .then(value => {
-        assert.deepEqual(value, { requiresActivation: true });
+        assert.deepEqual(value, { requiresActivation: true, id: 'v@makeomatic.ru' });
       });
   });
 
@@ -155,7 +155,7 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise())
       .then(value => {
-        assert.deepEqual(value, { requiresActivation: true });
+        assert.deepEqual(value, { requiresActivation: true, id: 'v@makeomatic.ru' });
       });
   });
 

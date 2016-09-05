@@ -27,6 +27,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         .then(inspectPromise())
         .then(response => {
           assert.equal(response.requiresActivation, true);
+          assert.equal(response.id, '79215555555');
           assert.equal(is.string(response.uid), true);
 
           return this.dispatch('users.regenerate-token', {
@@ -47,7 +48,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
           assert.equal(/\d{4} is your activation code/.test(message.message), true);
-          assert.equal(message.to, `+${opts.username}`);
+          assert.equal(message.to, '+79215555555');
 
           amqpStub.restore();
         });
@@ -93,7 +94,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
           assert.equal(/\d{4} is your code for reset password/.test(message.message), true);
-          assert.equal(message.to, `+${username}`);
+          assert.equal(message.to, '+79215555555');
 
           amqpStub.restore();
         });

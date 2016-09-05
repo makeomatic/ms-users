@@ -34,8 +34,9 @@ describe('#register stubbed', function suite() {
         assert.equal(action, 'phone.message.predefined');
         assert.equal(message.account, 'twilio');
         assert.equal(/\d{4} is your activation code/.test(message.message), true);
-        assert.equal(message.to, '79215555555');
+        assert.equal(message.to, '+79215555555');
         assert.equal(value.requiresActivation, true);
+        assert.equal(value.id, '79215555555');
         assert.equal(is.string(value.uid), true);
 
         amqpStub.restore();
@@ -67,7 +68,7 @@ describe('#register stubbed', function suite() {
         assert.equal(action, 'phone.message.predefined');
         assert.equal(message.account, 'twilio');
         assert.equal(/^.{10} is your password/.test(message.message), true);
-        assert.equal(message.to, '79215555555');
+        assert.equal(message.to, '+79215555555');
         assert.deepEqual(value.user.username, '79215555555');
 
         amqpStub.restore();

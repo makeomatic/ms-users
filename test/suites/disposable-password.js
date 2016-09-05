@@ -41,7 +41,7 @@ describe('`disposable-password` action', function regenerateTokenSuite() {
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
           assert.equal(/\d{4} is your disposable password/.test(message.message), true);
-          assert.equal(message.to, `+${params.id}`);
+          assert.equal(message.to, '+79215555555');
 
           amqpStub.restore();
         });

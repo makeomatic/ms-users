@@ -1,3 +1,5 @@
+/* global inspectPromise */
+const Promise = require('bluebird');
 const assert = require('assert');
 const is = require('is');
 const sinon = require('sinon');
@@ -29,7 +31,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
 
           return this.dispatch('users.regenerate-token', {
             challengeType: 'phone',
-            uid: response.uid
+            uid: response.uid,
           });
         })
         .reflect()
@@ -45,7 +47,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
           assert.equal(/\d{4} is your activation code/.test(message.message), true);
-          assert.equal(message.to, '79215555555');
+          assert.equal(message.to, `+${opts.username}`);
 
           amqpStub.restore();
         });
@@ -91,7 +93,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
           assert.equal(action, 'phone.message.predefined');
           assert.equal(message.account, 'twilio');
           assert.equal(/\d{4} is your code for reset password/.test(message.message), true);
-          assert.equal(message.to, '79215555555');
+          assert.equal(message.to, `+${username}`);
 
           amqpStub.restore();
         });
@@ -105,39 +107,39 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         .returns(Promise.resolve());
 
       return this.dispatch('users.invite', {
-          email: 'foo@yandex.ru',
-          ctx: {
-            firstName: 'Alex',
-            lastName: 'Bon',
-          },
-          metadata: {
-            '*.localhost': { plan: 'premium' },
-          },
-        })
-        .reflect()
-        .then(inspectPromise())
-        .then(response => {
-          assert.ok(response.queued);
-          assert.ok(mailerStub.args[0][1].html.includes(response.context.token.secret));
+        email: 'foo@yandex.ru',
+        ctx: {
+          firstName: 'Alex',
+          lastName: 'Bon',
+        },
+        metadata: {
+          '*.localhost': { plan: 'premium' },
+        },
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then(response => {
+        assert.ok(response.queued);
+        assert.ok(mailerStub.args[0][1].html.includes(response.context.token.secret));
 
-          return this.dispatch('users.regenerate-token', {
-            challengeType: 'email',
-            uid: response.context.token.uid,
-          });
-        })
-        .reflect()
-        .then(inspectPromise())
-        .then(response => {
-          assert.ok(response.regenerated);
-          assert.ok(response.uid);
-
-          return this.users.tokenManager.info({ uid: response.uid });
-        })
-        .then(token => {
-          assert.ok(mailerStub.args[1][1].html.includes(token.secret));
-
-          mailerStub.restore();
+        return this.dispatch('users.regenerate-token', {
+          challengeType: 'email',
+          uid: response.context.token.uid,
         });
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then(response => {
+        assert.ok(response.regenerated);
+        assert.ok(response.uid);
+
+        return this.users.tokenManager.info({ uid: response.uid });
+      })
+      .then(token => {
+        assert.ok(mailerStub.args[1][1].html.includes(token.secret));
+
+        mailerStub.restore();
+      });
     });
   });
 });

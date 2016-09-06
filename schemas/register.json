@@ -10,7 +10,7 @@
       "type": "string",
       "minLength": 3,
       "maxLength": 20,
-      "pattern": "[a-zA-Z0-9\\-\\.\\_]+"
+      "pattern": "^[a-zA-Z0-9\\-\\.\\_]+$"
     },
     "password": {
       "type": "string"

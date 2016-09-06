@@ -9,8 +9,8 @@
     "alias": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 15,
-      "pattern": "[a-zA-Z.0-9]+"
+      "maxLength": 20,
+      "pattern": "[a-zA-Z0-9\\-\\.\\_]+"
     },
     "password": {
       "type": "string"

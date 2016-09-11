@@ -20,6 +20,7 @@ module.exports = {
   USERS_USERNAME_FIELD: 'username',
   USERS_IS_ORG_FIELD: 'org',
   USERS_PASSWORD_FIELD: 'password',
+  USERS_NEXT_CYCLE_FIELD: 'nextCycle',
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',

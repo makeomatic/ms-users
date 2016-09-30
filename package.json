@@ -43,7 +43,7 @@
     "ms-mailer-templates": "^0.14.0",
     "ms-token": "^1.2.1",
     "ms-validation": "^3.0.0",
-    "mservice": "^3.7.1",
+    "mservice": "^4.1.0",
     "node-uuid": "^1.4.7",
     "password-generator": "^2.0.2",
     "redis-filtered-sort": "^1.2.0",

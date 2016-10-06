@@ -9,11 +9,11 @@ const { USERS_ALIAS_FIELD } = require('../constants.js');
 const { isArray } = Array;
 
 function isPublic(username, audiences) {
-  return metadata => {
+  return (metadata) => {
     let notFound = true;
 
     // iterate over passed audiences
-    audiences.forEach(audience => {
+    audiences.forEach((audience) => {
       if (notFound && get(metadata, [audience, USERS_ALIAS_FIELD]) === username) {
         notFound = false;
       }
@@ -36,7 +36,7 @@ function isPublic(username, audiences) {
  * to get data about a given user on the system. For instance, if you want to view someone's public profile
  *
  * @apiParam (Payload) {String} username - user's username, can be `alias` or real `username`.
- * 	If it's a real username - then all the data is returned.
+ *  If it's a real username - then all the data is returned.
  * @apiParam (Payload) {String[]} audience - which namespace of metadata should be used, can be string or array of strings
  * @apiParam (Payload) {Object} fields - must contain an object of `[audience]: String[]` mapping
  * @apiParam (Payload) {String[]} fields.* - fields to return from a passed audience

@@ -35,9 +35,9 @@ module.exports = function initAccounts() {
       const totalAccounts = users.length;
       const errors = [];
       let registered = 0;
-      users.forEach(user => {
+      users.forEach((user) => {
         if (user.isFulfilled()) {
-          registered++;
+          registered += 1;
         } else {
           errors.push(user.reason());
         }
@@ -48,7 +48,7 @@ module.exports = function initAccounts() {
         registered, totalAccounts, errors.length
       );
 
-      errors.forEach(err => {
+      errors.forEach((err) => {
         if (err.statusCode !== 403) {
           this.log.warn(err.stack);
         }

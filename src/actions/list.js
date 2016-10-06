@@ -24,7 +24,7 @@ const JSONParse = data => JSON.parse(data);
  * @apiParam (Payload) {String} [criteria] - if supplied, sort will be performed based on this field
  * @apiParam (Payload) {String} audience - which namespace of metadata should be used for filtering & retrieving
  * @apiParam (Payload) {Boolean} [public=false] - when `true` returns only publicly marked users
- * @apiParam (Payload) {Object} - filter to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
+ * @apiParam (Payload) {Object} [filter] to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
  */
 function iterateOverActiveUsers(request) {
   const { redis } = this;
@@ -38,7 +38,7 @@ function iterateOverActiveUsers(request) {
 
   return redis
     .fsort(index, metaKey, criteria, order, strFilter, offset, limit)
-    .then(ids => {
+    .then((ids) => {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {
         return [
@@ -49,7 +49,7 @@ function iterateOverActiveUsers(request) {
       }
 
       const pipeline = redis.pipeline();
-      ids.forEach(id => {
+      ids.forEach((id) => {
         pipeline.hgetall(redisKey(id, USERS_METADATA, audience));
       });
       return Promise.all([

@@ -4,7 +4,7 @@ const { USERS_ALIAS_TO_LOGIN } = require('../constants.js');
 function resolveAlias(alias) {
   return this.redis
     .hget(USERS_ALIAS_TO_LOGIN, alias)
-    .then(username => {
+    .then((username) => {
       if (username) {
         throw new Errors.HttpStatusError(409, `"${alias}" already exists`);
       }

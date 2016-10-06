@@ -64,7 +64,7 @@ exports.logout = function logout(token, audience) {
 
   return jwt
     .verifyAsync(token, secret, { issuer, audience, algorithms: [algorithm] })
-    .catch(err => {
+    .catch((err) => {
       this.log.debug('error decoding token', err);
       throw new Errors.HttpStatusError(403, 'Invalid Token');
     })
@@ -96,7 +96,7 @@ exports.verify = function verifyToken(token, audience, peek) {
 
   return jwt
     .verifyAsync(token, secret, { issuer, algorithms: [algorithm] })
-    .catch(err => {
+    .catch((err) => {
       this.log.debug('invalid token passed: %s', token, err);
       throw new Errors.HttpStatusError(403, 'invalid token');
     })

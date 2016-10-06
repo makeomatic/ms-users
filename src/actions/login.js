@@ -108,7 +108,7 @@ function login(request) {
     .tap(isActive)
     .tap(isBanned)
     .then(getUserInfo)
-    .catch(verifyIp ? enrichError : e => { throw e; });
+    .catch(verifyIp ? enrichError : (e) => { throw e; });
 }
 
 module.exports = login;

@@ -33,7 +33,7 @@ function handleAudience(pipeline, key, metadata) {
   const $incrFields = $incr && Object.keys($incr);
   const $incrLength = $incrFields && $incrFields.length || 0;
   if ($incrLength > 0) {
-    $incrFields.forEach(fieldName => {
+    $incrFields.forEach((fieldName) => {
       pipeline.hincrby(key, fieldName, $incr[fieldName]);
     });
   }
@@ -50,25 +50,25 @@ function handleAudience(pipeline, key, metadata) {
 function mapMetaResponse(operations, responses) {
   let cursor = 0;
   return Promise
-    .map(operations, props => {
+    .map(operations, (props) => {
       const { $removeOps, $setLength, $incrLength, $incrFields } = props;
       const output = {};
 
       if ($removeOps > 0) {
         output.$remove = responses[cursor];
-        cursor++;
+        cursor += 1;
       }
 
       if ($setLength > 0) {
         output.$set = responses[cursor];
-        cursor++;
+        cursor += 1;
       }
 
       if ($incrLength > 0) {
         const $incrResponse = output.$incr = {};
-        $incrFields.forEach(fieldName => {
+        $incrFields.forEach((fieldName) => {
           $incrResponse[fieldName] = responses[cursor];
-          cursor++;
+          cursor += 1;
         });
       }
 
@@ -115,7 +115,7 @@ module.exports = function updateMetadata(opts) {
 
   // dynamic scripts
   const $scriptKeys = Object.keys(script);
-  const scripts = $scriptKeys.map(scriptName => {
+  const scripts = $scriptKeys.map((scriptName) => {
     const { lua, argv = [] } = script[scriptName];
     const sha = sha256(lua);
     const name = `ms_users_${sha}`;

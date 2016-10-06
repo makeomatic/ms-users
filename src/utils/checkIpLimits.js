@@ -25,7 +25,7 @@ module.exports = function checkLimits(redis, registrationLimits, ipaddress) {
       .zcard(ipaddressLimitKey)
       .exec()
       .then(handlePipeline)
-      .then(props => {
+      .then((props) => {
         const cardinality = props[3];
         if (cardinality > times) {
           const msg = 'You can\'t register more users from your ipaddress now';

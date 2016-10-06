@@ -24,7 +24,7 @@ function createRoom(username, params, metadata) {
 
   return amqp.publishAndWait(route, roomParams, { timeout: 5000 })
     .bind(this)
-    .then(room => {
+    .then((room) => {
       const update = {
         username,
         audience,

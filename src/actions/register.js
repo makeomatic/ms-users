@@ -143,7 +143,7 @@ function registerUser(request) {
   if (!anyUsername) control.id = username;
   const verifyToken = () => tokenManager
     .verify(inviteToken, { erase: false, control })
-    .then(token => {
+    .then((token) => {
       if (!token.isFirstVerification) {
         throw new Errors.HttpStatusError(400, 'Invitation has expired or already been used');
       }
@@ -176,7 +176,7 @@ function registerUser(request) {
         .spread(skipPassword === false ? hashPassword : retNull)
 
         // create user
-        .then(hash => {
+        .then((hash) => {
           const pipeline = redis.pipeline();
           const basicInfo = {
             [USERS_CREATED_FIELD]: created,
@@ -224,7 +224,7 @@ function registerUser(request) {
                 ...tokenOptions,
               }])
               .spread(skipChallenge ? noop : challenge)
-              .then(challengeResponse => {
+              .then((challengeResponse) => {
                 const response = { requiresActivation: true, id: username };
                 const uid = challengeResponse ? challengeResponse.context.token.uid : null;
 

@@ -22,7 +22,7 @@ module.exports = function mxExists(email) {
       .resolveMxAsync(tld)
       .catchReturn({ code: 'ENOTFOUND' }, [])
       .catchReturn({ code: 'ENODATA' }, [])
-      .then(addresses => {
+      .then((addresses) => {
         if (addresses && addresses.length > 0) {
           return null;
         }

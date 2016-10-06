@@ -32,7 +32,7 @@ function disposablePassword(request) {
       ...tokenOptions,
     }]))
     .spread(challenge)
-    .then(response => {
+    .then((response) => {
       const uid = response.context.token.uid;
 
       return {

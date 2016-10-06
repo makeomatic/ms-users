@@ -22,7 +22,7 @@ function internalData(request) {
   return Promise
     .bind(this, request.params.username)
     .then(getInternalData)
-    .then(data => {
+    .then((data) => {
       return fields ? pick(data, fields) : data;
     });
 }

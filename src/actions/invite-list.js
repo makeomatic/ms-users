@@ -31,7 +31,7 @@ function iterateOverInvites(request) {
 
   return redis
     .fsort(INVITATIONS_INDEX, metaKey, criteria, order, strFilter, offset, limit)
-    .then(ids => {
+    .then((ids) => {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {
         return [

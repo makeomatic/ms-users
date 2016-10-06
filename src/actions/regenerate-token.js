@@ -22,7 +22,7 @@ function regenerateToken(request) {
     .tap(tokenManager.regenerate)
     .then(tokenManager.info)
     .bind(this)
-    .then(token => {
+    .then((token) => {
       let context = {};
 
       if (token.metadata && token.metadata[TOKEN_METADATA_FIELD_CONTEXT]) {
@@ -32,7 +32,7 @@ function regenerateToken(request) {
       const challenge = selectChallenge(challengeType, token.action, { ...context, token });
       return challenge.call(this, token.id);
     })
-    .then(challengeResponse => {
+    .then((challengeResponse) => {
       const response = { regenerated: true };
       const tokenUid = challengeResponse.context.token.uid;
 

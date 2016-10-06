@@ -39,15 +39,15 @@ function assignAlias(request) {
     .bind(this, username)
     .then(getInternalData)
     .tap(isBanned)
-    .then(data => {
+    .then((data) => {
       if (data[USERS_ALIAS_FIELD]) {
         throw new Errors.HttpStatusError(417, 'alias is already assigned');
       }
 
       // perform set alias
-      const setAlias = (active) => redis
+      const setAlias = active => redis
         .hsetnx(USERS_ALIAS_TO_LOGIN, alias, username)
-        .then(assigned => {
+        .then((assigned) => {
           if (assigned === 0) {
             throw new Errors.HttpStatusError(409, 'alias was already taken');
           }

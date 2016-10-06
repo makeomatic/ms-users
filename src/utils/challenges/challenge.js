@@ -37,7 +37,7 @@ function generateChallenge(type, opts, ctx = {}, wait = false) {
     .tokenManager
     .create(opts)
     .catchThrow({ message: '429' }, isThrottled)
-    .then(token => {
+    .then((token) => {
       ctx.token = token;
       return opts.id;
     })

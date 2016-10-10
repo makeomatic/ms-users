@@ -42,7 +42,7 @@ function iterateOverActiveUsers(request) {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {
         return [
-          ids || [],
+          [],
           [],
           length,
         ];
@@ -52,11 +52,12 @@ function iterateOverActiveUsers(request) {
       ids.forEach((id) => {
         pipeline.hgetall(redisKey(id, USERS_METADATA, audience));
       });
-      return Promise.all([
+
+      return Promise.join(
         ids,
         pipeline.exec().then(handlePipeline),
-        length,
-      ]);
+        length
+      );
     })
     .spread((ids, props, length) => {
       const users = ids.map(function remapData(id, idx) {

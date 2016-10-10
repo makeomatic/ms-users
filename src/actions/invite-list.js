@@ -35,7 +35,7 @@ function iterateOverInvites(request) {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {
         return [
-          ids || [],
+          [],
           [],
           length,
         ];

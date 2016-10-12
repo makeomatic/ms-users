@@ -41,7 +41,7 @@ function requestPassword(request) {
     .tap(isBanned)
     .tap(hasPassword)
     .then(data => [data[USERS_USERNAME_FIELD], defaultAudience])
-    .then(getMetadata)
+    .spread(getMetadata)
     .get(defaultAudience)
     .then(meta => [
       challengeType,

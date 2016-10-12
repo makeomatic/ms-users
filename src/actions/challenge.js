@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const getInternalData = require('../utils/getInternalData.js');
+const getMetadata = require('../utils/getMetadata.js');
 const isActive = require('../utils/isActive.js');
 const challenge = require('../utils/challenges/challenge.js');
 const { USERS_ACTION_ACTIVATE, CHALLENGE_TYPE_EMAIL } = require('../constants.js');
@@ -24,6 +25,7 @@ const { USERS_ACTION_ACTIVATE, CHALLENGE_TYPE_EMAIL } = require('../constants.js
 function sendChallenge(request) {
   const { username, type } = request.params;
   const { throttle, ttl } = this.config.token[CHALLENGE_TYPE_EMAIL];
+  const { defaultAudience } = this.config.jwt;
 
   // TODO: record all attemps
   // TODO: add metadata processing on successful email challenge
@@ -33,13 +35,18 @@ function sendChallenge(request) {
     .then(getInternalData)
     .tap(isActive)
     .throw(new Errors.HttpStatusError(417, `${username} is already active`))
-    .catchReturn({ statusCode: 412 }, [
-      type, {
+    .catchReturn({ statusCode: 412 }, [username, defaultAudience])
+    .spread(getMetadata)
+    .get(defaultAudience)
+    .then(meta => [
+      type,
+      {
         id: username,
         action: USERS_ACTION_ACTIVATE,
         ttl,
         throttle,
       },
+      meta,
     ])
     .spread(challenge);
 }

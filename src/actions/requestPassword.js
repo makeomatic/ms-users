@@ -3,8 +3,13 @@ const getInternalData = require('../utils/getInternalData.js');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const hasPassword = require('../utils/hasPassword.js');
-const { USERS_ACTION_PASSWORD, USERS_ACTION_RESET } = require('../constants.js');
+const getMetadata = require('../utils/getMetadata.js');
 const challenge = require('../utils/challenges/challenge.js');
+const {
+  USERS_ACTION_PASSWORD,
+  USERS_ACTION_RESET,
+  USERS_USERNAME_FIELD,
+} = require('../constants.js');
 
 /**
  * @api {amqp} <prefix>.requestPassword Reset Password
@@ -23,6 +28,7 @@ const challenge = require('../utils/challenges/challenge.js');
 function requestPassword(request) {
   const { challengeType, username: usernameOrAlias, generateNewPassword } = request.params;
   const { [challengeType]: tokenOptions } = this.config.token;
+  const { defaultAudience } = this.config.jwt;
   const action = generateNewPassword ? USERS_ACTION_PASSWORD : USERS_ACTION_RESET;
 
   // TODO: make use of remoteip in security logs?
@@ -34,11 +40,18 @@ function requestPassword(request) {
     .tap(isActive)
     .tap(isBanned)
     .tap(hasPassword)
-    .then(data => ([challengeType, {
-      id: data.username,
-      action,
-      ...tokenOptions,
-    }]))
+    .then(data => [data[USERS_USERNAME_FIELD], defaultAudience])
+    .spread(getMetadata)
+    .get(defaultAudience)
+    .then(meta => [
+      challengeType,
+      {
+        id: meta[USERS_USERNAME_FIELD],
+        action,
+        ...tokenOptions,
+      },
+      meta,
+    ])
     .spread(challenge)
     .return({ success: true });
 }

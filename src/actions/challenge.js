@@ -25,7 +25,7 @@ const { USERS_ACTION_ACTIVATE, CHALLENGE_TYPE_EMAIL } = require('../constants.js
 function sendChallenge(request) {
   const { username, type } = request.params;
   const { throttle, ttl } = this.config.token[CHALLENGE_TYPE_EMAIL];
-  const { defaultAudience } = this.confi.jwt;
+  const { defaultAudience } = this.config.jwt;
 
   // TODO: record all attemps
   // TODO: add metadata processing on successful email challenge

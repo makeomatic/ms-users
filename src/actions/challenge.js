@@ -37,6 +37,7 @@ function sendChallenge(request) {
     .throw(new Errors.HttpStatusError(417, `${username} is already active`))
     .catchReturn({ statusCode: 412 }, [username, defaultAudience])
     .spread(getMetadata)
+    .get(defaultAudience)
     .then(meta => [
       type,
       {
@@ -45,7 +46,7 @@ function sendChallenge(request) {
         ttl,
         throttle,
       },
-      meta[defaultAudience],
+      meta,
     ])
     .spread(challenge);
 }

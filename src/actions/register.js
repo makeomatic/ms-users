@@ -218,11 +218,17 @@ function registerUser(request) {
           // Option 1. Activation
           if (!activate) {
             return Promise
-              .bind(this, [challengeType, {
-                id: username,
-                action: USERS_ACTION_ACTIVATE,
-                ...tokenOptions,
-              }])
+              .bind(this, [
+                challengeType,
+                {
+                  id: username,
+                  action: USERS_ACTION_ACTIVATE,
+                  ...tokenOptions,
+                },
+                {
+                  ...metadata[params.audience],
+                },
+              ])
               .spread(skipChallenge ? noop : challenge)
               .then((challengeResponse) => {
                 const response = { requiresActivation: true, id: username };

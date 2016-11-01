@@ -9,7 +9,7 @@ const scrypt = require('../../scrypt');
  */
 function hashPassword(password, challengeType, userId) {
   const resolvedData = is.undefined(password) === true
-    ? generatePassword.call(this, challengeType, userId)
+    ? generatePassword.call(this, challengeType, userId, {}, { send: true })
     : password;
 
   return Promise

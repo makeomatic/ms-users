@@ -28,7 +28,7 @@ module.exports = function initAccounts() {
           skipPassword: false,
         },
       })
-      .reflect()
+      .reflect(),
     )
     .bind(this)
     .then(function reportStats(users) {
@@ -45,7 +45,7 @@ module.exports = function initAccounts() {
 
       this.log.info(
         'Registered admins %d/%d. Errors: %d',
-        registered, totalAccounts, errors.length
+        registered, totalAccounts, errors.length,
       );
 
       errors.forEach((err) => {

@@ -56,7 +56,7 @@ function iterateOverActiveUsers(request) {
       return Promise.join(
         ids,
         pipeline.exec().then(handlePipeline),
-        length
+        length,
       );
     })
     .spread((ids, props, length) => {

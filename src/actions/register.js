@@ -229,7 +229,7 @@ function registerUser(request) {
                   ...metadata[params.audience],
                 },
               ])
-              .spread(skipChallenge ? noop : challenge)
+              .spread(skipChallenge ? noop : challenge) // eslint-disable-line promise/always-return
               .then((challengeResponse) => {
                 const response = { requiresActivation: true, id: username };
                 const uid = challengeResponse ? challengeResponse.context.token.uid : null;

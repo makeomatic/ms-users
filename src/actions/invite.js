@@ -50,6 +50,6 @@ module.exports = function generateInvite(request) {
   .then(token => Promise
     .bind(this, [email, USERS_ACTION_INVITE, { ...ctx, token }, { send: true }, nodemailer])
     .spread(generateEmail)
-    .tap(() => redis.sadd(INVITATIONS_INDEX, email))
+    .tap(() => redis.sadd(INVITATIONS_INDEX, email)),
   );
 };

@@ -34,7 +34,7 @@ module.exports = function initFakeAccounts() {
           skipPassword: false,
         },
       })
-      .reflect()
+      .reflect(),
     )
     .bind(this)
     .then(function reportStats(users) {
@@ -51,7 +51,7 @@ module.exports = function initFakeAccounts() {
 
       this.log.info(
         'Registered fake users %d/%d. Errors: %d',
-        registered, totalAccounts, errors.length
+        registered, totalAccounts, errors.length,
       );
 
       errors.forEach((err) => {

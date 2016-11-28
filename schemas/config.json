@@ -94,7 +94,7 @@
             "keyPrefix": {
               "type": "string",
               "minLength": 1,
-              "format": ".*{.*}.*"
+              "pattern": ".*{.*}.*"
             },
             "redisOptions": {
               "type": "object",
@@ -102,7 +102,7 @@
                 "keyPrefix": {
                   "type": "string",
                   "minLength": 1,
-                  "format": ".*{.*}.*"
+                  "pattern": ".*{.*}.*"
                 }
               }
             }

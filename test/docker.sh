@@ -42,7 +42,7 @@ fi
 echo "running tests"
 for fn in $TESTS; do
   echo "running tests for $fn"
-  docker exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn"
+  docker exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- --trace-deprecation $fn"
 done
 
 echo "started generating combined coverage"

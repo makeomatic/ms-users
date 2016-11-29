@@ -37,7 +37,7 @@ function iterateOverActiveUsers(request) {
   const index = request.params.public ? USERS_PUBLIC_INDEX : USERS_INDEX;
 
   return redis
-    .fsort(index, metaKey, criteria, order, strFilter, offset, limit)
+    .fsort(index, metaKey, criteria, order, strFilter, Date.now(), offset, limit)
     .then((ids) => {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {
@@ -56,7 +56,7 @@ function iterateOverActiveUsers(request) {
       return Promise.join(
         ids,
         pipeline.exec().then(handlePipeline),
-        length,
+        length
       );
     })
     .spread((ids, props, length) => {

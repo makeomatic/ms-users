@@ -1,4 +1,5 @@
 /* global inspectPromise */
+const Promise = require('bluebird');
 const { expect } = require('chai');
 const assert = require('assert');
 const is = require('is');
@@ -16,7 +17,7 @@ describe('#activate', function activateSuite() {
         id: email,
         action: 'activate',
       })
-      .tap(result => {
+      .tap((result) => {
         this.token = result.secret;
       });
   });
@@ -26,10 +27,10 @@ describe('#activate', function activateSuite() {
     return this.dispatch('users.activate', params)
       .reflect()
       .then(inspectPromise(false))
-      .then(activation => {
+      .then((activation) => {
+        expect(activation.message).to.match(/invalid token/);
         expect(activation.name).to.be.eq('HttpStatusError');
         expect(activation.statusCode).to.be.eq(403);
-        expect(activation.message).to.match(/invalid token/);
       });
   });
 
@@ -51,7 +52,7 @@ describe('#activate', function activateSuite() {
       return this.dispatch('users.activate', params)
         .reflect()
         .then(inspectPromise(false))
-        .then(activation => {
+        .then((activation) => {
           expect(activation.name).to.be.eq('HttpStatusError');
           expect(activation.message).to.match(/Account v@aminev\.me was already activated/);
           expect(activation.statusCode).to.be.eq(417);
@@ -99,7 +100,7 @@ describe('#activate', function activateSuite() {
     return this.dispatch('users.activate', { username: 'v@makeomatic.ru' })
       .reflect()
       .then(inspectPromise(false))
-      .then(activation => {
+      .then((activation) => {
         try {
           expect(activation.name).to.be.eq('HttpStatusError');
           expect(activation.statusCode).to.be.eq(404);
@@ -125,7 +126,7 @@ describe('#activate', function activateSuite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
-      .then(value => {
+      .then((value) => {
         const message = amqpStub.args[0][1].message;
         const code = message.match(/^(\d{4}) is your activation code/)[1];
 
@@ -137,7 +138,7 @@ describe('#activate', function activateSuite() {
       .then(code => this.dispatch('users.activate', { token: code, username: '79215555555' }))
       .reflect()
       .then(inspectPromise())
-      .then(response => {
+      .then((response) => {
         assert.equal(is.string(response.jwt), true);
         assert.equal(response.user.username, '79215555555');
       });

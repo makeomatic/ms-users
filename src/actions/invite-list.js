@@ -43,7 +43,7 @@ function iterateOverInvites(request) {
 
       return Promise.join(
         Promise.all(ids.map(id => tokenManager.info({ id, action: USERS_ACTION_INVITE }))),
-        length,
+        length
       );
     })
     .spread((invites, length) => ({

@@ -3,16 +3,6 @@
     "transform-strict-mode",
     "transform-es2015-spread",
     "transform-object-rest-spread",
-    "transform-class-properties",
-    "transform-es2015-modules-commonjs",
-    ["transform-runtime", {
-      "polyfill": false,
-      "regenerator": true
-    }],
-    "syntax-async-functions",
-    ["transform-async-to-module-method", {
-      "module": "bluebird",
-      "method": "coroutine"
-    }]
+    "transform-class-properties"
   ]
 }

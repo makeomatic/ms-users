@@ -35,7 +35,7 @@
     "is": "^3.2.0",
     "jsonwebtoken": "^7.1.9",
     "lodash": "^4.17.0",
-    "moment": "^2.16.0",
+    "moment": "^2.17.0",
     "ms-amqp-transport": "^4.0.0",
     "ms-conf": "^2.3.0",
     "ms-flakeless": "^4.0.1",

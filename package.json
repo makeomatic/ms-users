@@ -39,7 +39,7 @@
     "ms-amqp-transport": "^4.0.0",
     "ms-conf": "^2.3.0",
     "ms-flakeless": "^4.0.1",
-    "ms-mailer-client": "^4.0.0",
+    "ms-mailer-client": "^5.0.0",
     "ms-mailer-templates": "^0.15.0",
     "ms-token": "^1.2.2",
     "ms-validation": "^3.0.0",

@@ -30,7 +30,7 @@ function iterateOverInvites(request) {
   const metaKey = tokenManager.backend.key(USERS_ACTION_INVITE, '*');
 
   return redis
-    .fsort(INVITATIONS_INDEX, metaKey, criteria, order, strFilter, offset, limit)
+    .fsort(INVITATIONS_INDEX, metaKey, criteria, order, strFilter, Date.now(), offset, limit)
     .then((ids) => {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {

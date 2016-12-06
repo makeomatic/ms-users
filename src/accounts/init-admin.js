@@ -49,7 +49,7 @@ module.exports = function initAccounts() {
       );
 
       errors.forEach((err) => {
-        if (err.statusCode !== 403) {
+        if (err.statusCode !== 403 && err.statusCode !== 409) {
           this.log.warn(err.stack);
         }
       });

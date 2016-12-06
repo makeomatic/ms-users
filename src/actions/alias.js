@@ -79,7 +79,7 @@ function assignAlias(request) {
 
       return this.dlock
         .once(lockAlias(alias))
-        .then(lock => setAlias().finally(() => {
+        .then(lock => setAlias(activeUser).finally(() => {
           lock.release().reflect();
           return null;
         }));

@@ -1,7 +1,7 @@
 {
   "id": "login",
   "type": "object",
-  "required": [ "username", "password", "audience" ],
+  "required": [ "username", "audience" ],
   "properties": {
     "username": {
       "type": "string",
@@ -10,7 +10,7 @@
     },
     "password": {
       "type": "string",
-      "minLength": 4,
+      "minLength": 1,
       "maxLength": 50
     },
     "audience": {

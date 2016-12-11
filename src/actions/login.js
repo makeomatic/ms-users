@@ -9,6 +9,7 @@ const isBanned = require('../utils/isBanned.js');
 const getInternalData = require('../utils/getInternalData.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const noop = require('lodash/noop');
+const is = require('is');
 const { USERS_ACTION_DISPOSABLE_PASSWORD } = require('../constants');
 
 /**
@@ -78,6 +79,10 @@ function login(request) {
   function getVerifyStrategy() {
     if (isSSO === true) {
       return noop;
+    }
+
+    if (is.string(password) !== true || password.length < 1) {
+      throw new Errors.ValidationError('should supply password');
     }
 
     if (isDisposablePassword === true) {

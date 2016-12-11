@@ -25,11 +25,12 @@ const { USERS_ACTION_DISPOSABLE_PASSWORD } = require('../constants');
  * @apiParam (Payload) {String} audience - metadata to be returned, as well embedded into JWT token
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
+ * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
 function login(request) {
   const config = this.config.jwt;
   const { redis, tokenManager } = this;
-  const { isDisposablePassword, password } = request.params;
+  const { isDisposablePassword, isSSO, password } = request.params;
   const { lockAfterAttempts, defaultAudience } = config;
   const audience = request.params.audience || defaultAudience;
   const remoteip = request.params.remoteip || false;
@@ -75,6 +76,10 @@ function login(request) {
   }
 
   function getVerifyStrategy() {
+    if (isSSO === true) {
+      return noop;
+    }
+
     if (isDisposablePassword === true) {
       return verifyDisposablePassword;
     }

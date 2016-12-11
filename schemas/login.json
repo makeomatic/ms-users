@@ -24,6 +24,10 @@
     "isDisposablePassword": {
       "default": false,
       "type": "boolean"
+    },
+    "isSSO": {
+      "default": false,
+      "type": "boolean"
     }
   }
 }

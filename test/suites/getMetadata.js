@@ -1,6 +1,5 @@
 /* global inspectPromise */
-const { expect } = require('chai');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const assert = require('assert');
 
 describe('#getMetadata', function getMetadataSuite() {
   beforeEach(global.startService);
@@ -9,27 +8,34 @@ describe('#getMetadata', function getMetadataSuite() {
   it('must reject to return metadata on a non-existing username', function test() {
     const { defaultAudience: audience } = this.users._config.jwt;
 
-    return simpleDispatcher(this.users.router)('users.getMetadata', { username: 'noob', audience })
+    return this.dispatch('users.getMetadata', { username: 'noob', audience })
       .reflect()
-      .then(getMetadata => {
-        expect(getMetadata.isRejected()).to.be.eq(true);
-        expect(getMetadata.reason().name).to.be.eq('HttpStatusError');
-        expect(getMetadata.reason().statusCode).to.be.eq(404);
+      .then(inspectPromise(false))
+      .then((error) => {
+        assert.equal(error.name, 'HttpStatusError');
+        assert.equal(error.statusCode, 404);
       });
   });
 
   describe('existing user', function suite() {
     const username = 'v@makeomatic.ru';
+    const usernameB = 'b@makeomatic.ru';
     const audience = '*.localhost';
 
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', {
+      return this.dispatch('users.register', {
         username, password: '123', audience, metadata: { name: { q: 'verynicedata' } },
       });
     });
 
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.updateMetadata', {
+      return this.dispatch('users.register', {
+        username: usernameB, password: '123', audience, metadata: { name: 'boredom' },
+      });
+    });
+
+    beforeEach(function pretest() {
+      return this.dispatch('users.updateMetadata', {
         username,
         audience: ['matic.ninja', audience],
         metadata: [
@@ -40,24 +46,24 @@ describe('#getMetadata', function getMetadataSuite() {
     });
 
     it('must return metadata for a default audience', function test() {
-      return simpleDispatcher(this.users.router)('users.getMetadata', { username, audience })
+      return this.dispatch('users.getMetadata', { username, audience })
         .reflect()
         .then(inspectPromise())
-        .then(getMetadata => {
-          expect(getMetadata[audience].name).to.be.deep.eq({
+        .then((getMetadata) => {
+          assert.deepEqual(getMetadata[audience].name, {
             q: 'verynicedata',
           });
 
-          expect(getMetadata[audience].username).to.be.eq(username);
+          assert.equal(getMetadata[audience].username, username);
         });
     });
 
     it('must return metadata for default and passed audiences', function test() {
-      return simpleDispatcher(this.users.router)('users.getMetadata', { username, audience: [audience, 'matic.ninja'] })
+      return this.dispatch('users.getMetadata', { username, audience: [audience, 'matic.ninja'] })
         .reflect()
         .then(inspectPromise())
-        .then(getMetadata => {
-          expect(getMetadata).to.be.deep.eq({
+        .then((getMetadata) => {
+          assert.deepEqual(getMetadata, {
             [audience]: {
               name: {
                 q: 'verynicedata',
@@ -72,25 +78,51 @@ describe('#getMetadata', function getMetadataSuite() {
     });
 
     it('must return partial response for default and passed audiences', function test() {
-      return simpleDispatcher(this.users.router)('users.getMetadata', {
+      return this.dispatch('users.getMetadata', {
         username,
         audience: [audience, 'matic.ninja'],
         fields: {
           [audience]: ['username'],
           'matic.ninja': ['iat'],
         },
-      }).reflect()
-        .then(inspectPromise())
-        .then(getMetadata => {
-          expect(getMetadata).to.be.deep.eq({
-            [audience]: {
-              username,
-            },
-            'matic.ninja': {
-              iat: 10,
-            },
-          });
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then((getMetadata) => {
+        assert.deepEqual(getMetadata, {
+          [audience]: {
+            username,
+          },
+          'matic.ninja': {
+            iat: 10,
+          },
         });
+      });
+    });
+
+    it('must return metadata for multiple users', function test() {
+      return this.dispatch('users.getMetadata', {
+        username: [username, usernameB],
+        audience,
+        fields: {
+          [audience]: ['username'],
+        },
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then((meta) => {
+        assert.ok(Array.isArray(meta));
+        assert.ok(meta.length === 2);
+        assert.deepEqual(meta, [{
+          [audience]: {
+            username,
+          },
+        }, {
+          [audience]: {
+            username: usernameB,
+          },
+        }]);
+      });
     });
   });
 });

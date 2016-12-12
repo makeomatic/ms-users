@@ -1,8 +1,9 @@
+/* global inspectPromise */
+const Promise = require('bluebird');
 const assert = require('assert');
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
 const sinon = require('sinon');
 
 describe('#login', function loginSuite() {
@@ -14,10 +15,10 @@ describe('#login', function loginSuite() {
   afterEach(global.clearRedis);
 
   it('must reject login on a non-existing username', function test() {
-    return simpleDispatcher(this.users.router)('users.login', user)
+    return this.dispatch('users.login', user)
       .reflect()
       .then(inspectPromise(false))
-      .then(login => {
+      .then((login) => {
         expect(login.name).to.be.eq('HttpStatusError');
         expect(login.statusCode).to.be.eq(404);
       });
@@ -25,7 +26,7 @@ describe('#login', function loginSuite() {
 
   describe('existing user: inactivate', function userSuite() {
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', {
+      return this.dispatch('users.register', {
         ...userWithValidPassword,
         activate: false,
         skipChallenge: true,
@@ -33,10 +34,10 @@ describe('#login', function loginSuite() {
     });
 
     it('must reject login on an inactive account', function test() {
-      return simpleDispatcher(this.users.router)('users.login', userWithValidPassword)
+      return this.dispatch('users.login', userWithValidPassword)
         .reflect()
         .then(inspectPromise(false))
-        .then(login => {
+        .then((login) => {
           try {
             expect(login.name).to.be.eq('HttpStatusError');
             expect(login.statusCode).to.be.eq(412);
@@ -49,14 +50,14 @@ describe('#login', function loginSuite() {
 
   describe('existing user: active', function userSuite() {
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', userWithValidPassword);
+      return this.dispatch('users.register', userWithValidPassword);
     });
 
     it('must reject login on an invalid password', function test() {
-      return simpleDispatcher(this.users.router)('users.login', user)
+      return this.dispatch('users.login', user)
         .reflect()
         .then(inspectPromise(false))
-        .then(login => {
+        .then((login) => {
           expect(login.name).to.be.eq('HttpStatusError');
           expect(login.statusCode).to.be.eq(403);
         });
@@ -66,11 +67,11 @@ describe('#login', function loginSuite() {
       const alias = 'bond';
 
       beforeEach(function pretest() {
-        return simpleDispatcher(this.users.router)('users.alias', { username: userWithValidPassword.username, alias });
+        return this.dispatch('users.alias', { username: userWithValidPassword.username, alias });
       });
 
       it('allows to sign in with a valid alias', function test() {
-        return simpleDispatcher(this.users.router)('users.login', { ...userWithValidPassword, username: alias })
+        return this.dispatch('users.login', { ...userWithValidPassword, username: alias })
           .reflect()
           .then(inspectPromise());
       });
@@ -82,10 +83,10 @@ describe('#login', function loginSuite() {
       });
 
       it('must reject login', function test() {
-        return simpleDispatcher(this.users.router)('users.login', userWithValidPassword)
+        return this.dispatch('users.login', userWithValidPassword)
           .reflect()
           .then(inspectPromise(false))
-          .then(login => {
+          .then((login) => {
             expect(login.name).to.be.eq('HttpStatusError');
             expect(login.statusCode).to.be.eq(423);
           });
@@ -93,7 +94,18 @@ describe('#login', function loginSuite() {
     });
 
     it('must login on a valid account with correct credentials', function test() {
-      return simpleDispatcher(this.users.router)('users.login', userWithValidPassword)
+      return this.dispatch('users.login', userWithValidPassword)
+        .reflect()
+        .then(inspectPromise());
+    });
+
+    it('must login on a valid account without password with isSSO: true', function test() {
+      const ssoUser = {
+        ...ld.omit(userWithValidPassword, ['password']),
+        isSSO: true,
+      };
+
+      return this.dispatch('users.login', ssoUser)
         .reflect()
         .then(inspectPromise());
     });
@@ -104,10 +116,10 @@ describe('#login', function loginSuite() {
 
       ld.times(5, () => {
         promises.push(
-          simpleDispatcher(this.users.router)('users.login', userWithRemoteIP)
+          this.dispatch('users.login', userWithRemoteIP)
             .reflect()
             .then(inspectPromise(false))
-            .then(login => {
+            .then((login) => {
               expect(login.name).to.be.eq('HttpStatusError');
               expect(login.statusCode).to.be.eq(403);
             })
@@ -115,10 +127,10 @@ describe('#login', function loginSuite() {
       });
 
       promises.push(
-        simpleDispatcher(this.users.router)('users.login', userWithRemoteIP)
+        this.dispatch('users.login', userWithRemoteIP)
           .reflect()
           .then(inspectPromise(false))
-          .then(login => {
+          .then((login) => {
             expect(login.name).to.be.eq('HttpStatusError');
             expect(login.statusCode).to.be.eq(429);
           })
@@ -147,9 +159,9 @@ describe('#login', function loginSuite() {
             id: '79215555555',
           };
 
-          return this.dispatch('users.disposable-password', params)
+          return this.dispatch('users.disposable-password', params);
         })
-        .then(response => {
+        .then((response) => {
           assert.ok(response.uid, true);
 
           const args = amqpStub.args[0][1];
@@ -159,7 +171,7 @@ describe('#login', function loginSuite() {
 
           return code;
         })
-        .then(code => {
+        .then((code) => {
           const params = {
             audience: '*.localhost',
             isDisposablePassword: true,
@@ -169,7 +181,7 @@ describe('#login', function loginSuite() {
 
           return this.dispatch('users.login', params);
         })
-        .then(response => {
+        .then((response) => {
           assert.ok(response.jwt);
           assert.equal(response.user.username, '79215555555');
         });

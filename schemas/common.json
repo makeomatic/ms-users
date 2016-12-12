@@ -63,7 +63,8 @@
       "type": "string",
       "oneOf": [
         { "format": "email" },
-        { "pattern": "^\\d+$" }
+        { "pattern": "^\\d+$" },
+        { "pattern": "^(fb|sso)/[\\d_]+$" }
       ]
     }
   }

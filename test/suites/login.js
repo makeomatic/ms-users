@@ -147,8 +147,17 @@ describe('#login', function loginSuite() {
         username: '79215555555',
       };
 
+      const opts = {
+        activate: true,
+        audience: '*.localhost',
+        challengeType: 'phone',
+        skipPassword: true,
+        username: '79215555555',
+      };
+
       return this
-        .dispatch('users.login', params)
+        .dispatch('users.register', opts)
+        .then(() => this.dispatch('users.login', params))
         .reflect()
         .then(inspectPromise(false))
         .then((error) => {

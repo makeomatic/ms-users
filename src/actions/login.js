@@ -10,7 +10,10 @@ const getInternalData = require('../utils/getInternalData.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const noop = require('lodash/noop');
 const is = require('is');
-const { USERS_ACTION_DISPOSABLE_PASSWORD } = require('../constants');
+const {
+  USERS_ACTION_DISPOSABLE_PASSWORD,
+  USERS_DISPOSABLE_PASSWORD_MIA,
+} = require('../constants');
 
 /**
  * @api {amqp} <prefix>.login User Authentication
@@ -69,11 +72,13 @@ function login(request) {
   }
 
   function verifyDisposablePassword(data) {
-    return tokenManager.verify({
-      action: USERS_ACTION_DISPOSABLE_PASSWORD,
-      id: data.username,
-      token: password,
-    });
+    return tokenManager
+      .verify({
+        action: USERS_ACTION_DISPOSABLE_PASSWORD,
+        id: data.username,
+        token: password,
+      })
+      .catchThrow(e => parseInt(e.message, 10) === 404, USERS_DISPOSABLE_PASSWORD_MIA);
   }
 
   function getVerifyStrategy() {

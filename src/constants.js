@@ -1,3 +1,5 @@
+const Errors = require('common-errors');
+
 module.exports = {
   // indices
   USERS_INDEX: 'user-iterator-set',
@@ -21,6 +23,9 @@ module.exports = {
   USERS_IS_ORG_FIELD: 'org',
   USERS_PASSWORD_FIELD: 'password',
   USERS_NEXT_CYCLE_FIELD: 'nextCycle',
+
+  // pre-generated errors
+  USERS_DISPOSABLE_PASSWORD_MIA: new Errors.HttpStatusError(403, 'Invalid or Expired Password'),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',

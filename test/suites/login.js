@@ -139,6 +139,23 @@ describe('#login', function loginSuite() {
       return Promise.all(promises);
     });
 
+    it('should reject signing in with bogus or expired disposable password', function test() {
+      const params = {
+        audience: '*.localhost',
+        isDisposablePassword: true,
+        password: '321333',
+        username: '79215555555',
+      };
+
+      return this
+        .dispatch('users.login', params)
+        .reflect()
+        .then(inspectPromise(false))
+        .then((error) => {
+          assert.equal(error.statusCode, 403);
+        });
+    });
+
     it('should be able to login by disposable password', function test() {
       const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
       const opts = {

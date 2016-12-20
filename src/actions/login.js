@@ -78,7 +78,7 @@ function login(request) {
         id: data.username,
         token: password,
       })
-      .catchThrow({ message: '404' }, USERS_DISPOSABLE_PASSWORD_MIA);
+      .catchThrow(e => parseInt(e.message, 10) === 404, USERS_DISPOSABLE_PASSWORD_MIA);
   }
 
   function getVerifyStrategy() {

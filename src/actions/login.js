@@ -13,7 +13,106 @@ const is = require('is');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
+  USERS_USERNAME_FIELD,
 } = require('../constants');
+
+/**
+ * Internal functions
+ */
+const is404 = e => parseInt(e.message, 10) === 404;
+
+/**
+ * Checks if login attempts from remote ip have exceeded allowed
+ * limits
+ */
+function checkLoginAttempts(data) {
+  const pipeline = this.redis.pipeline();
+  const username = data.username;
+  const config = this.config;
+  const remoteipKey = this.remoteipKey = redisKey(username, 'ip', this.remoteip);
+
+  pipeline.incrby(remoteipKey, 1);
+  if (config.keepLoginAttempts > 0) {
+    pipeline.expire(remoteipKey, config.keepLoginAttempts);
+  }
+
+  return pipeline
+    .exec()
+    .then(handlePipeline)
+    .spread((incrementValue) => {
+      this.loginAttempts = incrementValue;
+      if (this.loginAttempts > this.lockAfterAttempts) {
+        const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
+        const msg = `You are locked from making login attempts for the next ${duration}`;
+        throw new Errors.HttpStatusError(429, msg);
+      }
+    });
+}
+
+/**
+ * Verifies passed hash
+ */
+function verifyHash({ password }) {
+  return scrypt.verify(password, this.password);
+}
+
+/**
+ * Checks onу-time password
+ */
+function verifyDisposablePassword(data) {
+  return this.tokenManager
+    .verify({
+      action: USERS_ACTION_DISPOSABLE_PASSWORD,
+      id: data[USERS_USERNAME_FIELD],
+      token: this.password,
+    })
+    .catchThrow(is404, USERS_DISPOSABLE_PASSWORD_MIA);
+}
+
+/**
+ * Determines which strategy to use
+ */
+function getVerifyStrategy(data) {
+  if (this.isSSO === true) {
+    return noop(data);
+  }
+
+  if (is.string(this.password) !== true || this.password.length < 1) {
+    throw new Errors.ValidationError('should supply password');
+  }
+
+  if (this.isDisposablePassword === true) {
+    return verifyDisposablePassword(data);
+  }
+
+  return verifyHash(data);
+}
+
+/**
+ * Drops login attempts counter
+ */
+function dropLoginCounter() {
+  this.loginAttempts = 0;
+  return this.redis.del(this.remoteipKey);
+}
+
+/**
+ * Returns user info
+ */
+function getUserInfo({ username }) {
+  return jwt.login.call(this.service, username, this.audience);
+}
+
+/**
+ * Enriches error with amount of login attempts
+ */
+function enrichError(err) {
+  if (this.remoteip) {
+    err.loginAttempts = this.loginAttempts;
+  }
+
+  throw err;
+}
 
 /**
  * @api {amqp} <prefix>.login User Authentication
@@ -31,99 +130,53 @@ const {
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
-function login(request) {
+function login({ params }) {
   const config = this.config.jwt;
   const { redis, tokenManager } = this;
-  const { isDisposablePassword, isSSO, password } = request.params;
+  const { isDisposablePassword, isSSO, password } = params;
   const { lockAfterAttempts, defaultAudience } = config;
-  const audience = request.params.audience || defaultAudience;
-  const remoteip = request.params.remoteip || false;
+  const audience = params.audience || defaultAudience;
+  const remoteip = params.remoteip || false;
   const verifyIp = remoteip && lockAfterAttempts > 0;
 
-  // references for data from login attempts
-  let remoteipKey;
-  let loginAttempts;
+  // build context
+  const ctx = {
+    // service data
+    service: this.service,
+    tokenManager,
+    redis,
+    config,
 
-  function checkLoginAttempts(data) {
-    const pipeline = redis.pipeline();
-    const username = data.username;
-    remoteipKey = redisKey(username, 'ip', remoteip);
-
-    pipeline.incrby(remoteipKey, 1);
-    if (config.keepLoginAttempts > 0) {
-      pipeline.expire(remoteipKey, config.keepLoginAttempts);
-    }
-
-    return pipeline
-      .exec()
-      .then(handlePipeline)
-      .spread(function incremented(incrementValue) {
-        loginAttempts = incrementValue;
-        if (loginAttempts > lockAfterAttempts) {
-          const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
-          const msg = `You are locked from making login attempts for the next ${duration}`;
-          throw new Errors.HttpStatusError(429, msg);
-        }
-      });
-  }
-
-  function verifyHash(data) {
-    return scrypt.verify(data.password, password);
-  }
-
-  function verifyDisposablePassword(data) {
-    return tokenManager
-      .verify({
-        action: USERS_ACTION_DISPOSABLE_PASSWORD,
-        id: data.username,
-        token: password,
-      })
-      .catchThrow(e => parseInt(e.message, 10) === 404, USERS_DISPOSABLE_PASSWORD_MIA);
-  }
-
-  function getVerifyStrategy() {
-    if (isSSO === true) {
-      return noop;
-    }
-
-    if (is.string(password) !== true || password.length < 1) {
-      throw new Errors.ValidationError('should supply password');
-    }
-
-    if (isDisposablePassword === true) {
-      return verifyDisposablePassword;
-    }
-
-    return verifyHash;
-  }
-
-  function dropLoginCounter() {
-    loginAttempts = 0;
-    return redis.del(remoteipKey);
-  }
-
-  function getUserInfo({ username }) {
-    return jwt.login.call(this, username, audience);
-  }
-
-  function enrichError(err) {
-    if (remoteip) {
-      err.loginAttempts = loginAttempts;
-    }
-
-    throw err;
-  }
+    // business logic params
+    params,
+    isDisposablePassword,
+    isSSO,
+    password,
+    lockAfterAttempts,
+    audience,
+    remoteip,
+    verifyIp,
+  };
 
   return Promise
-    .bind(this, request.params.username)
+    // service context
+    .bind(this, params.username)
     .then(getInternalData)
+    // login context
+    .bind(ctx)
+    // pass-through based on strategy
     .tap(verifyIp ? checkLoginAttempts : noop)
-    .tap(getVerifyStrategy())
+    // different auth strategies
+    .tap(getVerifyStrategy)
+    // pass-through or drop counter
     .tap(verifyIp ? dropLoginCounter : noop)
+    // do verifications on the logged in account
     .tap(isActive)
     .tap(isBanned)
+    // fetch final user information
     .then(getUserInfo)
-    .catch(verifyIp ? enrichError : (e) => { throw e; });
+    // enriches and rethrows
+    .catch(enrichError);
 }
 
 module.exports = login;

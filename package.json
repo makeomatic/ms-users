@@ -24,7 +24,7 @@
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
     "babel-runtime": "^6.20.0",
-    "bluebird": "^3.4.6",
+    "bluebird": "^3.4.7",
     "bunyan": "^1.8.5",
     "bytes": "^2.4.0",
     "common-errors": "^1.0.0",
@@ -34,7 +34,7 @@
     "ioredis": "^2.4.3",
     "is": "^3.2.0",
     "jsonwebtoken": "^7.2.1",
-    "lodash": "^4.17.2",
+    "lodash": "^4.17.4",
     "moment": "^2.17.1",
     "ms-amqp-transport": "^7.0.1",
     "ms-conf": "^2.3.0",
@@ -50,11 +50,12 @@
     "request": "^2.79.0",
     "request-promise": "^4.1.1",
     "scrypt": "^6.0.1",
+    "stdout-stream": "^1.4.0",
     "urlsafe-base64": "^1.0.0"
   },
   "devDependencies": {
     "apidoc": "^0.16.1",
-    "apidoc-plugin-schema": "^0.1.0",
+    "apidoc-plugin-schema": "^0.1.1",
     "babel-cli": "^6.18.0",
     "babel-eslint": "^7.1.1",
     "babel-plugin-syntax-async-functions": "^6.13.0",
@@ -72,7 +73,7 @@
     "eslint": "^3.12.2",
     "eslint-config-airbnb-base": "^11.0.0",
     "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-mocha": "^4.7.0",
+    "eslint-plugin-mocha": "^4.8.0",
     "eslint-plugin-promise": "^3.4.0",
     "faker": "^3.0.1",
     "glob": "^7.1.1",
@@ -82,7 +83,7 @@
     "latest-version-cli": "^1.0.0",
     "mocha": "^3.2.0",
     "semantic-release": "^6.3.2",
-    "sinon": "^1.17.6"
+    "sinon": "^1.17.7"
   },
   "release": {
     "verifyConditions": []

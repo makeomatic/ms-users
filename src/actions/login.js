@@ -142,7 +142,7 @@ function login({ params }) {
   // build context
   const ctx = {
     // service data
-    service: this.service,
+    service: this,
     tokenManager,
     redis,
     config,

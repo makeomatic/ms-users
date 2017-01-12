@@ -47,7 +47,7 @@ function verify({ params }) {
 
   // internal context
   const ctx = {
-    service: this.service,
+    service: this,
     defaultAudience: this.config.jwt.defaultAudience,
     token,
     audience,

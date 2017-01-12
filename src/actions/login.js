@@ -52,19 +52,19 @@ function checkLoginAttempts(data) {
 /**
  * Verifies passed hash
  */
-function verifyHash({ password }) {
-  return scrypt.verify(password, this.password);
+function verifyHash({ password }, comparableInput) {
+  return scrypt.verify(password, comparableInput);
 }
 
 /**
  * Checks onу-time password
  */
-function verifyDisposablePassword(data) {
-  return this.tokenManager
+function verifyDisposablePassword(ctx, data) {
+  return ctx.tokenManager
     .verify({
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
       id: data[USERS_USERNAME_FIELD],
-      token: this.password,
+      token: ctx.password,
     })
     .catchThrow(is404, USERS_DISPOSABLE_PASSWORD_MIA);
 }
@@ -82,10 +82,10 @@ function getVerifyStrategy(data) {
   }
 
   if (this.isDisposablePassword === true) {
-    return verifyDisposablePassword(data);
+    return verifyDisposablePassword(this, data);
   }
 
-  return verifyHash(data);
+  return verifyHash(data, this.password);
 }
 
 /**

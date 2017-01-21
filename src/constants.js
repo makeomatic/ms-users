@@ -26,6 +26,7 @@ module.exports = {
 
   // pre-generated errors
   USERS_DISPOSABLE_PASSWORD_MIA: new Errors.HttpStatusError(403, 'Invalid or Expired Password'),
+  USER_ALREADY_ACTIVE: new Errors.HttpStatusError(417, 'this user is already active'),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',

@@ -6,6 +6,7 @@ const {
   USERS_DATA,
   USERS_ALIAS_TO_LOGIN,
   USERS_PASSWORD_FIELD,
+  USERS_USERNAME_FIELD,
 } = require('../constants.js');
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -43,6 +44,6 @@ module.exports = function getInternalData(username) {
         throw new Errors.HttpStatusError(404, `"${username}" does not exists`);
       }
 
-      return reduce(data, reducer, { username });
+      return reduce(data, reducer, { [USERS_USERNAME_FIELD]: username });
     });
 };

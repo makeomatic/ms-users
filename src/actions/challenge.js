@@ -17,11 +17,28 @@ const {
 const inactiveStatus = { statusCode: 412 };
 
 /**
+ * Assigns data to passed context
+ */
+function assignInternalData(data) {
+  this.internalData = data;
+}
+
+/**
+ * fetches internal data
+ */
+function fetchInternalData() {
+  return getInternalData
+    .call(this.service, this[USERS_USERNAME_FIELD])
+    .bind(this)
+    .tap(assignInternalData);
+}
+
+/**
  * Returns username from internal data
  */
-function fetchMetadata(internalData) {
+function fetchMetadata() {
   // remap to the actual username
-  const username = this[USERS_USERNAME_FIELD] = internalData[USERS_USERNAME_FIELD];
+  const username = this[USERS_USERNAME_FIELD] = this.internalData[USERS_USERNAME_FIELD];
 
   // fetch all the required metadata
   return getMetadata
@@ -81,12 +98,11 @@ function sendChallenge({ params }) {
   };
 
   return Promise
-    .bind(this, ctx.username)
-    .then(getInternalData)
+    .bind(ctx)
+    .then(fetchInternalData)
     .tap(isActive)
     .throw(USER_ALREADY_ACTIVE)
     .catch(inactiveStatus, passThrough)
-    .bind(ctx)
     .then(fetchMetadata)
     .then(createChallenge);
 }

@@ -1,10 +1,50 @@
 const Promise = require('bluebird');
-const Errors = require('common-errors');
 const getInternalData = require('../utils/getInternalData.js');
 const getMetadata = require('../utils/getMetadata.js');
 const isActive = require('../utils/isActive.js');
 const challenge = require('../utils/challenges/challenge.js');
-const { USERS_ACTION_ACTIVATE, CHALLENGE_TYPE_EMAIL } = require('../constants.js');
+const passThrough = require('lodash/identity');
+const {
+  USERS_ACTION_ACTIVATE,
+  CHALLENGE_TYPE_EMAIL,
+  USER_ALREADY_ACTIVE,
+  USERS_USERNAME_FIELD,
+} = require('../constants.js');
+
+/**
+ * Predicate for inactive status
+ */
+const inactiveStatus = { statusCode: 412 };
+
+/**
+ * Returns username from internal data
+ */
+function fetchMetadata(internalData) {
+  // remap to the actual username
+  const username = this[USERS_USERNAME_FIELD] = internalData[USERS_USERNAME_FIELD];
+
+  // fetch all the required metadata
+  return getMetadata
+    .call(this.service, username, this.defaultAudience)
+    .get(this.defaultAudience);
+}
+
+/**
+ * Creates actual challenge
+ */
+function createChallenge(metadata) {
+  return challenge.call(
+    this.service,
+    this.type,
+    {
+      id: this[USERS_USERNAME_FIELD],
+      action: USERS_ACTION_ACTIVATE,
+      ttl: this.ttl,
+      throttle: this.throttle,
+    },
+    metadata
+  );
+}
 
 /**
  * @api {amqp} <prefix>.challenge Creates user challenges
@@ -22,33 +62,33 @@ const { USERS_ACTION_ACTIVATE, CHALLENGE_TYPE_EMAIL } = require('../constants.js
  * @apiParam (Payload) {String} [metadata] - not used, but in the future this would be associated with user when challenge is required
  *
  */
-function sendChallenge(request) {
-  const { username, type } = request.params;
-  const { throttle, ttl } = this.config.token[CHALLENGE_TYPE_EMAIL];
-  const { defaultAudience } = this.config.jwt;
-
-  // TODO: record all attemps
+function sendChallenge({ params }) {
+  // TODO: record all attempts
   // TODO: add metadata processing on successful email challenge
 
+  const service = this;
+  const config = service.config;
+  const { defaultAudience } = config.jwt;
+  const { throttle, ttl } = config.token[CHALLENGE_TYPE_EMAIL];
+
+  const ctx = {
+    service,
+    throttle,
+    ttl,
+    defaultAudience,
+    type: params.type,
+    [USERS_USERNAME_FIELD]: params.username,
+  };
+
   return Promise
-    .bind(this, username)
+    .bind(this, ctx.username)
     .then(getInternalData)
     .tap(isActive)
-    .throw(new Errors.HttpStatusError(417, `${username} is already active`))
-    .catchReturn({ statusCode: 412 }, [username, defaultAudience])
-    .spread(getMetadata)
-    .get(defaultAudience)
-    .then(meta => [
-      type,
-      {
-        id: username,
-        action: USERS_ACTION_ACTIVATE,
-        ttl,
-        throttle,
-      },
-      meta,
-    ])
-    .spread(challenge);
+    .throw(USER_ALREADY_ACTIVE)
+    .catch(inactiveStatus, passThrough)
+    .bind(ctx)
+    .then(fetchMetadata)
+    .then(createChallenge);
 }
 
 module.exports = sendChallenge;

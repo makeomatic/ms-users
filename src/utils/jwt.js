@@ -1,12 +1,25 @@
 const Errors = require('common-errors');
 const Promise = require('bluebird');
-const jwt = Promise.promisifyAll(require('jsonwebtoken'));
-const redisKey = require('./key.js');
-const { USERS_TOKENS } = require('../constants.js');
-const getMetadata = require('../utils/getMetadata.js');
 const FlakeId = require('flake-idgen');
+const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
+// internal modules
+const redisKey = require('./key.js');
+const { USERS_TOKENS, USERS_API_TOKENS } = require('../constants.js');
+const getMetadata = require('../utils/getMetadata.js');
+const { verify: verifyHMAC } = require('./signatures');
+
+// id generator
 const flakeIdGen = new FlakeId();
+
+// cache this to not recreate all the time
+const mapJWT = props => ({
+  jwt: props.jwt,
+  user: {
+    username: props.username,
+    metadata: props.metadata,
+  },
+});
 
 /**
  * Logs user in and returns JWT and User Object
@@ -42,14 +55,30 @@ exports.login = function login(username, _audience) {
       username,
       metadata: getMetadata.call(this, username, audience),
     })
-    .then(props => ({
-      jwt: props.jwt,
-      user: {
-        username: props.username,
-        metadata: props.metadata,
-      },
-    }));
+    .then(mapJWT);
 };
+
+/**
+ * Logs error & then throws
+ */
+function remapInvalidTokenError(err) {
+  this.log.debug('error decoding token', err);
+  throw new Errors.HttpStatusError(403, 'Invalid Token');
+}
+
+/**
+ * Logs error
+ */
+function logError(err) {
+  this.log.error('failed', err);
+}
+
+/**
+ * Erases the token
+ */
+function eraseToken(decoded) {
+  return this.redis.zrem(redisKey(decoded.username, USERS_TOKENS), this.token);
+}
 
 /**
  * Removes token if it is valid
@@ -64,13 +93,10 @@ exports.logout = function logout(token, audience) {
 
   return jwt
     .verifyAsync(token, secret, { issuer, audience, algorithms: [algorithm] })
-    .catch((err) => {
-      this.log.debug('error decoding token', err);
-      throw new Errors.HttpStatusError(403, 'Invalid Token');
-    })
-    .then(function decodedToken(decoded) {
-      return redis.zrem(redisKey(decoded.username, USERS_TOKENS), token);
-    })
+    .bind(this)
+    .catch(remapInvalidTokenError)
+    .bind({ redis, token })
+    .then(eraseToken)
     .return({ success: true });
 };
 
@@ -83,48 +109,119 @@ exports.reset = function reset(username) {
 };
 
 /**
+ * Parse last access
+ */
+function getLastAccess(_score) {
+  // parseResponse
+  const score = parseInt(_score, 10);
+
+  // throw if token not found or expired
+  if (isNaN(score) || Date.now() > score + this.ttl) {
+    throw new Errors.HttpStatusError(403, 'token has expired or was forged');
+  }
+
+  return score;
+}
+
+/**
+ * Refreshes last access token
+ */
+function refreshLastAccess() {
+  return this.redis.zadd(this.tokensHolder, Date.now(), this.token);
+}
+
+/**
+ * Verify decoded token
+ */
+function verifyDecodedToken(decoded) {
+  if (this.audience.indexOf(decoded.aud) === -1) {
+    throw new Errors.HttpStatusError(403, 'audience mismatch');
+  }
+
+  const { username } = decoded;
+  const tokensHolder = this.tokensHolder = redisKey(username, USERS_TOKENS);
+
+  let lastAccess = this.redis
+    .zscore(tokensHolder, this.token)
+    .bind(this)
+    .then(getLastAccess);
+
+  if (!this.peek) {
+    lastAccess = lastAccess.then(refreshLastAccess);
+  }
+
+  return lastAccess.return(decoded);
+}
+
+/**
  * Verifies token and returns decoded version of it
- * @param  {String}       token
+ * @param  {String} token
  * @param  {Array} audience
- * @param  {Boolean}      peek
+ * @param  {Boolean} peek
  * @return {Promise}
  */
 exports.verify = function verifyToken(token, audience, peek) {
-  const { redis, config } = this;
+  const { redis, config, log } = this;
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, secret, ttl, issuer } = jwtConfig;
 
   return jwt
     .verifyAsync(token, secret, { issuer, algorithms: [algorithm] })
-    .catch((err) => {
-      this.log.debug('invalid token passed: %s', token, err);
-      throw new Errors.HttpStatusError(403, 'invalid token');
-    })
-    .then(function decodedToken(decoded) {
-      if (audience.indexOf(decoded.aud) === -1) {
-        throw new Errors.HttpStatusError(403, 'audience mismatch');
-      }
+    .bind({ redis, log, ttl, audience, token, peek })
+    .catch(remapInvalidTokenError)
+    .then(verifyDecodedToken);
+};
 
-      const { username } = decoded;
-      const tokensHolder = redisKey(username, USERS_TOKENS);
-      let lastAccess = redis.zscore(tokensHolder, token).then(function getLastAccess(_score) {
-        // parseResponse
-        const score = parseInt(_score, 10);
+/**
+ * Verifies redis response, updates expiration time & returns username
+ * NOTE: can be improved via LUA script
+ */
+function verifyRedisResponse(username, expiration) {
+  if (!username) {
+    throw new Errors.HttpStatusError(403, 'token has expired or was forged');
+  }
 
-        // throw if token not found or expired
-        if (isNaN(score) || Date.now() > score + ttl) {
-          throw new Errors.HttpStatusError(403, 'token has expired or was forged');
-        }
+  // don't wait for the action to complete
+  if (expiration && expiration > 0 && this.peek !== true) {
+    this.redis
+      .pttl(this.key, expiration)
+      .bind({ log: this.log })
+      .catch(logError);
+  }
 
-        return score;
-      });
+  return { username };
+}
 
-      if (!peek) {
-        lastAccess = lastAccess.then(function refreshLastAccess() {
-          return redis.zadd(tokensHolder, Date.now(), token);
-        });
-      }
+/**
+ * Verifies internal token
+ * @param {String} token
+ * @param {Array} audience
+ * @param {Boolean} peek
+ * @return {Promise}
+ */
+exports.internal = function verifyInternalToken(token, audience, peek) {
+  const [usernameHash, uuid, signature] = token.split('.');
 
-      return lastAccess.return(decoded);
-    });
+  // token is malformed, must be username.uuid.signature
+  if (!usernameHash || !uuid || !signature) {
+    throw new Errors.HttpStatusError(403, 'malformed token');
+  }
+
+  // this is needed to pass ctx of the
+  const payload = `${usernameHash}.${uuid}`;
+  const isValid = verifyHMAC.call(this, payload, signature);
+
+  if (!isValid) {
+    throw new Errors.HttpStatusError(403, 'malformed token');
+  }
+
+  // at this point signature is valid and we need to verify that it was not
+  // erase or expired
+  const key = redisKey(USERS_API_TOKENS, payload);
+  const redis = this.redis;
+
+  return redis
+    .hmget(key, 'username', 'expiration')
+    .bind({ redis, key, peek, log: this.log })
+    .spread(verifyRedisResponse);
 };

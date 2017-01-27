@@ -186,4 +186,8 @@ module.exports = {
     prefix: 'phone',
     waitChallenge: false,
   },
+  accessTokens: {
+    // NOTE: MAKE SURE TO UPDATE THIS IN PRODUCTION
+    secret: 'dajskd12r1987das071241d-ar-01248120d7as-d98ays',
+  },
 };

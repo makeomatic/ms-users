@@ -63,7 +63,7 @@ exports.login = function login(username, _audience) {
  */
 function remapInvalidTokenError(err) {
   this.log.debug('error decoding token', err);
-  throw new Errors.HttpStatusError(403, 'invalid Token');
+  throw new Errors.HttpStatusError(403, 'invalid token');
 }
 
 /**

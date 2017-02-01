@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const { HttpStatusError } = require('common-errors');
 const jwt = require('../utils/jwt.js');
 const getMetadata = require('../utils/getMetadata.js');
 
@@ -11,7 +12,11 @@ const toArray = maybeArray => (isArray(maybeArray) ? maybeArray : [maybeArray]);
 /**
  * Verifies decoded token
  */
-function decodedToken(decoded) {
+function decodedToken({ username }) {
+  if (!username) {
+    throw new HttpStatusError(403, 'forged or expired token');
+  }
+
   const { audience, defaultAudience, service } = this;
 
   // push extra audiences
@@ -20,7 +25,6 @@ function decodedToken(decoded) {
   }
 
   // get metadata and return success
-  const username = decoded.username;
   return Promise.props({
     username,
     metadata: getMetadata.call(service, username, audience),
@@ -37,6 +41,8 @@ function decodedToken(decoded) {
  *
  * @apiParam (Payload) {String} token - signed JWT token
  * @apiParam (Payload) {String[]} audience - which namespaces of metadata to return
+ * @apiParam (Payload) {Boolean} [peek=false] - whether to update last access or not
+ * @apiParam (Payload) {Boolean} [accessToken=false] - uses internal token verification if set to true
  *
  */
 function verify({ params }) {
@@ -44,6 +50,7 @@ function verify({ params }) {
   const audience = toArray(params.audience);
   const token = params.token;
   const peek = params.peek;
+  const accessToken = params.accessToken;
 
   // internal context
   const ctx = {
@@ -55,7 +62,7 @@ function verify({ params }) {
 
   return Promise
     .bind(this, [token, audience, peek])
-    .spread(jwt.verify)
+    .spread(accessToken ? jwt.internal : jwt.verify)
     .bind(ctx)
     .then(decodedToken);
 }

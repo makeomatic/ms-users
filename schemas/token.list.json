@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "username"
+  ],
+  "properties": {
+    "username": {
+      "$ref": "common.json#/definitions/userId"
+    },
+    "page": {
+      "type": "integer",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 10
+    },
+    "pageSize": {
+      "type": "integer",
+      "default": 20,
+      "minimum": 10,
+      "maximum": 40
+    }
+  }
+}

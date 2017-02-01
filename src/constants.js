@@ -10,6 +10,8 @@ module.exports = {
   USERS_DATA: 'data',
   USERS_METADATA: 'metadata',
   USERS_TOKENS: 'tokens',
+  USERS_API_TOKENS: 'api-tokens',
+  USERS_API_TOKENS_ZSET: 'api-tokens-set',
 
   USERS_ALIAS_FIELD: 'alias',
   USERS_BANNED_FLAG: 'ban',

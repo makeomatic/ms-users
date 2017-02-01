@@ -71,6 +71,17 @@ function registerUser(username, opts = {}) {
   };
 }
 
+function getJWTToken(username, password = '123') {
+  return function getJWT() {
+    const dispatch = simpleDispatcher(this.users.router);
+    return dispatch('users.login', { username, password, audience: '*.localhost' })
+      .get('jwt')
+      .then((token) => {
+        this.jwt = token;
+      });
+  };
+}
+
 function inspectPromise(mustBeFulfilled = true) {
   return function inspection(promise) {
     const isFulfilled = promise.isFulfilled();
@@ -117,6 +128,7 @@ function clearRedis() {
     });
 }
 
+global.globalAuthUser = getJWTToken;
 global.startService = startService;
 global.inspectPromise = inspectPromise;
 global.clearRedis = clearRedis;

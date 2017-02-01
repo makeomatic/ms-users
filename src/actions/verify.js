@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const { HttpStatusError } = require('common-errors');
 const jwt = require('../utils/jwt.js');
 const getMetadata = require('../utils/getMetadata.js');
 
@@ -12,6 +13,10 @@ const toArray = maybeArray => (isArray(maybeArray) ? maybeArray : [maybeArray]);
  * Verifies decoded token
  */
 function decodedToken({ username }) {
+  if (!username) {
+    throw new HttpStatusError(403, 'forged or expired token');
+  }
+
   const { audience, defaultAudience, service } = this;
 
   // push extra audiences

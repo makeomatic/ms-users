@@ -67,13 +67,6 @@ function remapInvalidTokenError(err) {
 }
 
 /**
- * Logs error
- */
-function logError(err) {
-  this.log.error('failed', err);
-}
-
-/**
  * Erases the token
  */
 function eraseToken(decoded) {
@@ -173,34 +166,20 @@ exports.verify = function verifyToken(token, audience, peek) {
 };
 
 /**
- * Verifies redis response, updates expiration time & returns username
- * NOTE: can be improved via LUA script
- */
-function verifyRedisResponse(username, expiration) {
-  if (!username) {
-    throw new Errors.HttpStatusError(403, 'token has expired or was forged');
-  }
-
-  // don't wait for the action to complete
-  if (expiration && expiration > 0 && this.peek !== true) {
-    this.redis
-      .pttl(this.key, expiration)
-      .bind({ log: this.log })
-      .catch(logError);
-  }
-
-  return { username };
-}
-
-/**
  * Verifies internal token
  * @param {String} token
  * @param {Array} audience
  * @param {Boolean} peek
  * @return {Promise}
  */
-exports.internal = function verifyInternalToken(token, audience, peek) {
-  const [usernameHash, uuid, signature] = token.split('.');
+exports.internal = function verifyInternalToken(token) {
+  const tokenParts = token.split('.');
+
+  if (tokenParts.length !== 3) {
+    throw new Errors.HttpStatusError(403, 'malformed token');
+  }
+
+  const [usernameHash, uuid, signature] = tokenParts;
 
   // token is malformed, must be username.uuid.signature
   if (!usernameHash || !uuid || !signature) {
@@ -221,7 +200,6 @@ exports.internal = function verifyInternalToken(token, audience, peek) {
   const redis = this.redis;
 
   return redis
-    .hmget(key, 'username', 'expiration')
-    .bind({ redis, key, peek, log: this.log })
-    .spread(verifyRedisResponse);
+    .hget(key, 'username')
+    .then(username => ({ username }));
 };

@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "token"
+  ],
+  "properties": {
+    "username": {
+      "$ref": "common.json#/definitions/userId"
+    },
+    "token": {
+      "type": "string"
+    }
+  }
+}

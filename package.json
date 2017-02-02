@@ -48,7 +48,7 @@
     "mservice": "^4.8.0",
     "node-uuid": "^1.4.7",
     "password-generator": "^2.1.0",
-    "redis-filtered-sort": "^2.0.3",
+    "redis-filtered-sort": "^2.0.5",
     "request": "^2.79.0",
     "request-promise": "^4.1.1",
     "scrypt": "^6.0.1",

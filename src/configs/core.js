@@ -1,3 +1,5 @@
+const path = require('path');
+
 /**
  * Debug mode on/off
  * @type {Boolean}
@@ -56,7 +58,7 @@ exports.logger = process.env.NODE_ENV === 'development';
  * Local schemas for validation
  * @type {Array}
  */
-exports.validator = ['../../schemas'];
+exports.validator = [path.resolve(__dirname, '../../schemas')];
 
 /**
  * Default hooks

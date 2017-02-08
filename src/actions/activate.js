@@ -18,6 +18,11 @@ const {
 // cache error
 const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
 
+function RethrowForbidden(e) {
+  this.log.warn({ token: this.token, username: this.username }, 'failed to activate', e);
+  throw Forbidden;
+}
+
 /**
  * @api {amqp} <prefix>.activate Activate User
  * @apiVersion 1.0.0
@@ -64,8 +69,10 @@ function verifyChallenge(request) {
       opts.control = { action };
     }
 
-    return this.tokenManager.verify(args, opts)
-      .catchThrow(Forbidden)
+    return this.tokenManager
+      .verify(args, opts)
+      .bind({ log, token, username })
+      .catch(RethrowForbidden)
       .get('id');
   }
 

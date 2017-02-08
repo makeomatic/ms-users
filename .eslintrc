@@ -27,7 +27,8 @@
       "imports": "never",
       "exports": "never",
       "functions": "never",
-    }]
+    }],
+    "no-multi-assign": 0
   },
   "root": true
 }

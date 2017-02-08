@@ -37,7 +37,7 @@ module.exports = function createToken({ params }) {
   // prepare to store
   return redis
     .pipeline()
-    .hmset(key, { username, name })
+    .hmset(key, { username, name, uuid: tokenPart })
     .zadd(zset, Date.now(), payload)
     .exec()
     .then(handlePipelineError)

@@ -2,14 +2,15 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "token"
+    "token",
+    "username"
   ],
   "properties": {
     "username": {
       "$ref": "common.json#/definitions/userId"
     },
     "token": {
-      "type": "string"
+      "$ref": "common.json#/definitions/uuid-v4"
     }
   }
 }

@@ -2633,9 +2633,9 @@ ms-mailer-templates@^0.15.0:
     common-errors "^1.0.0"
     handlebars "^4.0.5"
 
-ms-token@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/ms-token/-/ms-token-1.3.0.tgz#a0ea36db2c28729517c44e1c12c45d09b3bfc0c0"
+ms-token@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/ms-token/-/ms-token-1.4.1.tgz#4fe25f3502bbbe463beef31ededbf46efe79865a"
   dependencies:
     base64-url "^1.3.3"
     chance "^1.0.4"

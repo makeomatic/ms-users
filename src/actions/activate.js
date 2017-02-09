@@ -17,10 +17,126 @@ const {
 
 // cache error
 const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
+const Inactive = new Errors.HttpStatusError(412, 'expired token, please request a new email');
+const Active = new Errors.HttpStatusError(409, 'account is already active, please use sign in form');
 
+/**
+ * Helper to determine if something is true
+ */
+function throwBasedOnStatus(status) {
+  if (status === 'true') {
+    throw Active;
+  }
+
+  throw Inactive;
+}
+
+/**
+ * Verifies that account is active
+ */
+function isAccountActive(data) {
+  const username = data[USERS_USERNAME_FIELD];
+  const userKey = redisKey(username, USERS_DATA);
+  return this.redis
+    .hget(userKey, USERS_ACTIVE_FLAG)
+    .then(throwBasedOnStatus);
+}
+
+/**
+ * Modifies error from the token
+ */
 function RethrowForbidden(e) {
-  this.log.warn({ token: this.token, username: this.username }, 'failed to activate', e);
-  throw Forbidden;
+  this.log.warn({ token: this.token, username: this.username }, 'failed to activate', e.message);
+
+  // remap error message
+  // and possibly status code
+  if (!e.args) {
+    throw Forbidden;
+  }
+
+  return Promise
+    .bind(this.service, e.args.id)
+    // if it can't get internal data - will throw 404
+    .then(getInternalData)
+    // if it's active will throw 409, otherwise 412
+    .then(isAccountActive);
+}
+
+/**
+ * Simple invocation for userExists
+ */
+function doesUserExist() {
+  return userExists.call(this.service, this.username);
+}
+
+/**
+ * Verifies validity of token
+ */
+function verifyToken() {
+  let args;
+  const { token, username } = this;
+  const action = USERS_ACTION_ACTIVATE;
+  const opts = { erase: this.erase };
+
+  if (username) {
+    args = {
+      action,
+      token,
+      id: username,
+    };
+  } else {
+    args = token;
+    opts.control = { action };
+  }
+
+  return this.tokenManager
+    .verify(args, opts)
+    .bind({ log: this.service.log, token, username })
+    .catch(RethrowForbidden)
+    .get('id');
+}
+
+/**
+ * Activates account after it was verified
+ * @param  {Object} data internal user data
+ * @return {Promise}
+ */
+function activateAccount(data) {
+  const user = data[USERS_USERNAME_FIELD];
+  const alias = data[USERS_ALIAS_FIELD];
+  const userKey = redisKey(user, USERS_DATA);
+
+  // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
+  // set to active & persist
+  const pipeline = this.service
+    .redis
+    .pipeline()
+    .hget(userKey, USERS_ACTIVE_FLAG)
+    .hset(userKey, USERS_ACTIVE_FLAG, 'true')
+    .persist(userKey)
+    .sadd(USERS_INDEX, user);
+
+  if (alias) {
+    pipeline.sadd(USERS_PUBLIC_INDEX, user);
+  }
+
+  return pipeline
+    .exec()
+    .then(handlePipeline)
+    .spread(function pipeResponse(isActive) {
+      const status = isActive;
+      if (status === 'true') {
+        throw new Errors.HttpStatusError(417, `Account ${user} was already activated`);
+      }
+    })
+    .return(user);
+}
+
+/**
+ * Invokes available hooks
+ */
+function hook(user) {
+  return this.service.hook('users:activate', user, { audience: this.audience });
 }
 
 /**
@@ -44,78 +160,33 @@ function RethrowForbidden(e) {
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
  */
-function verifyChallenge(request) {
+function verifyChallenge({ params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
-  const { token, username } = request.params;
-  const { redis, config, log } = this;
-  const audience = request.params.audience || config.defaultAudience;
+  const { token, username } = params;
+  const { log, config } = this;
+  const audience = params.audience || config.defaultAudience;
 
-  log.debug('incoming request params %j', request.params);
+  log.debug('incoming request params %j', params);
 
-  function verifyToken() {
-    let args;
-    const action = USERS_ACTION_ACTIVATE;
-    const opts = { erase: config.token.erase };
-
-    if (username) {
-      args = {
-        action,
-        id: username,
-        token,
-      };
-    } else {
-      args = token;
-      opts.control = { action };
-    }
-
-    return this.tokenManager
-      .verify(args, opts)
-      .bind({ log, token, username })
-      .catch(RethrowForbidden)
-      .get('id');
-  }
-
-  function activateAccount(data) {
-    const user = data[USERS_USERNAME_FIELD];
-    const alias = data[USERS_ALIAS_FIELD];
-    const userKey = redisKey(user, USERS_DATA);
-
-    // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
-    // set to active & persist
-    const pipeline = redis
-      .pipeline()
-      .hget(userKey, USERS_ACTIVE_FLAG)
-      .hset(userKey, USERS_ACTIVE_FLAG, 'true')
-      .persist(userKey)
-      .sadd(USERS_INDEX, user);
-
-    if (alias) {
-      pipeline.sadd(USERS_PUBLIC_INDEX, user);
-    }
-
-    return pipeline
-      .exec()
-      .then(handlePipeline)
-      .spread(function pipeResponse(isActive) {
-        const status = isActive;
-        if (status === 'true') {
-          throw new Errors.HttpStatusError(417, `Account ${user} was already activated`);
-        }
-      })
-      .return(user);
-  }
-
-  function hook(user) {
-    return this.hook.call(this, 'users:activate', user, { audience });
-  }
+  // basic context
+  const ctx = {
+    username,
+    token,
+    audience,
+    service: this,
+    erase: config.token.erase,
+  };
 
   return Promise
-    .bind(this, username)
-    .then(token ? verifyToken : userExists)
+    .bind(ctx)
+    .then(token ? verifyToken : doesUserExist)
+    .bind(this)
     .then(getInternalData)
     .then(activateAccount)
+    .bind(ctx)
     .tap(hook)
+    .bind(this)
     .then(user => [user, audience])
     .spread(jwt.login);
 }

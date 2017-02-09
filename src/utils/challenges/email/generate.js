@@ -15,6 +15,9 @@ const {
   USERS_ACTION_INVITE,
 } = require('../../../constants.js');
 
+// will be replaced later
+const placeholder = partial.placeholder;
+
 function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   const { config } = this;
   const { validation, server, pwdReset } = config;
@@ -68,11 +71,11 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
 module.exports = exports = generate;
 
 // short-hand methods
-exports.newPassword = partial(generate, partial.placeholder, USERS_ACTION_PASSWORD, {}, { send: true });
-exports.register = partial(generate, partial.placeholder, USERS_ACTION_REGISTER, {}, partial.placeholder);
+exports.newPassword = partial(generate, placeholder, USERS_ACTION_PASSWORD, {}, { send: true });
+exports.register = partial(generate, placeholder, USERS_ACTION_REGISTER, placeholder, placeholder);
 
 // these should simply generate an email
 // as they are likely to be used from withing createChallenge or require custom context
-exports.activation = partial(generate, partial.placeholder, USERS_ACTION_ACTIVATE);
-exports.resetPassword = partial(generate, partial.placeholder, USERS_ACTION_RESET);
-exports.invite = partial(generate, partial.placeholder, USERS_ACTION_INVITE);
+exports.activation = partial(generate, placeholder, USERS_ACTION_ACTIVATE);
+exports.resetPassword = partial(generate, placeholder, USERS_ACTION_RESET);
+exports.invite = partial(generate, placeholder, USERS_ACTION_INVITE);

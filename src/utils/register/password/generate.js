@@ -1,6 +1,6 @@
-const { CHALLENGE_TYPE_EMAIL, CHALLENGE_TYPE_PHONE } = require('../../../constants.js');
+const { CHALLENGE_TYPE_EMAIL, CHALLENGE_TYPE_PHONE } = require('../../../constants');
 const Errors = require('common-errors');
-const passwordByEmail = require('../../challenges/email/generate.js').register;
+const passwordByEmail = require('../../challenges/email/generate').register;
 const passwordByPhone = require('../../challenges/phone/send').register;
 const Promise = require('bluebird');
 
@@ -21,12 +21,12 @@ function factory(challengeType) {
  *
  * @todo send password after user creation
  */
-function generatePassword(challengeType, userId) {
+function generatePassword(challengeType, userId, ctx, opts) {
   const passwordGenerator = factory(challengeType);
 
   return Promise
-    .bind(this, userId)
-    .then(passwordGenerator)
+    .bind(this, [userId, ctx, opts])
+    .spread(passwordGenerator)
     .get('context')
     .get('password');
 }

@@ -2600,9 +2600,9 @@ ms-mailer-client@^5.0.1:
   dependencies:
     lodash "^4.17.2"
 
-ms-mailer-templates@^0.15.0:
-  version "0.15.0"
-  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-0.15.0.tgz#5e14bb7d6ba1721427d53e7fbabc6666bd2ad557"
+ms-mailer-templates@^0.16.0:
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-0.16.0.tgz#50e657d1306a02161a4ba7adbe81b67c35c0f8d0"
   dependencies:
     bluebird "^3.4.6"
     common-errors "^1.0.0"

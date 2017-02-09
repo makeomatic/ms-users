@@ -89,7 +89,8 @@ function verifyToken() {
     opts.control = { action };
   }
 
-  return this.tokenManager
+  return this.service
+    .tokenManager
     .verify(args, opts)
     .bind({ log: this.service.log, token, username })
     .catch(RethrowForbidden)
@@ -108,8 +109,7 @@ function activateAccount(data) {
 
   // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
   // set to active & persist
-  const pipeline = this.service
-    .redis
+  const pipeline = this.redis
     .pipeline()
     .hget(userKey, USERS_ACTIVE_FLAG)
     .hset(userKey, USERS_ACTIVE_FLAG, 'true')

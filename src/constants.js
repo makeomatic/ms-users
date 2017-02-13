@@ -6,6 +6,9 @@ module.exports = {
   USERS_PUBLIC_INDEX: 'users-public',
   USERS_ALIAS_TO_LOGIN: 'users-alias',
 
+  // referral tracking
+  USERS_REF: 'users-ref',
+
   // hashes
   USERS_DATA: 'data',
   USERS_METADATA: 'metadata',
@@ -25,6 +28,7 @@ module.exports = {
   USERS_IS_ORG_FIELD: 'org',
   USERS_PASSWORD_FIELD: 'password',
   USERS_NEXT_CYCLE_FIELD: 'nextCycle',
+  USERS_REFERRAL_FIELD: 'referral',
 
   // pre-generated errors
   USERS_DISPOSABLE_PASSWORD_MIA: new Errors.HttpStatusError(403, 'Invalid or Expired Password'),

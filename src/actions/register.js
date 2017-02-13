@@ -20,12 +20,14 @@ const challenge = require('../utils/challenges/challenge.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const hashPassword = require('../utils/register/password/hash');
 const {
+  USERS_REF,
   USERS_INDEX,
   USERS_DATA,
   USERS_ACTIVE_FLAG,
   USERS_CREATED_FIELD,
   USERS_USERNAME_FIELD,
   USERS_PASSWORD_FIELD,
+  USERS_REFERRAL_FIELD,
   lockAlias,
   lockRegister,
   USERS_ACTION_INVITE,
@@ -37,6 +39,11 @@ const {
 // cached helpers
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const retNull = constant(null);
+const ErrorConflictUserExists = new Errors.HttpStatusError(409, 'user already exists');
+const ErrorMalformedAudience = new Errors.HttpStatusError(400, 'non-default audience must be accompanied by non-empty metadata or inviteToken');
+const ErrorMalformedInvite = new Errors.HttpStatusError(400, 'Account must be activated when using invite token');
+const ErrorInvitationExpiredOrUsed = new Errors.HttpStatusError(400, 'Invitation has expired or already been used');
+const ErrorMissing = { statusCode: 404 };
 
 // metadata merger
 // comes in the format of audience.data
@@ -44,6 +51,50 @@ const mergeMetadata = (accumulator, value, prop) => {
   accumulator[prop] = merge(accumulator[prop] || {}, value);
   return accumulator;
 };
+
+/**
+ * Verifies that token has not be used before
+ * @param  {Object}  token
+ * @return {Object}
+ */
+function verifyRedisTokenResponse(token) {
+  if (!token.isFirstVerification) {
+    throw ErrorInvitationExpiredOrUsed;
+  }
+
+  return token;
+}
+
+/**
+ * Token verification function, on top of it returns extra metadata
+ * @return {Promise}
+ */
+function verifyToken() {
+  return this.tokenManager
+    .verify(this.inviteToken, { erase: false, control: this.control })
+    .then(verifyRedisTokenResponse)
+    .get('metadata')
+    .get(TOKEN_METADATA_FIELD_METADATA)
+    .then(meta => reduce(meta, mergeMetadata, this.metadata));
+}
+
+/**
+ * Verifies if there is a referal stored for this user
+ * @return {Promise}
+ */
+function verifyReferral() {
+  const key = redisKey(USERS_REF, this.referral);
+  return this.redis
+    .get(key)
+    .then((reference) => {
+      if (!reference) {
+        return null;
+      }
+
+      this.metadata[this.audience][USERS_REFERRAL_FIELD] = reference;
+      return null;
+    });
+}
 
 /**
  * @api {amqp} <prefix>.register Create User
@@ -87,6 +138,7 @@ function registerUser(request) {
     skipChallenge,
     skipPassword,
     username,
+    referral,
   } = params;
   const alias = params.alias && params.alias.toLowerCase();
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
@@ -100,11 +152,11 @@ function registerUser(request) {
     : [params.audience, defaultAudience];
 
   if (audience.length === 2 && !params.metadata && !inviteToken) {
-    throw new Errors.HttpStatusError(400, 'non-default audience must be accompanied by non-empty metadata or inviteToken');
+    throw ErrorMalformedAudience;
   }
 
   if (inviteToken && !activate) {
-    throw new Errors.HttpStatusError(400, 'Account must be activated when using invite token');
+    throw ErrorMalformedInvite;
   }
 
   // cache metadata
@@ -141,18 +193,6 @@ function registerUser(request) {
   // it can be overwritten by sending `anyUsername: true`
   const control = { action: USERS_ACTION_INVITE };
   if (!anyUsername) control.id = username;
-  const verifyToken = () => tokenManager
-    .verify(inviteToken, { erase: false, control })
-    .then((token) => {
-      if (!token.isFirstVerification) {
-        throw new Errors.HttpStatusError(400, 'Invitation has expired or already been used');
-      }
-
-      return token;
-    })
-    .get('metadata')
-    .get(TOKEN_METADATA_FIELD_METADATA)
-    .then(meta => reduce(meta, mergeMetadata, metadata));
 
   // acquire lock now!
   return promise
@@ -166,12 +206,25 @@ function registerUser(request) {
 
         // do verifications of DB state
         .tap(userExists)
-        .throw(new Errors.HttpStatusError(409, `"${username}" already exists`))
-        .catchReturn({ statusCode: 404 }, username)
+        .throw(ErrorConflictUserExists)
+        .catchReturn(ErrorMissing, username)
         .tap(alias ? aliasExists(alias, true) : noop)
 
         // generate password hash
+        .bind({
+          redis,
+          tokenManager,
+          control,
+          inviteToken,
+          metadata,
+          referral,
+          audience: params.audience,
+        })
+        // verifies token and adds extra meta if this is present
         .tap(inviteToken ? verifyToken : noop)
+        // if referral is set - verifies if it was previously saved
+        .tap(referral ? verifyReferral : noop)
+        // prepare next context
         .return([
           password,
           challengeType,
@@ -181,6 +234,7 @@ function registerUser(request) {
           // for personalized emails
           metadata[params.audience],
         ])
+        .bind(this)
         .spread(skipPassword === false ? hashPassword : retNull)
 
         // create user

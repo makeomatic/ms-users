@@ -69,6 +69,9 @@
     "challengeType": {
       "default": "email",
       "$ref": "common.json#/definitions/challengeType"
+    },
+    "referral": {
+      "type": "string"
     }
   }
 }

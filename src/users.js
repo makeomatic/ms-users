@@ -2,18 +2,15 @@ const Promise = require('bluebird');
 const Mservice = require('mservice');
 const Mailer = require('ms-mailer-client');
 const Errors = require('common-errors');
-const path = require('path');
 const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
 const TokenManager = require('ms-token');
 const LockManager = require('dlock');
 const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
-const { globFiles } = require('ms-conf/lib/load-config');
+const defaultOpts = require('./config');
 
 const { NotImplementedError } = Errors;
-
-const defaultOpts = globFiles(path.resolve(__dirname, 'configs'));
 
 /**
  * @namespace Users

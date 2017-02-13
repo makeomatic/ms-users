@@ -91,7 +91,7 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise(false))
       .then((error) => {
-        assert.equal(error.message, 'user already exists');
+        assert.equal(error.message, `"${opts.alias}" already exists`);
         assert.equal(error.name, 'HttpStatusError');
         assert.equal(error.statusCode, 409);
       });

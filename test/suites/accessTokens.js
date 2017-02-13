@@ -68,7 +68,8 @@ describe('#token.*', function activateSuite() {
           assert.ok(/^auto:\d+$/, token.name);
           assert.equal(token.username, username);
           assert.ok(token.added);
-          assert.equal(Object.keys(token).length, 3);
+          assert.ok(token.uuid);
+          assert.equal(Object.keys(token).length, 4);
         });
     });
 
@@ -85,7 +86,8 @@ describe('#token.*', function activateSuite() {
           assert.equal(token.name, 'initial token');
           assert.equal(token.username, username);
           assert.ok(token.added);
-          assert.equal(Object.keys(token).length, 3);
+          assert.ok(token.uuid);
+          assert.equal(Object.keys(token).length, 4);
         });
     });
   });
@@ -94,7 +96,7 @@ describe('#token.*', function activateSuite() {
   describe('#token.erase', function eraseTokenSuite() {
     it('removes all issued tokens but the initial one', function test() {
       return Promise.map(tokenHolder.slice(1), token => (
-        this.dispatch(eraseRoute, { username, token })
+        this.dispatch(eraseRoute, { username, token: token.split('.')[1] })
       ))
       .reflect()
       .then(inspectPromise());
@@ -113,7 +115,8 @@ describe('#token.*', function activateSuite() {
           assert.equal(token.name, 'initial token');
           assert.equal(token.username, username);
           assert.ok(token.added);
-          assert.equal(Object.keys(token).length, 3);
+          assert.ok(token.uuid);
+          assert.equal(Object.keys(token).length, 4);
         });
     });
   });

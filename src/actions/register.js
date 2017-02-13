@@ -172,7 +172,15 @@ function registerUser(request) {
 
         // generate password hash
         .tap(inviteToken ? verifyToken : noop)
-        .return([password, challengeType, username])
+        .return([
+          password,
+          challengeType,
+          username,
+          // this will be passed as context if we need to send an email
+          // effectively allowing us to get some meta like firstName and lastName
+          // for personalized emails
+          metadata[params.audience],
+        ])
         .spread(skipPassword === false ? hashPassword : retNull)
 
         // create user

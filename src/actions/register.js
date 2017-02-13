@@ -97,6 +97,15 @@ function verifyReferral() {
 }
 
 /**
+ * Disposes of the lock
+ * @return {Null}
+ */
+function lockDisposer(lock) {
+  lock.release().reflect();
+  return null;
+}
+
+/**
  * @api {amqp} <prefix>.register Create User
  * @apiVersion 1.0.0
  * @apiName RegisterUser
@@ -194,13 +203,14 @@ function registerUser(request) {
   const control = { action: USERS_ACTION_INVITE };
   if (!anyUsername) control.id = username;
 
+  // lock acquisition
+  const acquireLock = this.dlock
+    .multi(lockRegister(username), alias && lockAlias(alias))
+    .disposer(lockDisposer);
+
   // acquire lock now!
   return promise
-    .then(() => (
-      // multi-lock if we need to acquire alias
-      this.dlock.multi(lockRegister(username), alias && lockAlias(alias))
-    ))
-    .then(lock => (
+    .then(() => Promise.using(acquireLock, () => (
       Promise
         .bind(this, username)
 
@@ -316,11 +326,7 @@ function registerUser(request) {
             .return([username, params.audience])
             .spread(jwt.login);
         })
-        .finally(() => {
-          // don't wait for this to complete
-          lock.release().reflect();
-          return null;
-        })
+      )
     ));
 }
 

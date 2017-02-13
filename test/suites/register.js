@@ -12,7 +12,7 @@ describe('#register', function registerSuite() {
     return this.dispatch('users.register', {})
       .reflect()
       .then(inspectPromise(false))
-      .then(registered => {
+      .then((registered) => {
         assert.equal(registered.name, 'ValidationError');
         assert.equal(registered.errors.length, 2);
       });
@@ -31,7 +31,7 @@ describe('#register', function registerSuite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(true))
-      .then(registered => {
+      .then((registered) => {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
         assert.equal(registered.user.username, opts.username);
@@ -56,7 +56,7 @@ describe('#register', function registerSuite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(true))
-      .then(registered => {
+      .then((registered) => {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
         assert.equal(registered.user.username, opts.username);
@@ -90,8 +90,8 @@ describe('#register', function registerSuite() {
       })
       .reflect()
       .then(inspectPromise(false))
-      .then(error => {
-        assert.equal(error.message, `"${opts.alias}" already exists`);
+      .then((error) => {
+        assert.equal(error.message, 'user already exists');
         assert.equal(error.name, 'HttpStatusError');
         assert.equal(error.statusCode, 409);
       });
@@ -110,7 +110,7 @@ describe('#register', function registerSuite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(true))
-      .then(registered => {
+      .then((registered) => {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
         assert.equal(registered.user.username, opts.username);
@@ -136,7 +136,7 @@ describe('#register', function registerSuite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
-      .then(value => {
+      .then((value) => {
         assert.deepEqual(value, { requiresActivation: true, id: 'v@makeomatic.ru' });
       });
   });
@@ -154,7 +154,7 @@ describe('#register', function registerSuite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
-      .then(value => {
+      .then((value) => {
         assert.deepEqual(value, { requiresActivation: true, id: 'v@makeomatic.ru' });
       });
   });
@@ -178,10 +178,10 @@ describe('#register', function registerSuite() {
       return this.dispatch('users.register', opts)
         .reflect()
         .then(inspectPromise(false))
-        .then(registered => {
+        .then((registered) => {
           assert.equal(registered.name, 'HttpStatusError');
           assert.equal(registered.statusCode, 409);
-          assert(/"v@makeomatic\.ru" already exists/.test(registered.message));
+          assert(/user already exists/.test(registered.message));
         });
     });
   });
@@ -208,7 +208,7 @@ describe('#register', function registerSuite() {
       return this.dispatch('users.register', opts)
         .reflect()
         .then(inspectPromise(false))
-        .then(failed => {
+        .then((failed) => {
           assert.equal(failed.name, 'HttpStatusError');
           assert.equal(failed.statusCode, 429);
           assert.equal(failed.message, 'You can\'t register more users from your ipaddress now');
@@ -229,7 +229,7 @@ describe('#register', function registerSuite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(false))
-      .then(failed => {
+      .then((failed) => {
         assert.equal(failed.name, 'HttpStatusError');
         assert.equal(failed.statusCode, 400);
         assert.equal(failed.message, 'you must use non-disposable email to register');
@@ -249,7 +249,7 @@ describe('#register', function registerSuite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise(false))
-      .then(failed => {
+      .then((failed) => {
         assert.equal(failed.name, 'HttpStatusError');
         assert.equal(failed.statusCode, 400);
         assert.equal(failed.message, 'no MX record was found for hostname aminev.co');

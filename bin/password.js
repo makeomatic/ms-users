@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
-// quickly generates bearer for a passed username
 /* eslint-disable no-console */
-
 const Redis = require('ioredis').Cluster;
 const conf = require('ms-conf');
 const assert = require('assert');
@@ -19,7 +17,7 @@ assert(username, 'must provide id as argv[2]');
 assert(password, 'must provide password of token as argv[3]');
 
 
-const redis = new Redis(redisConfig);
+const redis = new Redis(redisConfig.hosts, Object.assign({}, redisConfig.options, { lazyConnect: true }));
 
 // connection options
 return redis

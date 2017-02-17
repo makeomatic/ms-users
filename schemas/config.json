@@ -15,9 +15,6 @@
     "phone"
   ],
   "properties": {
-    "debug": {
-      "type": "boolean"
-    },
     "deleteInactiveAccounts": {
       "type": "integer",
       "minimum": 0
@@ -111,10 +108,7 @@
       }
     },
     "logger": {
-      "oneOf": [
-        { "type": "boolean" },
-        { "type": "object" }
-      ]
+      "type": "object"
     },
     "captcha": {
       "required": [ "secret", "uri", "ttl" ],

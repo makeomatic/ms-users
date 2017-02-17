@@ -25,8 +25,10 @@ global.AMQP_OPTS = {
 const config = {
   amqp: global.AMQP_OPTS,
   redis: global.REDIS,
-  logger: true,
-  debug: true,
+  logger: {
+    defaultLogger: true,
+    debug: true,
+  },
   validation: {
     templates: {
       activate: 'cappasity-activate',

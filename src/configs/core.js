@@ -1,10 +1,10 @@
 const path = require('path');
 
 /**
- * Debug mode on/off
- * @type {Boolean}
+ * Default name of the service
+ * @type {String}
  */
-exports.debug = process.env.NODE_ENV === 'development';
+exports.name = 'ms-users';
 
 /**
  * Seconds to keep inactive accounts in the database
@@ -52,7 +52,10 @@ exports.plugins = [
  * by default only ringBuffer logger is enabled in prod
  * @type {Boolean}
  */
-exports.logger = process.env.NODE_ENV === 'development';
+exports.logger = {
+  defaultLogger: process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === 'development',
+};
 
 /**
  * Local schemas for validation

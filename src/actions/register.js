@@ -129,6 +129,7 @@ function lockDisposer(lock) {
  * @apiParam (Payload) {Boolean} [skipChallenge=false] - if `activate` is `false` disables sending challenge
  * @apiParam (Payload) {Boolean} [skipPassword=false] - disable setting password
  * @apiParam (Payload) {String} [challengeType="email"] - challenge type
+ * @apiParam (Payload) {String} [referral] - pass id/fingerprint of the client to see if it was stored before and associate with this account
  */
 function registerUser(request) {
   const { redis, config, tokenManager } = this;

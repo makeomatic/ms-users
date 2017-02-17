@@ -52,7 +52,7 @@ function enrichResponse({ data, tokens }) {
 }
 
 /**
- * @api {amqp} <prefix>.token.list Create Token
+ * @api {amqp} <prefix>.token.list List Tokens
  * @apiVersion 1.0.0
  * @apiName ListTokens
  * @apiGroup Tokens

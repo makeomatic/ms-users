@@ -6,9 +6,9 @@ const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
 const TokenManager = require('ms-token');
 const LockManager = require('dlock');
-const defaultOpts = require('./defaults.js');
 const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
+const defaultOpts = require('./config');
 
 const { NotImplementedError } = Errors;
 

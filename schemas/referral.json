@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "referral"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "referral": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

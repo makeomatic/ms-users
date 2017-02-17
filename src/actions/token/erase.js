@@ -4,7 +4,7 @@ const handlePipelineError = require('../../utils/pipelineError');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
 
 /**
- * @api {amqp} <prefix>.token.erase Create Token
+ * @api {amqp} <prefix>.token.erase Erase Token
  * @apiVersion 1.0.0
  * @apiName EraseToken
  * @apiGroup Tokens

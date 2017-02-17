@@ -7,7 +7,7 @@ const conf = require('ms-conf');
 const AMQPTransport = require('ms-amqp-transport');
 const assert = require('assert');
 const merge = require('lodash/merge');
-const defaults = require('../lib/defaults');
+const defaults = require('../lib/config');
 
 const config = merge({}, defaults, conf.get('/'));
 const amqpConfig = config.amqp.transport;

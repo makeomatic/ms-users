@@ -55,7 +55,7 @@ function RethrowForbidden(e) {
   }
 
   return Promise
-    .bind(this.service, e.args.id)
+    .bind(this, e.args.id)
     // if it can't get internal data - will throw 404
     .then(getInternalData)
     // if it's active will throw 409, otherwise 412
@@ -74,7 +74,7 @@ function doesUserExist() {
  */
 function verifyToken() {
   let args;
-  const { token, username } = this;
+  const { token, username, service } = this;
   const action = USERS_ACTION_ACTIVATE;
   const opts = { erase: this.erase };
 
@@ -92,7 +92,7 @@ function verifyToken() {
   return this.service
     .tokenManager
     .verify(args, opts)
-    .bind({ log: this.service.log, token, username })
+    .bind({ log: service.log, redis: service.redis, token, username })
     .catch(RethrowForbidden)
     .get('id');
 }

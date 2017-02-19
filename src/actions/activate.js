@@ -46,7 +46,7 @@ function isAccountActive(data) {
  * Modifies error from the token
  */
 function RethrowForbidden(e) {
-  this.log.warn({ token: this.token, username: this.username }, 'failed to activate', e.message);
+  this.log.warn({ token: this.token, username: this.username, args: e.args }, 'failed to activate', e.message);
 
   // remap error message
   // and possibly status code

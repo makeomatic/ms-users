@@ -77,7 +77,7 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-mocha": "^4.8.0",
     "eslint-plugin-promise": "^3.4.2",
-    "faker": "^3.0.1",
+    "faker": "^4.0.0",
     "glob": "^7.1.1",
     "isparta": "^4.0.0",
     "istanbul": "=0.4.4",

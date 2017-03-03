@@ -8,8 +8,8 @@ global.Promise = Promise;
 
 global.REDIS = {
   hosts: Array.from({ length: 3 }).map((_, i) => ({
-    host: `redis-${i + 1}`,
-    port: 6379,
+    host: 'redis',
+    port: 7000 + i,
   })),
 };
 

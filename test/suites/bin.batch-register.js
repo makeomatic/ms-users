@@ -35,8 +35,8 @@ describe('binary: batch-register', function suite() {
       if (err) return next(err);
 
       const users = stdout.split('\n');
-      assert.equal(users[0].indexOf('[test@makeomatic.ru] - '), 0);
-      assert.equal(users[1].indexOf('[monarch@makeomatic.ru] - '), 0);
+      assert.equal(users[0].indexOf('[test@makeomatic.ru] - '), 0, JSON.stringify(users));
+      assert.equal(users[1].indexOf('[monarch@makeomatic.ru] - '), 0, JSON.stringify(users));
 
       return next();
     });

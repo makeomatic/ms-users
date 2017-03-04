@@ -25,6 +25,8 @@ describe('binary: batch-register', function suite() {
 
     // pass env to ensure we can connect
     const env = {
+      // this override parent env :(
+      NCONF_NAMESPACE: 'MS_USERS',
       MS_USERS__AMQP__TRANSPORT__CONNECTION__HOST: global.AMQP_OPTS.transport.connection.host,
       MS_USERS__AMQP__TRANSPORT__CONNECTION__PORT: global.AMQP_OPTS.transport.connection.port,
     };

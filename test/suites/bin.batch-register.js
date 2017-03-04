@@ -31,7 +31,7 @@ describe('binary: batch-register', function suite() {
       MS_USERS__AMQP__TRANSPORT__CONNECTION__PORT: global.AMQP_OPTS.transport.connection.port,
     };
 
-    exec(`echo '${JSON.stringify(input)}' | ${binaryPath}`, { env }, (err, stderr, stdout) => {
+    exec(`echo '${JSON.stringify(input)}' | ${binaryPath}`, { env }, (err, stdout) => {
       if (err) return next(err);
 
       const users = stdout.split('\n');

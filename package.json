@@ -49,7 +49,7 @@
     "node-uuid": "^1.4.7",
     "password-generator": "^2.1.0",
     "redis-filtered-sort": "^2.0.6",
-    "request": "^2.79.0",
+    "request": "^2.80.0",
     "request-promise": "^4.1.1",
     "scrypt": "^6.0.1",
     "stdout-stream": "^1.4.0",

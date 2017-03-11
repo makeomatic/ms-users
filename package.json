@@ -5,6 +5,7 @@
   "scripts": {
     "compile": "rm -rf ./lib; babel -d ./lib --copy-files ./src",
     "prepublish": "npm run lint && npm run compile",
+    "pretest": "npm run compile",
     "test": "npm run lint && ./test/docker.sh",
     "start": "node ./bin/mservice.js | bunyan -o short",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
@@ -31,6 +32,7 @@
     "disposable-email-domains": "^1.0.15",
     "dlock": "^6.3.0",
     "flake-idgen": "^1.1.0",
+    "get-stdin": "^5.0.1",
     "ioredis": "^2.4.3",
     "is": "^3.2.1",
     "jsonwebtoken": "^7.3.0",

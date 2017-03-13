@@ -56,7 +56,8 @@
     "request-promise": "^4.1.1",
     "scrypt": "^6.0.1",
     "stdout-stream": "^1.4.0",
-    "urlsafe-base64": "^1.0.0"
+    "urlsafe-base64": "^1.0.0",
+    "yargs": "^7.0.2"
   },
   "devDependencies": {
     "apidoc": "^0.17.5",

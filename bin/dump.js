@@ -26,6 +26,9 @@ const argv = require('yargs')
     describe: 'list public users or not',
     default: false,
   })
+  .option('audience', {
+    describe: 'audience to fetch data from',
+  })
   .coerce({
     filter: JSON.parse,
   })
@@ -41,16 +44,18 @@ const AMQPTransport = require('ms-amqp-transport');
 const csvWriter = require('csv-write-stream');
 const merge = require('lodash/merge');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const defaultOpts = require('../lib/config');
 
 const config = merge({}, defaultOpts, conf.get('/'));
 const amqpConfig = omit(config.amqp.transport, ['queue', 'neck', 'listen', 'onComplete']);
-const audience = config.jwt.defaultAudience;
+const audience = argv.audience || config.jwt.defaultAudience;
 const prefix = config.router.routes.prefix;
 const route = `${prefix}.list`;
 const iterator = {
   offset: 0,
   limit: 24,
+  audience,
   filter: argv.filter,
   public: argv.public,
 };
@@ -58,20 +63,28 @@ const iterator = {
 /**
  * Get transport
  */
-const getTransport = () => AMQPTransport.connect(amqpConfig).dispose(amqp => amqp.close());
+const getTransport = () => AMQPTransport.connect(amqpConfig).disposer(amqp => amqp.close());
 
 /**
  * Output stream
  */
-const output = csvWriter({ headers: ['id', ...argv.field] });
+let output;
+const headers = ['id', ...argv.field];
 switch (argv.output) {
   case 'console':
+    // so it's somewhat easier to read
+    output = csvWriter({ headers, separator: '\t' });
     output.pipe(process.stdout);
     break;
 
-  case 'csv':
-    output.pipe(fs.createWriteStream(`dump-${Date.now()}.csv`));
+  case 'csv': {
+    const filename = `${process.cwd()}/dump-${Date.now()}.csv`;
+    process.stdout.write(`Writing to "${filename}"\n`);
+
+    output = csvWriter({ headers });
+    output.pipe(fs.createWriteStream(filename));
     break;
+  }
 
   default:
     throw new Error('unknown output');
@@ -83,7 +96,7 @@ switch (argv.output) {
 const writeUserToOutput = (user) => {
   const attributes = user.metadata[audience];
   const id = (argv.username && attributes[argv.username]) || user.id;
-  output.write(Object.assign(attributes, { id }));
+  output.write(Object.assign(pick(attributes, argv.field), { id }));
 };
 
 /**

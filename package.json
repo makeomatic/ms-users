@@ -3,10 +3,10 @@
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {
-    "compile": "rm -rf ./lib; babel -d ./lib --copy-files ./src",
+    "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
     "prepublish": "npm run lint && npm run compile",
     "pretest": "npm run compile",
-    "test": "npm run lint && ./test/docker.sh",
+    "test": "npm run lint && rimraf ./coverage && ./test/docker.sh",
     "start": "node ./bin/mservice.js | bunyan -o short",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",
@@ -84,11 +84,10 @@
     "eslint-plugin-promise": "^3.5.0",
     "faker": "^4.1.0",
     "glob": "^7.1.1",
-    "isparta": "^4.0.0",
-    "istanbul": "=0.4.4",
     "json": "^9.0.6",
     "latest-version-cli": "^1.1.0",
     "mocha": "^3.2.0",
+    "nyc": "^10.1.2",
     "rimraf": "^2.6.1",
     "semantic-release": "^6.3.2",
     "sinon": "^1.17.7"
@@ -100,5 +99,28 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "engines": {
+    "node": ">= 7.6.0",
+    "npm": ">= 3.0.0"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.js"
+    ],
+    "exclude": [
+      "src/**/*.spec.js"
+    ],
+    "require": [
+      "babel-register"
+    ],
+    "sourceMap": false,
+    "instrument": false,
+    "cache": true,
+    "reporter": [
+      "lcov",
+      "json",
+      "text-summary"
+    ]
   }
 }

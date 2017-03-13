@@ -30,6 +30,5 @@ services:
     environment:
       NODE_ENV: "test"
       DEBUG: ${DEBUG}
-      SKIP_REBUILD: ${SKIP_REBUILD}
       NCONF_NAMESPACE: MS_USERS
     command: tail -f /dev/null

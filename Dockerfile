@@ -5,7 +5,7 @@ ENV NCONF_NAMESPACE=MS_USERS \
 
 WORKDIR /src
 
-COPY package.json yarn.lock .
+COPY package.json yarn.lock ./
 RUN \
   apk --update add --virtual .buildDeps \
     build-base \

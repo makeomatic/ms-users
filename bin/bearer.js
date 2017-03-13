@@ -24,10 +24,13 @@ function approveSchool(amqp) {
 }
 
 // connection options
-return AMQPTransport
+AMQPTransport
   .connect(amqpConfig)
   .then(amqp => approveSchool(amqp).tap(() => amqp.close()))
   .then((token) => {
     console.info('Created token for %s with name %s:\n\n%s\n\n', username, name, token);
     return process.exit();
+  })
+  .catch((err) => {
+    setImmediate(() => { throw err; });
   });

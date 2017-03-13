@@ -118,6 +118,10 @@ function startService(testConfig = {}) {
     });
 }
 
+function initFakeAccounts() {
+  return this.users.initFakeAccounts();
+}
+
 function clearRedis() {
   const nodes = this.users.redis.nodes('master');
   return Promise
@@ -130,6 +134,7 @@ function clearRedis() {
     });
 }
 
+global.initFakeAccounts = initFakeAccounts;
 global.globalAuthUser = getJWTToken;
 global.startService = startService;
 global.inspectPromise = inspectPromise;

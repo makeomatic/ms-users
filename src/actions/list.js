@@ -26,18 +26,18 @@ const JSONParse = data => JSON.parse(data);
  * @apiParam (Payload) {Boolean} [public=false] - when `true` returns only publicly marked users
  * @apiParam (Payload) {Object} [filter] to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
  */
-function iterateOverActiveUsers(request) {
+function iterateOverActiveUsers({ params }) {
   const { redis } = this;
-  const { criteria, audience, filter } = request.params;
+  const { criteria, audience, filter, expiration = 30000 } = params;
   const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
-  const order = request.params.order || 'ASC';
-  const offset = request.params.offset || 0;
-  const limit = request.params.limit || 10;
+  const order = params.order || 'ASC';
+  const offset = params.offset || 0;
+  const limit = params.limit || 10;
   const metaKey = redisKey('*', USERS_METADATA, audience);
-  const index = request.params.public ? USERS_PUBLIC_INDEX : USERS_INDEX;
+  const index = params.public ? USERS_PUBLIC_INDEX : USERS_INDEX;
 
   return redis
-    .fsort(index, metaKey, criteria, order, strFilter, Date.now(), offset, limit)
+    .fsort(index, metaKey, criteria, order, strFilter, Date.now(), offset, limit, expiration)
     .then((ids) => {
       const length = +ids.pop();
       if (length === 0 || ids.length === 0) {

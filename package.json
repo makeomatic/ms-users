@@ -3,10 +3,10 @@
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
   "scripts": {
-    "compile": "rm -rf ./lib; babel -d ./lib --copy-files ./src",
+    "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
     "prepublish": "npm run lint && npm run compile",
     "pretest": "npm run compile",
-    "test": "npm run lint && ./test/docker.sh",
+    "test": "npm run lint && rimraf ./coverage && ./test/docker.sh",
     "start": "node ./bin/mservice.js | bunyan -o short",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",
@@ -29,6 +29,7 @@
     "bunyan": "^1.8.8",
     "bytes": "^2.4.0",
     "common-errors": "^1.0.0",
+    "csv-write-stream": "^2.0.0",
     "disposable-email-domains": "^1.0.15",
     "dlock": "^6.3.0",
     "flake-idgen": "^1.1.0",
@@ -55,24 +56,27 @@
     "request-promise": "^4.1.1",
     "scrypt": "^6.0.1",
     "stdout-stream": "^1.4.0",
-    "urlsafe-base64": "^1.0.0"
+    "urlsafe-base64": "^1.0.0",
+    "yargs": "^7.0.2"
   },
   "devDependencies": {
     "apidoc": "^0.17.5",
     "apidoc-plugin-schema": "^0.1.1",
-    "babel-cli": "^6.23.0",
+    "babel-cli": "^6.24.0",
     "babel-eslint": "^7.1.1",
+    "babel-plugin-istanbul": "^4.0.0",
     "babel-plugin-syntax-async-functions": "^6.13.0",
     "babel-plugin-transform-async-to-module-method": "^6.22.0",
     "babel-plugin-transform-class-properties": "^6.23.0",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.23.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.0",
     "babel-plugin-transform-es2015-spread": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-plugin-transform-strict-mode": "^6.22.0",
-    "babel-register": "^6.23.0",
+    "babel-register": "^6.24.0",
     "chai": "^3.5.0",
     "codecov": "^1.0.1",
+    "cross-env": "^3.2.3",
     "cz-conventional-changelog": "^2.0.0",
     "eslint": "^3.17.1",
     "eslint-config-makeomatic": "^1.0.1",
@@ -81,11 +85,11 @@
     "eslint-plugin-promise": "^3.5.0",
     "faker": "^4.1.0",
     "glob": "^7.1.1",
-    "isparta": "^4.0.0",
-    "istanbul": "=0.4.4",
     "json": "^9.0.6",
     "latest-version-cli": "^1.1.0",
     "mocha": "^3.2.0",
+    "nyc": "^10.1.2",
+    "rimraf": "^2.6.1",
     "semantic-release": "^6.3.2",
     "sinon": "^1.17.7"
   },
@@ -96,5 +100,28 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "engines": {
+    "node": ">= 7.6.0",
+    "npm": ">= 3.0.0"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.js"
+    ],
+    "exclude": [
+      "src/**/*.spec.js"
+    ],
+    "require": [
+      "babel-register"
+    ],
+    "sourceMap": false,
+    "instrument": false,
+    "cache": true,
+    "reporter": [
+      "lcov",
+      "json",
+      "text-summary"
+    ]
   }
 }

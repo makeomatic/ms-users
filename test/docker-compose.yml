@@ -20,7 +20,7 @@ services:
 
   tester:
     container_name: tester
-    image: makeomatic/node:7.6.0-tester
+    image: makeomatic/node:7.7.2-tester
     links:
       - redis
       - rabbitmq

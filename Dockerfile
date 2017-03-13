@@ -13,8 +13,7 @@ RUN \
     git \
     curl \
     openssl \
-  && npm install --production \
-  && npm dedupe \
+  && yarn install --production \
   && apk del \
     .buildDeps \
     wget \

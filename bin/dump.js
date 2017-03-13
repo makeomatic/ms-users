@@ -120,6 +120,4 @@ const listUsers = amqp => (
 
 Promise
   .using(getTransport(), listUsers)
-  .catch((err) => {
-    setImmediate(() => { throw err; });
-  });
+  .catch(err => setImmediate(() => { throw err; }));

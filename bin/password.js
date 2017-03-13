@@ -20,7 +20,7 @@ assert(password, 'must provide password of token as argv[3]');
 const redis = new Redis(redisConfig.hosts, Object.assign({}, redisConfig.options, { lazyConnect: true }));
 
 // connection options
-return redis
+redis
   .connect()
   .bind({ redis })
   .return([username, password])
@@ -28,4 +28,5 @@ return redis
   .then(() => {
     console.info('\nSet password for %s to "%s"\n', username, password);
     return redis.disconnect();
-  });
+  })
+  .catch(err => setImmediate(() => { throw err; }));

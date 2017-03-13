@@ -10,13 +10,14 @@ const assert = require('assert');
 const AMQPTransport = require('ms-amqp-transport');
 const getStdin = require('get-stdin');
 const merge = require('lodash/merge');
+const omit = require('lodash/omit');
 const defaults = require('lodash/defaults');
 const gen = require('password-generator');
 const defaultOpts = require('../lib/config');
 const { CHALLENGE_TYPE_EMAIL } = require('../lib/constants');
 
 const config = merge({}, defaultOpts, conf.get('/'));
-const amqpConfig = config.amqp.transport;
+const amqpConfig = omit(config.amqp.transport, ['queue', 'neck', 'listen', 'onComplete']);
 const audience = config.jwt.defaultAudience;
 const prefix = config.router.routes.prefix;
 
@@ -36,13 +37,8 @@ function registerUsers(users) {
     .return(users);
 }
 
-// ensure we do not bind to queues
-delete amqpConfig.queue;
-delete amqpConfig.neck;
-delete amqpConfig.listen;
-
 // read data from stdin
-return getStdin()
+getStdin()
   .then(input => JSON.parse(input))
   .then((info) => {
     assert.equal(typeof info.common, 'object');

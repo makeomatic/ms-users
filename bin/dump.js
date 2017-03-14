@@ -29,6 +29,19 @@ const argv = require('yargs')
   .option('audience', {
     describe: 'audience to fetch data from',
   })
+  .option('criteria', {
+    alias: 's',
+    describe: 'sort by supplied field, defaults to original id',
+  })
+  .option('order', {
+    describe: 'sort order',
+    default: 'DESC',
+    choices: ['DESC', 'ASC'],
+  })
+  .option('separator', {
+    describe: 'separator for console output',
+    default: '\t',
+  })
   .coerce({
     filter: JSON.parse,
   })
@@ -58,7 +71,11 @@ const iterator = {
   audience,
   filter: argv.filter,
   public: argv.public,
+  order: argv.order,
 };
+
+// add sorting by this
+if (argv.criteria) iterator.criteria = argv.criteria;
 
 /**
  * Get transport
@@ -73,7 +90,7 @@ const headers = ['id', ...argv.field];
 switch (argv.output) {
   case 'console':
     // so it's somewhat easier to read
-    output = csvWriter({ headers, separator: '\t' });
+    output = csvWriter({ headers, separator: argv.separator });
     output.pipe(process.stdout);
     break;
 

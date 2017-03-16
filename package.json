@@ -75,7 +75,7 @@
     "babel-plugin-transform-strict-mode": "^6.22.0",
     "babel-register": "^6.24.0",
     "chai": "^3.5.0",
-    "codecov": "^1.0.1",
+    "codecov": "^2.0.2",
     "cross-env": "^3.2.3",
     "cz-conventional-changelog": "^2.0.0",
     "eslint": "^3.17.1",

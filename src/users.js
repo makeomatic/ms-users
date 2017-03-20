@@ -9,6 +9,7 @@ const LockManager = require('dlock');
 const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
 const defaultOpts = require('./config');
+const { OauthHandler } = require('./utils/oauth');
 
 const { NotImplementedError } = Errors;
 
@@ -52,6 +53,14 @@ module.exports = class Users extends Mservice {
 
       // run migrations
       this.migrate('redis', `${__dirname}/migrations`);
+    });
+
+    this.on('plugin:start:http', (server) => {
+      this._oauth = new OauthHandler(server, config);
+    });
+
+    this.on('plugin:stop:http', () => {
+      this._oauth = null;
     });
 
     // cleanup connections

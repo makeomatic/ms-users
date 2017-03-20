@@ -45,6 +45,7 @@ exports.plugins = [
   'router',
   'amqp',
   'redisCluster',
+  'http',
 ];
 
 /**

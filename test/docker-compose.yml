@@ -32,3 +32,23 @@ services:
       DEBUG: ${DEBUG}
       NCONF_NAMESPACE: MS_USERS
     command: tail -f /dev/null
+
+  dev:
+    container_name: dev
+    image: makeomatic/ms-users:7.5.0-development
+    links:
+      - redis-1
+      - redis-2
+      - redis-3
+      - rabbitmq
+      - redis-client
+    working_dir: /src
+    volumes:
+      - ${PWD}:/src
+    ports:
+      - "3000:3000"
+    environment:
+      NCONF_FILE_PATH: '["/src/test/config.js"]'
+      NODE_ENV: "development"
+      DEBUG: ${DEBUG}
+    command: node bin/mservice.js

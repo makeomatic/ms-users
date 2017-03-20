@@ -2,6 +2,12 @@ const path = require('path');
 const routerExtension = require('mservice').routerExtension;
 
 /**
+ * Loads existing auth strategies
+ */
+const { strategies } = require('../utils/oauth');
+const jwt = require('../utils/jwtAuthStrategy');
+
+/**
  * This extension defaults schemas to the name of the action
  * @type {Function}
  */
@@ -27,5 +33,11 @@ exports.router = {
   extensions: {
     enabled: ['postRequest', 'preRequest', 'preResponse'],
     register: [autoSchema, auditLog],
+  },
+  auth: {
+    strategies: {
+      ...strategies,
+      jwt,
+    },
   },
 };

@@ -203,3 +203,11 @@ exports.internal = function verifyInternalToken(token) {
     .hget(key, 'username')
     .then(username => ({ username }));
 };
+
+exports.signData = function signData(payload) {
+  const { config } = this;
+  const { jwt: jwtConfig } = config;
+  const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
+
+  return jwt.sign(payload, secret, { algorithms: [algorithm], issuer });
+};

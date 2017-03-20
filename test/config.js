@@ -49,7 +49,19 @@ const config = {
     account: 'twilio',
     waitChallenge: true,
   },
+  oauth: {
+    providers: {
+      facebook: {
+        clientId: process.env.FACEBOOK_CLIENT_ID,
+        clientSecret: process.env.FACEBOOk_CLIENT_SECRET,
+        location: 'http://localhost:3000',
+        password: 'lB4wlZByzpp2R9mGefiLeaZUwVooUuX7G7uctaoeNgxvUs3W',
+      },
+    },
+  },
 };
+
+module.exports = config;
 
 function registerUser(username, opts = {}) {
   return function register() {

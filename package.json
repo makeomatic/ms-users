@@ -29,6 +29,7 @@
     "bluebird": "^3.5.0",
     "bunyan": "^1.8.10",
     "bytes": "^2.5.0",
+    "bell": "^8.5.0",
     "common-errors": "^1.0.0",
     "csv-write-stream": "^2.0.0",
     "disposable-email-domains": "^1.0.17",
@@ -36,6 +37,8 @@
     "flake-idgen": "^1.1.0",
     "get-stdin": "^5.0.1",
     "ioredis": "^3.0.0",
+    "handlebars": "^4.0.6",
+    "hapi": "^16.1.0",
     "is": "^3.2.1",
     "jsonwebtoken": "^7.4.1",
     "jwa": "^1.1.5",
@@ -59,6 +62,7 @@
     "stdout-stream": "^1.4.0",
     "urlsafe-base64": "^1.0.0",
     "yargs": "^8.0.1"
+    "vision": "^4.1.1"
   },
   "devDependencies": {
     "@makeomatic/deploy": "^1.6.2",

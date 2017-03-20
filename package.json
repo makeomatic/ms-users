@@ -42,7 +42,7 @@
     "md5": "^2.2.1",
     "moment": "^2.17.1",
     "ms-amqp-transport": "^7.1.0",
-    "ms-conf": "^2.3.0",
+    "ms-conf": "^3.0.5",
     "ms-flakeless": "^4.0.1",
     "ms-mailer-client": "^5.0.1",
     "ms-mailer-templates": "^0.16.0",

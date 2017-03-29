@@ -41,7 +41,7 @@ function retrieveMetadata(username) {
   return Promise
     .bind(this.service, username)
     .then(userExists)
-    .then(realUsername => [realUsername, this.audiences, this.fields])
+    .then(userId => [userId, this.audiences, this.fields])
     .spread(getMetadata)
     .tap(metadata => this.filter(metadata, username));
 }

@@ -282,7 +282,7 @@ function registerUser(request) {
           audience,
           metadata: audience.map(metaAudience => ({
             $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
-              [USERS_ID_FIELD]: userId,
+              // [USERS_ID_FIELD]: userId, @TODO Is it needed?
               [USERS_USERNAME_FIELD]: username,
               [USERS_CREATED_FIELD]: created,
             }),

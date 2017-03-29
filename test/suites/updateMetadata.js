@@ -1,4 +1,5 @@
 /* global inspectPromise */
+const assert = require('assert');
 const { expect } = require('chai');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
@@ -89,11 +90,11 @@ describe('#updateMetadata', function getMetadataSuite() {
     } }).reflect()
     .then(inspectPromise())
     .then(data => {
-      expect(data.balance).to.be.deep.eq([
-        `{ms-users}v@makeomatic.ru!metadata!${audience}`,
-        `{ms-users}v@makeomatic.ru!metadata!${extra}`,
-        'nom-nom',
-      ]);
+      const [key1, key2, argv] = data.balance;
+
+      assert(/^{ms-users}\d+!metadata!\*\.localhost$/.test(key1));
+      assert(/^{ms-users}\d+!metadata!extra\.localhost$/.test(key2));
+      assert.equal(argv, 'nom-nom');
     });
   });
 });

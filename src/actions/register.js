@@ -278,7 +278,7 @@ function registerUser(request) {
         })
         // passed metadata
         .return({
-          username,
+          userId,
           audience,
           metadata: audience.map(metaAudience => ({
             $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {

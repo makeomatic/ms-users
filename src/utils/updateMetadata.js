@@ -95,13 +95,13 @@ function mapScriptResponse(scriptKeys, responses) {
  * @param  {Object} opts
  * @return {Promise}
  */
-module.exports = function updateMetadata(opts) {
+function updateMetadata(opts) {
   const { redis } = this;
-  const { username, audience, metadata, script } = opts;
+  const { userId, audience, metadata, script } = opts;
   const audiences = is.array(audience) ? audience : [audience];
 
   // keys
-  const keys = audiences.map(aud => redisKey(username, USERS_METADATA, aud));
+  const keys = audiences.map(aud => redisKey(userId, USERS_METADATA, aud));
 
   // if we have meta, then we can
   if (metadata) {
@@ -127,3 +127,5 @@ module.exports = function updateMetadata(opts) {
 
   return Promise.all(scripts).then(res => mapScriptResponse($scriptKeys, res));
 };
+
+module.exports = updateMetadata;

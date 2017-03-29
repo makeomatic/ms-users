@@ -8,10 +8,11 @@ const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,
   USERS_PUBLIC_INDEX,
-  USERS_ALIAS_TO_LOGIN,
+  USERS_ALIAS_TO_ID,
   USERS_DATA,
   USERS_METADATA,
   USERS_TOKENS,
+  USERS_ID_FIELD,
   USERS_ALIAS_FIELD,
   USERS_ADMIN_ROLE,
   USERS_SUPER_ADMIN_ROLE,
@@ -48,35 +49,40 @@ function removeUser(request) {
     })
     .then(({ internal, meta }) => {
       const roles = (meta[audience].roles || []);
+
       if (intersection(roles, ADMINS).length > 0) {
         throw new Errors.HttpStatusError(400, 'can\'t remove admin user from the system');
       }
 
       const transaction = this.redis.multi();
       const alias = internal[USERS_ALIAS_FIELD];
+      const userId = internal[USERS_ID_FIELD];
+
       if (alias) {
-        transaction.hdel(USERS_ALIAS_TO_LOGIN, alias.toLowerCase(), alias);
+        transaction.hdel(USERS_ALIAS_TO_ID, alias.toLowerCase(), alias);
       }
 
       // clean indices
-      transaction.srem(USERS_PUBLIC_INDEX, username);
-      transaction.srem(USERS_INDEX, username);
+      transaction.srem(USERS_PUBLIC_INDEX, userId);
+      transaction.srem(USERS_INDEX, userId);
 
       // remove metadata & internal data
-      transaction.del(key(username, USERS_DATA));
-      transaction.del(key(username, USERS_METADATA, audience));
+      transaction.del(key(userId, USERS_DATA));
+      transaction.del(key(userId, USERS_METADATA, audience));
 
       // remove auth tokens
-      transaction.del(key(username, USERS_TOKENS));
+      transaction.del(key(userId, USERS_TOKENS));
 
       // remove throttling on actions
-      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_ACTIVATE, username));
-      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_PASSWORD, username));
-      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_REGISTER, username));
-      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_RESET, username));
+      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_ACTIVATE, userId));
+      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_PASSWORD, userId));
+      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_REGISTER, userId));
+      transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_RESET, userId));
 
       // complete it
-      return transaction.exec().then(handlePipeline);
+      return transaction
+        .exec()
+        .then(handlePipeline);
     });
 }
 

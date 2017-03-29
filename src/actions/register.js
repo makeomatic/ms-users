@@ -23,7 +23,9 @@ const {
   USERS_REF,
   USERS_INDEX,
   USERS_DATA,
+  USERS_USERNAME_TO_ID,
   USERS_ACTIVE_FLAG,
+  USERS_ID_FIELD,
   USERS_CREATED_FIELD,
   USERS_USERNAME_FIELD,
   USERS_PASSWORD_FIELD,
@@ -132,7 +134,7 @@ function lockDisposer(lock) {
  * @apiParam (Payload) {String} [referral] - pass id/fingerprint of the client to see if it was stored before and associate with this account
  */
 function registerUser(request) {
-  const { redis, config, tokenManager } = this;
+  const { redis, config, tokenManager, flake } = this;
   const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
   const { defaultAudience } = config.jwt;
 
@@ -150,9 +152,10 @@ function registerUser(request) {
     username,
     referral,
   } = params;
+  const userId = flake.next();
   const alias = params.alias && params.alias.toLowerCase();
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
-  const userDataKey = redisKey(username, USERS_DATA);
+  const userDataKey = redisKey(userId, USERS_DATA);
   const created = Date.now();
   const { [challengeType]: tokenOptions } = this.config.token;
 
@@ -254,6 +257,7 @@ function registerUser(request) {
           const basicInfo = {
             [USERS_CREATED_FIELD]: created,
             [USERS_ACTIVE_FLAG]: activate,
+            [USERS_USERNAME_FIELD]: username,
           };
 
           if (hash !== null) {
@@ -261,6 +265,8 @@ function registerUser(request) {
           }
 
           pipeline.hmset(userDataKey, basicInfo);
+          // @TODO expire?
+          pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
 
           // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
           // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
@@ -276,6 +282,7 @@ function registerUser(request) {
           audience,
           metadata: audience.map(metaAudience => ({
             $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
+              [USERS_ID_FIELD]: userId,
               [USERS_USERNAME_FIELD]: username,
               [USERS_CREATED_FIELD]: created,
             }),

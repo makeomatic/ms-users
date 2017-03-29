@@ -4,7 +4,8 @@ module.exports = {
   // indices
   USERS_INDEX: 'user-iterator-set',
   USERS_PUBLIC_INDEX: 'users-public',
-  USERS_ALIAS_TO_LOGIN: 'users-alias',
+  USERS_ALIAS_TO_ID: 'users-alias',
+  USERS_USERNAME_TO_ID: 'users-username',
 
   // referral tracking
   USERS_REF: 'users-ref',
@@ -16,6 +17,7 @@ module.exports = {
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
 
+  USERS_ID_FIELD: 'id',
   USERS_ALIAS_FIELD: 'alias',
   USERS_BANNED_FLAG: 'ban',
   USERS_ACTIVE_FLAG: 'active',

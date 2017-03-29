@@ -10,6 +10,7 @@ const {
   USERS_DATA,
   USERS_PUBLIC_INDEX,
   USERS_ACTIVE_FLAG,
+  USERS_ID_FIELD,
   USERS_ALIAS_FIELD,
   USERS_USERNAME_FIELD,
   USERS_ACTION_ACTIVATE,
@@ -36,6 +37,7 @@ function throwBasedOnStatus(status) {
  */
 function isAccountActive(data) {
   const username = data[USERS_USERNAME_FIELD];
+  // @TODO userId
   const userKey = redisKey(username, USERS_DATA);
   return this.redis
     .hget(userKey, USERS_ACTIVE_FLAG)
@@ -103,9 +105,10 @@ function verifyToken() {
  * @return {Promise}
  */
 function activateAccount(data) {
+  const userId = data[USERS_ID_FIELD];
   const user = data[USERS_USERNAME_FIELD];
   const alias = data[USERS_ALIAS_FIELD];
-  const userKey = redisKey(user, USERS_DATA);
+  const userKey = redisKey(userId, USERS_DATA);
 
   // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
   // set to active & persist

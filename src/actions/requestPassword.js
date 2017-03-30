@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const getInternalData = require('../utils/getInternalData.js');
+const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const hasPassword = require('../utils/hasPassword.js');

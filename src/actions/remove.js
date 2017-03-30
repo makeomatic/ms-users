@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const intersection = require('lodash/intersection');
 const key = require('../utils/key');
-const getInternalData = require('../utils/getInternalData');
+const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/getMetadata');
 const handlePipeline = require('../utils/pipelineError.js');
 const {

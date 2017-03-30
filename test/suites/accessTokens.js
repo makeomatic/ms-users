@@ -15,8 +15,8 @@ describe('#token.*', function activateSuite() {
   after(global.clearRedis);
 
   // registers user and pushes JWT to this.jwt
-  before(globalRegisterUser(username));
-  before(globalAuthUser(username));
+  before('register user', globalRegisterUser(username));
+  before('auth user', globalAuthUser(username));
 
   // simple iterator
   const iterator = Array.from({ length: 40 });
@@ -32,7 +32,7 @@ describe('#token.*', function activateSuite() {
         .then(inspectPromise())
         .then((token) => {
           assert.equal(token.split('.').length, 3, 'invalid token format');
-          assert.equal(token.split('.')[0], md5(username), 'invalid input hash');
+          assert.equal(token.split('.')[0], md5(this.userId), 'invalid input hash');
 
           // creates tokens pool
           tokenHolder = [token];
@@ -66,7 +66,8 @@ describe('#token.*', function activateSuite() {
 
           // auto:39
           assert.ok(/^auto:\d+$/, token.name);
-          assert.equal(token.username, username);
+          assert(token.userId);
+          assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
           assert.equal(Object.keys(token).length, 4);
@@ -84,7 +85,8 @@ describe('#token.*', function activateSuite() {
 
           // check it's first token
           assert.equal(token.name, 'initial token');
-          assert.equal(token.username, username);
+          assert(token.userId);
+          assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
           assert.equal(Object.keys(token).length, 4);
@@ -113,7 +115,8 @@ describe('#token.*', function activateSuite() {
 
           // check it's first token
           assert.equal(token.name, 'initial token');
-          assert.equal(token.username, username);
+          assert(token.userId);
+          assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
           assert.equal(Object.keys(token).length, 4);

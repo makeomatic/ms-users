@@ -1,9 +1,29 @@
-const redisKey = require('../../utils/key');
 const md5 = require('md5');
+const Promise = require('bluebird');
+const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipelineError');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
+const { getUserId } = require('../../utils/userData');
+
+function eraseData(userId) {
+  const { redis, token } = this;
+  const payload = `${md5(userId)}.${token}`;
+
+  // zset & key
+  const zset = redisKey(USERS_API_TOKENS_ZSET, userId);
+  const key = redisKey(USERS_API_TOKENS, payload);
+
+  // remove key
+  return redis
+    .pipeline()
+    .del(key)
+    .zrem(zset, payload)
+    .exec()
+    .then(handlePipelineError);
+}
 
 /**
+ * @refactored
  * @api {amqp} <prefix>.token.erase Erase Token
  * @apiVersion 1.0.0
  * @apiName EraseToken
@@ -14,20 +34,16 @@ const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
  *
  * @apiParam (Payload) {String} token - token to be invalidated
  * @apiParam (Payload) {String} username - token owner
- *
  */
-module.exports = function eraseToken({ params }) {
+function eraseToken({ params }) {
   const { username, token } = params;
-  const payload = `${md5(username)}.${token}`;
+  const { redis, config } = this;
+  const context = { token, redis, config };
 
-  // zset & key
-  const zset = redisKey(USERS_API_TOKENS_ZSET, username);
-  const key = redisKey(USERS_API_TOKENS, payload);
+  return Promise
+    .bind(context, username)
+    .then(getUserId)
+    .then(eraseData);
+}
 
-  // remove key
-  return this.redis.pipeline()
-    .del(key)
-    .zrem(zset, payload)
-    .exec()
-    .then(handlePipelineError);
-};
+module.exports = eraseToken;

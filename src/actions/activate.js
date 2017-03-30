@@ -2,8 +2,9 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
-const getInternalData = require('../utils/getInternalData.js');
-const userExists = require('../utils/userExists.js');
+const { getInternalData } = require('../utils/userData');
+// @TODO refactor 
+// const userExists = require('../utils/userExists.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,

@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
-const getInternalData = require('../utils/getInternalData.js');
+const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_DATA, USERS_METADATA,

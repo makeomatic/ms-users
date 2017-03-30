@@ -1,9 +1,9 @@
 const getInternalData = require('./getInternalData');
 
-function userExists(username) {
+function getUserId(username) {
   return getInternalData
     .call(this, username, false)
     .get('id');
-};
+}
 
-module.exports = userExists;
+module.exports = getUserId;

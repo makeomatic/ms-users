@@ -1,5 +1,5 @@
 const challenge = require('../utils/challenges/challenge');
-const getInternalData = require('../utils/getInternalData');
+const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const hasNotPassword = require('../utils/hasNotPassword');

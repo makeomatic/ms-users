@@ -6,14 +6,14 @@ const jwt = require('../utils/jwt.js');
 const moment = require('moment');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
-const getInternalData = require('../utils/getInternalData.js');
+const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipelineError.js');
 const noop = require('lodash/noop');
 const is = require('is');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
-  USERS_USERNAME_FIELD,
+  USERS_ID_FIELD,
 } = require('../constants');
 
 /**
@@ -27,11 +27,12 @@ const is404 = e => parseInt(e.message, 10) === 404;
  */
 function checkLoginAttempts(data) {
   const pipeline = this.redis.pipeline();
-  const username = data.username;
+  const userId = data[USERS_ID_FIELD];
   const config = this.config;
-  const remoteipKey = this.remoteipKey = redisKey(username, 'ip', this.remoteip);
+  const remoteipKey = this.remoteipKey = redisKey(userId, 'ip', this.remoteip);
 
   pipeline.incrby(remoteipKey, 1);
+
   if (config.keepLoginAttempts > 0) {
     pipeline.expire(remoteipKey, config.keepLoginAttempts);
   }
@@ -60,10 +61,11 @@ function verifyHash({ password }, comparableInput) {
  * Checks onу-time password
  */
 function verifyDisposablePassword(ctx, data) {
-  return ctx.tokenManager
+  return ctx
+    .tokenManager
     .verify({
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
-      id: data[USERS_USERNAME_FIELD],
+      id: data[USERS_ID_FIELD],
       token: ctx.password,
     })
     .catchThrow(is404, USERS_DISPOSABLE_PASSWORD_MIA);
@@ -99,8 +101,8 @@ function dropLoginCounter() {
 /**
  * Returns user info
  */
-function getUserInfo({ username }) {
-  return jwt.login.call(this.service, username, this.audience);
+function getUserInfo({ id }) {
+  return jwt.login.call(this.service, id, this.audience);
 }
 
 /**

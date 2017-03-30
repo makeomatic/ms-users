@@ -12,7 +12,7 @@ const jwt = require('../utils/jwt.js');
 const isDisposable = require('../utils/isDisposable.js');
 const mxExists = require('../utils/mxExists.js');
 const makeCaptchaCheck = require('../utils/checkCaptcha.js');
-const userExists = require('../utils/userExists.js');
+const { getUserId } = require('../utils/userData');
 const aliasExists = require('../utils/aliasExists.js');
 const assignAlias = require('./alias.js');
 const checkLimits = require('../utils/checkIpLimits.js');
@@ -219,7 +219,7 @@ function registerUser(request) {
         .bind(this, username)
 
         // do verifications of DB state
-        .tap(userExists)
+        .tap(getUserId)
         .throw(ErrorConflictUserExists)
         .catchReturn(ErrorMissing, username)
         .tap(alias ? aliasExists(alias, true) : noop)
@@ -325,13 +325,13 @@ function registerUser(request) {
           // perform instant activation
           return redis
             // internal username index
-            .sadd(USERS_INDEX, username)
+            .sadd(USERS_INDEX, userId)
             // custom actions
             .bind(this)
-            .return(['users:activate', username, params, metadata])
+            .return(['users:activate', userId, params, metadata])
             .spread(this.hook)
             // login & return JWT
-            .return([username, params.audience])
+            .return([userId, params.audience])
             .spread(jwt.login);
         })
       )

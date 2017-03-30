@@ -1,7 +1,7 @@
 const omit = require('lodash/omit');
 const Promise = require('bluebird');
 const updateMetadata = require('../utils/updateMetadata.js');
-const userExists = require('../utils/userExists.js');
+const { getUserId } = require('../utils/userData');
 
 /**
  * @api {amqp} <prefix>.updateMetadata Update Metadata
@@ -22,7 +22,7 @@ const userExists = require('../utils/userExists.js');
 function updateMetadataAction(request) {
   return Promise
     .bind(this, request.params.username)
-    .then(userExists)
+    .then(getUserId)
     .then(userId => ({ ...omit(request.params, 'username'), userId }))
     .then(updateMetadata);
 }

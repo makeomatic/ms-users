@@ -3,11 +3,11 @@ const scrypt = require('../utils/scrypt.js');
 const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
-const getInternalData = require('../utils/getInternalData.js');
+const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const hasPassword = require('../utils/hasPassword.js');
-const userExists = require('../utils/userExists.js');
+const { getUserId } = require('../utils/userData');
 const partialRight = require('lodash/partialRight');
 const { USERS_DATA, USERS_ACTION_RESET, USERS_PASSWORD_FIELD } = require('../constants.js');
 
@@ -40,15 +40,15 @@ function setPassword(_username, password) {
 
   return Promise
     .bind(this, _username)
-    .then(userExists)
+    .then(getUserId)
     .then(username => Promise.props({
-      username,
+      userId,
       hash: scrypt.hash(password),
     }))
-    .then(({ username, hash }) =>
+    .then(({ userId, hash }) =>
       redis
-        .hset(redisKey(username, USERS_DATA), USERS_PASSWORD_FIELD, hash)
-        .return(username)
+        .hset(redisKey(userId, USERS_DATA), USERS_PASSWORD_FIELD, hash)
+        .return(userId)
     );
 }
 

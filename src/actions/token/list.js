@@ -1,6 +1,8 @@
+const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipelineError');
 const { USERS_API_TOKENS_ZSET, USERS_API_TOKENS } = require('../../constants');
+const { getUserId } = require('../../utils/userData');
 
 /**
  * Parses redis response and returns keys, as well as date of publication
@@ -51,7 +53,20 @@ function enrichResponse({ data, tokens }) {
     .return(data);
 }
 
+function getList(userId) {
+  const { redis, page, pageSize } = this;
+  const setKey = redisKey(USERS_API_TOKENS_ZSET, userId);
+
+  // we only return 20 last keys, not to put too much pressure into this
+  return redis
+    .zrevrangebyscore(setKey, '+inf', '-inf', 'WITHSCORES', 'LIMIT', page * pageSize, pageSize)
+    .then(parseResponse)
+    .bind(this)
+    .then(enrichResponse);
+}
+
 /**
+ * @refactored
  * @api {amqp} <prefix>.token.list List Tokens
  * @apiVersion 1.0.0
  * @apiName ListTokens
@@ -64,16 +79,16 @@ function enrichResponse({ data, tokens }) {
  * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {Number} [page=0] - number of page to return, defaults to 0
  * @apiParam (Payload) {Number} [pageSize=20] - page size
- *
  */
-module.exports = function listTokens({ params }) {
+function listTokens({ params }) {
   const { username, page, pageSize } = params;
-  const setKey = redisKey(USERS_API_TOKENS_ZSET, username);
+  const { redis, config } = this;
+  const context = { redis, config, page, pageSize };
 
-  // we only return 20 last keys, not to put too much pressure into this
-  return this.redis
-    .zrevrangebyscore(setKey, '+inf', '-inf', 'WITHSCORES', 'LIMIT', page * pageSize, pageSize)
-    .then(parseResponse)
-    .bind(this)
-    .then(enrichResponse);
-};
+  return Promise
+    .bind(context, username)
+    .then(getUserId)
+    .then(getList);
+}
+
+module.exports = listTokens;

@@ -12,8 +12,8 @@ const toArray = maybeArray => (isArray(maybeArray) ? maybeArray : [maybeArray]);
 /**
  * Verifies decoded token
  */
-function decodedToken({ username }) {
-  if (!username) {
+function decodedToken({ userId }) {
+  if (!userId) {
     throw new HttpStatusError(403, 'forged or expired token');
   }
 
@@ -26,8 +26,8 @@ function decodedToken({ username }) {
 
   // get metadata and return success
   return Promise.props({
-    username,
-    metadata: getMetadata.call(service, username, audience),
+    id: userId,
+    metadata: getMetadata.call(service, userId, audience),
   });
 }
 

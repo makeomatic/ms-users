@@ -41,7 +41,7 @@ function setPassword(_username, password) {
   return Promise
     .bind(this, _username)
     .then(getUserId)
-    .then(username => Promise.props({
+    .then(userId => Promise.props({
       userId,
       hash: scrypt.hash(password),
     }))

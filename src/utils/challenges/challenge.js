@@ -39,7 +39,8 @@ function generateChallenge(type, opts, ctx = {}, wait = false) {
     .catchThrow({ message: '429' }, isThrottled)
     .then((token) => {
       ctx.token = token;
-      return opts.id;
+
+      return ctx.username;
     })
     .bind(this)
     .then(selectChallenge(type, opts.action, ctx, wait));

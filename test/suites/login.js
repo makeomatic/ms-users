@@ -79,7 +79,7 @@ describe('#login', function loginSuite() {
 
     describe('account: banned', function suite() {
       beforeEach(function pretest() {
-        return this.users.redis.hset(redisKey(user.username, USERS_DATA), USERS_BANNED_FLAG, 'true');
+        return this.dispatch('users.ban', { username: user.username, ban: true });
       });
 
       it('must reject login', function test() {
@@ -175,10 +175,12 @@ describe('#login', function loginSuite() {
         username: '79215555555',
       };
 
-      amqpStub.withArgs('phone.message.predefined')
+      amqpStub
+        .withArgs('phone.message.predefined')
         .returns(Promise.resolve({ queued: true }));
 
-      return this.dispatch('users.register', opts)
+      return this
+        .dispatch('users.register', opts)
         .then(() => {
           const params = {
             challengeType: 'phone',
@@ -209,7 +211,8 @@ describe('#login', function loginSuite() {
         })
         .then((response) => {
           assert.ok(response.jwt);
-          assert.equal(response.user.username, '79215555555');
+          assert.ok(response.user.id);
+          assert.equal(response.user.metadata['*.localhost'].username, '79215555555');
         });
     });
   });

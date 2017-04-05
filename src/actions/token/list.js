@@ -66,7 +66,6 @@ function getList(userId) {
 }
 
 /**
- * @refactored
  * @api {amqp} <prefix>.token.list List Tokens
  * @apiVersion 1.0.0
  * @apiName ListTokens

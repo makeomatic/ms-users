@@ -18,7 +18,8 @@ function regenerateToken(request) {
   const { tokenManager } = this;
   const args = uid ? { uid } : { action, id };
 
-  return Promise.bind(tokenManager, args)
+  return Promise
+    .bind(tokenManager, args)
     .tap(tokenManager.regenerate)
     .then(tokenManager.info)
     .bind(this)

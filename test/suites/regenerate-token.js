@@ -26,8 +26,8 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         .reflect()
         .then(inspectPromise())
         .then(response => {
+          assert.ok(response.id);
           assert.equal(response.requiresActivation, true);
-          assert.equal(response.id, '79215555555');
           assert.equal(is.string(response.uid), true);
 
           return this.dispatch('users.regenerate-token', {

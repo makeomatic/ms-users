@@ -8,7 +8,7 @@ const challenge = require('../utils/challenges/challenge.js');
 const {
   USERS_ACTION_PASSWORD,
   USERS_ACTION_RESET,
-  USERS_USERNAME_FIELD,
+  USERS_ID_FIELD,
 } = require('../constants.js');
 
 /**
@@ -40,13 +40,13 @@ function requestPassword(request) {
     .tap(isActive)
     .tap(isBanned)
     .tap(hasPassword)
-    .then(data => [data[USERS_USERNAME_FIELD], defaultAudience])
+    .then(data => [data[USERS_ID_FIELD], defaultAudience])
     .spread(getMetadata)
     .get(defaultAudience)
     .then(meta => [
       challengeType,
       {
-        id: meta[USERS_USERNAME_FIELD],
+        id: meta[USERS_ID_FIELD],
         action,
         ...tokenOptions,
       },

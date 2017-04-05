@@ -23,15 +23,19 @@ describe('#getMetadata', function getMetadataSuite() {
     const audience = '*.localhost';
 
     beforeEach(function pretest() {
-      return this.dispatch('users.register', {
-        username, password: '123', audience, metadata: { name: { q: 'verynicedata' } },
-      });
+      return this
+        .dispatch('users.register', {
+          username, password: '123', audience, metadata: { name: { q: 'verynicedata' } },
+        })
+        .then(({ user }) => (this.firstUserId = user.id));
     });
 
     beforeEach(function pretest() {
-      return this.dispatch('users.register', {
-        username: usernameB, password: '123', audience, metadata: { name: 'boredom' },
-      });
+      return this
+        .dispatch('users.register', {
+          username: usernameB, password: '123', audience, metadata: { name: 'boredom' },
+        })
+        .then(({ user }) => (this.secondUserId = user.id));
     });
 
     beforeEach(function pretest() {
@@ -69,6 +73,7 @@ describe('#getMetadata', function getMetadataSuite() {
                 q: 'verynicedata',
               },
               username,
+              id: this.firstUserId,
             },
             'matic.ninja': {
               iat: 10,

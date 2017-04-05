@@ -282,7 +282,7 @@ function registerUser(request) {
           audience,
           metadata: audience.map(metaAudience => ({
             $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
-              // [USERS_ID_FIELD]: userId, @TODO Is it needed?
+              [USERS_ID_FIELD]: userId,
               [USERS_USERNAME_FIELD]: username,
               [USERS_CREATED_FIELD]: created,
             }),
@@ -301,7 +301,7 @@ function registerUser(request) {
               .bind(this, [
                 challengeType,
                 {
-                  id: username,
+                  id: userId,
                   action: USERS_ACTION_ACTIVATE,
                   ...tokenOptions,
                 },
@@ -311,7 +311,7 @@ function registerUser(request) {
               ])
               .spread(skipChallenge ? noop : challenge) // eslint-disable-line promise/always-return
               .then((challengeResponse) => {
-                const response = { requiresActivation: true, id: username };
+                const response = { requiresActivation: true, id: userId };
                 const uid = challengeResponse ? challengeResponse.context.token.uid : null;
 
                 if (uid) {

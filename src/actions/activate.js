@@ -1,10 +1,10 @@
-const Promise = require('bluebird');
 const Errors = require('common-errors');
+const noop = require('lodash/noop');
+const nthArg = require('lodash/nthArg');
+const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
-const { getInternalData } = require('../utils/userData');
-// @TODO refactor 
-// const userExists = require('../utils/userExists.js');
+const { getUserId, getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,
@@ -36,11 +36,10 @@ function throwBasedOnStatus(status) {
 /**
  * Verifies that account is active
  */
-function isAccountActive(data) {
-  const username = data[USERS_USERNAME_FIELD];
-  // @TODO userId
-  const userKey = redisKey(username, USERS_DATA);
-  return this.redis
+function isAccountActive(userId) {
+  const { service: { redis } } = this;
+  const userKey = redisKey(userId, USERS_DATA);
+  return redis
     .hget(userKey, USERS_ACTIVE_FLAG)
     .then(throwBasedOnStatus);
 }
@@ -49,7 +48,7 @@ function isAccountActive(data) {
  * Modifies error from the token
  */
 function RethrowForbidden(e) {
-  this.log.warn({ token: this.token, username: this.username, args: e.args }, 'failed to activate', e.message);
+  this.log.warn({ token: this.token, userId: this.userId, args: e.args }, 'failed to activate', e.message);
 
   // remap error message
   // and possibly status code
@@ -59,33 +58,24 @@ function RethrowForbidden(e) {
 
   return Promise
     .bind(this, e.args.id)
-    // if it can't get internal data - will throw 404
-    .then(getInternalData)
     // if it's active will throw 409, otherwise 412
     .then(isAccountActive);
 }
 
 /**
- * Simple invocation for userExists
- */
-function doesUserExist() {
-  return userExists.call(this.service, this.username);
-}
-
-/**
  * Verifies validity of token
  */
-function verifyToken() {
+function verifyToken(userId) {
   let args;
-  const { token, username, service } = this;
+  const { token, service } = this;
   const action = USERS_ACTION_ACTIVATE;
   const opts = { erase: this.erase };
 
-  if (username) {
+  if (userId) {
     args = {
       action,
       token,
-      id: username,
+      id: userId,
     };
   } else {
     args = token;
@@ -95,7 +85,7 @@ function verifyToken() {
   return this.service
     .tokenManager
     .verify(args, opts)
-    .bind({ log: service.log, redis: service.redis, token, username })
+    .bind({ log: service.log, redis: service.redis, token, userId })
     .catch(RethrowForbidden)
     .get('id');
 }
@@ -107,7 +97,6 @@ function verifyToken() {
  */
 function activateAccount(data) {
   const userId = data[USERS_ID_FIELD];
-  const user = data[USERS_USERNAME_FIELD];
   const alias = data[USERS_ALIAS_FIELD];
   const userKey = redisKey(userId, USERS_DATA);
 
@@ -118,29 +107,28 @@ function activateAccount(data) {
     .hget(userKey, USERS_ACTIVE_FLAG)
     .hset(userKey, USERS_ACTIVE_FLAG, 'true')
     .persist(userKey)
-    .sadd(USERS_INDEX, user);
+    .sadd(USERS_INDEX, userId);
 
   if (alias) {
-    pipeline.sadd(USERS_PUBLIC_INDEX, user);
+    pipeline.sadd(USERS_PUBLIC_INDEX, userId);
   }
 
   return pipeline
     .exec()
     .then(handlePipeline)
-    .spread(function pipeResponse(isActive) {
-      const status = isActive;
-      if (status === 'true') {
-        throw new Errors.HttpStatusError(417, `Account ${user} was already activated`);
+    .spread((isActive) => {
+      if (isActive === 'true') {
+        throw new Errors.HttpStatusError(417, `Account ${userId} was already activated`);
       }
     })
-    .return(user);
+    .return(userId);
 }
 
 /**
  * Invokes available hooks
  */
-function hook(user) {
-  return this.service.hook('users:activate', user, { audience: this.audience });
+function hook(userId) {
+  return this.service.hook('users:activate', userId, { audience: this.audience });
 }
 
 /**
@@ -164,18 +152,17 @@ function hook(user) {
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
  */
-function verifyChallenge({ params }) {
+function activateAction({ params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
   const { token, username } = params;
-  const { log, config } = this;
+  const { log, config, redis } = this;
   const audience = params.audience || config.defaultAudience;
 
   log.debug('incoming request params %j', params);
 
   // basic context
   const ctx = {
-    username,
     token,
     audience,
     service: this,
@@ -183,16 +170,18 @@ function verifyChallenge({ params }) {
   };
 
   return Promise
+    .bind(this, username)
+    .then(username ? getUserId : noop)
     .bind(ctx)
-    .then(token ? verifyToken : doesUserExist)
+    .then(token ? verifyToken : nthArg(0))
     .bind(this)
     .then(getInternalData)
     .then(activateAccount)
     .bind(ctx)
     .tap(hook)
     .bind(this)
-    .then(user => [user, audience])
+    .then(userId => [userId, audience])
     .spread(jwt.login);
 }
 
-module.exports = verifyChallenge;
+module.exports = activateAction;

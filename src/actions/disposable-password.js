@@ -27,7 +27,7 @@ function disposablePassword(request) {
     .tap(isBanned)
     .tap(hasNotPassword)
     .then(data => ([challengeType, {
-      id: data.username,
+      id: data.id,
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
       ...tokenOptions,
     }]))

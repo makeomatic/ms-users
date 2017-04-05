@@ -32,7 +32,6 @@ function storeData(userId) {
 }
 
 /**
- * @refactored
  * @api {amqp} <prefix>.token.create Create Token
  * @apiVersion 1.0.0
  * @apiName CreateToken

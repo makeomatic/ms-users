@@ -15,10 +15,10 @@ describe('Hook `rfx-create-room-on-activate`', function suite() {
     const room = {
       id: 'ee39afd6-b99a-47d0-a43b-a942cfd5451f',
       name: 'Bar Station | Foo Scool',
-      createdBy: 'foo@gmail.com',
     };
 
-    amqpStub.withArgs('chat.internal.rooms.create')
+    amqpStub
+      .withArgs('chat.internal.rooms.create')
       .returns(Promise.resolve(room));
 
     return this.dispatch('users.invite', {
@@ -49,15 +49,15 @@ describe('Hook `rfx-create-room-on-activate`', function suite() {
     .reflect()
     .then(inspectPromise())
     .then(result => {
-      const stubArgs = amqpStub.args[0];
-      assert.equal(stubArgs[0], 'chat.internal.rooms.create');
-      assert.deepEqual(stubArgs[1], { name: room.name, createdBy: room.createdBy });
-
-      assert.equal(result.user.username, 'foo@gmail.com');
+      assert.ok(result.user.id);
       assert.equal(
         result.user.metadata['*.localhost'].stationChatId,
         'ee39afd6-b99a-47d0-a43b-a942cfd5451f'
       );
+
+      const stubArgs = amqpStub.args[0];
+      assert.equal(stubArgs[0], 'chat.internal.rooms.create');
+      assert.deepEqual(stubArgs[1], { name: room.name, createdBy: result.user.id });
 
       amqpStub.restore();
 

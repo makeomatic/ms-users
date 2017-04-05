@@ -23,7 +23,6 @@ function eraseData(userId) {
 }
 
 /**
- * @refactored
  * @api {amqp} <prefix>.token.erase Erase Token
  * @apiVersion 1.0.0
  * @apiName EraseToken

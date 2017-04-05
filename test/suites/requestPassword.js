@@ -13,18 +13,21 @@ describe('#requestPassword', function requestPasswordSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    return this.dispatch('users.register', {
-      username,
-      password: '123',
-      audience,
-      metadata: {
-        rpass: true,
-      },
-    });
+    return this
+      .dispatch('users.register', {
+        username,
+        password: '123',
+        audience,
+        metadata: {
+          rpass: true,
+        },
+      })
+      .then(({ user }) => (this.userId = user.id));
   });
 
   it('must fail when user does not exist', function test() {
-    return this.dispatch('users.requestPassword', { username: 'noob' })
+    return this
+      .dispatch('users.requestPassword', { username: 'noob' })
       .reflect()
       .then(inspectPromise(false))
       .then(requestPassword => {
@@ -35,7 +38,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
   describe('account: inactive', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
+      return this.users.redis.hset(redisKey(this.userId, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
     });
 
     it('must fail when account is inactive', function test() {
@@ -51,7 +54,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
   describe('account: banned', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true');
+      return this.users.redis.hset(redisKey(this.userId, USERS_DATA), USERS_BANNED_FLAG, 'true');
     });
 
     it('must fail when account is banned', function test() {

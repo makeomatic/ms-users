@@ -6,6 +6,7 @@ const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 const redisKey = require('./key.js');
 const { USERS_TOKENS, USERS_API_TOKENS, USERS_ID_FIELD } = require('../constants.js');
 const getMetadata = require('../utils/getMetadata.js');
+const { resolveUserId } = require('../utils/userData');
 const { verify: verifyHMAC } = require('./signatures');
 
 // cache this to not recreate all the time
@@ -106,7 +107,7 @@ function getLastAccess(_score) {
   const score = parseInt(_score, 10);
 
   // throw if token not found or expired
-  if (isNaN(score) || Date.now() > score + this.ttl) {
+  if (isNaN(score) || Date.now() > (score + this.ttl)) {
     throw new Errors.HttpStatusError(403, 'token has expired or was forged');
   }
 
@@ -128,8 +129,9 @@ function verifyDecodedToken(decoded) {
     throw new Errors.HttpStatusError(403, 'audience mismatch');
   }
 
-  const { userId } = decoded;
-  const tokensHolder = this.tokensHolder = redisKey(userId, USERS_TOKENS);
+  // @TODO comment (userId)
+  const { username } = decoded;
+  const tokensHolder = this.tokensHolder = redisKey(username, USERS_TOKENS);
 
   let lastAccess = this.redis
     .zscore(tokensHolder, this.token)
@@ -176,15 +178,15 @@ exports.internal = function verifyInternalToken(token) {
     throw new Errors.HttpStatusError(403, 'malformed token');
   }
 
-  const [userIdHash, uuid, signature] = tokenParts;
+  const [userId, uuid, signature] = tokenParts;
 
   // token is malformed, must be username.uuid.signature
-  if (!userIdHash || !uuid || !signature) {
+  if (!userId || !uuid || !signature) {
     throw new Errors.HttpStatusError(403, 'malformed token');
   }
 
   // this is needed to pass ctx of the
-  const payload = `${userIdHash}.${uuid}`;
+  const payload = `${userId}.${uuid}`;
   const isValid = verifyHMAC.call(this, payload, signature);
 
   if (!isValid) {
@@ -195,8 +197,20 @@ exports.internal = function verifyInternalToken(token) {
   // erase or expired
   const key = redisKey(USERS_API_TOKENS, payload);
   const redis = this.redis;
+  const isLegacy = /^[a-f0-9]{32}$/i.test(userId); // is md5?
+
+  if (isLegacy) {
+    // @TODO comment, test
+    return redis
+      .hget(key, 'username')
+      .bind(this)
+      .then(resolveUserId)
+      // @TODO comment
+      .then(username => ({ username }));
+  }
 
   return redis
     .hget(key, 'userId')
-    .then(userId => ({ userId }));
+    // @TODO comment
+    .then(username => ({ username }));
 };

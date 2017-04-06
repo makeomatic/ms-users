@@ -33,6 +33,6 @@ function getMetadata(userId, _audiences, fields = {}) {
 
       return output;
     });
-};
+}
 
 module.exports = getMetadata;

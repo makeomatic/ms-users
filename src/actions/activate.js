@@ -1,10 +1,8 @@
 const Errors = require('common-errors');
-const noop = require('lodash/noop');
-const nthArg = require('lodash/nthArg');
 const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
-const { getUserId, getInternalData } = require('../utils/userData');
+const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,
@@ -84,7 +82,7 @@ function verifyRequest() {
       .call(this.service, username)
       .then(userData => [
         { action, token, id: userData[USERS_USERNAME_FIELD] },
-        { erase }
+        { erase },
       ])
       .bind(context)
       .spread(verifyToken);
@@ -167,7 +165,7 @@ function activateAction({ params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
   const { token, username } = params;
-  const { log, config, redis } = this;
+  const { log, config } = this;
   const audience = params.audience || config.defaultAudience;
 
   log.debug('incoming request params %j', params);

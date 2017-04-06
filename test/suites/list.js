@@ -5,7 +5,7 @@ const ld = require('lodash');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#list', function listSuite() {
-  this.timeout(10000);
+  this.timeout(50000);
 
   const faker = require('faker');
 

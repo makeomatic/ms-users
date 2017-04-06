@@ -126,6 +126,6 @@ function updateMetadata(opts) {
   });
 
   return Promise.all(scripts).then(res => mapScriptResponse($scriptKeys, res));
-};
+}
 
 module.exports = updateMetadata;

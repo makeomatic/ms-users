@@ -31,7 +31,7 @@ describe('binary: dump', function suite() {
       const headers = lines[0];
       const data = lines.slice(1, -1);
 
-      assert.equal(headers, 'id\tfirstName\tlastName');
+      assert.equal(headers, 'id\tusername\tfirstName\tlastName');
       assert.equal(data.length, 103);
 
       return next();
@@ -53,7 +53,7 @@ describe('binary: dump', function suite() {
       const headers = lines[0];
       const data = lines.slice(1, -1);
 
-      assert.equal(headers, 'id,firstName,lastName');
+      assert.equal(headers, 'id,username,firstName,lastName');
       assert.equal(data.length, 103);
 
       return next();
@@ -62,7 +62,7 @@ describe('binary: dump', function suite() {
 
   it('is able to use filter, users generated are random, so cant know for sure whats returned', function test(next) {
     exec(`${binaryPath} -f firstName lastName -o csv --filter '${JSON.stringify({
-      '#': '@yahoo.com',
+      'username': '@yahoo.com',
     })}'`, { env }, (err, stdout, stderr) => {
       if (err) return next(err);
       if (stderr) return next(new Error(stderr));
@@ -77,7 +77,7 @@ describe('binary: dump', function suite() {
       const headers = lines[0];
       const data = lines.slice(1, -1);
 
-      assert.equal(headers, 'id,firstName,lastName');
+      assert.equal(headers, 'id,username,firstName,lastName');
       assert.ok(data.length < 103);
 
       data.forEach((it) => {

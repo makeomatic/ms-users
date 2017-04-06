@@ -40,8 +40,7 @@ function generateChallenge(type, opts, ctx = {}, wait = false) {
     .then((token) => {
       ctx.token = token;
 
-      // @TODO was opts.id
-      return ctx.username;
+      return opts.id;
     })
     .bind(this)
     .then(selectChallenge(type, opts.action, ctx, wait));

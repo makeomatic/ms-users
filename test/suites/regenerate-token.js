@@ -65,10 +65,12 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
       };
       const requestPasswordParams = { username, challengeType: 'phone' };
 
-      amqpStub.withArgs('phone.message.predefined')
+      amqpStub
+        .withArgs('phone.message.predefined')
         .returns(Promise.resolve({ queued: true }));
 
-      return this.dispatch('users.register', registerParams)
+      return this
+        .dispatch('users.register', registerParams)
         .then(() => this.dispatch('users.requestPassword', requestPasswordParams))
         .reflect()
         .then(inspectPromise())

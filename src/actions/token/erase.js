@@ -1,4 +1,3 @@
-const md5 = require('md5');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipelineError');
@@ -7,7 +6,7 @@ const { getUserId } = require('../../utils/userData');
 
 function eraseData(userId) {
   const { redis, token } = this;
-  const payload = `${md5(userId)}.${token}`;
+  const payload = `${userId}.${token}`;
 
   // zset & key
   const zset = redisKey(USERS_API_TOKENS_ZSET, userId);

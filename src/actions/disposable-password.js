@@ -4,7 +4,7 @@ const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const hasNotPassword = require('../utils/hasNotPassword');
 const Promise = require('bluebird');
-const { USERS_ACTION_DISPOSABLE_PASSWORD } = require('../constants');
+const { USERS_ACTION_DISPOSABLE_PASSWORD, USERS_USERNAME_FIELD } = require('../constants');
 
 /**
  * @api {amqp} <prefix>.disposable-password Request disposable password
@@ -27,7 +27,7 @@ function disposablePassword(request) {
     .tap(isBanned)
     .tap(hasNotPassword)
     .then(data => ([challengeType, {
-      id: data.id,
+      id: data[USERS_USERNAME_FIELD],
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
       ...tokenOptions,
     }]))

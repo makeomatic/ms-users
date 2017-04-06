@@ -1,5 +1,4 @@
 const uuid = require('node-uuid');
-const md5 = require('md5');
 const Promise = require('bluebird');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
 const { sign } = require('../../utils/signatures');
@@ -12,8 +11,7 @@ function storeData(userId) {
   const tokenPart = uuid.v4();
 
   // transform input
-  const hashedUsername = md5(userId);
-  const payload = `${hashedUsername}.${tokenPart}`;
+  const payload = `${userId}.${tokenPart}`;
   const signature = sign.call(this, payload);
   const token = `${payload}.${signature}`;
 

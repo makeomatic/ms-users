@@ -72,7 +72,8 @@ function verifyRedisTokenResponse(token) {
  * @return {Promise}
  */
 function verifyToken() {
-  return this.tokenManager
+  return this
+    .tokenManager
     .verify(this.inviteToken, { erase: false, control: this.control })
     .then(verifyRedisTokenResponse)
     .get('metadata')
@@ -301,7 +302,7 @@ function registerUser(request) {
               .bind(this, [
                 challengeType,
                 {
-                  id: userId,
+                  id: username,
                   action: USERS_ACTION_ACTIVATE,
                   ...tokenOptions,
                 },

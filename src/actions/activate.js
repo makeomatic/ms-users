@@ -36,58 +36,69 @@ function throwBasedOnStatus(status) {
 /**
  * Verifies that account is active
  */
-function isAccountActive(userId) {
-  const { service: { redis } } = this;
-  const userKey = redisKey(userId, USERS_DATA);
-  return redis
-    .hget(userKey, USERS_ACTIVE_FLAG)
+function isAccountActive(username) {
+  return getInternalData
+    .call(this, username)
+    .then(userData => userData[USERS_ACTIVE_FLAG])
     .then(throwBasedOnStatus);
 }
 
 /**
  * Modifies error from the token
  */
-function RethrowForbidden(e) {
-  this.log.warn({ token: this.token, userId: this.userId, args: e.args }, 'failed to activate', e.message);
+function RethrowForbidden(error) {
+  const { log, token, username } = this;
+  const { args, message } = error;
+
+  log.warn({ token, username, args }, 'failed to activate', message);
 
   // remap error message
   // and possibly status code
-  if (!e.args) {
+  if (!args) {
     throw Forbidden;
   }
 
   return Promise
-    .bind(this, e.args.id)
+    .bind(this, args.id)
     // if it's active will throw 409, otherwise 412
     .then(isAccountActive);
 }
 
-/**
- * Verifies validity of token
- */
-function verifyToken(userId) {
-  let args;
-  const { token, service } = this;
-  const action = USERS_ACTION_ACTIVATE;
-  const opts = { erase: this.erase };
+function verifyToken(args, opts) {
+  const { tokenManager } = this;
 
-  if (userId) {
-    args = {
-      action,
-      token,
-      id: userId,
-    };
-  } else {
-    args = token;
-    opts.control = { action };
-  }
-
-  return this.service
-    .tokenManager
+  return tokenManager
     .verify(args, opts)
-    .bind({ log: service.log, redis: service.redis, token, userId })
+    .bind(this)
     .catch(RethrowForbidden)
     .get('id');
+}
+
+function verifyRequest() {
+  const { username, token, service: { tokenManager, redis, log }, erase } = this;
+  const action = USERS_ACTION_ACTIVATE;
+  const context = { log, redis, token, username, tokenManager };
+
+  if (username && token) {
+    return getInternalData
+      .call(this.service, username)
+      .then(userData => [
+        { action, token, id: userData[USERS_USERNAME_FIELD] },
+        { erase }
+      ])
+      .bind(context)
+      .spread(verifyToken);
+  }
+
+  if (token) {
+    return verifyToken.call(context, token, { erase, control: { action } });
+  }
+
+  if (username) {
+    return Promise.resolve(username);
+  }
+
+  throw new Errors.HttpStatusError(400, 'invalid params');
 }
 
 /**
@@ -162,22 +173,21 @@ function activateAction({ params }) {
   log.debug('incoming request params %j', params);
 
   // basic context
-  const ctx = {
-    token,
+  const context = {
     audience,
+    token,
+    username,
     service: this,
     erase: config.token.erase,
   };
 
   return Promise
-    .bind(this, username)
-    .then(username ? getUserId : noop)
-    .bind(ctx)
-    .then(token ? verifyToken : nthArg(0))
+    .bind(context)
+    .then(verifyRequest)
     .bind(this)
     .then(getInternalData)
     .then(activateAccount)
-    .bind(ctx)
+    .bind(context)
     .tap(hook)
     .bind(this)
     .then(userId => [userId, audience])

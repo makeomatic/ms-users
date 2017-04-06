@@ -14,6 +14,7 @@ const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
   USERS_ID_FIELD,
+  USERS_USERNAME_FIELD,
 } = require('../constants');
 
 /**
@@ -65,7 +66,7 @@ function verifyDisposablePassword(ctx, data) {
     .tokenManager
     .verify({
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
-      id: data[USERS_ID_FIELD],
+      id: data[USERS_USERNAME_FIELD],
       token: ctx.password,
     })
     .catchThrow(is404, USERS_DISPOSABLE_PASSWORD_MIA);

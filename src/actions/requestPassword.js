@@ -4,11 +4,12 @@ const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const hasPassword = require('../utils/hasPassword.js');
 const getMetadata = require('../utils/getMetadata.js');
-const challenge = require('../utils/challenges/challenge.js');
+const challenge = require('../utils/challenges/challenge');
 const {
   USERS_ACTION_PASSWORD,
   USERS_ACTION_RESET,
   USERS_ID_FIELD,
+  USERS_USERNAME_FIELD,
 } = require('../constants.js');
 
 /**
@@ -46,7 +47,7 @@ function requestPassword(request) {
     .then(meta => [
       challengeType,
       {
-        id: meta[USERS_ID_FIELD],
+        id: meta[USERS_USERNAME_FIELD],
         action,
         ...tokenOptions,
       },

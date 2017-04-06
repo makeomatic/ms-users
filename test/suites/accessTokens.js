@@ -1,7 +1,6 @@
 /* global inspectPromise, globalRegisterUser, globalAuthUser */
 const Promise = require('bluebird');
 const assert = require('assert');
-const md5 = require('md5');
 
 describe('#token.*', function activateSuite() {
   // actions supported by this
@@ -32,7 +31,7 @@ describe('#token.*', function activateSuite() {
         .then(inspectPromise())
         .then((token) => {
           assert.equal(token.split('.').length, 3, 'invalid token format');
-          assert.equal(token.split('.')[0], md5(this.userId), 'invalid input hash');
+          assert.equal(token.split('.')[0], this.userId, 'invalid input hash');
 
           // creates tokens pool
           tokenHolder = [token];

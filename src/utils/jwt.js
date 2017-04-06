@@ -32,7 +32,8 @@ exports.login = function login(userId, _audience) {
   // will have iat field, which is when this token was issued
   // we can check last access and verify the expiration date based on it
   const payload = {
-    userId,
+    // @TODO comment
+    username: userId,
     cs: flake.next(),
   };
 

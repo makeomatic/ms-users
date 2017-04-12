@@ -6,11 +6,11 @@
     "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
     "pretest": "npm run compile",
     "test": "npm run lint && npm run test:integration -- -r flake-idgen -r ms-flakeless -r scrypt",
-    "test:integration": "mdep test run",
+    "test:integration": "mdep test run --node 7.9.0",
     "lint": "eslint ./src",
     "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "docker-release": "mdep docker release",
+    "docker-release": "mdep docker release --node 7.9.0",
     "release": "yarn; npm run semantic-release; ./scripts/release.sh",
     "start": "node ./bin/mservice.js | bunyan -o short"
   },

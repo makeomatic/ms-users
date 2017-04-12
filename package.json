@@ -4,14 +4,15 @@
   "main": "./lib/index.js",
   "scripts": {
     "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
-    "prepublish": "npm run lint && npm run compile",
     "pretest": "npm run compile",
-    "test": "npm run lint && rimraf ./coverage && ./test/docker.sh",
-    "start": "node ./bin/mservice.js | bunyan -o short",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "test": "npm run lint && npm run test:integration -- -r flake-idgen -r ms-flakeless -r scrypt",
+    "test:integration": "mdep test run",
+    "lint": "eslint ./src",
     "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",
-    "docker-release": "./docker-release.sh",
-    "lint": "eslint ./src"
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "docker-release": "mdep docker release",
+    "release": "yarn; npm run semantic-release; ./scripts/release.sh",
+    "start": "node ./bin/mservice.js | bunyan -o short"
   },
   "repository": {
     "type": "git",
@@ -26,11 +27,11 @@
   "dependencies": {
     "babel-runtime": "^6.23.0",
     "bluebird": "^3.5.0",
-    "bunyan": "^1.8.8",
-    "bytes": "^2.4.0",
+    "bunyan": "^1.8.10",
+    "bytes": "^2.5.0",
     "common-errors": "^1.0.0",
     "csv-write-stream": "^2.0.0",
-    "disposable-email-domains": "^1.0.15",
+    "disposable-email-domains": "^1.0.16",
     "dlock": "^6.3.0",
     "flake-idgen": "^1.1.0",
     "get-stdin": "^5.0.1",
@@ -40,58 +41,59 @@
     "jwa": "^1.1.5",
     "lodash": "^4.17.4",
     "md5": "^2.2.1",
-    "moment": "^2.17.1",
+    "moment": "^2.18.1",
     "ms-amqp-transport": "^7.1.0",
-    "ms-conf": "^2.3.0",
+    "ms-conf": "^3.1.2",
     "ms-flakeless": "^4.0.1",
     "ms-mailer-client": "^5.0.1",
-    "ms-mailer-templates": "^0.16.0",
+    "ms-mailer-templates": "^1.0.0",
     "ms-token": "^1.4.1",
     "ms-validation": "^3.0.0",
     "mservice": "^6.0.1",
-    "node-uuid": "^1.4.7",
+    "node-uuid": "^1.4.8",
     "password-generator": "^2.1.0",
     "redis-filtered-sort": "^2.0.6",
     "request": "^2.81.0",
-    "request-promise": "^4.1.1",
+    "request-promise": "^4.2.0",
     "scrypt": "^6.0.1",
     "stdout-stream": "^1.4.0",
     "urlsafe-base64": "^1.0.0",
     "yargs": "^7.0.2"
   },
   "devDependencies": {
+    "@makeomatic/deploy": "^1.0.13",
     "apidoc": "^0.17.5",
     "apidoc-plugin-schema": "^0.1.1",
-    "babel-cli": "^6.24.0",
-    "babel-eslint": "^7.1.1",
-    "babel-plugin-istanbul": "^4.0.0",
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.1",
+    "babel-plugin-istanbul": "^4.1.1",
     "babel-plugin-syntax-async-functions": "^6.13.0",
-    "babel-plugin-transform-async-to-module-method": "^6.22.0",
-    "babel-plugin-transform-class-properties": "^6.23.0",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.0",
+    "babel-plugin-transform-async-to-module-method": "^6.24.1",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
     "babel-plugin-transform-es2015-spread": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-plugin-transform-strict-mode": "^6.22.0",
-    "babel-register": "^6.24.0",
+    "babel-plugin-transform-strict-mode": "^6.24.1",
+    "babel-register": "^6.24.1",
     "chai": "^3.5.0",
-    "codecov": "^1.0.1",
-    "cross-env": "^3.2.3",
+    "codecov": "^2.1.0",
+    "cross-env": "^4.0.0",
     "cz-conventional-changelog": "^2.0.0",
-    "eslint": "^3.17.1",
+    "eslint": "^3.19.0",
     "eslint-config-makeomatic": "^1.0.1",
     "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-mocha": "^4.8.0",
+    "eslint-plugin-mocha": "^4.9.0",
     "eslint-plugin-promise": "^3.5.0",
     "faker": "^4.1.0",
     "glob": "^7.1.1",
     "json": "^9.0.6",
     "latest-version-cli": "^1.1.0",
     "mocha": "^3.2.0",
-    "nyc": "^10.1.2",
+    "nyc": "^10.2.0",
     "rimraf": "^2.6.1",
     "semantic-release": "^6.3.2",
-    "sinon": "^1.17.7"
+    "sinon": "^2.1.0"
   },
   "release": {
     "verifyConditions": []
@@ -104,24 +106,5 @@
   "engines": {
     "node": ">= 7.6.0",
     "npm": ">= 3.0.0"
-  },
-  "nyc": {
-    "include": [
-      "src/**/*.js"
-    ],
-    "exclude": [
-      "src/**/*.spec.js"
-    ],
-    "require": [
-      "babel-register"
-    ],
-    "sourceMap": false,
-    "instrument": false,
-    "cache": true,
-    "reporter": [
-      "lcov",
-      "json",
-      "text-summary"
-    ]
   }
 }

@@ -4,14 +4,15 @@
   "main": "./lib/index.js",
   "scripts": {
     "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
-    "prepublish": "npm run lint && npm run compile",
     "pretest": "npm run compile",
-    "test": "npm run lint && rimraf ./coverage && ./test/docker.sh",
-    "start": "node ./bin/mservice.js | bunyan -o short",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "test": "npm run lint && npm run test:integration -- -r flake-idgen -r ms-flakeless -r scrypt",
+    "test:integration": "mdep test run",
+    "lint": "eslint ./src",
     "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",
-    "docker-release": "./docker-release.sh",
-    "lint": "eslint ./src"
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "docker-release": "mdep docker release",
+    "release": "yarn; npm run semantic-release; ./scripts/release.sh",
+    "start": "node ./bin/mservice.js | bunyan -o short"
   },
   "repository": {
     "type": "git",
@@ -60,6 +61,7 @@
     "yargs": "^7.0.2"
   },
   "devDependencies": {
+    "@makeomatic/deploy": "^1.0.13",
     "apidoc": "^0.17.5",
     "apidoc-plugin-schema": "^0.1.1",
     "babel-cli": "^6.24.1",
@@ -104,24 +106,5 @@
   "engines": {
     "node": ">= 7.6.0",
     "npm": ">= 3.0.0"
-  },
-  "nyc": {
-    "include": [
-      "src/**/*.js"
-    ],
-    "exclude": [
-      "src/**/*.spec.js"
-    ],
-    "require": [
-      "babel-register"
-    ],
-    "sourceMap": false,
-    "instrument": false,
-    "cache": true,
-    "reporter": [
-      "lcov",
-      "json",
-      "text-summary"
-    ]
   }
 }

@@ -6,7 +6,6 @@ const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 const redisKey = require('./key.js');
 const { USERS_TOKENS, USERS_API_TOKENS, USERS_ID_FIELD } = require('../constants.js');
 const getMetadata = require('../utils/getMetadata.js');
-const { resolveUserId } = require('../utils/userData');
 const { verify: verifyHMAC } = require('./signatures');
 
 // cache this to not recreate all the time
@@ -197,17 +196,6 @@ exports.internal = function verifyInternalToken(token) {
   // erase or expired
   const key = redisKey(USERS_API_TOKENS, payload);
   const redis = this.redis;
-  const isLegacy = /^[a-f0-9]{32}$/i.test(userId); // is md5?
-
-  if (isLegacy) {
-    // @TODO comment, test
-    return redis
-      .hget(key, 'username')
-      .bind(this)
-      .then(resolveUserId)
-      // @TODO comment
-      .then(username => ({ username }));
-  }
 
   return redis
     .hget(key, 'userId')

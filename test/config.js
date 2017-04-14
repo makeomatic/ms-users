@@ -49,6 +49,12 @@ const config = {
     account: 'twilio',
     waitChallenge: true,
   },
+  // @TODO remove
+  migrations: {
+    23: {
+      audiences: ['api', 'ms-files'],
+    },
+  },
 };
 
 function registerUser(username, opts = {}) {

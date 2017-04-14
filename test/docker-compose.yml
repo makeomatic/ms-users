@@ -12,7 +12,7 @@ services:
       - "5672"
       - "15672"
       - "25672"
-    image: makeomatic/rabbitmq:3.6.6
+    image: makeomatic/rabbitmq:3.6.9
     container_name: rabbitmq
     hostname: rabbitmq
     volumes:
@@ -20,7 +20,7 @@ services:
 
   tester:
     container_name: tester
-    image: makeomatic/node:7.7.2-tester
+    image: makeomatic/node:7.9.0-tester
     links:
       - redis
       - rabbitmq

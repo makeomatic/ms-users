@@ -1,7 +1,10 @@
 module.exports = {
   migrations: {
-    23: {
-      audiences: [],
+    enabled: true,
+    meta: {
+      23: {
+        audiences: [],
+      },
     },
   },
 };

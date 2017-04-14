@@ -51,7 +51,9 @@ module.exports = class Users extends Mservice {
       this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
 
       // run migrations
-      this.migrate('redis', `${__dirname}/migrations`);
+      if (this.config.migrations.enabled === true) {
+        this.migrate('redis', `${__dirname}/migrations`);
+      }
     });
 
     // cleanup connections

@@ -31,9 +31,9 @@ const config = {
   },
   validation: {
     templates: {
-      activate: 'cappasity-activate',
-      password: 'cappasity-password',
-      register: 'cappasity-register',
+      activate: 'cpst-activate',
+      password: 'cpst-password',
+      register: 'cpst-register',
       invite: 'rfx-invite',
     },
   },
@@ -49,10 +49,13 @@ const config = {
     account: 'twilio',
     waitChallenge: true,
   },
-  // @TODO remove
   migrations: {
-    23: {
-      audiences: ['api', 'ms-files'],
+    enabled: false,
+    // @TODO remove
+    meta: {
+      23: {
+        audiences: ['api', 'ms-files'],
+      },
     },
   },
 };

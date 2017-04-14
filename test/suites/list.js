@@ -19,8 +19,9 @@ describe('#list', function listSuite() {
 
     ld.times(105, () => {
       const user = {
-        id: faker.internet.email(),
+        id: this.users.flake.next(),
         metadata: {
+          username: faker.internet.email(),
           firstName: faker.name.firstName(),
           lastName: faker.name.lastName(),
         },
@@ -99,14 +100,14 @@ describe('#list', function listSuite() {
       });
   });
 
-  it('able to list users with # filter: ASC', function test() {
+  it('able to list users with `username` filter: ASC', function test() {
     return simpleDispatcher(this.users.router)('users.list', {
       offset: 0,
       limit: 10,
       order: 'ASC',
       audience: this.audience,
       filter: {
-        '#': 'an',
+        username: 'an',
       },
     }).reflect()
       .then(result => {
@@ -122,7 +123,7 @@ describe('#list', function listSuite() {
           copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
 
           copy.forEach((data) => {
-            expect(data.id).to.match(/an/i);
+            expect(data.metadata[this.audience].username).to.match(/an/i);
           });
 
           expect(copy).to.be.deep.eq(result.value().users);
@@ -132,14 +133,14 @@ describe('#list', function listSuite() {
       });
   });
 
-  it('able to list users with # filter: DESC', function test() {
+  it('able to list users with `username` filter: DESC', function test() {
     return simpleDispatcher(this.users.router)('users.list', {
       offset: 0,
       limit: 10,
       order: 'DESC',
       audience: this.audience,
       filter: {
-        '#': 'an',
+        username: 'an',
       },
     }).reflect()
       .then(result => {
@@ -155,7 +156,7 @@ describe('#list', function listSuite() {
           copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
 
           copy.forEach((data) => {
-            expect(data.id).to.match(/an/i);
+            expect(data.metadata[this.audience].username).to.match(/an/i);
           });
 
           expect(copy).to.be.deep.eq(result.value().users);
@@ -229,7 +230,7 @@ describe('#list', function listSuite() {
       criteria: 'firstName',
       audience: this.audience,
       filter: {
-        '#': 'an',
+        username: 'an',
         lastName: 'b',
       },
     }).reflect()
@@ -246,7 +247,7 @@ describe('#list', function listSuite() {
           copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
 
           copy.forEach((data) => {
-            expect(data.id).to.match(/an/i);
+            expect(data.metadata[this.audience].username).to.match(/an/i);
             expect(data.metadata[this.audience].lastName).to.match(/b/i);
           });
 
@@ -265,7 +266,7 @@ describe('#list', function listSuite() {
       criteria: 'lastName',
       audience: this.audience,
       filter: {
-        '#': 'an',
+        username: 'an',
         lastName: 'b',
       },
     }).reflect()
@@ -282,7 +283,7 @@ describe('#list', function listSuite() {
           copy.sort((a, b) => a.metadata[this.audience].lastName.toLowerCase() > b.metadata[this.audience].lastName.toLowerCase());
 
           copy.forEach(data => {
-            expect(data.id).to.match(/an/i);
+            expect(data.metadata[this.audience].username).to.match(/an/i);
             expect(data.metadata[this.audience].lastName).to.match(/b/i);
           });
 

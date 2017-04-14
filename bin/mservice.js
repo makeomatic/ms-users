@@ -11,7 +11,10 @@ try {
 // accepts conf through .env file
 // suitable for configuring this in the docker env
 const configuration = require('ms-conf');
+
+// eslint-disable-next-line import/no-dynamic-require
 const Service = require(dir);
+
 const service = new Service(configuration.get('/'));
 
 service.connect()

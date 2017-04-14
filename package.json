@@ -49,7 +49,7 @@
     "ms-mailer-templates": "^1.0.0",
     "ms-token": "^1.4.1",
     "ms-validation": "^3.0.0",
-    "mservice": "^6.0.1",
+    "mservice": "^6.1.0",
     "node-uuid": "^1.4.8",
     "password-generator": "^2.1.0",
     "redis-filtered-sort": "^2.0.6",

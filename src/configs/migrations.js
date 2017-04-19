@@ -1,8 +1,8 @@
 module.exports = {
   migrations: {
-    enabled: true,
+    enabled: false,
     meta: {
-      23: {
+      'v2-to-v3': {
         audiences: [],
       },
     },

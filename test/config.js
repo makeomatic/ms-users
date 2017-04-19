@@ -50,13 +50,12 @@ const config = {
     waitChallenge: true,
   },
   migrations: {
-    enabled: false,
     // @TODO remove
-    meta: {
-      23: {
-        audiences: ['api', 'ms-files'],
-      },
-    },
+    // meta: {
+    //   'v2-to-v3': {
+    //     audiences: ['api', 'ms-files'],
+    //   },
+    // },
   },
 };
 

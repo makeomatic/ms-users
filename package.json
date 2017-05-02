@@ -42,7 +42,7 @@
     "lodash": "^4.17.4",
     "md5": "^2.2.1",
     "moment": "^2.18.1",
-    "ms-amqp-transport": "^7.1.0",
+    "ms-amqp-transport": "^8.0.0",
     "ms-conf": "^3.1.2",
     "ms-flakeless": "^4.0.1",
     "ms-mailer-client": "^5.0.1",

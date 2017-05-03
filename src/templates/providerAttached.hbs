@@ -11,7 +11,7 @@
     <script>
       var opener = window.opener;
       if (opener) {
-        opener.postMessage({ completed: true }, 'https://admin.radiofx.co');
+        opener.postMessage({ completed: true }, {{ targetOrigin }});
       }
       // close the window
       window.close();

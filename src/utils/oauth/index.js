@@ -1,18 +1,24 @@
-const fs = require('fs');
+const path = require('path');
+const glob = require('glob');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 
 const get = require('lodash/get');
 const forEach = require('lodash/forEach');
 const defaults = require('lodash/defaults');
+const isFunction = require('lodash/isFunction');
 
 const { Redirect } = require('./errors');
 
 /* eslint-disable */
-const _strategies = fs.readdirSync(__dirname + '/strategies').reduce((acc, module) => {
-  acc[module.replace(/^(.*).js$/, '$1')] = require(`./strategies/${module}`);
-  return acc;
-}, {});
+const strategies = Object.create(null);
+const strategiesFolderPath = path.resolve(__dirname, '/strategies');
+const strategiesFiles = glob.sync('*.js', { cwd: strategiesFolderPath, mathBase: true });
+
+strategiesFiles.forEach(filename => {
+  // remove .js
+  strategies[filename.slice(0, -3)] = require(filename);
+});
 /* eslint-enable */
 
 function isRedirect(response) {
@@ -30,28 +36,28 @@ function authHandler(request) {
   const { action, transportRequest } = request;
   const { strategy } = action;
 
-  return new Promise((resolve, reject) => {
+  return Promise.fromCallback((callback) => {
     http.auth.test(strategy, transportRequest, function auth(response, credentials) {
       if (response) {
         const shouldThrow = isError(response);
         const shouldRedirect = isRedirect(response);
 
         if (shouldThrow) {
-          return reject(response);
+          return callback(response);
         }
 
         if (shouldRedirect) {
           // set redirect uri to rewrite the response in the hapi's preResponse hook
           const redirectUri = transportRequest.redirectUri = get(response, 'headers.location');
-          return reject(new Redirect(redirectUri));
+          return callback(new Redirect(redirectUri));
         }
       }
 
       if (!credentials) {
-        return reject(new Errors.AuthenticationRequiredError('missed credentials'));
+        return callback(new Errors.AuthenticationRequiredError('missed credentials'));
       }
 
-      return resolve(credentials);
+      return callback(null, credentials);
     });
   });
 }
@@ -65,7 +71,7 @@ function stringToArray(scope, scopeSeparator) {
 }
 
 module.exports.OauthHandler = function OauthHandler(server, config) {
-  const { oauth, http } = config;
+  const { oauth } = config;
 
   if (!oauth) {
     return null;
@@ -74,59 +80,47 @@ module.exports.OauthHandler = function OauthHandler(server, config) {
   const { providers } = oauth;
 
   server.ext('onPreResponse', (request, reply) => {
-    const { redirectUri, renderView } = request;
+    const { redirectUri } = request;
 
     if (redirectUri) {
       return reply.redirect(redirectUri);
     }
 
-    if (renderView) {
-      const { view, context } = renderView;
-      return reply.view(view, context);
-    }
-
     return reply.continue();
   });
 
-  return server.register([
-    require('bell'),
-    require('vision'),
-  ]).then(() => {
-    forEach(providers, (options, name) => {
-      const strategy = _strategies[name];
+  forEach(providers, (options, name) => {
+    const strategy = strategies[name];
 
-      if (!strategy) {
-        throw new Error(`Oauth: unknown strategy ${name}`);
-      }
+    if (!strategy) {
+      throw new Error(`Oauth: unknown strategy ${name}`);
+    }
 
-      let provider;
-      const { scope, scopeSeparator, ...rest } = options;
+    let provider;
+    const defaultOptions = strategy.options;
+    const { scope, scopeSeparator, apiVersion, ...rest } = options;
 
-      if (strategy.options) {
-        const configuredOptions = {
-          name,
-          scope: stringToArray(scope),
-          scopeSeparator,
-        };
-        provider = defaults(configuredOptions, strategy.options);
+    if (defaultOptions) {
+      const configuredOptions = {
+        name,
+        scope: stringToArray(scope),
+        scopeSeparator,
+      };
+
+      if (isFunction(defaultOptions)) {
+        provider = defaultOptions({ ...configuredOptions, apiVersion });
       } else {
-        // use bell defaults
-        provider = name;
+        provider = defaults(configuredOptions, defaultOptions);
       }
+    } else {
+      // use bell defaults
+      provider = name;
+    }
 
-      const providerOptions = { provider, ...rest };
+    const providerOptions = { provider, ...rest };
 
-      server.auth.strategy(name, 'bell', providerOptions);
-    });
-
-    server.views({
-      engines: {
-        html: require('handlebars'),
-      },
-      relativeTo: __dirname,
-      path: http.templatesPath,
-    });
-
-    return server;
+    server.auth.strategy(name, 'bell', providerOptions);
   });
+
+  return server;
 };

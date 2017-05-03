@@ -44,13 +44,9 @@ function facebookCallbackAction(request) {
   return Promise
     .bind(this, [facebook, jwt])
     .spread(jwt ? updateMetadata : getSignedToken)
-    .tap((context) => {
-      request.renderView = {
-        view: 'attached',
-        context,
-      };
-    })
-    .return(null);
+    .then(context => (
+      request.sendView('attached', context)
+    ));
 }
 
 facebookCallbackAction.auth = 'oauth';

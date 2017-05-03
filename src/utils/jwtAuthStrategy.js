@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const get = require('lodash/get');
 const identity = require('lodash/identity');
+const constant = require('lodash/constant');
 const { HttpStatusError } = require('common-errors');
 const {
   POLICY_AUTH_REQUIRED,
@@ -8,28 +9,23 @@ const {
   POLICY_AUTH_TRY,
 } = require('../constants');
 
+const policyTry = constant(true);
+const policyOptionalAndRequired = (err) => { throw err; };
+
+const checkAuth = {
+  [POLICY_AUTH_TRY]: policyTry,
+  [POLICY_AUTH_OPTIONAL]: policyOptionalAndRequired,
+  [POLICY_AUTH_REQUIRED]: policyOptionalAndRequired,
+};
+
 function verifyUser(token, audience) {
+  const { prefix } = this.config.router;
+
   if (!token) {
     throw new HttpStatusError(401, 'token is required');
   }
 
-  return this.router.dispatch('users.verify', { token, audience });
-}
-
-function checkAuth(policy) {
-  return (err) => {
-    switch (policy) {
-      // skip if auth failed
-      case POLICY_AUTH_TRY:
-        return true;
-
-      // throw error
-      case POLICY_AUTH_OPTIONAL:
-      case POLICY_AUTH_REQUIRED:
-      default:
-        throw err;
-    }
-  };
+  return this.amqp.publishAndWait(`${prefix}.verify`, { token, audience });
 }
 
 function handleAuthSuccess(request, callback = identity) {
@@ -47,9 +43,10 @@ module.exports = function jwtAuthStrategy(request) {
   const token = get(request, 'headers.jwt', null);
   const audience = get(request, 'headers.audience', undefined);
   const onAuthSuccess = get(request, 'action.onAuthSuccess');
+  const checkAuthPolicy = checkAuth[policy] || policyOptionalAndRequired;
 
   return Promise.bind(this, [token, audience])
     .spread(verifyUser)
-    .tap(checkAuth(policy))
+    .tap(checkAuthPolicy)
     .tap(handleAuthSuccess(request, onAuthSuccess));
 };

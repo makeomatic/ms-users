@@ -35,13 +35,10 @@ services:
 
   dev:
     container_name: dev
-    image: makeomatic/ms-users:7.5.0-development
+    image: makeomatic/ms-users:7.9.0
     links:
-      - redis-1
-      - redis-2
-      - redis-3
+      - redis
       - rabbitmq
-      - redis-client
     working_dir: /src
     volumes:
       - ${PWD}:/src

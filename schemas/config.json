@@ -494,12 +494,18 @@
                 "isSecure": {
                   "type": "boolean",
                   "default": false
+                },
+                "apiVersion": {
+                  "type": "string"
                 }
               }
             },
             "retryOnMissingPermissions": {
               "type": "boolean",
               "default": true
+            },
+            "targetOrigin": {
+              "type": "string"
             }
           }
         }

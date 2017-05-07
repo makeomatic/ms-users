@@ -1,15 +1,18 @@
 {
-  "id": "logout",
-  "type": "object",
-  "required": [ "jwt", "audience" ],
-  "properties": {
-    "jwt": {
-      "type": "string",
-      "minLength": 1
-    },
-    "audience": {
-      "type": "string",
-      "minLength": 1
+    "$id": "logout",
+    "type": "object",
+    "required": [
+        "jwt",
+        "audience"
+    ],
+    "properties": {
+        "jwt": {
+            "type": "string",
+            "minLength": 1
+        },
+        "audience": {
+            "type": "string",
+            "minLength": 1
+        }
     }
-  }
 }

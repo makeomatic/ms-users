@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "id": "updateMetadata",
+  "$id": "updateMetadata",
   "properties": {
     "username": {
       "$ref": "#/definitions/username"

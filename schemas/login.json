@@ -1,33 +1,36 @@
 {
-  "id": "login",
-  "type": "object",
-  "required": [ "username", "audience" ],
-  "properties": {
-    "username": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 50
-    },
-    "password": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 50
-    },
-    "audience": {
-      "type": "string",
-      "minLength": 1
-    },
-    "remoteip": {
-      "type": "string",
-      "format": "ipv4"
-    },
-    "isDisposablePassword": {
-      "default": false,
-      "type": "boolean"
-    },
-    "isSSO": {
-      "default": false,
-      "type": "boolean"
+    "$id": "login",
+    "type": "object",
+    "required": [
+        "username",
+        "audience"
+    ],
+    "properties": {
+        "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50
+        },
+        "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+        },
+        "audience": {
+            "type": "string",
+            "minLength": 1
+        },
+        "remoteip": {
+            "type": "string",
+            "format": "ipv4"
+        },
+        "isDisposablePassword": {
+            "default": false,
+            "type": "boolean"
+        },
+        "isSSO": {
+            "default": false,
+            "type": "boolean"
+        }
     }
-  }
 }

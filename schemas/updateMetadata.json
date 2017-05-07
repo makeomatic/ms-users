@@ -25,7 +25,10 @@
         "audience": {
           "type": "array",
           "minItems": {
-            "$data": "1/metadata/length"
+            "$data": "#/properties/metadata/length"
+          },
+          "maxItems": {
+            "$data": "#/properties/metadata/length"
           },
           "items": {
             "type": "string",

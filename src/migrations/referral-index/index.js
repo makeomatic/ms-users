@@ -1,6 +1,7 @@
 // This migrations adds created field for existing users
 //
 const fs = require('fs');
+const list = require('../../actions/list');
 
 const {
   USERS_INDEX,
@@ -23,12 +24,11 @@ const ARGS = [
 ];
 
 exports.script = (service, pipeline, versionKey, appendLuaScript) => {
-  const prefix = service.config.router.prefix;
   const audience = service.config.jwt.defaultAudience;
-  const list = `${prefix}.list`;
+  const prefix = service.config.redis.options.keyPrefix;
 
-  return service.router
-    .dispatch(list, {
+  return list.call(service, {
+    params: {
       audience,
       keyOnly: true,
       public: false,
@@ -37,19 +37,20 @@ exports.script = (service, pipeline, versionKey, appendLuaScript) => {
           exists: 1,
         },
       },
-    })
-    .then(key => key.slice(prefix.length))
-    .then((userIdsKey) => {
-      const keys = [
-        versionKey,
-        USERS_INDEX,
-        userIdsKey,
-        `uid!${USERS_METADATA}!${audience}`,
-        `${USERS_REFERRAL_INDEX}:uid`,
-      ];
+    },
+  })
+  .then(key => key.slice(prefix.length))
+  .then((userIdsKey) => {
+    const keys = [
+      versionKey,
+      USERS_INDEX,
+      userIdsKey,
+      `uid!${USERS_METADATA}!${audience}`,
+      `${USERS_REFERRAL_INDEX}:uid`,
+    ];
 
-      const lua = appendLuaScript(FINAL, MIN, SCRIPT);
-      pipeline.eval(lua, keys.length, keys, ARGS);
-      return null;
-    });
+    const lua = appendLuaScript(FINAL, MIN, SCRIPT);
+    pipeline.eval(lua, keys.length, keys, ARGS);
+    return null;
+  });
 };

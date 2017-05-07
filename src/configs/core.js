@@ -62,7 +62,7 @@ exports.logger = {
  * @type {Array}
  */
 exports.validator = {
-  schemas: path.resolve(__dirname, '../../schemas'),
+  schemas: [path.resolve(__dirname, '../../schemas')],
   ajv: {
     validateSchema: 'log',
   },

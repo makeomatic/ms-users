@@ -65,6 +65,7 @@ exports.validator = {
   schemas: [path.resolve(__dirname, '../../schemas')],
   ajv: {
     validateSchema: 'log',
+    $data: true,
   },
 };
 

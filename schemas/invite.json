@@ -1,36 +1,38 @@
 {
-  "id": "invite",
-  "type": "object",
-  "required": ["email"],
-  "properties": {
-    "email": {
-      "type": "string",
-      "format": "email"
-    },
-    "ctx": {
-      "type": "object",
-      "minProperties": 1
-    },
-    "metadata": {
-      "type": "object",
-      "minProperties": 1,
-      "patternProperties": {
-        "^.+$": {
-          "type": "object",
-          "minProperties": 1
+    "$id": "invite",
+    "type": "object",
+    "required": [
+        "email"
+    ],
+    "properties": {
+        "email": {
+            "type": "string",
+            "format": "email"
+        },
+        "ctx": {
+            "type": "object",
+            "minProperties": 1
+        },
+        "metadata": {
+            "type": "object",
+            "minProperties": 1,
+            "patternProperties": {
+                "^.+$": {
+                    "type": "object",
+                    "minProperties": 1
+                }
+            }
+        },
+        "nodemailer": {
+            "type": "object"
+        },
+        "throttle": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "ttl": {
+            "type": "integer",
+            "minimum": 0
         }
-      }
-    },
-    "nodemailer": {
-      "type": "object"
-    },
-    "throttle": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "ttl": {
-      "type": "integer",
-      "minimum": 0
     }
-  }
 }

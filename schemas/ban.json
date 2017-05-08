@@ -1,24 +1,27 @@
 {
-  "id": "ban",
-  "type": "object",
-  "required": [ "username", "ban" ],
-  "properties": {
-    "username": {
-      "type": "string",
-      "minLength": 1
-    },
-    "ban": {
-      "type": "boolean"
-    },
-    "remoteip": {
-      "type": "string",
-      "format": "ipv4"
-    },
-    "reason": {
-      "type": "string"
-    },
-    "whom": {
-      "type": "string"
+    "$id": "ban",
+    "type": "object",
+    "required": [
+        "username",
+        "ban"
+    ],
+    "properties": {
+        "username": {
+            "type": "string",
+            "minLength": 1
+        },
+        "ban": {
+            "type": "boolean"
+        },
+        "remoteip": {
+            "type": "string",
+            "format": "ipv4"
+        },
+        "reason": {
+            "type": "string"
+        },
+        "whom": {
+            "type": "string"
+        }
     }
-  }
 }

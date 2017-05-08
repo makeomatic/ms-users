@@ -1,25 +1,28 @@
 {
-  "id": "invite-list",
-  "type": "object",
-  "properties": {
-    "offset": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "limit": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 100
-    },
-    "order": {
-      "type": "string",
-      "enum": [ "ASC", "DESC" ]
-    },
-    "criteria": {
-      "type": "string"
-    },
-    "filter": {
-      "$ref": "common.json#/definitions/filter"
+    "$id": "invite-list",
+    "type": "object",
+    "properties": {
+        "offset": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+        },
+        "order": {
+            "type": "string",
+            "enum": [
+                "ASC",
+                "DESC"
+            ]
+        },
+        "criteria": {
+            "type": "string"
+        },
+        "filter": {
+            "$ref": "common.json#/definitions/filter"
+        }
     }
-  }
 }

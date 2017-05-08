@@ -1,12 +1,14 @@
 {
-  "id": "remove",
-  "type": "object",
-  "required": ["username"],
-  "properties": {
-    "username": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 50
+    "$id": "remove",
+    "type": "object",
+    "required": [
+        "username"
+    ],
+    "properties": {
+        "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50
+        }
     }
-  }
 }

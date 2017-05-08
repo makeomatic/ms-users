@@ -47,7 +47,7 @@
     "ms-flakeless": "^4.0.1",
     "ms-mailer-client": "^5.0.1",
     "ms-mailer-templates": "^1.0.0",
-    "ms-token": "^1.4.1",
+    "ms-token": "^2.0.0",
     "ms-validation": "^3.0.0",
     "mservice": "^6.0.1",
     "node-uuid": "^1.4.8",

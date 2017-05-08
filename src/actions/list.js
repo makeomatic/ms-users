@@ -18,21 +18,15 @@ const JSONParse = data => JSON.parse(data);
 function fetchIds() {
   const {
     redis,
-
-    index,
-    metaKey,
-    criteria,
-    order,
-    strFilter,
-    currentTime,
-    offset,
-    limit,
-    expiration,
+    keys,
+    args,
     keyOnly,
   } = this;
 
-  return redis
-    .fsort(index, metaKey, criteria, order, strFilter, currentTime, offset, limit, expiration, keyOnly ? '1' : null);
+  // ensure that we have keyOnly set to true, otherwise undefined
+  if (keyOnly) args.push('1');
+
+  return redis.fsort(keys, args);
 }
 
 // fetches user data
@@ -107,6 +101,7 @@ function iterateOverActiveUsers({ params }) {
   const limit = params.limit || 10;
   const keyOnly = params.keyOnly;
   const metaKey = redisKey('*', USERS_METADATA, audience);
+  const currentTime = Date.now();
 
   let index;
   switch (params.public) {
@@ -129,16 +124,18 @@ function iterateOverActiveUsers({ params }) {
     redis,
     service: this,
 
-    // input parts
-    index,
-    metaKey,
-    criteria,
-    order,
-    strFilter,
-    currentTime: Date.now(),
+    // input parts for lua script
+    keys: [
+      index, metaKey,
+    ],
+
+    args: [
+      criteria, order, strFilter, currentTime, offset, limit, expiration,
+    ],
+
+    // used in 2 places, hence separate args
     offset,
     limit,
-    expiration,
     keyOnly,
 
     // extra args

@@ -1,10 +1,11 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const redisKey = require('../utils/key.js');
-const jwt = require('../utils/jwt.js');
-const getInternalData = require('../utils/getInternalData.js');
-const userExists = require('../utils/userExists.js');
-const handlePipeline = require('../utils/pipelineError.js');
+const redisKey = require('../utils/key');
+const jwt = require('../utils/jwt');
+const getInternalData = require('../utils/getInternalData');
+const getMetadata = require('../utils/getMetadata');
+const userExists = require('../utils/userExists');
+const handlePipeline = require('../utils/pipelineError');
 const {
   USERS_INDEX,
   USERS_DATA,
@@ -104,10 +105,10 @@ function verifyToken() {
  * @param  {Object} data internal user data
  * @return {Promise}
  */
-function activateAccount(data) {
+function activateAccount(data, metadata) {
   const user = data[USERS_USERNAME_FIELD];
   const alias = data[USERS_ALIAS_FIELD];
-  const referral = data[USERS_REFERRAL_FIELD];
+  const referral = metadata[USERS_REFERRAL_FIELD];
   const userKey = redisKey(user, USERS_DATA);
 
   // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
@@ -189,8 +190,11 @@ function verifyChallenge({ params }) {
     .bind(ctx)
     .then(token ? verifyToken : doesUserExist)
     .bind(this)
-    .then(getInternalData)
-    .then(activateAccount)
+    .then(resolvedUsername => Promise.join(
+      getInternalData.call(this, resolvedUsername),
+      getMetadata.call(this, resolvedUsername, audience)
+    ))
+    .spread(activateAccount)
     .bind(ctx)
     .tap(hook)
     .bind(this)

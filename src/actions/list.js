@@ -32,7 +32,7 @@ function fetchIds() {
   } = this;
 
   return redis
-    .fsort(index, metaKey, criteria, order, strFilter, currentTime, offset, limit, expiration, keyOnly || undefined);
+    .fsort(index, metaKey, criteria, order, strFilter, currentTime, offset, limit, expiration, keyOnly ? '1' : null);
 }
 
 // fetches user data
@@ -148,9 +148,7 @@ function iterateOverActiveUsers({ params }) {
   return Promise
     .bind(ctx)
     .then(fetchIds)
-    .tap(console.log)
-    .then(keyOnly ? passThrough : fetchUserData)
-    .tap(console.log);
+    .then(keyOnly ? passThrough : fetchUserData);
 }
 
 module.exports = iterateOverActiveUsers;

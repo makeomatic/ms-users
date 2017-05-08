@@ -192,7 +192,7 @@ function verifyChallenge({ params }) {
     .bind(this)
     .then(resolvedUsername => Promise.join(
       getInternalData.call(this, resolvedUsername),
-      getMetadata.call(this, resolvedUsername, audience)
+      getMetadata.call(this, resolvedUsername, audience).get(audience)
     ))
     .spread(activateAccount)
     .bind(ctx)

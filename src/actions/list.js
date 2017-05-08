@@ -45,41 +45,39 @@ function fetchUserData(ids) {
   } = this;
 
   const length = +ids.pop();
+
+  // fetch extra data
+  let userIds;
   if (length === 0 || ids.length === 0) {
-    return [
-      [],
-      [],
-      length,
-    ];
+    userIds = Promise.resolve([[], [], length]);
+  } else {
+    const pipeline = redis.pipeline();
+    ids.forEach((id) => {
+      pipeline.hgetall(redisKey(id, USERS_METADATA, audience));
+    });
+    userIds = pipeline.exec().then(handlePipeline);
   }
 
-  const pipeline = redis.pipeline();
-  ids.forEach((id) => {
-    pipeline.hgetall(redisKey(id, USERS_METADATA, audience));
-  });
-
-  return pipeline.exec()
-    .then(handlePipeline)
-    .then((props) => {
-      const users = ids.map(function remapData(id, idx) {
-        const data = props[idx];
-        const account = {
-          id,
-          metadata: {
-            [audience]: data ? mapValues(data, JSONParse) : {},
-          },
-        };
-
-        return account;
-      });
-
-      return {
-        users,
-        cursor: offset + limit,
-        page: Math.floor(offset / limit) + 1,
-        pages: Math.ceil(length / limit),
+  return userIds.then((props) => {
+    const users = ids.map(function remapData(id, idx) {
+      const data = props[idx];
+      const account = {
+        id,
+        metadata: {
+          [audience]: data ? mapValues(data, JSONParse) : {},
+        },
       };
+
+      return account;
     });
+
+    return {
+      users,
+      cursor: offset + limit,
+      page: Math.floor(offset / limit) + 1,
+      pages: Math.ceil(length / limit),
+    };
+  });
 }
 
 /**
@@ -116,6 +114,7 @@ function iterateOverActiveUsers({ params }) {
       index = USERS_PUBLIC_INDEX;
       break;
 
+    case undefined:
     case false:
       index = USERS_INDEX;
       break;
@@ -149,7 +148,9 @@ function iterateOverActiveUsers({ params }) {
   return Promise
     .bind(ctx)
     .then(fetchIds)
-    .then(keyOnly ? passThrough : fetchUserData);
+    .tap(console.log)
+    .then(keyOnly ? passThrough : fetchUserData)
+    .tap(console.log);
 }
 
 module.exports = iterateOverActiveUsers;

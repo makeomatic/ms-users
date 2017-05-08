@@ -3462,9 +3462,9 @@ redis-commands@^1.2.0:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/redis-commands/-/redis-commands-1.3.1.tgz#81d826f45fa9c8b2011f4cd7a0fe597d241d442b"
 
-redis-filtered-sort@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/redis-filtered-sort/-/redis-filtered-sort-2.1.1.tgz#099a3adfe072bdcda32dfbdfc878df3694f25c99"
+redis-filtered-sort@^2.1.6:
+  version "2.1.6"
+  resolved "https://registry.yarnpkg.com/redis-filtered-sort/-/redis-filtered-sort-2.1.6.tgz#65b638a31143e0e905ea562f4a9d00acd43e3f9e"
   dependencies:
     cluster-key-slot "^1.0.6"
 
@@ -3515,13 +3515,14 @@ request-promise-core@1.1.1:
   dependencies:
     lodash "^4.13.1"
 
-request-promise@^4.1.1, request-promise@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/request-promise/-/request-promise-4.2.0.tgz#684f77748d6b4617bee6a4ef4469906e6d074720"
+request-promise@^4.1.1, request-promise@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/request-promise/-/request-promise-4.2.1.tgz#7eec56c89317a822cbfea99b039ce543c2e15f67"
   dependencies:
     bluebird "^3.5.0"
     request-promise-core "1.1.1"
-    stealthy-require "^1.0.0"
+    stealthy-require "^1.1.0"
+    tough-cookie ">=2.3.0"
 
 request@2.79.0:
   version "2.79.0"
@@ -3905,9 +3906,9 @@ stdout-stream@^1.4.0:
   dependencies:
     readable-stream "^2.0.1"
 
-stealthy-require@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/stealthy-require/-/stealthy-require-1.0.0.tgz#1a8ed8fc19a8b56268f76f5a1a3e3832b0c26200"
+stealthy-require@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/stealthy-require/-/stealthy-require-1.1.0.tgz#ca61cf38766158ea819a0a1b0070b35de957f9b0"
 
 stream-blackhole@^1.0.3:
   version "1.0.3"
@@ -4071,7 +4072,7 @@ topo@2.x.x:
   dependencies:
     hoek "4.x.x"
 
-tough-cookie@~2.3.0:
+tough-cookie@>=2.3.0, tough-cookie@~2.3.0:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.3.2.tgz#f081f76e4c85720e6c37a5faced737150d84072a"
   dependencies:

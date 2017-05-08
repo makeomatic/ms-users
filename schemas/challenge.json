@@ -1,22 +1,25 @@
 {
-  "id": "challenge",
-  "type": "object",
-  "required": [ "type", "username" ],
-  "properties": {
-    "type": {
-      "type": "string",
-      "enum": [ "email" ]
-    },
-    "username": {
-      "type": "string",
-      "minLength": 1
-    },
-    "remoteip": {
-      "type": "string",
-      "format": "ipv4"
-    },
-    "metadata": {
-      "type": "object"
+    "$id": "challenge",
+    "type": "object",
+    "required": [
+        "type",
+        "username"
+    ],
+    "properties": {
+        "type": {
+            "type": "string",
+            "const": "email"
+        },
+        "username": {
+            "type": "string",
+            "minLength": 1
+        },
+        "remoteip": {
+            "type": "string",
+            "format": "ipv4"
+        },
+        "metadata": {
+            "type": "object"
+        }
     }
-  }
 }

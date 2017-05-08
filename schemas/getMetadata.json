@@ -1,57 +1,63 @@
 {
-  "id": "getMetadata",
-  "type": "object",
-  "required": ["username", "audience"],
-  "properties": {
-    "username": {
-      "oneOf": [{
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 50
-      }, {
-        "type": "array",
-        "minItems": 1,
-        "unique": true,
-        "items": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 50
-        }
-      }]
-    },
-    "public": {
-      "type": "boolean"
-    },
-    "audience": {
-      "oneOf": [
-        {
-          "type": "string",
-          "minLength": 1
+    "$id": "getMetadata",
+    "type": "object",
+    "required": [
+        "username",
+        "audience"
+    ],
+    "properties": {
+        "username": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50
+                },
+                {
+                    "type": "array",
+                    "minItems": 1,
+                    "unique": true,
+                    "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 50
+                    }
+                }
+            ]
         },
-        {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "minItems": 1
+        "public": {
+            "type": "boolean"
+        },
+        "audience": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "minLength": 1
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1
+                }
+            ]
+        },
+        "fields": {
+            "type": "object",
+            "minProperties": 1,
+            "patternProperties": {
+                "^.+$": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            }
         }
-      ]
-    },
-    "fields": {
-      "type": "object",
-      "minProperties": 1,
-      "patternProperties": {
-        "^.+$": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      }
     }
-  }
 }

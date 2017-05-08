@@ -61,7 +61,12 @@ exports.logger = {
  * Local schemas for validation
  * @type {Array}
  */
-exports.validator = [path.resolve(__dirname, '../../schemas')];
+exports.validator = {
+  schemas: [path.resolve(__dirname, '../../schemas')],
+  ajv: {
+    validateSchema: 'log',
+  },
+};
 
 /**
  * Default hooks

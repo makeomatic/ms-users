@@ -1,4 +1,5 @@
 {
+  "$id": "referral",
   "type": "object",
   "required": [
     "id",

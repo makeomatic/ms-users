@@ -7,10 +7,12 @@ const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,
   USERS_DATA,
+  USERS_REFERRAL_INDEX,
   USERS_PUBLIC_INDEX,
   USERS_ACTIVE_FLAG,
   USERS_ID_FIELD,
   USERS_ALIAS_FIELD,
+  USERS_REFERRAL_FIELD,
   USERS_USERNAME_FIELD,
   USERS_ACTION_ACTIVATE,
 } = require('../constants.js');
@@ -107,6 +109,7 @@ function verifyRequest() {
 function activateAccount(data) {
   const userId = data[USERS_ID_FIELD];
   const alias = data[USERS_ALIAS_FIELD];
+  const referral = data[USERS_REFERRAL_FIELD];
   const userKey = redisKey(userId, USERS_DATA);
 
   // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
@@ -120,6 +123,10 @@ function activateAccount(data) {
 
   if (alias) {
     pipeline.sadd(USERS_PUBLIC_INDEX, userId);
+  }
+
+  if (referral) {
+    pipeline.sadd(`${USERS_REFERRAL_INDEX}:${referral}`, userId);
   }
 
   return pipeline

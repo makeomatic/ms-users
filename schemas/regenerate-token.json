@@ -1,31 +1,42 @@
 {
-  "id": "regenerate-token",
-  "type": "object",
-  "oneOf": [
-    {
-      "required": [ "uid", "challengeType" ]
-    },
-    {
-      "required": [ "action", "id", "challengeType" ]
+    "$id": "regenerate-token",
+    "type": "object",
+    "oneOf": [
+        {
+            "required": [
+                "uid",
+                "challengeType"
+            ]
+        },
+        {
+            "required": [
+                "action",
+                "id",
+                "challengeType"
+            ]
+        }
+    ],
+    "properties": {
+        "uid": {
+            "type": "string",
+            "description": "Token unique identificator"
+        },
+        "action": {
+            "type": "string",
+            "enum": [
+                "activate",
+                "invite",
+                "reset"
+            ],
+            "description": "User action"
+        },
+        "id": {
+            "type": "string",
+            "description": "User identificator"
+        },
+        "challengeType": {
+            "default": "email",
+            "$ref": "common.json#/definitions/challengeType"
+        }
     }
-  ],
-  "properties": {
-    "uid": {
-      "type": "string",
-      "description": "Token unique identificator"
-    },
-    "action": {
-      "type": "string",
-      "enum": ["activate", "invite", "reset"],
-      "description": "User action"
-    },
-    "id": {
-      "type": "string",
-      "description": "User identificator"
-    },
-    "challengeType": {
-      "default": "email",
-      "$ref": "common.json#/definitions/challengeType"
-    }
-  }
 }

@@ -1,11 +1,13 @@
 {
-  "id": "invite-remove",
-  "type": "object",
-  "required": ["id"],
-  "additionalProperties": false,
-  "properties": {
-    "id": {
-      "type": "string"
+    "$id": "invite-remove",
+    "type": "object",
+    "required": [
+        "id"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "id": {
+            "type": "string"
+        }
     }
-  }
 }

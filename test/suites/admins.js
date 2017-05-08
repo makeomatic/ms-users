@@ -20,6 +20,10 @@ describe('#admins', function verifySuite() {
         },
       },
     ],
+    logger: {
+      defaultLogger: true,
+      debug: true,
+    },
     initAdminAccountsDelay: 0,
   });
 
@@ -31,7 +35,7 @@ describe('#admins', function verifySuite() {
       .then(() => simpleDispatcher(service.router)('users.list', { audience: '*.localhost' }))
       .reflect()
       .then(inspectPromise())
-      .then(result => {
+      .then((result) => {
         assert.equal(result.users[0].metadata['*.localhost'].username, 'foobaz@bar.ru');
       });
   });
@@ -44,7 +48,7 @@ describe('#admins', function verifySuite() {
     })
     .reflect()
     .then(inspectPromise())
-    .then(result => {
+    .then((result) => {
       assert.ok(result.jwt);
     });
   });

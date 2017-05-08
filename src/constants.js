@@ -5,6 +5,7 @@ module.exports = {
   USERS_INDEX: 'user-iterator-set',
   USERS_PUBLIC_INDEX: 'users-public',
   USERS_ALIAS_TO_ID: 'users-alias',
+  USERS_REFERRAL_INDEX: 'users-referral',
   USERS_USERNAME_TO_ID: 'users-username',
 
   // referral tracking

@@ -3,6 +3,11 @@
   "type": "object",
   "required": ["referralCode", "username"],
   "properties": {
-
+    "referralCode": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    }
   }
 }

@@ -38,7 +38,6 @@ describe('#referral', function registerSuite() {
       username: 'v@makeomatic.ru',
       password: 'mynicepassword',
       audience: 'matic.ninja',
-      activate: true,
       alias: 'subtle',
       metadata: {
         service: 'craft',
@@ -68,7 +67,7 @@ describe('#referral', function registerSuite() {
       });
   });
 
-  it('isReferral returns false on invalid referral code', function test() {
+  it('isReferral returns username on valid referral code', function test() {
     const opts = {
       username: 'subtle',
       referralCode: referralId,

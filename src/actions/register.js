@@ -33,6 +33,7 @@ const {
   USERS_ACTION_INVITE,
   USERS_ACTION_ACTIVATE,
   CHALLENGE_TYPE_EMAIL,
+  USERS_REFERRAL_INDEX,
   TOKEN_METADATA_FIELD_METADATA,
 } = require('../constants.js');
 
@@ -316,9 +317,19 @@ function registerUser(request) {
           }
 
           // perform instant activation
-          return redis
-            // internal username index
-            .sadd(USERS_INDEX, username)
+          // internal username index
+          const pipeline = redis.pipeline().sadd(USERS_INDEX, username);
+          const ref = metadata[params.audience][USERS_REFERRAL_FIELD];
+
+          // add to referral index during registration
+          // on instant activation
+          if (ref) {
+            pipeline.sadd(`${USERS_REFERRAL_INDEX}:${ref}`, username);
+          }
+
+          return pipeline
+            .exec()
+            .then(handlePipeline)
             // custom actions
             .bind(this)
             .return(['users:activate', username, params, metadata])

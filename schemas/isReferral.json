@@ -1,0 +1,8 @@
+{
+  "$id": "isReferral",
+  "type": "object",
+  "required": ["referralCode", "username"],
+  "properties": {
+
+  }
+}

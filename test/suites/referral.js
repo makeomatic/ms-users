@@ -38,6 +38,8 @@ describe('#referral', function registerSuite() {
       username: 'v@makeomatic.ru',
       password: 'mynicepassword',
       audience: 'matic.ninja',
+      activate: true,
+      alias: 'subtle',
       metadata: {
         service: 'craft',
       },
@@ -49,6 +51,34 @@ describe('#referral', function registerSuite() {
       .then(inspectPromise())
       .then((registered) => {
         assert.equal(registered.user.metadata[opts.audience].referral, referralId);
+      });
+  });
+
+  it('isReferral returns false on invalid referral code', function test() {
+    const opts = {
+      username: 'subtle',
+      referralCode: 'vasya',
+    };
+
+    return this.dispatch('users.isReferral', opts)
+      .reflect()
+      .then(inspectPromise())
+      .then((response) => {
+        assert.equal(response, false);
+      });
+  });
+
+  it('isReferral returns false on invalid referral code', function test() {
+    const opts = {
+      username: 'subtle',
+      referralCode: referralId,
+    };
+
+    return this.dispatch('users.isReferral', opts)
+      .reflect()
+      .then(inspectPromise())
+      .then((response) => {
+        assert.equal(response, 'v@makeomatic.ru');
       });
   });
 });

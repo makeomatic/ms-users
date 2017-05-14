@@ -43,12 +43,10 @@ module.exports = function initAccounts() {
           referral: account.referral,
         },
       })
-      .return(userData);
+      .return({ params: userData });
     })
-    .bind(this)
-    .then(register)
-    .reflect()
-    .then(function reportStats(users) {
+    .map(userData => register.call(this, userData).reflect())
+    .then((users) => {
       const totalAccounts = users.length;
       const errors = [];
       let registered = 0;

@@ -209,5 +209,5 @@ exports.signData = function signData(payload) {
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
-  return jwt.sign(payload, secret, { algorithms: [algorithm], issuer });
+  return jwt.sign(payload, secret, { algorithm, issuer });
 };

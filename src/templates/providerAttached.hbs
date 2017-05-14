@@ -11,7 +11,11 @@
     <script>
       var opener = window.opener;
       if (opener) {
-        opener.postMessage({ completed: true }, {{ targetOrigin }});
+        opener.postMessage({
+          token: '{{ token }}',
+          provider: '{{ provider }}',
+          completed: true
+        }, '{{ targetOrigin }}');
       }
       // close the window
       window.close();

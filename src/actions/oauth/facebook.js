@@ -1,6 +1,7 @@
+const url = require('url');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const tokens = require('../../utils/jwt');
+const { signData } = require('../../utils/jwt');
 
 function updateMetadata(facebook, jwt) {
   return this.router.dispatch('users.updateMetadata', {
@@ -17,14 +18,16 @@ function updateMetadata(facebook, jwt) {
 }
 
 function getSignedToken(facebook) {
-  return tokens.sign(facebook)
+  return Promise.bind(this, facebook)
+    .then(signData)
     .then(token => ({
       token,
-      provider: '"facebook"',
+      provider: 'facebook',
     }));
 }
 
 function facebookCallbackAction(request) {
+  const { config: { server } } = this;
   const { credentials } = request.auth;
 
   // input data
@@ -44,16 +47,27 @@ function facebookCallbackAction(request) {
   return Promise
     .bind(this, [facebook, jwt])
     .spread(jwt ? updateMetadata : getSignedToken)
-    .then(context => (
-      request.sendView('attached', context)
-    ));
+    .then((context) => {
+      const targetOrigin = url.format({
+        port: server.port,
+        host: server.host,
+        protocol: server.proto,
+      });
+
+      return request.transportRequest.sendView('providerAttached', {
+        targetOrigin,
+        ...context,
+      });
+    });
 }
 
 facebookCallbackAction.auth = 'oauth';
 facebookCallbackAction.strategy = 'facebook';
 facebookCallbackAction.transport = ['http'];
 facebookCallbackAction.allowed = (request) => {
-  if (!request.auth.credentials) {
+  const { credentials } = request.auth;
+
+  if (!credentials) {
     throw new Errors.HttpStatusError(401, 'authentication required');
   }
 };

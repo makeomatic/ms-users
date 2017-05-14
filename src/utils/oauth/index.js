@@ -12,12 +12,12 @@ const { Redirect } = require('./errors');
 
 /* eslint-disable */
 const strategies = Object.create(null);
-const strategiesFolderPath = path.resolve(__dirname, '/strategies');
-const strategiesFiles = glob.sync('*.js', { cwd: strategiesFolderPath, mathBase: true });
+const strategiesFolderPath = path.resolve(__dirname, './strategies');
+const strategiesFiles = glob.sync('*.js', { cwd: strategiesFolderPath, matchBase: true });
 
 strategiesFiles.forEach(filename => {
   // remove .js
-  strategies[filename.slice(0, -3)] = require(filename);
+  strategies[filename.slice(0, -3)] = require(path.resolve(strategiesFolderPath, filename));
 });
 /* eslint-enable */
 
@@ -55,6 +55,11 @@ function authHandler(request) {
 
       if (!credentials) {
         return callback(new Errors.AuthenticationRequiredError('missed credentials'));
+      }
+
+      const { missingPermissions } = credentials;
+      if (missingPermissions) {
+        return callback(new Errors.AuthenticationRequiredError(`missing permissions - ${missingPermissions.join(',')}`));
       }
 
       return callback(null, credentials);

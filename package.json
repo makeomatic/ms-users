@@ -26,10 +26,11 @@
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
     "babel-runtime": "^6.23.0",
+    "bell": "^8.5.0",
     "bluebird": "^3.5.0",
     "bunyan": "^1.8.10",
     "bytes": "^2.5.0",
-    "bell": "^8.5.0",
+    "chrome-remote-interface": "^0.22.0",
     "common-errors": "^1.0.0",
     "csv-write-stream": "^2.0.0",
     "disposable-email-domains": "^1.0.17",
@@ -42,6 +43,7 @@
     "is": "^3.2.1",
     "jsonwebtoken": "^7.4.1",
     "jwa": "^1.1.5",
+    "lighthouse": "^1.6.5",
     "lodash": "^4.17.4",
     "md5": "^2.2.1",
     "moment": "^2.18.1",
@@ -59,9 +61,10 @@
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "scrypt": "^6.0.1",
+    "serialize-javascript": "^1.3.0",
     "stdout-stream": "^1.4.0",
     "urlsafe-base64": "^1.0.0",
-    "yargs": "^8.0.1"
+    "yargs": "^8.0.1",
     "vision": "^4.1.1"
   },
   "devDependencies": {

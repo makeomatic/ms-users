@@ -28,7 +28,7 @@ exports.router = {
     directory: path.resolve(__dirname, '../actions'),
     prefix: 'users',
     setTransportsAsDefault: true,
-    transports: ['amqp'],
+    transports: ['amqp', 'http'],
   },
   extensions: {
     enabled: ['postRequest', 'preRequest', 'preResponse'],

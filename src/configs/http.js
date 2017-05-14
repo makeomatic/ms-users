@@ -1,3 +1,5 @@
+const path = require('path');
+
 exports.http = {
   server: {
     handler: 'hapi',
@@ -7,8 +9,7 @@ exports.http = {
         engines: {
           hbs: require('handlebars'),
         },
-        path: '../templates',
-        resolveTo: __dirname,
+        path: path.resolve(__dirname, '../templates'),
       },
       plugins: {
         list: [{

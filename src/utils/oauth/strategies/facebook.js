@@ -4,7 +4,6 @@ const differenceWith = require('lodash/differenceWith');
 const get = require('lodash/get');
 const partial = require('lodash/partial');
 const defaults = require('lodash/defaults');
-const { Redirect } = require('../errors');
 
 const FIELDS = [
   'id',
@@ -22,11 +21,10 @@ const FIELDS = [
   'picture.type(square).width(200).height(200)',
 ].join(',');
 
-const DEFAULT_API_VERSION = 'v2.8';
-
 class Urls {
+  static DEFAULT_API_VERSION = 'v2.8';
   static self = null;
-  static instance(version = DEFAULT_API_VERSION) {
+  static instance(version = Urls.DEFAULT_API_VERSION) {
     let { self } = this;
 
     if (!self) {
@@ -48,7 +46,7 @@ class Urls {
     return Urls.instance().token;
   }
 
-  constuctor(apiVersion) {
+  constructor(apiVersion) {
     this.apiVersion = apiVersion;
   }
 
@@ -104,15 +102,17 @@ function structureProfile(credentials, profile) {
 }
 
 function fetch(resource) {
+  const endpoint = Urls.instance()[resource];
+
   return (fetcher, options) => Promise.fromCallback(callback =>
-    fetcher(Urls[resource], options, partial(callback, null))
+    fetcher(endpoint, options, partial(callback, null))
   );
 }
 
 const fetchProfile = fetch('profile');
 const fetchPermissions = fetch('permissions');
 
-function verifyPermissions(permissions) {
+function verifyPermissions(credentials, permissions) {
   const requiredPermissions = get(this, 'provider.scope', []);
   const missingPermissions = differenceWith(
     requiredPermissions,
@@ -121,8 +121,12 @@ function verifyPermissions(permissions) {
   );
 
   if (missingPermissions.length) {
-    // TODO sample
-    throw new Redirect(missingPermissions.join(this.provider.scopeSeparator));
+    credentials.missingPermissions = missingPermissions;
+
+    // doesn't matter what to throw here because there's no handling in bell
+    // https://github.com/hapijs/bell/blob/master/lib/oauth.js#L304
+    // leave it for the route handler
+    throw new Error('missing permissions');
   }
 
   return true;
@@ -138,9 +142,7 @@ function obtainProfile(credentials, params, getter, callback) {
     .resolve([getter, { appsecret_proof }])
     .bind(this)
     .spread(fetchPermissions)
-    .tap(permissions => console.log('perms', permissions))
-    .then(verifyPermissions)
-    .tap(isOk => console.log('lacking permissions:', isOk))
+    .then(partial(verifyPermissions, credentials))
     .return([getter, { appsecret_proof, fields: FIELDS }])
     .spread(fetchProfile)
     .then(partial(structureProfile, credentials))
@@ -159,12 +161,16 @@ const defaultOptions = {
 
 module.exports.options = (options) => {
   const { scope, scopeSeparator, apiVersion } = options;
-  const urls = Urls.instance().setVersion(apiVersion);
+
+  if (apiVersion) {
+    Urls.setVersion(apiVersion);
+  }
+
   const configuredOptions = {
     scope,
     scopeSeparator,
-    auth: urls.auth,
-    token: urls.token,
+    auth: Urls.auth,
+    token: Urls.token,
   };
 
   return defaults(configuredOptions, defaultOptions);

@@ -53,9 +53,10 @@ const config = {
     providers: {
       facebook: {
         clientId: process.env.FACEBOOK_CLIENT_ID,
-        clientSecret: process.env.FACEBOOk_CLIENT_SECRET,
+        clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
         location: 'http://localhost:3000',
         password: 'lB4wlZByzpp2R9mGefiLeaZUwVooUuX7G7uctaoeNgxvUs3W',
+        apiVersion: 'v2.9',
       },
     },
   },

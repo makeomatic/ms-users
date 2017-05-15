@@ -29,6 +29,10 @@ module.exports = function initAccounts() {
         skipPassword: false,
       };
 
+      if (account.alias) {
+        userData.alias = account.alias;
+      }
+
       if (!account.referral) {
         return { params: userData };
       }

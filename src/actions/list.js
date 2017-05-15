@@ -89,7 +89,7 @@ function fetchUserData(ids) {
  * @apiParam (Payload) {String="ASC","DESC"} [order=ASC] - sort order
  * @apiParam (Payload) {String} [criteria] - if supplied, sort will be performed based on this field
  * @apiParam (Payload) {String} audience - which namespace of metadata should be used for filtering & retrieving
- * @apiParam (Payload) {Boolean} [public=false] - when `true` returns only publicly marked users
+ * @apiParam (Payload) {Mixed} [public=false] - when `true` returns only publicly marked users, if set to string - then uses referral index
  * @apiParam (Payload) {Object} [filter] to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
  */
 function iterateOverActiveUsers({ params }) {

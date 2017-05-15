@@ -3,6 +3,7 @@ const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
+const getMetadata = require('../utils/getMetadata');
 const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,
@@ -106,10 +107,10 @@ function verifyRequest() {
  * @param  {Object} data internal user data
  * @return {Promise}
  */
-function activateAccount(data) {
+function activateAccount(data, metadata) {
   const userId = data[USERS_ID_FIELD];
   const alias = data[USERS_ALIAS_FIELD];
-  const referral = data[USERS_REFERRAL_FIELD];
+  const referral = metadata[USERS_REFERRAL_FIELD];
   const userKey = redisKey(userId, USERS_DATA);
 
   // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
@@ -190,8 +191,11 @@ function activateAction({ params }) {
     .bind(context)
     .then(verifyRequest)
     .bind(this)
-    .then(getInternalData)
-    .then(activateAccount)
+    .then(resolvedUsername => Promise.join(
+      getInternalData.call(this, resolvedUsername),
+      getMetadata.call(this, resolvedUsername, audience).get(audience)
+    ))
+    .spread(activateAccount)
     .bind(context)
     .tap(hook)
     .bind(this)

@@ -18,6 +18,9 @@ const argv = require('yargs')
     default: 'console',
     choices: ['console', 'csv'],
   })
+  .option('prefix', {
+    describe: 'prefix for launched users microservice',
+  })
   .option('filter', {
     describe: 'filter users - pass stringified JSON',
     default: '{}',
@@ -63,7 +66,7 @@ const defaultOpts = require('../lib/config');
 const config = merge({}, defaultOpts, conf.get('/'));
 const amqpConfig = omit(config.amqp.transport, ['queue', 'neck', 'listen', 'onComplete']);
 const audience = argv.audience || config.jwt.defaultAudience;
-const prefix = config.router.routes.prefix;
+const prefix = argv.prefix || config.router.routes.prefix;
 const route = `${prefix}.list`;
 const iterator = {
   offset: 0,

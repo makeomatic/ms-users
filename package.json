@@ -8,7 +8,7 @@
     "test": "npm run lint && npm run test:integration -- -r flake-idgen -r ms-flakeless -r scrypt",
     "test:integration": "mdep test run",
     "lint": "eslint ./src",
-    "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",
+    "doc": "cd ./schemas && apidoc -i ../src/actions -v --debug -o ../docs",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "docker-release": "mdep docker release --node 7.10.0",
     "release": "yarn; npm run semantic-release; ./scripts/release.sh",
@@ -63,7 +63,7 @@
   "devDependencies": {
     "@makeomatic/deploy": "^1.6.2",
     "apidoc": "^0.17.6",
-    "apidoc-plugin-schema": "^0.1.4",
+    "apidoc-plugin-schema": "=0.1.3",
     "babel-cli": "^6.24.1",
     "babel-eslint": "^7.2.3",
     "babel-plugin-istanbul": "^4.1.3",

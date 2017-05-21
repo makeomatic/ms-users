@@ -87,5 +87,55 @@
         "referral": {
             "type": "string"
         }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "activate": {
+      "type": "boolean",
+      "default": true
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inviteToken": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ipaddress": {
+      "type": "string",
+      "oneOf": [
+        { "format": "ipv4" },
+        { "format": "ipv6" }
+      ]
+    },
+    "skipChallenge": {
+      "type": "boolean"
+    },
+    "skipPassword": {
+      "default": false,
+      "type": "boolean"
+    },
+    "challengeType": {
+      "default": "email",
+      "$ref": "common.json#/definitions/challengeType"
+    },
+    "referral": {
+      "type": "string"
+    },
+    "sso": {
+      "type": "object",
+      "required": ["provider", "token"],
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      }
     }
 }

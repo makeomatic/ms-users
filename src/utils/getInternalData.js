@@ -1,15 +1,21 @@
 const Errors = require('common-errors');
 const redisKey = require('../utils/key.js');
 const handlePipeline = require('../utils/pipelineError.js');
+const safeParse = require('../utils/safeParse.js');
 const reduce = require('lodash/reduce');
+const zipObject = require('lodash/zipObject');
 const {
   USERS_DATA,
+  USERS_SSO_TO_LOGIN,
   USERS_ALIAS_TO_LOGIN,
   USERS_PASSWORD_FIELD,
   USERS_USERNAME_FIELD,
+  FIELDS_TO_STRINGIFY,
 } = require('../constants.js');
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
+const STRINGIFY_FIELDS = zipObject(FIELDS_TO_STRINGIFY);
+
 const reducer = (accumulator, value, prop) => {
   if (hasOwnProperty.call(accumulator, prop)) {
     return accumulator;
@@ -17,6 +23,8 @@ const reducer = (accumulator, value, prop) => {
 
   if (prop === USERS_PASSWORD_FIELD) {
     accumulator[prop] = value;
+  } else if (hasOwnProperty.call(STRINGIFY_FIELDS, prop)) {
+    accumulator[prop] = safeParse(value);
   } else {
     accumulator[prop] = value.toString();
   }
@@ -24,13 +32,14 @@ const reducer = (accumulator, value, prop) => {
   return accumulator;
 };
 
-module.exports = function getInternalData(username) {
+module.exports = function getInternalData(username, isSSO = false) {
   const { redis } = this;
   const userKey = redisKey(username, USERS_DATA);
+  const aliasHash = isSSO ? USERS_SSO_TO_LOGIN : USERS_ALIAS_TO_LOGIN;
+  const aliasHashKey = isSSO ? username : username.toLowerCase();
 
-  return redis
-    .pipeline()
-    .hget(USERS_ALIAS_TO_LOGIN, username.toLowerCase())
+  return redis.pipeline()
+    .hget(aliasHash, aliasHashKey)
     .exists(userKey)
     .hgetallBuffer(userKey)
     .exec()

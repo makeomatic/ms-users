@@ -32,6 +32,7 @@
     "bytes": "^2.5.0",
     "chrome-remote-interface": "^0.22.0",
     "common-errors": "^1.0.0",
+    "cookie": "^0.3.1",
     "csv-write-stream": "^2.0.0",
     "disposable-email-domains": "^1.0.17",
     "dlock": "^6.4.0",

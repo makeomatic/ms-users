@@ -1,4 +1,5 @@
-/* global inspectPromise, globalRegisterUser */
+/* eslint-disable promise/always-return, no-prototype-builtins */
+/* global inspectPromise, globalRegisterUser, globalAuthUser */
 
 const Promise = require('bluebird');
 const assert = require('assert');
@@ -53,30 +54,108 @@ function hostUrl(config) {
   return `http://localhost:${server.port}`;
 }
 
+function expect(code) {
+  return response => assert.equal(response.status, code);
+}
+
+function extractToken(selector) {
+  const { Runtime } = this.protocol;
+  /* eslint-disable no-useless-escape */
+  const expression = `
+    var re = /(?:token:\\s+')(?=([\\w\\d\\.\\-]+))/;
+
+    function extractToken(el) {
+      var html = el.innerText;
+      var matched = re.exec(html);
+
+      return matched[1];
+    }
+
+    extractToken(${selector});
+  `;
+  /* eslint-enable */
+
+  return Runtime.evaluate({
+    expression,
+    returnByValue: true,
+    includeCommandLineAPI: true,
+  })
+  .then(({ result, exceptionDetails }) => {
+    if (exceptionDetails) throw new Error(exceptionDetails.exception.description);
+    _debug('extracted token:', result.value);
+    return result.value;
+  });
+}
+
+function getResponseBody(response) {
+  const { Network } = this.protocol;
+  const { requestId } = response;
+
+  return Network.getResponseBody({ requestId });
+}
+
+function logout() {
+  const { jwt } = this;
+  const { defaultAudience: audience } = this.users._config.jwt;
+  const { Network } = this.protocol;
+
+  return this.dispatch('users.logout', { jwt, audience })
+    .reflect()
+    .then(inspectPromise())
+    .tap(() => {
+      this.jwt = null;
+      Network.setExtraHTTPHeaders({
+        headers: { Authorization: undefined },
+      });
+    });
+}
+
+function createAccount(token) {
+  const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
+  const opts = {
+    username: payload.email,
+    password: 'mynicepassword',
+    audience: 'matic.ninja',
+    metadata: {
+      service: 'craft',
+    },
+    sso: {
+      token,
+      provider: 'facebook',
+    },
+  };
+
+  return this.dispatch('users.register', opts)
+    .reflect()
+    .then(inspectPromise(true));
+}
+
 describe('#facebook', function oauthFacebookSuite() {
-  before('init Chrome', init);
+  beforeEach('init Chrome', init);
   beforeEach(global.startService);
   beforeEach(createTestUser);
 
   afterEach(deleteTestUser);
   afterEach(global.clearRedis);
-  after('clean Chrome', clean);
+  afterEach('clean Chrome', clean);
 
-  it('should able to authenticate', function test() {
-    const { Page } = this.protocol;
+  function initiateAuth() {
+    const { Page, Network } = this.protocol;
     const serviceLink = hostUrl(this.users.config);
     const executeLink = `${serviceLink}/users/oauth/facebook`;
 
-    Page.navigate({ url: executeLink });
+    if (this.jwt) {
+      Network.setExtraHTTPHeaders({
+        headers: { Authorization: `JWT ${this.jwt}` },
+      });
+    }
 
+    Page.navigate({ url: executeLink });
     return Page.loadEventFired().then(() => (
       Promise
         .bind(this, 'input#email')
-        .tap(field => _debug('waiting for form', field))
         .then(wait)
-        .tap(() => _debug('capturing screenshot'))
         .tap(captureScreenshot)
-        .tap(() => _debug('filling form'))
         .return(['input#email', cache.testUser.email])
         .spread(type)
         .return(['input#pass', cache.testUser.password])
@@ -84,48 +163,94 @@ describe('#facebook', function oauthFacebookSuite() {
         .then(captureScreenshot)
         .return('button[name=login]')
         .then(submit)
-        .return('button[name=__CONFIRM__]')
-        .tap(wait)
-        .tap(captureScreenshot)
-        .then(submit)
-        .return('.no-js > body > script')
-        .then(wait)
-        .tap(captureScreenshot)
     ));
+  }
+
+  function authenticate() {
+    return Promise.bind(this)
+      .then(initiateAuth)
+      .return('button[name=__CONFIRM__]')
+      .tap(wait)
+      .tap(captureScreenshot)
+      .then(submit);
+  }
+
+  function getFacebookToken() {
+    return authenticate.call(this)
+      .return('.no-js > body > script')
+      .then(wait)
+      .tap(captureScreenshot)
+      .then(extractToken);
+  }
+
+  it('should able to retrieve faceboook profile', function test() {
+    return getFacebookToken.call(this)
+      .tap(_debug)
+      .tap(assert);
   });
 
   it('should able to handle declined authentication', function test() {
-    const { Page } = this.protocol;
-    const serviceLink = hostUrl(this.users.config);
-    const executeLink = `${serviceLink}/users/oauth/facebook`;
+    return Promise.bind(this)
+      .then(initiateAuth)
+      .return('button[name=__CANCEL__]')
+      .tap(wait)
+      .tap(captureScreenshot)
+      .then(submit)
+      .tap(() => _debug('submitted'))
+      .return(/oauth\/facebook/)
+      .then(captureResponse)
+      .tap(captureScreenshot)
+      .tap(expect(401));
+  });
 
-    Page.navigate({ url: executeLink });
+  it('should be able to register via facebook', function test() {
+    return getFacebookToken.call(this)
+      .then(createAccount)
+      .then((registered) => {
+        assert(registered.hasOwnProperty('jwt'));
+        assert(registered.hasOwnProperty('user'));
+        assert(registered.user.hasOwnProperty('metadata'));
+        assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+        assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+        assert(registered.user.metadata['matic.ninja'].hasOwnProperty('facebook'));
+        assert.ifError(registered.user.password);
+        assert.ifError(registered.user.audience);
+      });
+  });
 
-    return Page.loadEventFired().then(() => (
-      Promise
-        .bind(this, 'input#email')
-        .tap(field => _debug('waiting for form', field))
-        .then(wait)
-        .tap(() => _debug('capturing screenshot'))
-        .tap(captureScreenshot)
-        .tap(() => _debug('filling form'))
-        .return(['input#email', cache.testUser.email])
-        .spread(type)
-        .return(['input#pass', cache.testUser.password])
-        .spread(type)
-        .then(captureScreenshot)
-        .return('button[name=login]')
-        .then(submit)
-        .return('button[name=__CANCEL__]')
-        .tap(wait)
-        .tap(captureScreenshot)
-        .tap(submit)
-        .return(/oauth\/facebook/)
-        .then(captureResponse)
-        .tap(captureScreenshot)
-        .tap((response) => {
-          assert.equal(response.status, 401);
-        })
-    ));
+  it('should attach facebook profile to existing user', function test() {
+    const username = 'facebookuser@me.com';
+
+    return Promise.bind(this)
+      .tap(globalRegisterUser(username))
+      .tap(globalAuthUser(username))
+      .then(getFacebookToken)
+      .then(assert.ifError)
+      .catchReturn(TypeError)
+      .then(logout)
+      .tap(() => _debug('logged out'))
+      .then(captureScreenshot)
+      .tap(() => _debug('loggin in via facebook'))
+      .then(function loginAttempt() {
+        const { Page } = this.protocol;
+        const serviceLink = hostUrl(this.users.config);
+        const executeLink = `${serviceLink}/users/oauth/facebook`;
+
+        Page.navigate({ url: executeLink });
+        return Promise.bind(this, /oauth\/facebook/)
+          .then(captureResponse)
+          .tap(expect(200))
+          .then(getResponseBody)
+          .tap((response) => {
+            const body = JSON.parse(response.body);
+            assert(body.hasOwnProperty('jwt'));
+            assert(body.hasOwnProperty('user'));
+            assert(body.user.hasOwnProperty('metadata'));
+            assert(body.user.metadata.hasOwnProperty('*.localhost'));
+            assert(body.user.metadata['*.localhost'].hasOwnProperty('facebook'));
+            assert.ifError(body.user.password);
+            assert.ifError(body.user.audience);
+          });
+      });
   });
 });

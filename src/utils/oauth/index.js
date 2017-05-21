@@ -8,7 +8,12 @@ const forEach = require('lodash/forEach');
 const defaults = require('lodash/defaults');
 const isFunction = require('lodash/isFunction');
 
+const uid = require('./uid.js');
+const extractJWT = require('./extractJWT.js');
+const getInternalData = require('../getInternalData');
+
 const { Redirect } = require('./errors');
+const { USERS_USERNAME_FIELD } = require('../../constants.js');
 
 /* eslint-disable */
 const strategies = Object.create(null);
@@ -31,40 +36,97 @@ function isError(response) {
   return statusCode >= 400;
 }
 
+function loginAttempt(username) {
+  const { amqp, config } = this;
+  const prefix = get(config, 'router.routes.prefix');
+  const audience = get(config, 'jwt.defaultAudience');
+  const payload = {
+    username,
+    audience,
+    isSSO: true,
+  };
+
+  return amqp.publishAndWait(`${prefix}.login`, payload);
+}
+
+function verifyToken(token) {
+  const { amqp, config } = this;
+  const prefix = get(config, 'router.routes.prefix');
+  const audience = get(config, 'jwt.defaultAudience');
+  const payload = {
+    token,
+    audience,
+  };
+
+  return amqp.publishAndWait(`${prefix}.verify`, payload);
+}
+
 function authHandler(request) {
   const { http } = this;
   const { action, transportRequest } = request;
   const { strategy } = action;
+  const jwt = extractJWT(transportRequest);
 
-  return Promise.fromCallback((callback) => {
-    http.auth.test(strategy, transportRequest, function auth(response, credentials) {
-      if (response) {
-        const shouldThrow = isError(response);
-        const shouldRedirect = isRedirect(response);
+  return Promise
+    .fromCallback((callback) => {
+      http.auth.test(strategy, transportRequest, function auth(response, credentials) {
+        if (response) {
+          const shouldThrow = isError(response);
+          const shouldRedirect = isRedirect(response);
 
-        if (shouldThrow) {
-          return callback(response);
+          if (shouldThrow) {
+            return callback(response);
+          }
+
+          if (shouldRedirect) {
+            // set redirect uri to rewrite the response in the hapi's preResponse hook
+            const redirectUri = transportRequest.redirectUri = get(response, 'headers.location');
+            return callback(new Redirect(redirectUri));
+          }
         }
 
-        if (shouldRedirect) {
-          // set redirect uri to rewrite the response in the hapi's preResponse hook
-          const redirectUri = transportRequest.redirectUri = get(response, 'headers.location');
-          return callback(new Redirect(redirectUri));
+        if (!credentials) {
+          return callback(new Errors.AuthenticationRequiredError('missed credentials'));
         }
-      }
 
-      if (!credentials) {
-        return callback(new Errors.AuthenticationRequiredError('missed credentials'));
-      }
+        const { missingPermissions } = credentials;
+        if (missingPermissions) {
+          return callback(new Errors.AuthenticationRequiredError(`missing permissions - ${missingPermissions.join(',')}`));
+        }
 
-      const { missingPermissions } = credentials;
-      if (missingPermissions) {
-        return callback(new Errors.AuthenticationRequiredError(`missing permissions - ${missingPermissions.join(',')}`));
-      }
+        // set actual strategy for confidence
+        credentials.provider = strategy;
+        credentials.uid = uid(credentials);
+        return callback(null, credentials);
+      });
+    })
+    /**
+     * try to login user
+     */
+    .then((account) => {
+      // validate JWT token if provided
+      const checkAuth = jwt ? verifyToken.call(this, jwt)
+                            : Promise.resolve(false);
 
-      return callback(null, credentials);
+      // check if the profile is already attached to any existing account
+      const getUsername = getInternalData.call(this, account.uid, true)
+        .get(USERS_USERNAME_FIELD)
+        .catchReturn({ statusCode: 404 }, false);
+
+      return Promise.join(checkAuth, getUsername, (user, username) => {
+        // user is authenticated and profile is attached
+        if (user && username) {
+          throw new Errors.HttpStatusCode(412, 'profile is linked');
+        }
+
+        // found a linked user, log in
+        if (username) {
+          return Promise.bind(this, username).then(loginAttempt);
+        }
+
+        return { user, jwt, account };
+      });
     });
-  });
 }
 
 module.exports.strategies = {
@@ -98,12 +160,12 @@ module.exports.OauthHandler = function OauthHandler(server, config) {
     const strategy = strategies[name];
 
     if (!strategy) {
-      throw new Error(`Oauth: unknown strategy ${name}`);
+      throw new Error(`OAuth: unknown strategy ${name}`);
     }
 
     let provider;
     const defaultOptions = strategy.options;
-    const { scope, scopeSeparator, apiVersion, ...rest } = options;
+    const { scope, fields, profileHandler, scopeSeparator, apiVersion, ...rest } = options;
 
     if (defaultOptions) {
       const configuredOptions = {
@@ -113,7 +175,7 @@ module.exports.OauthHandler = function OauthHandler(server, config) {
       };
 
       if (isFunction(defaultOptions)) {
-        provider = defaultOptions({ ...configuredOptions, apiVersion });
+        provider = defaultOptions({ ...configuredOptions, apiVersion, fields, profileHandler });
       } else {
         provider = defaults(configuredOptions, defaultOptions);
       }
@@ -122,9 +184,7 @@ module.exports.OauthHandler = function OauthHandler(server, config) {
       provider = name;
     }
 
-    const providerOptions = { provider, ...rest };
-
-    server.auth.strategy(name, 'bell', providerOptions);
+    server.auth.strategy(name, 'bell', { provider, ...rest });
   });
 
   return server;

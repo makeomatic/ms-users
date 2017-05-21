@@ -22,6 +22,7 @@ const hashPassword = require('../utils/register/password/hash');
 const {
   USERS_REF,
   USERS_INDEX,
+  USERS_SSO_TO_LOGIN,
   USERS_DATA,
   USERS_ACTIVE_FLAG,
   USERS_CREATED_FIELD,
@@ -98,6 +99,32 @@ function verifyReferral() {
 }
 
 /**
+ * Verifies if SSO token provided, injects decoded SSO profile to metadata
+ * @return {Promise}
+ */
+function verifySSO() {
+  const { sso, ssoTokenOptions, metadata, audience } = this;
+  const { token, provider } = sso;
+
+  return jwt.verifyData(token, ssoTokenOptions)
+    .then((credentials) => {
+      const { uid, profile } = credentials;
+
+      sso.uid = uid;
+      sso.credentials = credentials;
+      metadata[audience][provider] = {
+        ...profile,
+      };
+
+      return [sso.uid, true];
+    })
+    .bind(this)
+    .spread(userExists)
+    .throw(ErrorConflictUserExists)
+    .catchReturn(ErrorMissing, true);
+}
+
+/**
  * Disposes of the lock
  * @return {Null}
  */
@@ -136,6 +163,7 @@ function registerUser(request) {
   const { redis, config, tokenManager } = this;
   const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
   const { defaultAudience } = config.jwt;
+  const { token: ssoTokenOptions } = config.oauth;
 
   // request
   const params = request.params;
@@ -150,7 +178,10 @@ function registerUser(request) {
     skipPassword,
     username,
     referral,
+    sso,
   } = params;
+
+  let shouldActivate = activate;
   const alias = params.alias && params.alias.toLowerCase();
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
   const userDataKey = redisKey(username, USERS_DATA);
@@ -230,12 +261,16 @@ function registerUser(request) {
           inviteToken,
           metadata,
           referral,
+          sso,
+          ssoTokenOptions,
           audience: params.audience,
         })
         // verifies token and adds extra meta if this is present
         .tap(inviteToken ? verifyToken : noop)
         // if referral is set - verifies if it was previously saved
         .tap(referral ? verifyReferral : noop)
+        // if sso is provided - decodes token and patches provided SSO object
+        .tap(sso ? verifySSO : noop)
         // prepare next context
         .return([
           password,
@@ -254,18 +289,35 @@ function registerUser(request) {
           const pipeline = redis.pipeline();
           const basicInfo = {
             [USERS_CREATED_FIELD]: created,
-            [USERS_ACTIVE_FLAG]: activate,
           };
+
+          if (sso) {
+            const { provider, email, credentials } = sso;
+
+            // skip activation if email is given by sso provider and equals to registered email
+            if (email) {
+              shouldActivate = username === email;
+            }
+
+            // inject sensitive provider info to internal data
+            basicInfo[provider] = JSON.stringify(credentials.internals);
+
+            // link uid to username
+            pipeline.hset(USERS_SSO_TO_LOGIN, sso.uid, username);
+          }
 
           if (hash !== null) {
             basicInfo[USERS_PASSWORD_FIELD] = hash;
           }
 
+          // if user is active
+          basicInfo[USERS_ACTIVE_FLAG] = shouldActivate;
+          // set internal data
           pipeline.hmset(userDataKey, basicInfo);
 
           // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
           // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
-          if (!activate && deleteInactiveAccounts >= 0) {
+          if (!shouldActivate && deleteInactiveAccounts >= 0) {
             pipeline.expire(userDataKey, deleteInactiveAccounts);
           }
 
@@ -290,7 +342,7 @@ function registerUser(request) {
         // activate user or queue challenge
         .then(() => {
           // Option 1. Activation
-          if (!activate) {
+          if (!shouldActivate) {
             return Promise
               .bind(this, [
                 challengeType,

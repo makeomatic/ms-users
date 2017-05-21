@@ -141,7 +141,7 @@ module.exports.wait = function wait(_selector, timeout = 10000) {
         }))
         .tap(({ result, exceptionDetails }) => {
           if (exceptionDetails) throw new Error(exceptionDetails.exception.description);
-          if (!result.objectId) throw new Error('couldnt find node');
+          if (!result.objectId) throw new Error(`couldnt find node ${_selector}`);
         })
     ))
     .return(selector);
@@ -302,7 +302,11 @@ module.exports.captureResponse = function captureResponse(url, timeout = 10000) 
   const { Network } = this.protocol;
   return Promise.fromCallback((next) => {
     Network.responseReceived((params) => {
-      if (url.test(params.response.url)) next(null, params.response);
+      Log.verbose('response:', params);
+      if (url.test(params.response.url)) {
+        const { response, requestId } = params;
+        next(null, { ...response, requestId });
+      }
     });
 
     setTimeout(next, timeout, new Error('failed to get response'));

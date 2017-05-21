@@ -443,8 +443,21 @@
     },
     "oauth": {
       "type": "object",
-      "required": ["providers"],
+      "required": ["token", "providers"],
       "properties": {
+        "token": {
+          "hashingFunction": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 32
+          },
+          "issuer": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
         "providers": {
           "type": "object",
           "patternProperties": {
@@ -497,6 +510,16 @@
                 },
                 "apiVersion": {
                   "type": "string"
+                },
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "profileHandler": {
+                  "type": "object"
                 }
               }
             },

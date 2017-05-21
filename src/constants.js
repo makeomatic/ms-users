@@ -5,6 +5,7 @@ module.exports = {
   USERS_INDEX: 'user-iterator-set',
   USERS_PUBLIC_INDEX: 'users-public',
   USERS_ALIAS_TO_LOGIN: 'users-alias',
+  USERS_SSO_TO_LOGIN: 'users-sso-hash',
   USERS_REFERRAL_INDEX: 'users-referral',
 
   // referral tracking
@@ -30,6 +31,7 @@ module.exports = {
   USERS_PASSWORD_FIELD: 'password',
   USERS_NEXT_CYCLE_FIELD: 'nextCycle',
   USERS_REFERRAL_FIELD: 'referral',
+  USERS_SSO_FACEBOOK_FIELD: 'facebook',
 
   // pre-generated errors
   USERS_DISPOSABLE_PASSWORD_MIA: new Errors.HttpStatusError(403, 'Invalid or Expired Password'),
@@ -67,3 +69,7 @@ module.exports = {
   POLICY_AUTH_OPTIONAL: 'optional',
   POLICY_AUTH_TRY: 'try',
 };
+
+module.exports.FIELDS_TO_STRINGIFY = [
+  module.exports.USERS_SSO_FACEBOOK_FIELD,
+];

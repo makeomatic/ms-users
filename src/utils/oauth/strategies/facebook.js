@@ -22,7 +22,7 @@ const FIELDS = [
 ].join(',');
 
 class Urls {
-  static DEFAULT_API_VERSION = 'v2.8';
+  static DEFAULT_API_VERSION = 'v2.9';
   static self = null;
   static instance(version = Urls.DEFAULT_API_VERSION) {
     let { self } = this;
@@ -76,8 +76,12 @@ function scopeComparator(scopeValue, fbPermission) {
   return scopeValue === fbPermission.permission && fbPermission.status === 'granted';
 }
 
-function structureProfile(credentials, profile) {
-  // embed profile
+function defaultProfileHandler(profile) {
+  const { credentials } = this;
+  const { token, refreshToken } = credentials;
+  const { email } = profile;
+
+  // embed profile, contains only safe data, would be attached to user's metadata
   credentials.profile = {
     id: profile.id,
     username: profile.username,
@@ -89,14 +93,26 @@ function structureProfile(credentials, profile) {
       last: profile.last_name,
       middle: profile.middle_name,
     },
-    email: profile.email,
-    raw: profile,
   };
+
+  credentials.raw = profile;
 
   // if we have actual picture
   if (get(profile, 'picture.data.is_silhouette', true) === false) {
     credentials.profile.picture = profile.picture.data.url;
   }
+
+  // inject email directly to credentials
+  if (email) {
+    credentials.email = email;
+  }
+
+  // private data to store
+  credentials.internals = {
+    email,
+    token,
+    refreshToken,
+  };
 
   return credentials;
 }
@@ -112,8 +128,8 @@ function fetch(resource) {
 const fetchProfile = fetch('profile');
 const fetchPermissions = fetch('permissions');
 
-function verifyPermissions(credentials, permissions) {
-  const requiredPermissions = get(this, 'provider.scope', []);
+function verifyPermissions(permissions) {
+  const { credentials, requiredPermissions } = this;
   const missingPermissions = differenceWith(
     requiredPermissions,
     permissions.data,
@@ -132,21 +148,32 @@ function verifyPermissions(credentials, permissions) {
   return true;
 }
 
-function obtainProfile(credentials, params, getter, callback) {
-  // eslint-disable-next-line camelcase
-  const appsecret_proof = Crypto.createHmac('sha256', this.clientSecret)
-    .update(credentials.token)
-    .digest('hex');
 
-  return Promise
-    .resolve([getter, { appsecret_proof }])
-    .bind(this)
-    .spread(fetchPermissions)
-    .then(partial(verifyPermissions, credentials))
-    .return([getter, { appsecret_proof, fields: FIELDS }])
-    .spread(fetchProfile)
-    .then(partial(structureProfile, credentials))
-    .asCallback(callback);
+function profileFactory(fields, profileHandler = defaultProfileHandler) {
+  function obtainProfile(credentials, params, getter, callback) {
+    // eslint-disable-next-line camelcase
+    const appsecret_proof = Crypto.createHmac('sha256', this.clientSecret)
+      .update(credentials.token)
+      .digest('hex');
+
+    const requiredPermissions = get(this, 'provider.scope', []);
+    const ctx = {
+      fields,
+      credentials,
+      requiredPermissions,
+    };
+
+    return Promise
+      .bind(ctx, [getter, { appsecret_proof }])
+      .spread(fetchPermissions)
+      .tap(verifyPermissions)
+      .return([getter, { appsecret_proof, fields }])
+      .spread(fetchProfile)
+      .then(profileHandler)
+      .asCallback(callback);
+  }
+
+  return obtainProfile;
 }
 
 const defaultOptions = {
@@ -154,7 +181,7 @@ const defaultOptions = {
   useParamsAuth: true,
   scope: ['email'],
   scopeSeparator: ',',
-  profile: obtainProfile,
+  profile: profileFactory(FIELDS),
   auth: Urls.auth,
   token: Urls.token,
 };
@@ -166,11 +193,15 @@ module.exports.options = (options) => {
     Urls.setVersion(apiVersion);
   }
 
+  const fields = get(options, 'fields', FIELDS);
+  const profileHandler = get(options, 'profileHandler', defaultProfileHandler);
+
   const configuredOptions = {
     scope,
     scopeSeparator,
     auth: Urls.auth,
     token: Urls.token,
+    profile: profileFactory(fields, profileHandler),
   };
 
   return defaults(configuredOptions, defaultOptions);

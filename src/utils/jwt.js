@@ -151,6 +151,7 @@ function verifyDecodedToken(decoded) {
  * @param  {String} token
  * @param  {Array} audience
  * @param  {Boolean} peek
+ * @param  {String} [overrideSecret]
  * @return {Promise}
  */
 exports.verify = function verifyToken(token, audience, peek) {
@@ -204,10 +205,25 @@ exports.internal = function verifyInternalToken(token) {
     .then(username => ({ username }));
 };
 
-exports.signData = function signData(payload) {
-  const { config } = this;
-  const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
+/**
+ * Sign data
+ * @param  {any} paylaod
+ * @param  {Object} tokenOptions
+ * @return {Promise}
+ */
+exports.signData = function signData(payload, tokenOptions) {
+  const { hashingFunction: algorithm, secret, issuer } = tokenOptions;
   return jwt.sign(payload, secret, { algorithm, issuer });
+};
+
+/**
+ * Verify data
+ * @param  {String} token
+ * @param  {Object} tokenOptions
+ * @return {Promise}
+ */
+exports.verifyData = function verifyData(token, tokenOptions) {
+  const { hashingFunction: algorithm, secret, issuer } = tokenOptions;
+  return jwt.verifyAsync(token, secret, { issuer, algorithms: [algorithm] });
 };

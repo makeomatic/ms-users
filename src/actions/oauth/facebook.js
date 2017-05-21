@@ -1,52 +1,36 @@
 const url = require('url');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const { signData } = require('../../utils/jwt');
 
-function updateMetadata(facebook, jwt) {
-  return this.router.dispatch('users.updateMetadata', {
-    headers: {
-      jwt,
-    },
-    params: {
-      metadata: {
-        $set: { facebook },
-      },
-    },
-  })
-  .return({});
-}
-
-function getSignedToken(facebook) {
-  return Promise.bind(this, facebook)
-    .then(signData)
-    .then(token => ({
-      token,
-      provider: 'facebook',
-    }));
-}
+const attach = require('../../utils/oauth/attach.js');
+const getSignedToken = require('../../utils/oauth/getSignedToken.js');
 
 function facebookCallbackAction(request) {
   const { config: { server } } = this;
   const { credentials } = request.auth;
+  const { user, account } = credentials;
+
+  // logged in, no account provided - bypass
+  if (!account) {
+    return Promise.resolve(credentials);
+  }
 
   // input data
-  const { provider, token, profile, query } = credentials;
-  const { id, displayName, email } = profile;
-  const { jwt } = query;
+  // TODO customize what to encode
+  const { uid, provider, email, profile, internals } = account;
 
-  // compose facebook context
+  // compose facebook context, would be encoded
   const facebook = {
-    id,
-    displayName,
+    uid,
     email,
+    profile,
     provider,
-    token,
+    internals,
   };
 
   return Promise
-    .bind(this, [facebook, jwt])
-    .spread(jwt ? updateMetadata : getSignedToken)
+    .bind(this, [facebook, user])
+    .spread(user ? attach : getSignedToken)
     .then((context) => {
       const targetOrigin = url.format({
         port: server.port,
@@ -65,9 +49,7 @@ facebookCallbackAction.auth = 'oauth';
 facebookCallbackAction.strategy = 'facebook';
 facebookCallbackAction.transport = ['http'];
 facebookCallbackAction.allowed = (request) => {
-  const { credentials } = request.auth;
-
-  if (!credentials) {
+  if (!request.auth.credentials) {
     throw new Errors.HttpStatusError(401, 'authentication required');
   }
 };

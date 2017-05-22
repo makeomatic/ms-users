@@ -1135,7 +1135,10 @@ convert-source-map@^1.1.0, convert-source-map@^1.3.0:
 =======
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.5.0.tgz#9acd70851c6d5dfdd93d9282e5edf94a03ff46b5"
+<<<<<<< HEAD
 >>>>>>> d69971f... fix: post-review fixes
+=======
+>>>>>>> cba27c2... chore: review commits fixed
 
 core-js@^2.4.0:
   version "2.4.1"
@@ -5139,10 +5142,14 @@ topo@2.x.x:
     hoek "4.x.x"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 tough-cookie@>=2.3.0, tough-cookie@~2.3.0:
 =======
 tough-cookie@~2.3.0:
 >>>>>>> d69971f... fix: post-review fixes
+=======
+tough-cookie@^2.3.2, tough-cookie@~2.3.0:
+>>>>>>> cba27c2... chore: review commits fixed
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.3.2.tgz#f081f76e4c85720e6c37a5faced737150d84072a"
   dependencies:

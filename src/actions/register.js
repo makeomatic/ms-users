@@ -295,8 +295,8 @@ function registerUser(request) {
             const { provider, email, credentials } = sso;
 
             // skip activation if email is given by sso provider and equals to registered email
-            if (email) {
-              shouldActivate = username === email;
+            if (typeof shouldActivate === 'undefined') {
+              shouldActivate = email ? username === email : false;
             }
 
             // inject sensitive provider info to internal data

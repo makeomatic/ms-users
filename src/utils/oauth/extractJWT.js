@@ -1,4 +1,6 @@
-const Cookie = require('cookie');
+const { parse } = require('tough-cookie');
+
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 /**
 * Extract the JWT from URL, Auth Header or Cookie
@@ -14,21 +16,22 @@ module.exports = function extract(request, options = {}) {
   const cookieKey = options.cookieKey || 'token';
   const headerKey = options.headerKey || 'authorization';
 
-  const hasQueryKey = request.query[urlKey];
+  const hasQueryKey = hasOwnProperty(request.query, urlKey);
   if (hasQueryKey) {
-    return hasQueryKey;
+    return request.query[urlKey];
   }
 
-  const hasHeaderKey = request.headers[headerKey];
+  const hasHeaderKey = hasOwnProperty(request.headers, headerKey);
   if (hasHeaderKey) {
     const token = request.headers[headerKey].match(pattern);
     return token && token[1];
   }
 
   const { cookie } = request.headers;
-  const hasCookieKey = cookie && Cookie.parse(cookie)[cookieKey];
+  const cookies = cookie && parse(cookie);
+  const hasCookieKey = cookies && hasOwnProperty(cookies, cookieKey);
   if (hasCookieKey) {
-    return hasCookieKey;
+    return cookies[cookieKey];
   }
 
   return null;

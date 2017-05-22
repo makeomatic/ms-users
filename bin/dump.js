@@ -45,6 +45,14 @@ const argv = require('yargs')
     describe: 'separator for console output',
     default: '\t',
   })
+  .option('toDate', {
+    describe: 'transforms field to date',
+    type: 'array',
+  })
+  .option('dateFormat', {
+    describe: 'date transform format',
+    default: 'L',
+  })
   .coerce({
     filter: JSON.parse,
   })
@@ -61,6 +69,7 @@ const csvWriter = require('csv-write-stream');
 const merge = require('lodash/merge');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
+const moment = require('moment');
 const defaultOpts = require('../lib/config');
 
 const config = merge({}, defaultOpts, conf.get('/'));
@@ -116,6 +125,16 @@ switch (argv.output) {
 const writeUserToOutput = (user) => {
   const attributes = user.metadata[audience];
   const id = (argv.username && attributes[argv.username]) || user.id;
+
+  if (argv.toDate) {
+    argv.toDate.forEach((fieldName) => {
+      const value = attributes[fieldName];
+      if (value) {
+        attributes[fieldName] = moment(value).format(argv.dateFormat);
+      }
+    });
+  }
+
   output.write(Object.assign(pick(attributes, argv.field), { id }));
 };
 

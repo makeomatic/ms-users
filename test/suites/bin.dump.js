@@ -87,4 +87,23 @@ describe('binary: dump', function suite() {
       return next();
     });
   });
+
+  it('is able to use transform toDate', function test(next) {
+    exec(`${binaryPath} -f firstName -f created --toDate created`, { env }, (err, stdout, stderr) => {
+      if (err) return next(err);
+      if (stderr) return next(new Error(stderr));
+
+      const stdoutLines = stdout.split('\n');
+      const headers = stdoutLines[0];
+      const data = stdoutLines.slice(1, -1);
+
+      assert.equal(headers, 'id\tfirstName\tcreated');
+      data.forEach((line) => {
+        const created = line.split(/\t/)[2];
+        assert.ok(/^\d{2}\/\d{2}\/\d{4}$/.test(created));
+      });
+
+      return next();
+    });
+  });
 });

@@ -1,443 +1,439 @@
 {
-    "$id": "config",
-    "type": "object",
-    "required": [
-        "amqp",
-        "redis",
-        "deleteInactiveAccounts",
-        "jwt",
-        "validation",
-        "server",
-        "mailer",
-        "pwdReset",
-        "hooks",
-        "token",
+  "$id": "config",
+  "type": "object",
+  "required": [
+    "amqp",
+    "redis",
+    "deleteInactiveAccounts",
+    "jwt",
+    "validation",
+    "server",
+    "mailer",
+    "pwdReset",
+    "hooks",
+    "token",
+    "phone"
+  ],
+  "properties": {
+    "deleteInactiveAccounts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "admins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 18
+          },
+          "firstName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "registrationLimits": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "object",
+          "properties": {
+            "time": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "times": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "noDisposable": {
+          "type": "boolean"
+        },
+        "checkMX": {
+          "type": "boolean"
+        }
+      }
+    },
+    "pwdReset": {
+      "type": "object",
+      "properties": {
+        "length": {
+          "type": "integer",
+          "min": 6,
+          "max": 30
+        },
+        "memorable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "redis": {
+      "type": "object",
+      "required": [
+        "options"
+      ],
+      "properties": {
+        "options": {
+          "type": "object",
+          "required": [
+            "keyPrefix"
+          ],
+          "properties": {
+            "keyPrefix": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": ".*{.*}.*"
+            },
+            "redisOptions": {
+              "type": "object",
+              "properties": {
+                "keyPrefix": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": ".*{.*}.*"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "logger": {
+      "type": "object"
+    },
+    "captcha": {
+      "required": [
+        "secret",
+        "uri",
+        "ttl"
+      ],
+      "type": "object",
+      "properties": {
+        "secret": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ttl": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "jwt": {
+      "type": "object",
+      "required": [
+        "hashingFunction",
+        "secret",
+        "ttl",
+        "defaultAudience",
+        "keepLoginAttempts",
+        "lockAfterAttempts",
+        "issuer"
+      ],
+      "properties": {
+        "hashingFunction": {
+          "type": "string"
+        },
+        "secret": {
+          "type": "string",
+          "minLength": 32
+        },
+        "ttl": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "defaultAudience": {
+          "type": "string",
+          "minLength": 1
+        },
+        "keepLoginAttempts": {
+          "type": "integer",
+          "minLength": 0
+        },
+        "lockAfterAttempts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "paths",
+        "subjects",
+        "email",
+        "senders",
+        "templates"
+      ],
+      "properties": {
+        "paths": {
+          "type": "object",
+          "required": [
+            "activate",
+            "reset"
+          ],
+          "properties": {
+            "activate": {
+              "type": "string"
+            },
+            "reset": {
+              "type": "string"
+            }
+          }
+        },
+        "senders": {
+          "required": [
+            "activate",
+            "reset",
+            "password"
+          ],
+          "type": "object",
+          "properties": {
+            "activate": {
+              "type": "string"
+            },
+            "reset": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            }
+          }
+        },
+        "subjects": {
+          "required": [
+            "activate",
+            "reset",
+            "password"
+          ],
+          "type": "object",
+          "properties": {
+            "activate": {
+              "type": "string"
+            },
+            "reset": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            }
+          }
+        },
+        "templates": {
+          "type": "object",
+          "properties": {
+            "activate": {
+              "type": "string"
+            },
+            "reset": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            }
+          }
+        },
+        "email": {
+          "oneOf": [{
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "object"
+            }
+          ]
+        }
+      }
+    },
+    "server": {
+      "required": [
+        "proto",
+        "host",
+        "port"
+      ],
+      "type": "object",
+      "properties": {
+        "proto": {
+          "type": "string",
+          "enum": [
+            "http",
+            "https"
+          ]
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "oneOf": [{
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        }
+      }
+    },
+    "mailer": {
+      "type": "object",
+      "required": [
+        "prefix",
+        "routes"
+      ],
+      "properties": {
+        "prefix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "adhoc": {
+              "type": "string",
+              "minLength": 1
+            },
+            "predefined": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "hooks": {
+      "type": "object"
+    },
+    "payments": {
+      "type": "object"
+    },
+    "token": {
+      "type": "object",
+      "required": [
+        "erase",
+        "email",
         "phone"
-    ],
-    "properties": {
-        "deleteInactiveAccounts": {
-            "type": "integer",
-            "minimum": 0
+      ],
+      "properties": {
+        "erase": {
+          "type": "boolean",
+          "default": false
         },
-        "admins": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "username": {
-                        "type": "string",
-                        "format": "email"
-                    },
-                    "password": {
-                        "type": "string",
-                        "minLength": 18
-                    },
-                    "firstName": {
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    "lastName": {
-                        "type": "string",
-                        "minLength": 1
-                    }
-                }
-            }
-        },
-        "registrationLimits": {
-            "type": "object",
-            "properties": {
-                "ip": {
-                    "type": "object",
-                    "properties": {
-                        "time": {
-                            "type": "integer",
-                            "minimum": 0
-                        },
-                        "times": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    }
+        "email": {
+          "type": "object",
+          "required": [
+            "secret",
+            "throttle",
+            "ttl"
+          ],
+          "properties": {
+            "secret": {
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string"
                 },
-                "noDisposable": {
-                    "type": "boolean"
-                },
-                "checkMX": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "pwdReset": {
-            "type": "object",
-            "properties": {
                 "length": {
-                    "type": "integer",
-                    "min": 6,
-                    "max": 30
+                  "type": "integer",
+                  "minimum": 0
                 },
-                "memorable": {
-                    "type": "boolean"
+                "encrypt": {
+                  "type": "boolean"
                 }
+              }
+            },
+            "ttl": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "throttle": {
+              "type": "integer",
+              "minimum": 0
             }
-        },
-        "redis": {
-            "type": "object",
-            "required": [
-                "options"
-            ],
-            "properties": {
-                "options": {
-                    "type": "object",
-                    "required": [
-                        "keyPrefix"
-                    ],
-                    "properties": {
-                        "keyPrefix": {
-                            "type": "string",
-                            "minLength": 1,
-                            "pattern": ".*{.*}.*"
-                        },
-                        "redisOptions": {
-                            "type": "object",
-                            "properties": {
-                                "keyPrefix": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "pattern": ".*{.*}.*"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "logger": {
-            "type": "object"
-        },
-        "captcha": {
-            "required": [
-                "secret",
-                "uri",
-                "ttl"
-            ],
-            "type": "object",
-            "properties": {
-                "secret": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "ttl": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "uri": {
-                    "type": "string",
-                    "minLength": 1
-                }
-            }
-        },
-        "jwt": {
-            "type": "object",
-            "required": [
-                "hashingFunction",
-                "secret",
-                "ttl",
-                "defaultAudience",
-                "keepLoginAttempts",
-                "lockAfterAttempts",
-                "issuer"
-            ],
-            "properties": {
-                "hashingFunction": {
-                    "type": "string"
-                },
-                "secret": {
-                    "type": "string",
-                    "minLength": 32
-                },
-                "ttl": {
-                    "type": "integer",
-                    "minimum": 0
-                },
-                "defaultAudience": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "keepLoginAttempts": {
-                    "type": "integer",
-                    "minLength": 0
-                },
-                "lockAfterAttempts": {
-                    "type": "integer",
-                    "minimum": 0
-                },
-                "issuer": {
-                    "type": "string",
-                    "minLength": 1
-                }
-            }
-        },
-        "validation": {
-            "type": "object",
-            "required": [
-                "paths",
-                "subjects",
-                "email",
-                "senders",
-                "templates"
-            ],
-            "properties": {
-                "paths": {
-                    "type": "object",
-                    "required": [
-                        "activate",
-                        "reset"
-                    ],
-                    "properties": {
-                        "activate": {
-                            "type": "string"
-                        },
-                        "reset": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "senders": {
-                    "required": [
-                        "activate",
-                        "reset",
-                        "password"
-                    ],
-                    "type": "object",
-                    "properties": {
-                        "activate": {
-                            "type": "string"
-                        },
-                        "reset": {
-                            "type": "string"
-                        },
-                        "password": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "subjects": {
-                    "required": [
-                        "activate",
-                        "reset",
-                        "password"
-                    ],
-                    "type": "object",
-                    "properties": {
-                        "activate": {
-                            "type": "string"
-                        },
-                        "reset": {
-                            "type": "string"
-                        },
-                        "password": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "templates": {
-                    "type": "object",
-                    "properties": {
-                        "activate": {
-                            "type": "string"
-                        },
-                        "reset": {
-                            "type": "string"
-                        },
-                        "password": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "email": {
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        {
-                            "type": "object"
-                        }
-                    ]
-                }
-            }
-        },
-        "server": {
-            "required": [
-                "proto",
-                "host",
-                "port"
-            ],
-            "type": "object",
-            "properties": {
-                "proto": {
-                    "type": "string",
-                    "enum": [
-                        "http",
-                        "https"
-                    ]
-                },
-                "host": {
-                    "type": "string"
-                },
-                "port": {
-                    "oneOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "integer"
-                        }
-                    ]
-                }
-            }
-        },
-        "mailer": {
-            "type": "object",
-            "required": [
-                "prefix",
-                "routes"
-            ],
-            "properties": {
-                "prefix": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "routes": {
-                    "type": "object",
-                    "properties": {
-                        "adhoc": {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        "predefined": {
-                            "type": "string",
-                            "minLength": 1
-                        }
-                    }
-                }
-            }
-        },
-        "hooks": {
-            "type": "object"
-        },
-        "payments": {
-            "type": "object"
-        },
-        "token": {
-            "type": "object",
-            "required": [
-                "erase",
-                "email",
-                "phone"
-            ],
-            "properties": {
-                "erase": {
-                    "type": "boolean",
-                    "default": false
-                },
-                "email": {
-                    "type": "object",
-                    "required": [
-                        "secret",
-                        "throttle",
-                        "ttl"
-                    ],
-                    "properties": {
-                        "secret": {
-                            "type": "object",
-                            "required": [
-                                "type"
-                            ],
-                            "properties": {
-                                "type": {
-                                    "type": "string"
-                                },
-                                "length": {
-                                    "type": "integer",
-                                    "minimum": 0
-                                },
-                                "encrypt": {
-                                    "type": "boolean"
-                                }
-                            }
-                        },
-                        "ttl": {
-                            "type": "integer",
-                            "minimum": 0
-                        },
-                        "throttle": {
-                            "type": "integer",
-                            "minimum": 0
-                        }
-                    }
-                },
-                "phone": {
-                    "type": "object",
-                    "required": [
-                        "secret",
-                        "throttle",
-                        "ttl"
-                    ],
-                    "properties": {
-                        "secret": {
-                            "type": "object",
-                            "required": [
-                                "type"
-                            ],
-                            "properties": {
-                                "type": {
-                                    "type": "string"
-                                },
-                                "length": {
-                                    "type": "integer",
-                                    "minimum": 0
-                                },
-                                "encrypt": {
-                                    "type": "boolean"
-                                }
-                            }
-                        },
-                        "ttl": {
-                            "type": "integer",
-                            "minimum": 0
-                        },
-                        "throttle": {
-                            "type": "integer",
-                            "minimum": 0
-                        }
-                    }
-                }
-            }
+          }
         },
         "phone": {
-            "type": "object",
-            "required": [
-                "account",
-                "messages",
-                "prefix"
-            ],
-            "properties": {
-                "account": {
-                    "type": "string"
+          "type": "object",
+          "required": [
+            "secret",
+            "throttle",
+            "ttl"
+          ],
+          "properties": {
+            "secret": {
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string"
                 },
-                "messages": {
-                    "type": "object",
-                    "patternProperties": {
-                        "^.+$": {
-                            "type": "string"
-                        }
-                    }
+                "length": {
+                  "type": "integer",
+                  "minimum": 0
                 },
-                "prefix": {
-                    "type": "string"
+                "encrypt": {
+                  "type": "boolean"
                 }
+              }
+            },
+            "ttl": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "throttle": {
+              "type": "integer",
+              "minimum": 0
             }
+          }
+        }
+      }
+    },
+    "phone": {
+      "type": "object",
+      "required": [
+        "account",
+        "messages",
+        "prefix"
+      ],
+      "properties": {
+        "account": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "object",
+          "patternProperties": {
+            "^.+$": {
+              "type": "string"
+            }
+          }
+        },
+        "prefix": {
+          "type": "string"
         }
       }
     },
@@ -534,4 +530,5 @@
         }
       }
     }
+  }
 }

@@ -47,7 +47,7 @@ function resolveUserId(id, fetchData = false) {
       USERS_USERNAME_TO_ID,
       USERS_ALIAS_TO_ID,
       id,
-      fetchData,
+      fetchData === true ? 1 : 0,
       indexPlaceholder
     )
     .then(resolveUserData);

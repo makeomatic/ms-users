@@ -10,7 +10,7 @@ local function makeUsersDataKey (userId, template, placeholder)
 end
 
 local function getUserData (userId, usersDataKey, fetchData)
-  if fetchData == false then
+  if fetchData == "0" then
     return { userId };
   end
 

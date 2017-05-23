@@ -51,9 +51,13 @@ const config = {
   },
   migrations: {
     // @TODO remove
+    // enabled: false,
     // meta: {
-    //   'v2-to-v3': {
+    //   generateUsersIds: {
     //     audiences: ['api', 'ms-files'],
+    //   },
+    //   referralsUsersIds: {
+    //     referrals: ['cappasitycom_tutorial', 'cappasitycom', 'photigy'],
     //   },
     // },
   },

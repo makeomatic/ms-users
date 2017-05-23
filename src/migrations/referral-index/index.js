@@ -23,9 +23,10 @@ const ARGS = [
   USERS_REFERRAL_FIELD,
 ];
 
-exports.script = (service, pipeline, versionKey, appendLuaScript) => {
-  const audience = service.config.jwt.defaultAudience;
-  const prefix = service.config.redis.options.keyPrefix;
+exports.script = (service) => {
+  const { config, redis } = service;
+  const audience = config.jwt.defaultAudience;
+  const prefix = config.redis.options.keyPrefix;
 
   return list.call(service, {
     params: {
@@ -42,15 +43,12 @@ exports.script = (service, pipeline, versionKey, appendLuaScript) => {
   .then(key => key.slice(prefix.length))
   .then((userIdsKey) => {
     const keys = [
-      versionKey,
       USERS_INDEX,
       userIdsKey,
       `uid!${USERS_METADATA}!${audience}`,
       `${USERS_REFERRAL_INDEX}:uid`,
     ];
 
-    const lua = appendLuaScript(FINAL, MIN, SCRIPT);
-    pipeline.eval(lua, keys.length, keys, ARGS);
-    return null;
+    return redis.eval(SCRIPT, keys.length, keys, ARGS);
   });
 };

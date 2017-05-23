@@ -19,7 +19,7 @@ const makeKey = require('../../utils/key');
 
 function generateUsersIds({ flake, redis, config, log }) {
   // used for renaming metadata keys
-  const { audiences } = config.migrations.meta['v2-to-v3'];
+  const { audiences } = config.migrations.meta.generateUsersIds;
   audiences.push(config.jwt.defaultAudience);
 
   return redis
@@ -89,6 +89,6 @@ function generateUsersIds({ flake, redis, config, log }) {
 
 module.exports = {
   script: generateUsersIds,
-  min: 2,
-  final: 3,
+  min: 1,
+  final: 4,
 };

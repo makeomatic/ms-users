@@ -32,21 +32,23 @@ const reducer = (accumulator, value, prop) => {
   return accumulator;
 };
 
-module.exports = function getInternalData(username, isSSO = false) {
+module.exports = function getInternalData(username) {
   const { redis } = this;
   const userKey = redisKey(username, USERS_DATA);
-  const aliasHash = isSSO ? USERS_SSO_TO_LOGIN : USERS_ALIAS_TO_LOGIN;
-  const aliasHashKey = isSSO ? username : username.toLowerCase();
-
   return redis.pipeline()
-    .hget(aliasHash, aliasHashKey)
+    .hget(USERS_ALIAS_TO_LOGIN, username.toLowerCase())
+    .hget(USERS_SSO_TO_LOGIN, username)
     .exists(userKey)
     .hgetallBuffer(userKey)
     .exec()
     .then(handlePipeline)
-    .spread((aliasToUsername, exists, data) => {
+    .spread((aliasToUsername, ssoToUsername, exists, data) => {
       if (aliasToUsername) {
         return getInternalData.call(this, aliasToUsername);
+      }
+
+      if (ssoToUsername) {
+        return getInternalData.call(this, ssoToUsername);
       }
 
       if (!exists) {

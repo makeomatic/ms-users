@@ -70,6 +70,10 @@ module.exports = {
   POLICY_AUTH_TRY: 'try',
 };
 
+module.exports.SSO_PROVIDERS = [
+  module.exports.USERS_SSO_FACEBOOK_FIELD,
+];
+
 module.exports.FIELDS_TO_STRINGIFY = [
   module.exports.USERS_SSO_FACEBOOK_FIELD,
 ];

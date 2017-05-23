@@ -26,7 +26,4 @@ function updateMetadataAction(request) {
     .then(updateMetadata);
 }
 
-updateMetadataAction.auth = 'jwt';
-updateMetadataAction.policy = 'try';
-
 module.exports = updateMetadataAction;

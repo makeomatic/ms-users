@@ -7,20 +7,22 @@ const {
 const handlePipeline = require('../utils/pipelineError.js');
 const redisKey = require('../utils/key.js');
 
-module.exports = function userExists(username, isSSO = false) {
-  const aliasHash = isSSO ? USERS_SSO_TO_LOGIN : USERS_ALIAS_TO_LOGIN;
-  const aliasHashKey = isSSO ? username : username.toLowerCase();
-
+module.exports = function userExists(username) {
   return this
     .redis
     .pipeline()
-    .hget(aliasHash, aliasHashKey)
+    .hget(USERS_ALIAS_TO_LOGIN, username.toLowerCase())
+    .hget(USERS_SSO_TO_LOGIN, username)
     .exists(redisKey(username, USERS_DATA))
     .exec()
     .then(handlePipeline)
-    .spread((alias, exists) => {
+    .spread((alias, ssoRef, exists) => {
       if (alias) {
         return alias;
+      }
+
+      if (ssoRef) {
+        return ssoRef;
       }
 
       if (!exists) {

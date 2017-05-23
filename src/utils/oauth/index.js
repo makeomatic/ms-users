@@ -8,7 +8,7 @@ const forEach = require('lodash/forEach');
 const defaults = require('lodash/defaults');
 const isFunction = require('lodash/isFunction');
 
-const uid = require('./uid.js');
+const getUid = require('./uid.js');
 const extractJWT = require('./extractJWT.js');
 const getInternalData = require('../getInternalData');
 
@@ -67,9 +67,11 @@ function authHandler(request) {
   const { strategy } = action;
   const jwt = extractJWT(transportRequest);
 
+  console.log('got request');
   return Promise
     .fromCallback((callback) => {
       http.auth.test(strategy, transportRequest, function auth(response, credentials) {
+        console.log(response);
         if (response) {
           const shouldThrow = isError(response);
           const shouldRedirect = isRedirect(response);
@@ -96,7 +98,14 @@ function authHandler(request) {
 
         // set actual strategy for confidence
         credentials.provider = strategy;
-        credentials.uid = uid(credentials);
+
+        console.log('injecting uid');
+        // create uid and inject it inside account && internal data
+        const uid = getUid(credentials);
+        credentials.uid = uid;
+        credentials.profile.uid = uid;
+        credentials.internals.uid = uid;
+        console.log('going next');
         return callback(null, credentials);
       });
     })
@@ -109,7 +118,7 @@ function authHandler(request) {
                             : Promise.resolve(false);
 
       // check if the profile is already attached to any existing account
-      const getUsername = getInternalData.call(this, account.uid, true)
+      const getUsername = getInternalData.call(this, account.uid)
         .get(USERS_USERNAME_FIELD)
         .catchReturn({ statusCode: 404 }, false);
 

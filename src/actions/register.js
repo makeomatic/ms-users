@@ -116,10 +116,10 @@ function verifySSO() {
         ...profile,
       };
 
-      return [sso.uid, true];
+      return sso.uid;
     })
     .bind(this)
-    .spread(userExists)
+    .then(userExists)
     .throw(ErrorConflictUserExists)
     .catchReturn(ErrorMissing, true);
 }

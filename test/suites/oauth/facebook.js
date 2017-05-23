@@ -3,6 +3,7 @@
 
 const Promise = require('bluebird');
 const assert = require('assert');
+const forEach = require('lodash/forEach');
 const request = require('request-promise');
 const _debug = require('debug')('facebook');
 const {
@@ -251,6 +252,61 @@ describe('#facebook', function oauthFacebookSuite() {
             assert.ifError(body.user.password);
             assert.ifError(body.user.audience);
           });
+      });
+  });
+
+  it('should detach facebook profile', function test() {
+    let uid = false;
+    return getFacebookToken.call(this)
+      .then(createAccount)
+      .tap((registered) => {
+        assert(registered.hasOwnProperty('jwt'));
+        assert(registered.hasOwnProperty('user'));
+        assert(registered.user.hasOwnProperty('metadata'));
+        assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+        assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+        assert(registered.user.metadata['matic.ninja'].hasOwnProperty('facebook'));
+        assert.ifError(registered.user.password);
+        assert.ifError(registered.user.audience);
+
+        uid = `facebook:${registered.users.metadata['matic.ninja'].facebook.id}`;
+      })
+      .tap((registered) => {
+        const { username } = registered.user;
+        return this.dispatch('users.oauth.detach', { username, provider: 'facebook' })
+          .reflect()
+          .then(inspectPromise(true))
+          .tap((response) => {
+            assert(response.success);
+          });
+      })
+      .tap((registered) => {
+        /** verify that related account has been pruned from metadata */
+        const { username, metadata } = registered.user;
+        return this.dispatch('users.getMetadata', { username, audience: Object.keys(metadata) })
+          .reflect()
+          .then(inspectPromise(true))
+          .tap((response) => {
+            forEach(response.metadata, (audience) => {
+              assert.ifError(audience.facebook);
+            });
+          });
+      })
+      .tap((registered) => {
+        /** verify that related account has been pruned from internal data */
+        const { username } = registered.user;
+        return this.dispatch('users.getInternalData', { username })
+          .reflect()
+          .then(inspectPromise(true))
+          .tap((response) => {
+            assert.ifError(response.facebook);
+          });
+      })
+      .tap(() => {
+        /** verify that related account has been dereferenced */
+        return this.dispatch('users.getInternalData', { username: uid })
+          .reflect()
+          .then(inspectPromise(false));
       });
   });
 });

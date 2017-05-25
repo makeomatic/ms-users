@@ -175,7 +175,7 @@ exports.OauthHandler = function OauthHandler(server, config) {
 
     let provider;
     const defaultOptions = strategy.options;
-    const { scope, fields, profileHandler, scopeSeparator, apiVersion, ...rest } = options;
+    const { scope, fields, profileHandler, scopeSeparator, apiVersion, enabled, ...rest } = options;
 
     if (defaultOptions) {
       const configuredOptions = {

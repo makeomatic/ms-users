@@ -48,7 +48,7 @@
     "ms-mailer-client": "^6.0.0",
     "ms-mailer-templates": "^1.0.0",
     "ms-token": "^2.0.0",
-    "ms-validation": "^4.0.0",
+    "ms-validation": "^5.0.0",
     "mservice": "^7.0.0",
     "node-uuid": "^1.4.8",
     "password-generator": "^2.1.0",

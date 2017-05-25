@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const partial = require('lodash/partial');
+const ActionTransport = require('mservice').ActionTransport;
 
 const detach = require('../../utils/oauth/detach.js');
 const getInternalData = require('../../utils/getInternalData.js');
@@ -15,12 +16,12 @@ const getInternalData = require('../../utils/getInternalData.js');
  * @apiParam (Payload) {String} provider
  * @apiParam (Payload) {String} username - user's username
  */
-function detachAction(request) {
+module.exports = function detachAction(request) {
   const { provider, username } = request.params;
 
   return Promise.bind(this, username)
     .then(getInternalData)
     .then(partial(detach, username, provider));
-}
+};
 
-module.exports = detachAction;
+module.exports.transports = [ActionTransport.amqp, ActionTransport.http];

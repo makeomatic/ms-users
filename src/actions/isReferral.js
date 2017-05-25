@@ -24,7 +24,7 @@ function checkIndex(username) {
  * @apiParam (Payload) {String} username
  * @apiParam (Payload) {String} referralCode
  */
-function isReferral({ params }) {
+module.exports = function isReferral({ params }) {
   const { username, referralCode } = params;
   const { redis } = this;
 
@@ -37,6 +37,6 @@ function isReferral({ params }) {
     })
     .then(checkIndex)
     .catchReturn(false);
-}
+};
 
-module.exports = isReferral;
+module.exports.transports = [require('mservice').ActionTransport.amqp];

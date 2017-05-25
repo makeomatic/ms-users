@@ -38,7 +38,7 @@ const ADMINS = [USERS_ADMIN_ROLE, USERS_SUPER_ADMIN_ROLE];
  *
  * @apiParam (Payload) {String} username - currently only email is supported
  */
-function removeUser(request) {
+module.exports = function removeUser(request) {
   const { username } = request.params;
   const audience = this.config.jwt.defaultAudience;
 
@@ -89,6 +89,6 @@ function removeUser(request) {
       // complete it
       return transaction.exec().then(handlePipeline);
     });
-}
+};
 
-module.exports = removeUser;
+module.exports.transports = [require('mservice').ActionTransport.amqp];

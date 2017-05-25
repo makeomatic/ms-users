@@ -1,17 +1,15 @@
 const Promise = require('bluebird');
 const Mservice = require('mservice');
 const Mailer = require('ms-mailer-client');
-const Errors = require('common-errors');
 const merge = require('lodash/merge');
 const fsort = require('redis-filtered-sort');
 const TokenManager = require('ms-token');
 const LockManager = require('dlock');
+const get = require('lodash/get');
 const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
-const defaultOpts = require('./config');
-const { OauthHandler } = require('./utils/oauth');
-
-const { NotImplementedError } = Errors;
+const { NotImplementedError } = require('common-errors');
+const conf = require('./config');
 
 /**
  * @namespace Users
@@ -22,7 +20,7 @@ module.exports = class Users extends Mservice {
    * Configuration options for the service
    * @type {Object}
    */
-  static defaultOpts = defaultOpts;
+  static defaultOpts = conf.get('/', { env: process.env.NODE_ENV });
 
   /**
    * @namespace Users
@@ -56,7 +54,10 @@ module.exports = class Users extends Mservice {
     });
 
     this.on('plugin:start:http', (server) => {
-      this._oauth = new OauthHandler(server, config);
+      if (get(config, 'oauth.enabled', false) === true) {
+        const { OauthHandler } = require('./utils/oauth');
+        this._oauth = new OauthHandler(server, config);
+      }
     });
 
     this.on('plugin:stop:http', () => {

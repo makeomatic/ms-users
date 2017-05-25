@@ -2,10 +2,10 @@ const url = require('url');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 
-const attach = require('../../utils/oauth/attach.js');
-const getSignedToken = require('../../utils/oauth/getSignedToken.js');
+const attach = require('../../utils/oauth/attach');
+const getSignedToken = require('../../utils/oauth/getSignedToken');
 
-function facebookCallbackAction(request) {
+module.exports = function facebookCallbackAction(request) {
   const { config: { server } } = this;
   const { credentials } = request.auth;
   const { user, account } = credentials;
@@ -43,15 +43,14 @@ function facebookCallbackAction(request) {
         ...context,
       });
     });
-}
+};
 
-facebookCallbackAction.auth = 'oauth';
-facebookCallbackAction.strategy = 'facebook';
-facebookCallbackAction.transport = ['http'];
-facebookCallbackAction.allowed = (request) => {
+module.exports.allowed = function isAllowed(request) {
   if (!request.auth.credentials) {
     throw new Errors.HttpStatusError(401, 'authentication required');
   }
 };
 
-module.exports = facebookCallbackAction;
+module.exports.auth = 'oauth';
+module.exports.strategy = 'facebook';
+module.exports.transports = [require('mservice').ActionTransport.http];

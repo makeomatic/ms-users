@@ -8,12 +8,8 @@ try {
   dir = '../lib';
 }
 
-// accepts conf through .env file
-// suitable for configuring this in the docker env
-const configuration = require('ms-conf');
-const Service = require(dir);
-const service = new Service(configuration.get('/'));
-
+const Service = require(dir); // eslint-disable-line import/no-dynamic-require
+const service = new Service();
 service.connect()
   .then(function serviceUp() {
     service.log.info('Started service, initiating admin accounts');

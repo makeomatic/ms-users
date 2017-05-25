@@ -53,3 +53,5 @@ module.exports = function generateInvite(request) {
     .tap(() => redis.sadd(INVITATIONS_INDEX, email))
   );
 };
+
+module.exports.transports = [require('mservice').ActionTransport.amqp];

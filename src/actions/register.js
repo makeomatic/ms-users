@@ -159,7 +159,7 @@ function lockDisposer(lock) {
  * @apiParam (Payload) {String} [challengeType="email"] - challenge type
  * @apiParam (Payload) {String} [referral] - pass id/fingerprint of the client to see if it was stored before and associate with this account
  */
-function registerUser(request) {
+module.exports = function registerUser(request) {
   const { redis, config, tokenManager } = this;
   const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
   const { defaultAudience } = config.jwt;
@@ -392,6 +392,6 @@ function registerUser(request) {
         })
       )
     ));
-}
+};
 
-module.exports = registerUser;
+module.exports.transports = [require('mservice').ActionTransport.amqp];

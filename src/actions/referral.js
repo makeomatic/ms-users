@@ -13,7 +13,7 @@ const { USERS_REF } = require('../constants');
  * @apiParam (Payload) {String} referral - who claims the referral after registration
  *
  */
-function storeReferral({ params }) {
+module.exports = function storeReferral({ params }) {
   // basic context
   const { id, referral } = params;
   const key = redisKey(USERS_REF, id);
@@ -22,6 +22,6 @@ function storeReferral({ params }) {
   // set key -> referral
   // returns OK if op was performed, null otherwise
   return this.redis.set(key, referral, 'EX', expiration, 'NX');
-}
+};
 
-module.exports = storeReferral;
+module.exports.transports = [require('mservice').ActionTransport.amqp];

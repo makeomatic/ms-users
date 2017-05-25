@@ -1,5 +1,5 @@
 const path = require('path');
-const routerExtension = require('mservice').routerExtension;
+const { routerExtension, ActionTransport } = require('mservice');
 
 /**
  * Loads existing auth strategies
@@ -27,8 +27,7 @@ exports.router = {
   routes: {
     directory: path.resolve(__dirname, '../actions'),
     prefix: 'users',
-    setTransportsAsDefault: true,
-    transports: ['amqp', 'http'],
+    transports: [ActionTransport.amqp, ActionTransport.http],
   },
   extensions: {
     enabled: ['postRequest', 'preRequest', 'preResponse'],

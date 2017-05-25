@@ -77,3 +77,5 @@ module.exports = function listTokens({ params }) {
     .bind(this)
     .then(enrichResponse);
 };
+
+module.exports.transports = [require('mservice').ActionTransport.amqp];

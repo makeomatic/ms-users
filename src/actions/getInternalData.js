@@ -16,7 +16,7 @@ const pick = require('lodash/pick');
  * @apiParam (Payload) {String[]} [fields] - return only these fields of user's internal data
  *
  */
-function internalData({ params }) {
+module.exports = function internalData({ params }) {
   const { fields } = params;
 
   return Promise
@@ -25,6 +25,6 @@ function internalData({ params }) {
     .then(data => (
       fields ? pick(data, fields) : data
     ));
-}
+};
 
-module.exports = internalData;
+module.exports.transports = [require('mservice').ActionTransport.amqp];

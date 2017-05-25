@@ -2,29 +2,28 @@ const path = require('path');
 const glob = require('glob');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const is = require('is');
 
 const get = require('lodash/get');
 const forEach = require('lodash/forEach');
 const defaults = require('lodash/defaults');
-const isFunction = require('lodash/isFunction');
 
-const getUid = require('./uid.js');
-const extractJWT = require('./extractJWT.js');
+const getUid = require('./uid');
+const extractJWT = require('./extractJWT');
 const getInternalData = require('../getInternalData');
 
 const { Redirect } = require('./errors');
-const { USERS_USERNAME_FIELD } = require('../../constants.js');
+const { USERS_USERNAME_FIELD } = require('../../constants');
 
-/* eslint-disable */
 const strategies = Object.create(null);
 const strategiesFolderPath = path.resolve(__dirname, './strategies');
 const strategiesFiles = glob.sync('*.js', { cwd: strategiesFolderPath, matchBase: true });
 
-strategiesFiles.forEach(filename => {
-  // remove .js
+// remove .js
+strategiesFiles.forEach((filename) => {
+  // eslint-disable-next-line import/no-dynamic-require
   strategies[filename.slice(0, -3)] = require(path.resolve(strategiesFolderPath, filename));
 });
-/* eslint-enable */
 
 function isRedirect(response) {
   const { statusCode } = response;
@@ -65,13 +64,10 @@ function authHandler(request) {
   const { http } = this;
   const { action, transportRequest } = request;
   const { strategy } = action;
-  const jwt = extractJWT(transportRequest);
 
-  console.log('got request');
   return Promise
     .fromCallback((callback) => {
       http.auth.test(strategy, transportRequest, function auth(response, credentials) {
-        console.log(response);
         if (response) {
           const shouldThrow = isError(response);
           const shouldRedirect = isRedirect(response);
@@ -99,13 +95,12 @@ function authHandler(request) {
         // set actual strategy for confidence
         credentials.provider = strategy;
 
-        console.log('injecting uid');
         // create uid and inject it inside account && internal data
         const uid = getUid(credentials);
         credentials.uid = uid;
         credentials.profile.uid = uid;
         credentials.internals.uid = uid;
-        console.log('going next');
+
         return callback(null, credentials);
       });
     })
@@ -113,6 +108,8 @@ function authHandler(request) {
      * try to login user
      */
     .then((account) => {
+      const jwt = extractJWT(transportRequest);
+
       // validate JWT token if provided
       const checkAuth = jwt ? verifyToken.call(this, jwt)
                             : Promise.resolve(false);
@@ -138,15 +135,15 @@ function authHandler(request) {
     });
 }
 
-module.exports.strategies = {
+exports.strategies = {
   oauth: authHandler,
 };
 
-function stringToArray(scope, scopeSeparator) {
-  return Array.isArray(scope) ? scope : scope.split(scopeSeparator);
-}
+const stringToArray = (scope, scopeSeparator) => (
+  Array.isArray(scope) ? scope : scope.split(scopeSeparator)
+);
 
-module.exports.OauthHandler = function OauthHandler(server, config) {
+exports.OauthHandler = function OauthHandler(server, config) {
   const { oauth } = config;
 
   if (!oauth) {
@@ -168,6 +165,10 @@ module.exports.OauthHandler = function OauthHandler(server, config) {
   forEach(providers, (options, name) => {
     const strategy = strategies[name];
 
+    if (options.enabled === false) {
+      return;
+    }
+
     if (!strategy) {
       throw new Error(`OAuth: unknown strategy ${name}`);
     }
@@ -183,7 +184,7 @@ module.exports.OauthHandler = function OauthHandler(server, config) {
         scopeSeparator,
       };
 
-      if (isFunction(defaultOptions)) {
+      if (is.fn(defaultOptions)) {
         provider = defaultOptions({ ...configuredOptions, apiVersion, fields, profileHandler });
       } else {
         provider = defaults(configuredOptions, defaultOptions);

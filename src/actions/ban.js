@@ -60,13 +60,13 @@ function unlockUser({ username }) {
  * @apiParam (Payload) {String} [whom] - id of the person, who banned the user
  *
  */
-function banUser(request) {
+module.exports = function banUser(request) {
   return Promise
     .bind(this, request.params.username)
     .then(userExists)
     .then(username => ({ ...request.params, username }))
     .then(request.params.ban ? lockUser : unlockUser)
     .then(handlePipeline);
-}
+};
 
-module.exports = banUser;
+module.exports.transports = [require('mservice').ActionTransport.amqp];

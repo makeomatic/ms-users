@@ -1,14 +1,25 @@
 exports.oauth = {
+  enabled: false,
   token: {
     hashingFunction: 'HS256',
     issuer: 'ms-users',
-    secret: 'dajs123jnida071241d-ar-01129hbad7as-akd810', // make sure to update this in production
+    secret: {
+      $filter: 'env',
+      $default: 'dajs123jnida071241d-ar-01129hbad7as-akd810',
+      production: '',
+    },
   },
   providers: {
     facebook: {
+      enabled: false,
       clientId: 'fb-client-id',
       location: 'location',
       clientSecret: 'fb-client-secret',
+      password: {
+        $filter: 'env',
+        $default: 'very-long-encryption-password-that-needs-to-be-changed',
+        production: '',
+      },
     },
   },
 };

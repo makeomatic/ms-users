@@ -39,7 +39,7 @@ services:
 
   dev:
     container_name: dev
-    image: makeomatic/node:7.9.0-tester
+    image: makeomatic/node:7.10.0-tester
     links:
       - redis
       - rabbitmq

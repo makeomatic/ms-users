@@ -32,6 +32,7 @@ src
 test
 Makefile
 .env
+ss
 
 # client specific code
 lib/custom

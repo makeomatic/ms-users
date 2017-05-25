@@ -6,7 +6,7 @@
     "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
     "pretest": "npm run compile",
     "test": "npm run lint && npm run test:integration -- -r flake-idgen -r ms-flakeless -r scrypt",
-    "test:integration": "mdep test run",
+    "test:integration": "mkdir ./ss; mdep test run",
     "lint": "eslint ./src",
     "doc": "cd ./schemas && apidoc -i ../src/actions -v --debug -o ../docs",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",

@@ -79,12 +79,11 @@ function scopeComparator(scopeValue, fbPermission) {
 function defaultProfileHandler(profile) {
   const { credentials } = this;
   const { token, refreshToken } = credentials;
-  const { id, email } = profile;
+  const { id, email, username } = profile;
 
   // embed profile, contains only safe data, would be attached to user's metadata
   credentials.profile = {
     id,
-    username: profile.username,
     displayName: profile.name,
     gender: profile.gender,
     age_range: profile.age_range,
@@ -113,6 +112,7 @@ function defaultProfileHandler(profile) {
     email,
     token,
     refreshToken,
+    username,
   };
 
   return credentials;

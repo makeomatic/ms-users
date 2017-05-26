@@ -5,10 +5,12 @@ const Errors = require('common-errors');
 const is = require('is');
 
 const get = require('lodash/get');
+const partial = require('lodash/partial');
 const forEach = require('lodash/forEach');
 const defaults = require('lodash/defaults');
 
 const getUid = require('./uid');
+const refresh = require('./refresh');
 const extractJWT = require('./extractJWT');
 const getInternalData = require('../getInternalData');
 
@@ -127,7 +129,9 @@ function authHandler(request) {
 
         // found a linked user, log in
         if (username) {
-          return Promise.bind(this, username).then(loginAttempt);
+          return Promise.bind(this, username)
+            .then(loginAttempt)
+            .tap(partial(refresh, account));
         }
 
         return { user, jwt, account };

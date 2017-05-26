@@ -26,7 +26,7 @@ const graphApi = request.defaults({
 
 const cache = {};
 
-function createTestUser() {
+function createTestUserAPI() {
   return graphApi({
     uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
     method: 'POST',
@@ -34,19 +34,26 @@ function createTestUser() {
       installed: false,
     },
   })
-  .then((body) => {
-    cache.testUser = body;
-    return body;
+  .promise();
+}
+
+function createTestUser(localCache = cache) {
+  return createTestUserAPI().tap((body) => {
+    localCache.testUser = body;
   });
 }
 
-function deleteTestUser() {
-  const { testUser: { id } } = cache;
-
+function deleteTestUserAPI(id) {
   return graphApi({
     uri: `/${id}`,
     method: 'DELETE',
-  });
+  })
+  .promise();
+}
+
+function deleteTestUser(localCache = cache) {
+  const { testUser: { id } } = localCache;
+  return deleteTestUserAPI(id);
 }
 
 function hostUrl(config) {
@@ -100,6 +107,8 @@ function logout() {
   const { defaultAudience: audience } = this.users._config.jwt;
   const { Network } = this.protocol;
 
+  console.log(this.jwt);
+
   return this.dispatch('users.logout', { jwt, audience })
     .reflect()
     .then(inspectPromise())
@@ -116,7 +125,7 @@ function createAccount(token) {
   const opts = {
     username: payload.email,
     password: 'mynicepassword',
-    audience: 'matic.ninja',
+    audience: '*.localhost',
     metadata: {
       service: 'craft',
     },
@@ -164,12 +173,15 @@ describe('#facebook', function oauthFacebookSuite() {
         .then(captureScreenshot)
         .return('button[name=login]')
         .then(submit)
+        .tap(captureScreenshot)
     ));
   }
 
   function authenticate() {
     return Promise.bind(this)
       .then(initiateAuth)
+      .delay(1000)
+      .tap(captureScreenshot)
       .return('button[name=__CONFIRM__]')
       .tap(wait)
       .tap(captureScreenshot)
@@ -211,9 +223,8 @@ describe('#facebook', function oauthFacebookSuite() {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
         assert(registered.user.hasOwnProperty('metadata'));
-        assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
         assert(registered.user.metadata.hasOwnProperty('*.localhost'));
-        assert(registered.user.metadata['matic.ninja'].hasOwnProperty('facebook'));
+        assert(registered.user.metadata['*.localhost'].hasOwnProperty('facebook'));
         assert.ifError(registered.user.password);
         assert.ifError(registered.user.audience);
       });
@@ -263,13 +274,12 @@ describe('#facebook', function oauthFacebookSuite() {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
         assert(registered.user.hasOwnProperty('metadata'));
-        assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
         assert(registered.user.metadata.hasOwnProperty('*.localhost'));
-        assert(registered.user.metadata['matic.ninja'].hasOwnProperty('facebook'));
+        assert(registered.user.metadata['*.localhost'].hasOwnProperty('facebook'));
         assert.ifError(registered.user.password);
         assert.ifError(registered.user.audience);
 
-        uid = `facebook:${registered.users.metadata['matic.ninja'].facebook.id}`;
+        uid = `facebook:${registered.user.metadata['*.localhost'].facebook.id}`;
       })
       .tap((registered) => {
         const { username } = registered.user;

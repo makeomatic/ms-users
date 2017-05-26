@@ -11,13 +11,13 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 * @returns {String} token - the raw JSON Webtoken or `null` if not found
 */
 module.exports = function extract(request, options = {}) {
-// The key holding token value in url or cookie defaults to token
+  // The key holding token value in url or cookie defaults to token
   const urlKey = options.urlKey || 'token';
   const cookieKey = options.cookieKey || 'token';
   const headerKey = options.headerKey || 'authorization';
   const { headers, query } = request;
 
-  const hasHeaderKey = hasOwnProperty(headers, headerKey);
+  const hasHeaderKey = hasOwnProperty.call(headers, headerKey);
   if (hasHeaderKey) {
     const header = headers[headerKey];
     if (Array.isArray(header)) {
@@ -34,14 +34,14 @@ module.exports = function extract(request, options = {}) {
     if (schema === 'JWT') return token;
   }
 
-  const hasQueryKey = hasOwnProperty(query, urlKey);
+  const hasQueryKey = hasOwnProperty.call(query, urlKey);
   if (hasQueryKey) {
     return request.query[urlKey];
   }
 
   const cookieHeader = headers.cookie;
   const cookies = cookieHeader && parse(cookieHeader);
-  const hasCookieKey = cookies && hasOwnProperty(cookies, cookieKey);
+  const hasCookieKey = cookies && hasOwnProperty.call(cookies, cookieKey);
   if (hasCookieKey) {
     return cookies[cookieKey];
   }

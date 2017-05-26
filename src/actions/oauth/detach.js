@@ -21,7 +21,8 @@ module.exports = function detachAction(request) {
 
   return Promise.bind(this, username)
     .then(getInternalData)
-    .then(partial(detach, username, provider));
+    .then(partial(detach, username, provider))
+    .return({ success: true });
 };
 
 module.exports.transports = [ActionTransport.amqp, ActionTransport.http];

@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const set = require('lodash/set');
 const noop = require('lodash/noop');
 const merge = require('lodash/merge');
 const reduce = require('lodash/reduce');
@@ -103,7 +104,7 @@ function verifyReferral() {
  * @return {Promise}
  */
 function verifySSO() {
-  const { sso, ssoTokenOptions, metadata, audience } = this;
+  const { sso, ssoTokenOptions, metadata, defaultAudience } = this;
   const { token, provider } = sso;
 
   return jwt.verifyData(token, ssoTokenOptions)
@@ -112,10 +113,8 @@ function verifySSO() {
 
       sso.uid = uid;
       sso.credentials = credentials;
-      metadata[audience][provider] = {
-        ...profile,
-      };
 
+      set(metadata, [defaultAudience, provider], profile);
       return sso.uid;
     })
     .bind(this)
@@ -263,6 +262,7 @@ module.exports = function registerUser(request) {
           referral,
           sso,
           ssoTokenOptions,
+          defaultAudience,
           audience: params.audience,
         })
         // verifies token and adds extra meta if this is present

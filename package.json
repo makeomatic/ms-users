@@ -76,8 +76,8 @@
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-plugin-transform-strict-mode": "^6.24.1",
     "babel-register": "^6.24.1",
-    "chai": "^3.5.0",
-    "chrome-remote-interface": "^0.22.0",
+    "chai": "^4.0.0",
+    "chrome-remote-interface": "^0.23.0",
     "codecov": "^2.2.0",
     "cross-env": "^5.0.0",
     "cz-conventional-changelog": "^2.0.0",
@@ -95,7 +95,7 @@
     "nyc": "^10.3.2",
     "rimraf": "^2.6.1",
     "semantic-release": "^6.3.2",
-    "sinon": "^2.2.0"
+    "sinon": "^2.3.2"
   },
   "release": {
     "verifyConditions": []

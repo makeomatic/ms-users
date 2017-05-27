@@ -187,7 +187,7 @@ const defaultOptions = {
   token: Urls.token,
 };
 
-module.exports.options = (options) => {
+exports.options = (options) => {
   const { scope, scopeSeparator, apiVersion } = options;
 
   if (apiVersion) {

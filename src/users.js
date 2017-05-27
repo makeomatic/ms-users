@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const Mservice = require('mservice');
 const Mailer = require('ms-mailer-client');
 const merge = require('lodash/merge');
+const assert = require('assert');
 const fsort = require('redis-filtered-sort');
 const TokenManager = require('ms-token');
 const LockManager = require('dlock');
@@ -54,9 +55,12 @@ module.exports = class Users extends Mservice {
     });
 
     this.on('plugin:start:http', (server) => {
+      // if oAuth is enabled - initiate the strategy
       if (get(config, 'oauth.enabled', false) === true) {
-        const { OauthHandler } = require('./utils/oauth');
-        this._oauth = new OauthHandler(server, config);
+        assert.equal(config.http.server.handler, 'hapi', 'oAuth must be used with hapi.js webserver');
+
+        const OAuthStrategyHandler = require('./auth/oauth/hapi');
+        this._oauth = new OAuthStrategyHandler(server, config);
       }
     });
 

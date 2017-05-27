@@ -74,7 +74,7 @@ function verifyDisposablePassword(ctx, data) {
  */
 function getVerifyStrategy(data) {
   if (this.isSSO === true) {
-    return noop(data);
+    return null;
   }
 
   if (is.string(this.password) !== true || this.password.length < 1) {

@@ -2,8 +2,8 @@ const Promise = require('bluebird');
 const partial = require('lodash/partial');
 const ActionTransport = require('mservice').ActionTransport;
 
-const detach = require('../../utils/oauth/detach.js');
-const getInternalData = require('../../utils/getInternalData.js');
+const detach = require('../../auth/oauth/utils/detach');
+const getInternalData = require('../../utils/getInternalData');
 
 /**
  * @api {amqp} <prefix>.oauth.detach Detach SSO provider from profile
@@ -25,4 +25,4 @@ module.exports = function detachAction(request) {
     .return({ success: true });
 };
 
-module.exports.transports = [ActionTransport.amqp, ActionTransport.http];
+module.exports.transports = [ActionTransport.amqp];

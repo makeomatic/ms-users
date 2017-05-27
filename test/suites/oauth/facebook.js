@@ -107,8 +107,6 @@ function logout() {
   const { defaultAudience: audience } = this.users._config.jwt;
   const { Network } = this.protocol;
 
-  console.log(this.jwt);
-
   return this.dispatch('users.logout', { jwt, audience })
     .reflect()
     .then(inspectPromise())
@@ -265,6 +263,9 @@ describe('#facebook', function oauthFacebookSuite() {
           });
       });
   });
+
+  it('should reject attaching already attached profile to a new user');
+  it('should pass-through to login if account has already been attached');
 
   it('should detach facebook profile', function test() {
     let uid = false;

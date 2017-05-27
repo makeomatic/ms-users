@@ -1,14 +1,14 @@
 const get = require('lodash/get');
 const Errors = require('common-errors');
 
-const redisKey = require('../key.js');
-const updateMetadata = require('../updateMetadata.js');
-const handlePipeline = require('../pipelineError.js');
+const redisKey = require('../../../utils/key');
+const updateMetadata = require('../../../utils/updateMetadata');
+const handlePipeline = require('../../../utils/pipelineError');
 
 const {
   USERS_SSO_TO_LOGIN,
   USERS_DATA,
-} = require('../../constants.js');
+} = require('../../../constants');
 
 module.exports = function detach(username, provider, data) {
   const { redis, config } = this;

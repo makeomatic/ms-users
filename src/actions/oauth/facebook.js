@@ -2,8 +2,8 @@ const url = require('url');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 
-const attach = require('../../utils/oauth/attach');
-const getSignedToken = require('../../utils/oauth/getSignedToken');
+const attach = require('../../auth/oauth/utils/attach');
+const getSignedToken = require('../../auth/oauth/utils/getSignedToken');
 
 module.exports = function facebookCallbackAction(request) {
   const { config: { server } } = this;

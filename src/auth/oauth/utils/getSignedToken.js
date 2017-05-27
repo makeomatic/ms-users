@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const { signData } = require('../../utils/jwt');
+const { signData } = require('../../../utils/jwt');
 
 /**
  * Sign account data with a secure jwt token
@@ -9,7 +9,8 @@ const { signData } = require('../../utils/jwt');
 module.exports = function getSignedToken(account) {
   const { provider } = account;
 
-  return Promise.bind(this, [account, this.config.oauth.token])
+  return Promise
+    .bind(this, [account, this.config.oauth.token])
     .spread(signData)
     .then(token => ({
       token,

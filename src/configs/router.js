@@ -4,8 +4,7 @@ const { routerExtension, ActionTransport } = require('mservice');
 /**
  * Loads existing auth strategies
  */
-const { strategies } = require('../utils/oauth');
-const jwt = require('../utils/jwtAuthStrategy');
+const strategies = require('../auth/strategies');
 
 /**
  * This extension defaults schemas to the name of the action
@@ -36,7 +35,6 @@ exports.router = {
   auth: {
     strategies: {
       ...strategies,
-      jwt,
     },
   },
 };

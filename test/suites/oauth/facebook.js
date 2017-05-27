@@ -171,7 +171,7 @@ describe('#facebook', function oauthFacebookSuite() {
         .then(captureScreenshot)
         .return('button[name=login]')
         .then(submit)
-        .tap(captureScreenshot)
+        .catch(captureScreenshot)
     ));
   }
 
@@ -182,7 +182,7 @@ describe('#facebook', function oauthFacebookSuite() {
       .tap(captureScreenshot)
       .return('button[name=__CONFIRM__]')
       .tap(wait)
-      .tap(captureScreenshot)
+      .catch(captureScreenshot)
       .then(submit);
   }
 
@@ -190,7 +190,7 @@ describe('#facebook', function oauthFacebookSuite() {
     return authenticate.call(this)
       .return('.no-js > body > script')
       .then(wait)
-      .tap(captureScreenshot)
+      .catch(captureScreenshot)
       .then(extractToken);
   }
 
@@ -210,7 +210,7 @@ describe('#facebook', function oauthFacebookSuite() {
       .tap(() => _debug('submitted'))
       .return(/oauth\/facebook/)
       .then(captureResponse)
-      .tap(captureScreenshot)
+      .catch(captureScreenshot)
       .tap(expect(401));
   });
 
@@ -239,7 +239,7 @@ describe('#facebook', function oauthFacebookSuite() {
       .catchReturn(TypeError)
       .then(logout)
       .tap(() => _debug('logged out'))
-      .then(captureScreenshot)
+      .catch(captureScreenshot)
       .tap(() => _debug('loggin in via facebook'))
       .then(function loginAttempt() {
         const { Page } = this.protocol;

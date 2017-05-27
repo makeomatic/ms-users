@@ -1,6 +1,7 @@
 const url = require('url');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const serialize = require('serialize-javascript');
 
 const attach = require('../../auth/oauth/utils/attach');
 const getSignedToken = require('../../auth/oauth/utils/getSignedToken');
@@ -10,13 +11,28 @@ module.exports = function facebookCallbackAction(request) {
   const { credentials } = request.auth;
   const { user, account } = credentials;
 
+  const targetOrigin = url.format({
+    port: server.port,
+    host: server.host,
+    protocol: server.proto,
+  });
+
   // logged in, no account provided - bypass
   if (!account) {
-    return Promise.resolve(credentials);
+    return request.transportRequest.sendView('providerAttached', {
+      targetOrigin,
+      message: serialize({
+        payload: {
+          ...credentials,
+        },
+        type: 'ms-users:logged-in',
+        title: 'signing in',
+      }),
+    });
   }
 
   // input data
-  // TODO customize what to encode
+  // TODO: customize what to encode
   const { uid, provider, email, profile, internals } = account;
 
   // compose facebook context, would be encoded
@@ -31,18 +47,16 @@ module.exports = function facebookCallbackAction(request) {
   return Promise
     .bind(this, [facebook, user])
     .spread(user ? attach : getSignedToken)
-    .then((context) => {
-      const targetOrigin = url.format({
-        port: server.port,
-        host: server.host,
-        protocol: server.proto,
-      });
-
-      return request.transportRequest.sendView('providerAttached', {
-        targetOrigin,
-        ...context,
-      });
-    });
+    .then(context => request.transportRequest.sendView('providerAttached', {
+      targetOrigin,
+      message: serialize({
+        payload: {
+          ...context,
+        },
+        type: 'ms-users:attached',
+        title: `Attached ${provider} account`,
+      }),
+    }));
 };
 
 module.exports.allowed = function isAllowed(request) {

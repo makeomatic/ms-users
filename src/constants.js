@@ -60,14 +60,6 @@ module.exports = {
   // lock names
   lockAlias: alias => `users:alias:${alias}`,
   lockRegister: username => `users:register:${username}`,
-
-  // authentication policies
-  // required - an authentication challenge is required and should be passed
-  // optional - try to authenticate, discard if failed
-  // try - try to authenticate, pass by even if failed
-  POLICY_AUTH_REQUIRED: 'required',
-  POLICY_AUTH_OPTIONAL: 'optional',
-  POLICY_AUTH_TRY: 'try',
 };
 
 module.exports.SSO_PROVIDERS = [

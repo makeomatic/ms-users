@@ -1,8 +1,8 @@
 /* global inspectPromise */
+const Promise = require('bluebird');
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#list', function listSuite() {
   this.timeout(10000);
@@ -43,64 +43,58 @@ describe('#list', function listSuite() {
   });
 
   it('able to list users without any filters: ASC', function test() {
-    return simpleDispatcher(this.users.router)('users.list', {
+    return this.dispatch('users.list', {
       offset: 51,
       limit: 10,
       order: 'ASC',
       audience: this.audience,
       filter: {},
-    }).reflect()
-      .then(result => {
-        try {
-          expect(result.isFulfilled()).to.be.eq(true);
-          expect(result.value().page).to.be.eq(6);
-          expect(result.value().pages).to.be.eq(11);
-          expect(result.value().cursor).to.be.eq(61);
-          expect(result.value().users).to.have.length.of(10);
-          expect(result.value().users[0]).to.have.ownProperty('id');
-          expect(result.value().users[0]).to.have.ownProperty('metadata');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+    })
+    .reflect()
+    .then(inspectPromise())
+    .then((result) => {
+      expect(result.page).to.be.eq(6);
+      expect(result.pages).to.be.eq(11);
+      expect(result.cursor).to.be.eq(61);
+      expect(result.users).to.have.length.of(10);
+      expect(result.users[0]).to.have.ownProperty('id');
+      expect(result.users[0]).to.have.ownProperty('metadata');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-          const copy = [].concat(result.value().users);
-          copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
+      const copy = [].concat(result.users);
+      copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
 
-          expect(copy).to.be.deep.eq(result.value().users);
-        } catch (e) {
-          throw result.isRejected() ? result.reason() : e;
-        }
-      });
+      expect(copy).to.be.deep.eq(result.users);
+    });
   });
 
   it('able to list users without any filters: DESC', function test() {
-    return simpleDispatcher(this.users.router)('users.list', {
+    return this.dispatch('users.list', {
       offset: 0,
       limit: 10,
       order: 'DESC',
       audience: this.audience,
       filter: {},
-    }).reflect()
-      .then(result => {
-        try {
-          expect(result.isFulfilled()).to.be.eq(true);
-          expect(result.value().users).to.have.length.of(10);
-          expect(result.value().users[0]).to.have.ownProperty('id');
-          expect(result.value().users[0]).to.have.ownProperty('metadata');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+    })
+    .reflect()
+    .then(inspectPromise())
+    .then((result) => {
+      expect(result.users).to.have.length.of(10);
+      expect(result.users[0]).to.have.ownProperty('id');
+      expect(result.users[0]).to.have.ownProperty('metadata');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-          const copy = [].concat(result.value().users);
-          copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
+      const copy = [].concat(result.users);
+      copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
 
-          expect(copy).to.be.deep.eq(result.value().users);
-        } catch (e) {
-          throw result.isRejected() ? result.reason() : e;
-        }
-      });
+      expect(copy).to.be.deep.eq(result.users);
+    });
   });
 
   it('able to list users with # filter: ASC', function test() {
-    return simpleDispatcher(this.users.router)('users.list', {
+    return this.dispatch('users.list', {
       offset: 0,
       limit: 10,
       order: 'ASC',
@@ -108,32 +102,29 @@ describe('#list', function listSuite() {
       filter: {
         '#': 'an',
       },
-    }).reflect()
-      .then(result => {
-        try {
-          expect(result.isFulfilled()).to.be.eq(true);
-          expect(result.value().users).to.have.length.lte(10);
-          expect(result.value().users[0]).to.have.ownProperty('id');
-          expect(result.value().users[0]).to.have.ownProperty('metadata');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+    })
+    .reflect()
+    .then(inspectPromise())
+    .then((result) => {
+      expect(result.users).to.have.length.lte(10);
+      expect(result.users[0]).to.have.ownProperty('id');
+      expect(result.users[0]).to.have.ownProperty('metadata');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-          const copy = [].concat(result.value().users);
-          copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
+      const copy = [].concat(result.users);
+      copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
 
-          copy.forEach((data) => {
-            expect(data.id).to.match(/an/i);
-          });
-
-          expect(copy).to.be.deep.eq(result.value().users);
-        } catch (e) {
-          throw result.isRejected() ? result.reason() : e;
-        }
+      copy.forEach((data) => {
+        expect(data.id).to.match(/an/i);
       });
+
+      expect(copy).to.be.deep.eq(result.users);
+    });
   });
 
   it('able to list users with # filter: DESC', function test() {
-    return simpleDispatcher(this.users.router)('users.list', {
+    return this.dispatch('users.list', {
       offset: 0,
       limit: 10,
       order: 'DESC',
@@ -141,88 +132,79 @@ describe('#list', function listSuite() {
       filter: {
         '#': 'an',
       },
-    }).reflect()
-      .then(result => {
-        try {
-          expect(result.isFulfilled()).to.be.eq(true);
-          expect(result.value().users).to.have.length.lte(10);
-          expect(result.value().users[0]).to.have.ownProperty('id');
-          expect(result.value().users[0]).to.have.ownProperty('metadata');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+    })
+    .reflect()
+    .then(inspectPromise())
+    .then((result) => {
+      expect(result.users).to.have.length.lte(10);
+      expect(result.users[0]).to.have.ownProperty('id');
+      expect(result.users[0]).to.have.ownProperty('metadata');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-          const copy = [].concat(result.value().users);
-          copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
+      const copy = [].concat(result.users);
+      copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
 
-          copy.forEach((data) => {
-            expect(data.id).to.match(/an/i);
-          });
-
-          expect(copy).to.be.deep.eq(result.value().users);
-        } catch (e) {
-          throw result.isRejected() ? result.reason() : e;
-        }
+      copy.forEach((data) => {
+        expect(data.id).to.match(/an/i);
       });
+
+      expect(copy).to.be.deep.eq(result.users);
+    });
   });
 
   it('able to list users by meta field key: ASC', function test() {
-    return simpleDispatcher(this.users.router)('users.list', {
+    return this.dispatch('users.list', {
       offset: 0,
       limit: 10,
       order: 'ASC',
       criteria: 'firstName',
       audience: this.audience,
       filter: {},
-    }).reflect()
-      .then(result => {
-        try {
-          expect(result.isFulfilled()).to.be.eq(true);
-          expect(result.value().users).to.have.length.lte(10);
-          expect(result.value().users[0]).to.have.ownProperty('id');
-          expect(result.value().users[0]).to.have.ownProperty('metadata');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+    })
+    .reflect()
+    .then(inspectPromise())
+    .then((result) => {
+      expect(result.users).to.have.length.lte(10);
+      expect(result.users[0]).to.have.ownProperty('id');
+      expect(result.users[0]).to.have.ownProperty('metadata');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-          const copy = [].concat(result.value().users);
-          copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() > b.metadata[this.audience].firstName.toLowerCase());
+      const copy = [].concat(result.users);
+      copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() > b.metadata[this.audience].firstName.toLowerCase());
 
-          expect(copy).to.be.deep.eq(result.value().users);
-        } catch (e) {
-          throw result.isRejected() ? result.reason() : e;
-        }
-      });
+      expect(copy).to.be.deep.eq(result.users);
+    });
   });
 
   it('able to list users by meta field key: DESC', function test() {
-    return simpleDispatcher(this.users.router)('users.list', {
+    return this.dispatch('users.list', {
       offset: 0,
       limit: 10,
       order: 'DESC',
       criteria: 'firstName',
       audience: this.audience,
       filter: {},
-    }).reflect()
-      .then(result => {
-        try {
-          expect(result.isFulfilled()).to.be.eq(true);
-          expect(result.value().users).to.have.length.lte(10);
-          expect(result.value().users[0]).to.have.ownProperty('id');
-          expect(result.value().users[0]).to.have.ownProperty('metadata');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+    })
+    .reflect()
+    .then(inspectPromise())
+    .then((result) => {
+      expect(result.users).to.have.length.lte(10);
+      expect(result.users[0]).to.have.ownProperty('id');
+      expect(result.users[0]).to.have.ownProperty('metadata');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-          const copy = [].concat(result.value().users);
-          copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
+      const copy = [].concat(result.users);
+      copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
 
-          expect(copy).to.be.deep.eq(result.value().users);
-        } catch (e) {
-          throw result.isRejected() ? result.reason() : e;
-        }
-      });
+      expect(copy).to.be.deep.eq(result.users);
+    });
   });
 
   it('able to list users by meta field key with multiple filters: DESC', function test() {
-    return simpleDispatcher(this.users.router)('users.list', {
+    return this.dispatch('users.list', {
       offset: 0,
       limit: 10,
       order: 'DESC',
@@ -232,33 +214,30 @@ describe('#list', function listSuite() {
         '#': 'an',
         lastName: 'b',
       },
-    }).reflect()
-      .then(result => {
-        try {
-          expect(result.isFulfilled()).to.be.eq(true);
-          expect(result.value().users).to.have.length.lte(10);
-          expect(result.value().users[0]).to.have.ownProperty('id');
-          expect(result.value().users[0]).to.have.ownProperty('metadata');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+    })
+    .reflect()
+    .then(inspectPromise())
+    .then((result) => {
+      expect(result.users).to.have.length.lte(10);
+      expect(result.users[0]).to.have.ownProperty('id');
+      expect(result.users[0]).to.have.ownProperty('metadata');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-          const copy = [].concat(result.value().users);
-          copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
+      const copy = [].concat(result.users);
+      copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
 
-          copy.forEach((data) => {
-            expect(data.id).to.match(/an/i);
-            expect(data.metadata[this.audience].lastName).to.match(/b/i);
-          });
-
-          expect(copy).to.be.deep.eq(result.value().users);
-        } catch (e) {
-          throw result.isRejected() ? result.reason() : e;
-        }
+      copy.forEach((data) => {
+        expect(data.id).to.match(/an/i);
+        expect(data.metadata[this.audience].lastName).to.match(/b/i);
       });
+
+      expect(copy).to.be.deep.eq(result.users);
+    });
   });
 
   it('able to list users by meta field key with multiple filters: ASC', function test() {
-    return simpleDispatcher(this.users.router)('users.list', {
+    return this.dispatch('users.list', {
       offset: 0,
       limit: 10,
       order: 'ASC',
@@ -268,28 +247,25 @@ describe('#list', function listSuite() {
         '#': 'an',
         lastName: 'b',
       },
-    }).reflect()
-      .then(result => {
-        try {
-          expect(result.isFulfilled()).to.be.eq(true);
-          expect(result.value().users).to.have.length.lte(10);
-          expect(result.value().users[0]).to.have.ownProperty('id');
-          expect(result.value().users[0]).to.have.ownProperty('metadata');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-          expect(result.value().users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+    })
+    .reflect()
+    .then(inspectPromise())
+    .then((result) => {
+      expect(result.users).to.have.length.lte(10);
+      expect(result.users[0]).to.have.ownProperty('id');
+      expect(result.users[0]).to.have.ownProperty('metadata');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
+      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
 
-          const copy = [].concat(result.value().users);
-          copy.sort((a, b) => a.metadata[this.audience].lastName.toLowerCase() > b.metadata[this.audience].lastName.toLowerCase());
+      const copy = [].concat(result.users);
+      copy.sort((a, b) => a.metadata[this.audience].lastName.toLowerCase() > b.metadata[this.audience].lastName.toLowerCase());
 
-          copy.forEach(data => {
-            expect(data.id).to.match(/an/i);
-            expect(data.metadata[this.audience].lastName).to.match(/b/i);
-          });
-
-          expect(copy).to.be.deep.eq(result.value().users);
-        } catch (e) {
-          throw result.isRejected() ? result.reason() : e;
-        }
+      copy.forEach((data) => {
+        expect(data.id).to.match(/an/i);
+        expect(data.metadata[this.audience].lastName).to.match(/b/i);
       });
+
+      expect(copy).to.be.deep.eq(result.users);
+    });
   });
 });

@@ -242,7 +242,7 @@ describe('#facebook', function oauthFacebookSuite() {
           .tap((body) => {
             const $ = cheerio.load(body);
             const vmScript = new vm.Script($('.no-js > body > script').html());
-            const context = vm.createContext({ window: {} });
+            const context = vm.createContext({ window: { close: () => {} } });
             vmScript.runInContext(context);
 
             assert.ok(context.$ms_users_inj_post_message);

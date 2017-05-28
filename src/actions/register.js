@@ -288,7 +288,7 @@ module.exports = function registerUser(request) {
           };
 
           if (sso) {
-            const { provider, email, credentials } = sso;
+            const { provider, email, uid, credentials } = sso;
 
             // skip activation if email is given by sso provider and equals to registered email
             if (shouldActivate === undefined) {
@@ -299,7 +299,7 @@ module.exports = function registerUser(request) {
             basicInfo[provider] = JSON.stringify(credentials.internals);
 
             // link uid to username
-            pipeline.hset(USERS_SSO_TO_LOGIN, sso.uid, username);
+            pipeline.hset(USERS_SSO_TO_LOGIN, uid, username);
           }
 
           if (hash !== null) {
@@ -406,13 +406,14 @@ module.exports.allowed = function transformSSO({ params }) {
   return jwt
     .verifyData(sso, ssoTokenOptions)
     .then((credentials) => {
-      const { uid, provider, profile } = credentials;
+      const { uid, provider, email, profile } = credentials;
 
       params.sso = {
         uid,
         provider,
         credentials,
         profile,
+        email,
       };
 
       return null;

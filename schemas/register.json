@@ -50,8 +50,7 @@
       "minProperties": 1
     },
     "activate": {
-      "type": "boolean",
-      "default": true
+      "type": "boolean"
     },
     "audience": {
       "type": "string",
@@ -97,5 +96,22 @@
         }
       }
     }
-  }
+  },
+  "switch": [{
+    "if": {
+      "properties": {
+        "not": {
+          "required": ["sso"]
+        }
+      }
+    },
+    "then": {
+      "properties": {
+        "activate": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }]
 }

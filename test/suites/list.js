@@ -56,7 +56,7 @@ describe('#list', function listSuite() {
       expect(result.page).to.be.eq(6);
       expect(result.pages).to.be.eq(11);
       expect(result.cursor).to.be.eq(61);
-      expect(result.users).to.have.length.of(10);
+      expect(result.users).to.have.lengthOf(10);
       expect(result.users[0]).to.have.ownProperty('id');
       expect(result.users[0]).to.have.ownProperty('metadata');
       expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
@@ -80,7 +80,7 @@ describe('#list', function listSuite() {
     .reflect()
     .then(inspectPromise())
     .then((result) => {
-      expect(result.users).to.have.length.of(10);
+      expect(result.users).to.have.lengthOf(10);
       expect(result.users[0]).to.have.ownProperty('id');
       expect(result.users[0]).to.have.ownProperty('metadata');
       expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');

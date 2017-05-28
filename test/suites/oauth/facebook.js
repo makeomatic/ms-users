@@ -76,6 +76,7 @@ function extractToken(selector) {
       var html = el.innerText;
       var matched = re.exec(html);
 
+      console.log(html);
       return matched[1];
     }
 

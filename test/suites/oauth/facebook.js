@@ -66,33 +66,18 @@ function expect(code) {
   return response => assert.equal(response.status, code);
 }
 
-function extractToken(selector) {
+function extractToken() {
   const { Runtime } = this.protocol;
-  /* eslint-disable no-useless-escape */
-  const expression = `
-    var re = /(?:token:\\s+')(?=([\\w\\d\\.\\-]+))/;
-
-    function extractToken(el) {
-      var html = el.innerText;
-      var matched = re.exec(html);
-
-      console.log(html);
-      return matched[1];
-    }
-
-    extractToken(${selector});
-  `;
-  /* eslint-enable */
 
   return Runtime.evaluate({
-    expression,
+    expression: 'window.$ms_users_inj_post_message',
     returnByValue: true,
     includeCommandLineAPI: true,
   })
   .then(({ result, exceptionDetails }) => {
     if (exceptionDetails) throw new Error(exceptionDetails.exception.description);
-    _debug('extracted token:', result.value);
-    return result.value;
+    _debug('extracted token:', result.value.payload.token);
+    return result.value.payload.token;
   });
 }
 

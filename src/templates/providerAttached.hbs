@@ -10,8 +10,9 @@
   <body>
     <script>
       var opener = window.opener;
+      var $ms_users_inj_post_message = {{{ message }}};
       if (opener) {
-        opener.postMessage({{{ message }}}, '{{ targetOrigin }}');
+        opener.postMessage($ms_users_inj_post_message, '{{ targetOrigin }}');
       }
       // close the window
       window.close();

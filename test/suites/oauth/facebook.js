@@ -2,6 +2,8 @@
 /* global inspectPromise, globalRegisterUser, globalAuthUser */
 
 const Promise = require('bluebird');
+const vm = require('vm');
+const cheerio = require('cheerio');
 const assert = require('assert');
 const forEach = require('lodash/forEach');
 const request = require('request-promise');
@@ -85,7 +87,7 @@ function getResponseBody(response) {
   const { Network } = this.protocol;
   const { requestId } = response;
 
-  return Network.getResponseBody({ requestId });
+  return Network.getResponseBody({ requestId }).then(it => it.body);
 }
 
 function logout() {
@@ -237,15 +239,23 @@ describe('#facebook', function oauthFacebookSuite() {
           .then(captureResponse)
           .tap(expect(200))
           .then(getResponseBody)
-          .tap((response) => {
-            const body = JSON.parse(response.body);
-            assert(body.hasOwnProperty('jwt'));
-            assert(body.hasOwnProperty('user'));
-            assert(body.user.hasOwnProperty('metadata'));
-            assert(body.user.metadata.hasOwnProperty('*.localhost'));
-            assert(body.user.metadata['*.localhost'].hasOwnProperty('facebook'));
-            assert.ifError(body.user.password);
-            assert.ifError(body.user.audience);
+          .tap((body) => {
+            const $ = cheerio.load(body);
+            const vmScript = new vm.Script($('.no-js > body > script').html());
+            const context = vm.createContext({ window: {} });
+            vmScript.runInContext(context);
+
+            assert.ok(context.$ms_users_inj_post_message);
+            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:logged-in');
+
+            const payload = context.$ms_users_inj_post_message.payload;
+            assert(payload.hasOwnProperty('jwt'));
+            assert(payload.hasOwnProperty('user'));
+            assert(payload.user.hasOwnProperty('metadata'));
+            assert(payload.user.metadata.hasOwnProperty('*.localhost'));
+            assert(payload.user.metadata['*.localhost'].hasOwnProperty('facebook'));
+            assert.ifError(payload.user.password);
+            assert.ifError(payload.user.audience);
           });
       });
   });

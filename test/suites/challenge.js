@@ -1,16 +1,16 @@
 /* global inspectPromise */
-const { expect } = require('chai');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const Promise = require('bluebird');
+const expect = require('chai').expect;
 
 describe('#challenge', function challengeSuite() {
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
   it('must fail to send a challenge for a non-existing user', function test() {
-    return simpleDispatcher(this.users.router)('users.challenge', { username: 'oops@gmail.com', type: 'email' })
+    return this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' })
       .reflect()
       .then(inspectPromise(false))
-      .then(validation => {
+      .then((validation) => {
         expect(validation.name).to.be.eq('HttpStatusError');
         expect(validation.statusCode).to.be.eq(404);
       });
@@ -18,7 +18,7 @@ describe('#challenge', function challengeSuite() {
 
   describe('challenge for an already active user', function suite() {
     beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', {
+      return this.dispatch('users.register', {
         username: 'oops@gmail.com',
         password: '123',
         audience: 'matic.ninja',
@@ -29,10 +29,10 @@ describe('#challenge', function challengeSuite() {
     });
 
     it('must fail to send', function test() {
-      return simpleDispatcher(this.users.router)('users.challenge', { username: 'oops@gmail.com', type: 'email' })
+      return this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' })
         .reflect()
         .then(inspectPromise(false))
-        .then(validation => {
+        .then((validation) => {
           expect(validation.name).to.be.eq('HttpStatusError');
           expect(validation.statusCode).to.be.eq(417);
         });
@@ -40,8 +40,8 @@ describe('#challenge', function challengeSuite() {
   });
 
   describe('challenge for an inactive user', function suite() {
-    function requestChallange() {
-      return simpleDispatcher(this.users.router)('users.challenge', { username: 'oops@gmail.com', type: 'email' });
+    function requestChallenge() {
+      return this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' });
     }
 
     beforeEach(function pretest() {
@@ -55,14 +55,14 @@ describe('#challenge', function challengeSuite() {
           wolf: true,
         },
       };
-      return simpleDispatcher(this.users.router)('users.register', msg);
+      return this.dispatch('users.register', msg);
     });
 
     it('must be able to send challenge email', function test() {
-      return requestChallange.call(this)
+      return requestChallenge.call(this)
         .reflect()
         .then(inspectPromise())
-        .then(validation => {
+        .then((validation) => {
           expect(validation).to.have.ownProperty('context');
           expect(validation.queued).to.be.eq(true);
         });
@@ -70,11 +70,11 @@ describe('#challenge', function challengeSuite() {
 
     it('must fail to send challenge email more than once in an hour per user', function test() {
       return Promise.bind(this)
-        .then(requestChallange)
-        .then(requestChallange)
+        .then(requestChallenge)
+        .then(requestChallenge)
         .reflect()
         .then(inspectPromise(false))
-        .then(validation => {
+        .then((validation) => {
           expect(validation.name).to.be.eq('HttpStatusError');
           expect(validation.statusCode).to.be.eq(429);
         });
@@ -83,11 +83,11 @@ describe('#challenge', function challengeSuite() {
     it('must fail to send challeng email during race condition', function test() {
       return Promise
         .bind(this)
-        .return([requestChallange, requestChallange, requestChallange])
+        .return([requestChallenge, requestChallenge, requestChallenge])
         .map(it => it.call(this))
         .reflect()
         .then(inspectPromise(false))
-        .then(validation => {
+        .then((validation) => {
           expect(validation.name).to.be.eq('HttpStatusError');
           expect(validation.statusCode).to.be.eq(429);
         });

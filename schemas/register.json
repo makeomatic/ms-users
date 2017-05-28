@@ -18,6 +18,9 @@
     "password": {
       "type": "string"
     },
+    "activate": {
+      "type": "boolean"
+    },
     "captcha": {
       "type": "object",
       "required": [
@@ -48,9 +51,6 @@
     "metadata": {
       "type": "object",
       "minProperties": 1
-    },
-    "activate": {
-      "type": "boolean"
     },
     "audience": {
       "type": "string",
@@ -99,10 +99,8 @@
   },
   "switch": [{
     "if": {
-      "properties": {
-        "not": {
-          "required": ["sso"]
-        }
+      "not": {
+        "required": ["sso"]
       }
     },
     "then": {
@@ -110,6 +108,14 @@
         "activate": {
           "type": "boolean",
           "default": true
+        }
+      }
+    }
+  }, {
+    "then": {
+      "properties": {
+        "activate": {
+          "type": "boolean"
         }
       }
     }

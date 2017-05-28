@@ -115,10 +115,7 @@ function createAccount(token) {
     metadata: {
       service: 'craft',
     },
-    sso: {
-      token,
-      provider: 'facebook',
-    },
+    sso: token,
   };
 
   return this.dispatch('users.register', opts)

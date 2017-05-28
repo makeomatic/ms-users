@@ -85,16 +85,7 @@
       "type": "string"
     },
     "sso": {
-      "type": "object",
-      "required": ["provider", "token"],
-      "properties": {
-        "provider": {
-          "type": "string"
-        },
-        "token": {
-          "type": "string"
-        }
-      }
+      "type": "string"
     }
   }
 }

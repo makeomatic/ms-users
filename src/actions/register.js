@@ -7,18 +7,18 @@ const reduce = require('lodash/reduce');
 const constant = require('lodash/constant');
 
 // internal deps
-const setMetadata = require('../utils/updateMetadata.js');
-const redisKey = require('../utils/key.js');
-const jwt = require('../utils/jwt.js');
-const isDisposable = require('../utils/isDisposable.js');
-const mxExists = require('../utils/mxExists.js');
-const makeCaptchaCheck = require('../utils/checkCaptcha.js');
-const userExists = require('../utils/userExists.js');
-const aliasExists = require('../utils/aliasExists.js');
-const assignAlias = require('./alias.js');
-const checkLimits = require('../utils/checkIpLimits.js');
-const challenge = require('../utils/challenges/challenge.js');
-const handlePipeline = require('../utils/pipelineError.js');
+const setMetadata = require('../utils/updateMetadata');
+const redisKey = require('../utils/key');
+const jwt = require('../utils/jwt');
+const isDisposable = require('../utils/isDisposable');
+const mxExists = require('../utils/mxExists');
+const makeCaptchaCheck = require('../utils/checkCaptcha');
+const userExists = require('../utils/userExists');
+const aliasExists = require('../utils/aliasExists');
+const assignAlias = require('./alias');
+const checkLimits = require('../utils/checkIpLimits');
+const challenge = require('../utils/challenges/challenge');
+const handlePipeline = require('../utils/pipelineError');
 const hashPassword = require('../utils/register/password/hash');
 const {
   USERS_REF,
@@ -37,7 +37,7 @@ const {
   CHALLENGE_TYPE_EMAIL,
   USERS_REFERRAL_INDEX,
   TOKEN_METADATA_FIELD_METADATA,
-} = require('../constants.js');
+} = require('../constants');
 
 // cached helpers
 const hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -104,23 +104,15 @@ function verifyReferral() {
  * @return {Promise}
  */
 function verifySSO() {
-  const { sso, ssoTokenOptions, metadata, defaultAudience } = this;
-  const { token, provider } = sso;
+  const { sso, metadata, defaultAudience } = this;
+  const { uid, provider, profile } = sso;
 
-  return jwt.verifyData(token, ssoTokenOptions)
-    .then((credentials) => {
-      const { uid, profile } = credentials;
-
-      sso.uid = uid;
-      sso.credentials = credentials;
-
-      set(metadata, [defaultAudience, provider], profile);
-      return sso.uid;
-    })
-    .bind(this)
+  return Promise
+    .bind(this, uid)
     .then(userExists)
     .throw(ErrorConflictUserExists)
-    .catchReturn(ErrorMissing, true);
+    .catchReturn(ErrorMissing, true)
+    .tap(() => set(metadata, [defaultAudience, provider], profile));
 }
 
 /**
@@ -299,7 +291,7 @@ module.exports = function registerUser(request) {
             const { provider, email, credentials } = sso;
 
             // skip activation if email is given by sso provider and equals to registered email
-            if (typeof shouldActivate === 'undefined') {
+            if (shouldActivate === undefined) {
               shouldActivate = email ? username === email : false;
             }
 
@@ -398,4 +390,34 @@ module.exports = function registerUser(request) {
     ));
 };
 
+// transform `sso` token if it's present
+module.exports.allowed = function transformSSO({ params }) {
+  const { sso } = params;
+
+  // if there is no sso - don't do anything
+  if (sso === undefined) {
+    return null;
+  }
+
+  // retrieve configuration options
+  const ssoTokenOptions = this.config.oauth.token;
+
+  // verify SSO token & rewrite params.sso
+  return jwt
+    .verifyData(sso, ssoTokenOptions)
+    .then((credentials) => {
+      const { uid, provider, profile } = credentials;
+
+      params.sso = {
+        uid,
+        provider,
+        credentials,
+        profile,
+      };
+
+      return null;
+    });
+};
+
+// init transport
 module.exports.transports = [require('mservice').ActionTransport.amqp];

@@ -180,7 +180,11 @@ module.exports = function registerUser(request) {
     sso,
   } = params;
 
-  let shouldActivate = activate;
+  // note: this is to preserve back-compatibility before sso was introduced
+  // if sso is undefined abd activate is undefined, then it defaults to true,
+  // otherwise it's true/false/undefined based on what's passed
+  let shouldActivate = activate === undefined && sso === undefined ? true : activate;
+
   const alias = params.alias && params.alias.toLowerCase();
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
   const userDataKey = redisKey(username, USERS_DATA);

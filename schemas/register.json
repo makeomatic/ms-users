@@ -96,28 +96,5 @@
         }
       }
     }
-  },
-  "switch": [{
-    "if": {
-      "not": {
-        "required": ["sso"]
-      }
-    },
-    "then": {
-      "properties": {
-        "activate": {
-          "type": "boolean",
-          "default": true
-        }
-      }
-    }
-  }, {
-    "then": {
-      "properties": {
-        "activate": {
-          "type": "boolean"
-        }
-      }
-    }
-  }]
+  }
 }

@@ -200,7 +200,7 @@ module.exports = function registerUser(request) {
     throw ErrorMalformedAudience;
   }
 
-  if (inviteToken && !activate) {
+  if (inviteToken && !shouldActivate) {
     throw ErrorMalformedInvite;
   }
 

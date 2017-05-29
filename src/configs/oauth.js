@@ -1,5 +1,8 @@
 exports.oauth = {
   enabled: false,
+  urlKey: 'jwt',
+  cookieKey: 'jwt',
+  headerKey: 'authorization',
   token: {
     hashingFunction: 'HS256',
     issuer: 'ms-users',
@@ -16,7 +19,6 @@ exports.oauth = {
       location: 'location',
       clientSecret: 'fb-client-secret',
       forceHttps: true,
-      allowRuntimeProviderParams: true,
       password: {
         $filter: 'env',
         $default: 'very-long-encryption-password-that-needs-to-be-changed',

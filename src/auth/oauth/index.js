@@ -93,14 +93,17 @@ function oauthVerification(response, credentials) {
   return credentials;
 }
 
-function mserviceVerification(account) {
-  const jwt = extractJWT(this.transportRequest);
+function mserviceVerification(credentials) {
+  // query on initial request is recorded and is available via credentials.queyr
+  // https://github.com/hapijs/bell/blob/63603c9e897f3607efeeca87b6ef3c02b939884b/lib/oauth.js#L261
+  const oauthConfig = this.config.oauth;
+  const jwt = extractJWT(this.transportRequest, oauthConfig) || credentials.query[oauthConfig.urlKey];
 
   // validate JWT token if provided
   const checkAuth = jwt ? verifyToken.call(this.service, jwt) : Promise.resolve(false);
 
-  // check if the profile is already attached to any existing account
-  const getUsername = getInternalData.call(this.service, account.uid)
+  // check if the profile is already attached to any existing credentials
+  const getUsername = getInternalData.call(this.service, credentials.uid)
     .get(USERS_USERNAME_FIELD)
     .catchReturn({ statusCode: 404 }, false);
 
@@ -114,10 +117,10 @@ function mserviceVerification(account) {
     if (username) {
       return Promise.bind(this.service, username)
         .then(loginAttempt)
-        .tap(partial(refresh, account));
+        .tap(partial(refresh, credentials));
     }
 
-    return { user, jwt, account };
+    return { user, jwt, account: credentials };
   });
 }
 

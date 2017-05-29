@@ -16,7 +16,6 @@ exports.oauth = {
       location: 'location',
       clientSecret: 'fb-client-secret',
       forceHttps: true,
-      useParamsAuth: false,
       allowRuntimeProviderParams: true,
       password: {
         $filter: 'env',

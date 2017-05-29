@@ -220,7 +220,7 @@ describe('#facebook', function oauthFacebookSuite() {
       .tap(() => _debug('logged out'))
       .catch(captureScreenshot)
       .tap(() => _debug('loggin in via facebook'))
-      .then(function loginAttempt() {
+      .then(() => {
         const { Page } = this.protocol;
         const serviceLink = hostUrl(this.users.config);
         const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;

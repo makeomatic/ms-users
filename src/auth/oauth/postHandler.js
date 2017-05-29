@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const ActionTransport = require('mservice').ActionTransport;
 const url = require('url');
 const serialize = require('serialize-javascript');
 
@@ -8,7 +9,7 @@ module.exports = [{
   point: 'postHandler',
   handler: function postHandler(error, result, request) {
     // return whatever we had before, no concern over it
-    if (isOauthAttachRoute(request.route) === false) {
+    if (isOauthAttachRoute(request.route) === false || request.transport !== ActionTransport.http) {
       // pass-through
       return [error, result];
     }

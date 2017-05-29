@@ -133,15 +133,9 @@ describe('#facebook', function oauthFacebookSuite() {
   afterEach('clean Chrome', clean);
 
   function initiateAuth() {
-    const { Page, Network } = this.protocol;
+    const { Page } = this.protocol;
     const serviceLink = hostUrl(this.users.config);
     const executeLink = `${serviceLink}/users/oauth/facebook`;
-
-    if (this.jwt) {
-      Network.setExtraHTTPHeaders({
-        headers: { Authorization: `JWT ${this.jwt}` },
-      });
-    }
 
     Page.navigate({ url: executeLink });
     return Page.loadEventFired().then(() => (
@@ -229,7 +223,7 @@ describe('#facebook', function oauthFacebookSuite() {
       .then(function loginAttempt() {
         const { Page } = this.protocol;
         const serviceLink = hostUrl(this.users.config);
-        const executeLink = `${serviceLink}/users/oauth/facebook`;
+        const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
 
         Page.navigate({ url: executeLink });
         return Promise.bind(this, /oauth\/facebook/)
@@ -310,7 +304,10 @@ describe('#facebook', function oauthFacebookSuite() {
         /** verify that related account has been dereferenced */
         return this.dispatch('users.getInternalData', { username: uid })
           .reflect()
-          .then(inspectPromise(false));
+          .then(inspectPromise(false))
+          .then((error) => {
+            assert.equal(error.statusCode, 404);
+          });
       });
   });
 });

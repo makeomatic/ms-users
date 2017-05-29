@@ -19,6 +19,12 @@ const autoSchema = routerExtension('validate/schemaLessAction');
 const auditLog = routerExtension('audit/log');
 
 /**
+ * Catches errors from oauth.facebook and wraps them into HTML
+ * @type {Function}
+ */
+const postHandler = require('../auth/oauth/postHandler');
+
+/**
  * Specifies configuration for the router of the microservice
  * @type {Object}
  */
@@ -29,8 +35,8 @@ exports.router = {
     transports: [ActionTransport.amqp, ActionTransport.http],
   },
   extensions: {
-    enabled: ['postRequest', 'preRequest', 'preResponse'],
-    register: [autoSchema, auditLog],
+    enabled: ['postRequest', 'preRequest', 'postHandler', 'preResponse'],
+    register: [autoSchema, postHandler, auditLog],
   },
   auth: {
     strategies: {

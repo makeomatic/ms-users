@@ -90,18 +90,6 @@ function getResponseBody(response) {
   return Network.getResponseBody({ requestId }).then(it => it.body);
 }
 
-function logout() {
-  const { jwt } = this;
-  const { defaultAudience: audience } = this.users._config.jwt;
-
-  return this.dispatch('users.logout', { jwt, audience })
-    .reflect()
-    .then(inspectPromise())
-    .tap(() => {
-      this.jwt = null;
-    });
-}
-
 function createAccount(token) {
   const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
   const opts = {

@@ -110,7 +110,7 @@ function mserviceVerification(credentials) {
   return Promise.join(checkAuth, getUsername, (user, username) => {
     // user is authenticated and profile is attached
     if (user && username) {
-      throw new Errors.HttpStatusCode(412, 'profile is linked');
+      throw new Errors.HttpStatusError(412, 'profile is linked');
     }
 
     // found a linked user, log in

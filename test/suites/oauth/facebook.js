@@ -93,16 +93,12 @@ function getResponseBody(response) {
 function logout() {
   const { jwt } = this;
   const { defaultAudience: audience } = this.users._config.jwt;
-  const { Network } = this.protocol;
 
   return this.dispatch('users.logout', { jwt, audience })
     .reflect()
     .then(inspectPromise())
     .tap(() => {
       this.jwt = null;
-      Network.setExtraHTTPHeaders({
-        headers: { Authorization: undefined },
-      });
     });
 }
 

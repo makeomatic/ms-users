@@ -96,7 +96,7 @@ function oauthVerification(response, credentials) {
 function mserviceVerification(credentials) {
   // query on initial request is recorded and is available via credentials.queyr
   // https://github.com/hapijs/bell/blob/63603c9e897f3607efeeca87b6ef3c02b939884b/lib/oauth.js#L261
-  const oauthConfig = this.config.oauth;
+  const oauthConfig = this.service.config.oauth;
   const jwt = extractJWT(this.transportRequest, oauthConfig) || credentials.query[oauthConfig.urlKey];
 
   // validate JWT token if provided

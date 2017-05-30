@@ -257,7 +257,7 @@ describe('#facebook', function oauthFacebookSuite() {
             assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
             assert.equal(context.$ms_users_inj_post_message.error, true);
             assert.equal(context.$ms_users_inj_post_message.payload,
-              'An attempt was made to perform an operation without authentication: HttpStatusError: profile is linked');
+              'AuthenticationRequiredError: An attempt was made to perform an operation without authentication: HttpStatusError: profile is linked');
           });
       });
   });

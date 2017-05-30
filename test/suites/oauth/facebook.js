@@ -253,10 +253,10 @@ describe('#facebook', function oauthFacebookSuite() {
             vmScript.runInContext(context);
 
             assert.ok(context.$ms_users_inj_post_message);
-            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
-            assert.equal(context.$ms_users_inj_post_message.error, true);
 
             console.log(context.$ms_users_inj_post_message);
+            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+            assert.equal(context.$ms_users_inj_post_message.error, true);
           });
       });
   });

@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const ActionTransport = require('mservice').ActionTransport;
 const url = require('url');
 const serialize = require('serialize-javascript');
+const { AuthenticationRequiredError } = require('common-errors');
 
 const isOauthAttachRoute = route => /oauth\.facebook$/.test(route);
 
@@ -36,10 +37,19 @@ module.exports = [{
     });
 
     if (error) {
-      response = response.call('code', error.statusCode || 500);
-    }
+      // NOTE: ensure that 401 errors will be kept
+      let statusCode;
+      switch (error.constructor) {
+        case AuthenticationRequiredError:
+          statusCode = 401;
+          break;
 
-    console.log(error);
+        default:
+          statusCode = error.statusCode || 500;
+      }
+
+      response = response.call('code', statusCode);
+    }
 
     return Promise.all([null, response, request]);
   },

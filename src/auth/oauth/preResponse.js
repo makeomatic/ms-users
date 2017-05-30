@@ -39,6 +39,8 @@ module.exports = [{
       response = response.call('code', error.statusCode || 500);
     }
 
+    console.log(error);
+
     return Promise.all([null, response, request]);
   },
 }];

@@ -192,6 +192,8 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should attach facebook profile to existing user', function test() {
+    const { Page } = this.protocol;
+    const serviceLink = hostUrl(this.users.config);
     const username = 'facebookuser@me.com';
 
     return Promise
@@ -204,8 +206,6 @@ describe('#facebook', function oauthFacebookSuite() {
       .catch(captureScreenshot)
       .tap(() => _debug('loggin in via facebook'))
       .then(() => {
-        const { Page } = this.protocol;
-        const serviceLink = hostUrl(this.users.config);
         const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
 
         Page.navigate({ url: executeLink });
@@ -227,7 +227,37 @@ describe('#facebook', function oauthFacebookSuite() {
       });
   });
 
-  it('should reject attaching already attached profile to a new user');
+  it('should reject attaching already attached profile to a new user', function test() {
+    const { Page } = this.protocol;
+    const serviceLink = hostUrl(this.users.config);
+    const username = 'facebookuser@me.com';
+
+    return Promise
+      .bind(this)
+      .then(getFacebookToken)
+      .then(createAccount)
+      .tap(globalRegisterUser(username))
+      .tap(globalAuthUser(username))
+      .then(() => {
+        const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
+
+        Page.navigate({ url: executeLink });
+        return Promise.bind(this, /oauth\/facebook/)
+          .then(captureResponse)
+          .tap(expect(412))
+          .then(getResponseBody)
+          .tap((body) => {
+            const $ = cheerio.load(body);
+            const vmScript = new vm.Script($('.no-js > body > script').html());
+            const context = vm.createContext({ window: { close: () => {} } });
+            vmScript.runInContext(context);
+
+            assert.ok(context.$ms_users_inj_post_message);
+            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+            assert.equal(context.$ms_users_inj_post_message.error, true);
+          });
+      });
+  });
 
   it('should be able to sign in with facebook account', function test() {
     const { Page } = this.protocol;

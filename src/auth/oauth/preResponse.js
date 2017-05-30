@@ -11,7 +11,7 @@ module.exports = [{
     // return whatever we had before, no concern over it
     if (isOauthAttachRoute(request.route) === false || request.transport !== ActionTransport.http) {
       // pass-through
-      return [error, result];
+      return [error, result, request];
     }
 
     // will be copied over from mail server configuration
@@ -39,6 +39,6 @@ module.exports = [{
       response = response.call('code', error.statusCode || 500);
     }
 
-    return Promise.all([null, response]);
+    return Promise.all([null, response, request]);
   },
 }];

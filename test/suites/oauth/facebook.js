@@ -210,6 +210,10 @@ describe('#facebook', function oauthFacebookSuite() {
       .bind(this)
       .tap(globalRegisterUser(username))
       .tap(globalAuthUser(username))
+      .then(getFacebookToken)
+      .then(assert.ifError)
+      .catchReturn(TypeError)
+      .catch(captureScreenshot)
       .tap(() => _debug('loggin in via facebook'))
       .then(() => {
         const { Page } = this.protocol;

@@ -6,8 +6,8 @@ const serialize = require('serialize-javascript');
 const isOauthAttachRoute = route => /oauth\.facebook$/.test(route);
 
 module.exports = [{
-  point: 'postHandler',
-  handler: function postHandler(error, result, request) {
+  point: 'preResponse',
+  handler: function preResponseHandler(error, result, request) {
     // return whatever we had before, no concern over it
     if (isOauthAttachRoute(request.route) === false || request.transport !== ActionTransport.http) {
       // pass-through

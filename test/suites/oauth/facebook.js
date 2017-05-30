@@ -220,7 +220,7 @@ describe('#facebook', function oauthFacebookSuite() {
             vmScript.runInContext(context);
 
             assert.ok(context.$ms_users_inj_post_message);
-            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:logged-in');
+            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
 
             const payload = context.$ms_users_inj_post_message.payload;
             assert(payload.hasOwnProperty('jwt'));
@@ -235,6 +235,60 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should reject attaching already attached profile to a new user');
+
+  it('should be able to sign in with facebook account', function test() {
+    const { Page } = this.protocol;
+    const serviceLink = hostUrl(this.users.config);
+    const username = 'facebookuser@me.com';
+
+    return Promise
+      .bind(this)
+      .tap(globalRegisterUser(username))
+      .tap(globalAuthUser(username))
+      .then(getFacebookToken)
+      .then(assert.ifError)
+      .catchReturn(TypeError)
+      .catch(captureScreenshot)
+      .tap(() => _debug('loggin in via facebook'))
+      .then(() => {
+        const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
+
+        Page.navigate({ url: executeLink });
+        return Promise
+          .bind(this, /oauth\/facebook/)
+          .then(captureResponse)
+          .tap(expect(200));
+      })
+      .then(() => {
+        const executeLink = `${serviceLink}/users/oauth/facebook`;
+
+        Page.navigate({ url: executeLink });
+        return Promise
+          .bind(this, /oauth\/facebook/)
+          .then(captureResponse)
+          .tap(expect(200))
+          .then(getResponseBody)
+          .tap((body) => {
+            const $ = cheerio.load(body);
+            const vmScript = new vm.Script($('.no-js > body > script').html());
+            const context = vm.createContext({ window: { close: () => {} } });
+            vmScript.runInContext(context);
+
+            assert.ok(context.$ms_users_inj_post_message);
+            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:logged-in');
+
+            const payload = context.$ms_users_inj_post_message.payload;
+            assert(payload.hasOwnProperty('jwt'));
+            assert(payload.hasOwnProperty('user'));
+            assert(payload.user.hasOwnProperty('metadata'));
+            assert(payload.user.metadata.hasOwnProperty('*.localhost'));
+            assert(payload.user.metadata['*.localhost'].hasOwnProperty('facebook'));
+            assert.ifError(payload.user.password);
+            assert.ifError(payload.user.audience);
+          });
+      });
+  });
+
   it('should pass-through to login if account has already been attached');
 
   it('should detach facebook profile', function test() {

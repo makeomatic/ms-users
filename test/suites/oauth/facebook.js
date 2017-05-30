@@ -254,9 +254,10 @@ describe('#facebook', function oauthFacebookSuite() {
 
             assert.ok(context.$ms_users_inj_post_message);
 
-            console.log(context.$ms_users_inj_post_message);
             assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
             assert.equal(context.$ms_users_inj_post_message.error, true);
+            assert.equal(context.$ms_users_inj_post_message.payload,
+              'An attempt was made to perform an operation without authentication: HttpStatusError: profile is linked');
           });
       });
   });
@@ -313,8 +314,6 @@ describe('#facebook', function oauthFacebookSuite() {
           });
       });
   });
-
-  it('should pass-through to login if account has already been attached');
 
   it('should detach facebook profile', function test() {
     let uid = false;

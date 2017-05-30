@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const ActionTransport = require('mservice').ActionTransport;
 const url = require('url');
+const is = require('is');
 const serialize = require('serialize-javascript');
 const { AuthenticationRequiredError } = require('common-errors');
 
@@ -25,7 +26,7 @@ module.exports = [{
     });
 
     const message = error ? {
-      payload: error,
+      payload: is.fn(error.toJSON) ? error.toJSON() : error.toString(),
       error: true,
       type: 'ms-users:attached',
       title: 'Failed to attach account',

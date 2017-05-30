@@ -244,7 +244,7 @@ describe('#facebook', function oauthFacebookSuite() {
         Page.navigate({ url: executeLink });
         return Promise.bind(this, /oauth\/facebook/)
           .then(captureResponse)
-          .tap(expect(412))
+          .tap(expect(401))
           .then(getResponseBody)
           .tap((body) => {
             const $ = cheerio.load(body);
@@ -255,6 +255,8 @@ describe('#facebook', function oauthFacebookSuite() {
             assert.ok(context.$ms_users_inj_post_message);
             assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
             assert.equal(context.$ms_users_inj_post_message.error, true);
+
+            console.log(context.$ms_users_inj_post_message);
           });
       });
   });

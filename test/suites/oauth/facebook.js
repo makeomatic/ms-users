@@ -206,15 +206,10 @@ describe('#facebook', function oauthFacebookSuite() {
   it('should attach facebook profile to existing user', function test() {
     const username = 'facebookuser@me.com';
 
-    return Promise.bind(this)
+    return Promise
+      .bind(this)
       .tap(globalRegisterUser(username))
       .tap(globalAuthUser(username))
-      .then(getFacebookToken)
-      .then(assert.ifError)
-      .catchReturn(TypeError)
-      .then(logout)
-      .tap(() => _debug('logged out'))
-      .catch(captureScreenshot)
       .tap(() => _debug('loggin in via facebook'))
       .then(() => {
         const { Page } = this.protocol;

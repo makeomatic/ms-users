@@ -33,5 +33,5 @@ module.exports = function attach(account, user) {
       },
     })
     .then(updateMetadata)
-    .return({});
+    .return(profile);
 };

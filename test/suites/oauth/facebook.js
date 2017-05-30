@@ -222,15 +222,7 @@ describe('#facebook', function oauthFacebookSuite() {
             assert.ok(context.$ms_users_inj_post_message);
             assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
 
-            const payload = context.$ms_users_inj_post_message.payload;
-            console.log(payload);
-            assert(payload.hasOwnProperty('jwt'));
-            assert(payload.hasOwnProperty('user'));
-            assert(payload.user.hasOwnProperty('metadata'));
-            assert(payload.user.metadata.hasOwnProperty('*.localhost'));
-            assert(payload.user.metadata['*.localhost'].hasOwnProperty('facebook'));
-            assert.ifError(payload.user.password);
-            assert.ifError(payload.user.audience);
+            assert(Object.keys(context.$ms_users_inj_post_message.payload).length);
           });
       });
   });

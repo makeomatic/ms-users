@@ -37,9 +37,7 @@ module.exports = function facebookCallbackAction(request) {
     .bind(this, [facebook, user])
     .spread(user ? attach : getSignedToken)
     .then(context => ({
-      payload: {
-        ...context,
-      },
+      payload: context,
       error: false,
       type: 'ms-users:attached',
       title: `Attached ${provider} account`,

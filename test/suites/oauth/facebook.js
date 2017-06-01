@@ -218,8 +218,8 @@ describe('#facebook', function oauthFacebookSuite() {
         assert.ifError(internalData.facebook.refreshToken, 'fb returned refresh token');
 
         // verify metadata
-        assert.ok(metadata.facebook, 'facebook profile not present');
-        console.log(metadata.facebook);
+        assert.ok(metadata[defaultAudience].facebook, 'facebook profile not present');
+        console.log(metadata[defaultAudience].facebook);
       });
   });
 

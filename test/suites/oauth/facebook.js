@@ -27,6 +27,7 @@ const graphApi = request.defaults({
 });
 
 const cache = {};
+const defaultAudience = '*.localhost';
 
 function createTestUserAPI() {
   return graphApi({
@@ -95,7 +96,7 @@ function createAccount(token) {
   const opts = {
     username: payload.email,
     password: 'mynicepassword',
-    audience: '*.localhost',
+    audience: defaultAudience,
     metadata: {
       service: 'craft',
     },
@@ -184,10 +185,30 @@ describe('#facebook', function oauthFacebookSuite() {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
         assert(registered.user.hasOwnProperty('metadata'));
-        assert(registered.user.metadata.hasOwnProperty('*.localhost'));
-        assert(registered.user.metadata['*.localhost'].hasOwnProperty('facebook'));
+        assert(registered.user.metadata.hasOwnProperty(defaultAudience));
+        assert(registered.user.metadata[defaultAudience].hasOwnProperty('facebook'));
         assert.ifError(registered.user.password);
         assert.ifError(registered.user.audience);
+      });
+  });
+
+  it('can get info about registered fb account through getInternalData', function test() {
+    return getFacebookToken
+      .call(this)
+      .then(createAccount)
+      .get('user')
+      .then(user => this.users.amqp.publishAndWait('users.getInternalData', {
+        username: user.metadata[defaultAudience].uid,
+      }))
+      .reflect()
+      .then(inspectPromise())
+      .then((response) => {
+        assert.ok(response.facebook, 'facebook data not present');
+        assert.ok(response.facebook.id, 'fb id is not present');
+        assert.ok(response.facebook.email, 'fb email is not present');
+        assert.ok(response.facebook.token, 'fb token is not present');
+        assert.ok(response.facebook.username, 'fb username not present');
+        assert.ifError(response.facebook.refreshToken, 'fb returned refresh token');
       });
   });
 
@@ -307,8 +328,8 @@ describe('#facebook', function oauthFacebookSuite() {
             assert(payload.hasOwnProperty('jwt'));
             assert(payload.hasOwnProperty('user'));
             assert(payload.user.hasOwnProperty('metadata'));
-            assert(payload.user.metadata.hasOwnProperty('*.localhost'));
-            assert(payload.user.metadata['*.localhost'].hasOwnProperty('facebook'));
+            assert(payload.user.metadata.hasOwnProperty(defaultAudience));
+            assert(payload.user.metadata[defaultAudience].hasOwnProperty('facebook'));
             assert.ifError(payload.user.password);
             assert.ifError(payload.user.audience);
           });
@@ -323,12 +344,12 @@ describe('#facebook', function oauthFacebookSuite() {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
         assert(registered.user.hasOwnProperty('metadata'));
-        assert(registered.user.metadata.hasOwnProperty('*.localhost'));
-        assert(registered.user.metadata['*.localhost'].hasOwnProperty('facebook'));
+        assert(registered.user.metadata.hasOwnProperty(defaultAudience));
+        assert(registered.user.metadata[defaultAudience].hasOwnProperty('facebook'));
         assert.ifError(registered.user.password);
         assert.ifError(registered.user.audience);
 
-        uid = `facebook:${registered.user.metadata['*.localhost'].facebook.id}`;
+        uid = `facebook:${registered.user.metadata[defaultAudience].facebook.id}`;
       })
       .tap((registered) => {
         const { username } = registered.user;

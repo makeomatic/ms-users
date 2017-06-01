@@ -192,23 +192,34 @@ describe('#facebook', function oauthFacebookSuite() {
       });
   });
 
-  it('can get info about registered fb account through getInternalData', function test() {
+  it('can get info about registered fb account through getInternalData & getMetadata', function test() {
     return getFacebookToken
       .call(this)
       .then(createAccount)
       .get('user')
-      .then(user => this.users.amqp.publishAndWait('users.getInternalData', {
-        username: user.metadata[defaultAudience].facebook.uid,
-      }))
+      .then(user => Promise.all([
+        this.users.amqp.publishAndWait('users.getInternalData', {
+          username: user.metadata[defaultAudience].facebook.uid,
+        }),
+        this.users.amqp.publishAndWait('users.getMetadata', {
+          username: user.metadata[defaultAudience].facebook.uid,
+          audience: defaultAudience,
+        }),
+      ]))
       .reflect()
       .then(inspectPromise())
-      .then((response) => {
-        assert.ok(response.facebook, 'facebook data not present');
-        assert.ok(response.facebook.id, 'fb id is not present');
-        assert.ok(response.facebook.email, 'fb email is not present');
-        assert.ok(response.facebook.token, 'fb token is not present');
-        assert.ifError(response.facebook.username, 'fb returned real username');
-        assert.ifError(response.facebook.refreshToken, 'fb returned refresh token');
+      .spread((internalData, metadata) => {
+        // verify internal data
+        assert.ok(internalData.facebook, 'facebook data not present');
+        assert.ok(internalData.facebook.id, 'fb id is not present');
+        assert.ok(internalData.facebook.email, 'fb email is not present');
+        assert.ok(internalData.facebook.token, 'fb token is not present');
+        assert.ifError(internalData.facebook.username, 'fb returned real username');
+        assert.ifError(internalData.facebook.refreshToken, 'fb returned refresh token');
+
+        // verify metadata
+        assert.ok(metadata.facebook, 'facebook profile not present');
+        console.log(metadata.facebook);
       });
   });
 

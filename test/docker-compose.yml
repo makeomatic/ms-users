@@ -18,7 +18,7 @@ services:
 
   tester:
     container_name: tester
-    image: makeomatic/node:7.10.0-vips-tester-chrome
+    image: makeomatic/node:8.0.0-vips-tester-chrome
     links:
       - redis
       - rabbitmq
@@ -34,23 +34,3 @@ services:
       FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
       LIGHTHOUSE_CHROMIUM_PATH: /usr/bin/chromium-browser
     command: tail -f /dev/null
-
-  dev:
-    container_name: dev
-    image: makeomatic/node:7.10.0-tester
-    links:
-      - redis
-      - rabbitmq
-    working_dir: /src
-    volumes:
-      - ${PWD}:/src
-    ports:
-      - "3000:3000"
-    environment:
-      NCONF_FILE_PATH: '["/src/test/config.js"]'
-      NODE_ENV: "development"
-      DEBUG: ${DEBUG}
-      NCONF_NAMESPACE: MS_USERS
-      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
-      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
-    command: node bin/mservice.js

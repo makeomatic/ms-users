@@ -198,7 +198,7 @@ describe('#facebook', function oauthFacebookSuite() {
       .then(createAccount)
       .get('user')
       .then(user => this.users.amqp.publishAndWait('users.getInternalData', {
-        username: user.metadata[defaultAudience].uid,
+        username: user.metadata[defaultAudience].facebook.uid,
       }))
       .reflect()
       .then(inspectPromise())

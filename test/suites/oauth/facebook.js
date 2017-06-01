@@ -207,7 +207,7 @@ describe('#facebook', function oauthFacebookSuite() {
         assert.ok(response.facebook.id, 'fb id is not present');
         assert.ok(response.facebook.email, 'fb email is not present');
         assert.ok(response.facebook.token, 'fb token is not present');
-        assert.ok(response.facebook.username, 'fb username not present');
+        assert.ifError(response.facebook.username, 'fb returned real username');
         assert.ifError(response.facebook.refreshToken, 'fb returned refresh token');
       });
   });

@@ -39,4 +39,4 @@ module.exports = function isReferral({ params }) {
     .catchReturn(false);
 };
 
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

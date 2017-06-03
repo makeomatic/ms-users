@@ -2,17 +2,33 @@
 # yarn lockfile v1
 
 
-"@makeomatic/deploy@^1.6.2":
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-1.6.2.tgz#53b47d641e3c152c9bfc0a109978ba4bb10a65d7"
+"@makeomatic/deploy@^1.6.4":
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-1.6.4.tgz#84fc51aabc0f7b4d08e2f024ae817735490674f4"
   dependencies:
     bluebird "^3.5.0"
     death "^1.1.0"
-    glob "^7.1.1"
+    glob "^7.1.2"
     ms-conf "^3.1.2"
     npm-path "^2.0.3"
     shelljs "^0.7.7"
     yargs "^8.0.1"
+
+"@microfleet/core@^8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-8.0.1.tgz#d37f371b2a9b06e71e8337077dfc611444be1f54"
+  dependencies:
+    bluebird "^3.5.0"
+    callsite "^1.0.0"
+    chalk "^1.1.3"
+    debug "^2.6.8"
+    eventemitter3 "^2.0.3"
+    glob "^7.1.1"
+    is "^3.2.1"
+    lodash "^4.17.4"
+    semver "^5.3.0"
+    sort-by "^1.1.1"
+    stdout-stream "^1.4.0"
 
 "@semantic-release/commit-analyzer@^2.0.0":
   version "2.0.0"
@@ -323,9 +339,9 @@ aws4@^1.2.1:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.6.0.tgz#83ef5ca860b2b32e4a0deedee8c771b9db57471e"
 
-axe-core@2.1.7:
-  version "2.1.7"
-  resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-2.1.7.tgz#4f66f2b3ee3b58ec2d3db4339dd124c5b33b79c3"
+axe-core@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-2.2.0.tgz#00b410b3fc899207d4f2f8e3753cff150d34e4bb"
 
 b64@3.x.x:
   version "3.0.2"
@@ -861,9 +877,9 @@ chrome-devtools-frontend@1.0.422034:
   version "1.0.422034"
   resolved "https://registry.yarnpkg.com/chrome-devtools-frontend/-/chrome-devtools-frontend-1.0.422034.tgz#071c8ce14466b7653032fcd1ad1a4a68d5e3cbd9"
 
-chrome-remote-interface@^0.23.0:
-  version "0.23.0"
-  resolved "https://registry.yarnpkg.com/chrome-remote-interface/-/chrome-remote-interface-0.23.0.tgz#bc5cb051ebfb7564d844d7d85a41fb50113259b5"
+chrome-remote-interface@^0.23.1:
+  version "0.23.1"
+  resolved "https://registry.yarnpkg.com/chrome-remote-interface/-/chrome-remote-interface-0.23.1.tgz#7c45235229ac5be953d3f5521f6b64805810f5e6"
   dependencies:
     commander "2.1.x"
     ws "2.0.x"
@@ -1164,7 +1180,7 @@ debug-log@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/debug-log/-/debug-log-1.0.1.tgz#2307632d4c04382b8df8a32f70b895046d52745f"
 
-debug@*, debug@2, debug@^2.1.1, debug@^2.2.0, debug@^2.6.0, debug@^2.6.3, debug@^2.6.6:
+debug@*, debug@2, debug@^2.1.1, debug@^2.2.0, debug@^2.6.0, debug@^2.6.3, debug@^2.6.8:
   version "2.6.8"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.8.tgz#e731531ca2ede27d188222427da17821d68ff4fc"
   dependencies:
@@ -2515,7 +2531,7 @@ joi@^6.10.1:
     moment "2.x.x"
     topo "1.x.x"
 
-jpeg-js@^0.1.2:
+jpeg-js@0.1.2, jpeg-js@^0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/jpeg-js/-/jpeg-js-0.1.2.tgz#135b992c0575c985cfa0f494a3227ed238583ece"
 
@@ -2671,16 +2687,17 @@ levn@^0.3.0, levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-lighthouse@^1.6.5:
-  version "1.6.5"
-  resolved "https://registry.yarnpkg.com/lighthouse/-/lighthouse-1.6.5.tgz#7e06a7025c8be298b6f912dbc2f15def1d4b6531"
+lighthouse@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/lighthouse/-/lighthouse-2.0.0.tgz#55962239ab858eadf46af03468ae1ca17703fde2"
   dependencies:
-    axe-core "2.1.7"
+    axe-core "2.2.0"
     chrome-devtools-frontend "1.0.422034"
     debug "2.2.0"
     devtools-timeline-model "1.1.6"
     gl-matrix "2.3.2"
     handlebars "4.0.5"
+    jpeg-js "0.1.2"
     json-stringify-safe "5.0.1"
     marked "0.3.6"
     metaviewport-parser "0.0.1"
@@ -2688,7 +2705,7 @@ lighthouse@^1.6.5:
     opn "4.0.2"
     rimraf "2.2.8"
     semver "5.3.0"
-    speedline "1.0.3"
+    speedline "1.2.0"
     update-notifier "^2.1.0"
     whatwg-url "4.0.0"
     ws "1.1.1"
@@ -3069,15 +3086,15 @@ moment@2.x.x, moment@^2.10.6, moment@^2.18.1:
   version "2.18.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
-ms-amqp-transport@^8.0.0:
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/ms-amqp-transport/-/ms-amqp-transport-8.0.0.tgz#55385326862e84c2d5b2d5d0a7f14a893ce682d9"
+ms-amqp-transport@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/ms-amqp-transport/-/ms-amqp-transport-9.0.0.tgz#45c96f77becb93d590033dc4cdd1c6982787ca94"
   dependencies:
     amqp-coffee "^0.1.28"
     bluebird "^3.5.0"
     bunyan-noop "^2.0.0"
-    common-errors "^1.0.0"
-    debug "^2.6.6"
+    common-errors "^1.0.2"
+    debug "^2.6.8"
     eventemitter3 "^2.0.3"
     hashlru "^2.2.0"
     is "^3.2.1"
@@ -3106,9 +3123,9 @@ ms-flakeless@^4.0.1:
   dependencies:
     nan "^2.4.0"
 
-ms-mailer-client@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/ms-mailer-client/-/ms-mailer-client-6.0.0.tgz#a555c5e60db0debcf8ac5addcfb5b52f72d74680"
+ms-mailer-client@^6.0.2:
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/ms-mailer-client/-/ms-mailer-client-6.0.2.tgz#8edd06ccde397dd66f0437a40454c163c9464da3"
   dependencies:
     lodash "^4.17.2"
 
@@ -3153,22 +3170,6 @@ ms@0.7.2:
 ms@2.0.0, ms@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
-
-mservice@^8.0.0:
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/mservice/-/mservice-8.0.0.tgz#43738b9ddf9f95a6f1e2267473f34ab71b91da94"
-  dependencies:
-    bluebird "^3.5.0"
-    callsite "^1.0.0"
-    chalk "^1.1.3"
-    debug "^2.6.6"
-    eventemitter3 "^2.0.3"
-    glob "^7.1.1"
-    is "^3.2.1"
-    lodash "^4.17.4"
-    semver "^5.3.0"
-    sort-by "^1.1.1"
-    stdout-stream "^1.4.0"
 
 mute-stream@0.0.5:
   version "0.0.5"
@@ -4262,9 +4263,9 @@ spdx-license-ids@^1.0.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/spdx-license-ids/-/spdx-license-ids-1.2.2.tgz#c9df7a3424594ade6bd11900d596696dc06bac57"
 
-speedline@1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/speedline/-/speedline-1.0.3.tgz#ee1d98c18d583a2d8488aaded2db9334b943dbbd"
+speedline@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/speedline/-/speedline-1.2.0.tgz#f5828dcf8e9b96a9f6c1da8ab298538820c6668d"
   dependencies:
     babar "0.0.3"
     image-ssim "^0.2.0"
@@ -4626,11 +4627,7 @@ underscore.string@~2.2.0rc:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/underscore.string/-/underscore.string-2.2.1.tgz#d7c0fa2af5d5a1a67f4253daee98132e733f0f19"
 
-underscore@*:
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.8.3.tgz#4f3fb53b106e6097fcf9cb4109f2a5e9bdfa5022"
-
-underscore@~1.6.0:
+underscore@*, underscore@~1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.6.0.tgz#8b38b10cacdef63337b8b24e4ff86d45aea529a8"
 

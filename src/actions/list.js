@@ -148,4 +148,4 @@ module.exports = function iterateOverActiveUsers({ params }) {
     .then(keyOnly ? passThrough : fetchUserData);
 };
 
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

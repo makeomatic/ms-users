@@ -44,4 +44,4 @@ module.exports = function createToken({ params }) {
     .return(token);
 };
 
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

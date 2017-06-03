@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const Mservice = require('mservice');
+const Mservice = require('@microfleet/core');
 const Mailer = require('ms-mailer-client');
 const merge = require('lodash/merge');
 const assert = require('assert');

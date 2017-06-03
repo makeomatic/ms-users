@@ -78,4 +78,4 @@ module.exports = function listTokens({ params }) {
     .then(enrichResponse);
 };
 
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

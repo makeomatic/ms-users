@@ -1,5 +1,5 @@
 const path = require('path');
-const { routerExtension, ActionTransport } = require('mservice');
+const { routerExtension, ActionTransport } = require('@microfleet/core');
 
 /**
  * Loads existing auth strategies

@@ -179,4 +179,4 @@ module.exports = function login({ params }) {
     .catch(enrichError);
 };
 
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

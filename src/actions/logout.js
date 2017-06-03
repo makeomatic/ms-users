@@ -17,4 +17,4 @@ module.exports = function logout(request) {
   return jwt.logout.call(this, token, audience);
 };
 
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

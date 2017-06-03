@@ -24,4 +24,4 @@ module.exports = function storeReferral({ params }) {
   return this.redis.set(key, referral, 'EX', expiration, 'NX');
 };
 
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

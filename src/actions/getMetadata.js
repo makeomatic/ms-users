@@ -100,4 +100,4 @@ module.exports = function getMetadataAction(request) {
     .then(unnest);
 };
 
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

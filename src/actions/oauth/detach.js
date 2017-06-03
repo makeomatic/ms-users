@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const partial = require('lodash/partial');
-const ActionTransport = require('mservice').ActionTransport;
+const ActionTransport = require('@microfleet/core').ActionTransport;
 
 const detach = require('../../auth/oauth/utils/detach');
 const getInternalData = require('../../utils/getInternalData');

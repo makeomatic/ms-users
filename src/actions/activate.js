@@ -202,4 +202,4 @@ module.exports = function verifyChallenge({ params }) {
     .spread(jwt.login);
 };
 
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

@@ -421,4 +421,4 @@ module.exports.allowed = function transformSSO({ params }) {
 };
 
 // init transport
-module.exports.transports = [require('mservice').ActionTransport.amqp];
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

@@ -52,4 +52,4 @@ module.exports.allowed = function isAllowed(request) {
 
 module.exports.auth = 'oauth';
 module.exports.strategy = 'facebook';
-module.exports.transports = [require('mservice').ActionTransport.http];
+module.exports.transports = [require('@microfleet/core').ActionTransport.http];

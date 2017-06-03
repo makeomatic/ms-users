@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const ActionTransport = require('mservice').ActionTransport;
+const ActionTransport = require('@microfleet/core').ActionTransport;
 const url = require('url');
 const is = require('is');
 const serialize = require('serialize-javascript');

@@ -1,6 +1,6 @@
-local usersIndex = KEYS[2]
-local usersData = KEYS[3]
-local usersMeta = KEYS[4]
+local usersIndex = KEYS[1]
+local usersData = KEYS[2]
+local usersMeta = KEYS[3]
 
 local CREATED_FIELD = ARGV[1]
 local NEXT_CYCLE_FIELD = ARGV[2]

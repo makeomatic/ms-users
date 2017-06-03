@@ -26,3 +26,5 @@ module.exports = function removeInvite(request) {
       throw new HttpStatusError(404, `Invite with id "${id}" not found`);
     });
 };
+
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

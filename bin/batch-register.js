@@ -5,18 +5,16 @@
 
 const is = require('is');
 const Promise = require('bluebird');
-const conf = require('ms-conf');
 const assert = require('assert');
 const AMQPTransport = require('ms-amqp-transport');
 const getStdin = require('get-stdin');
-const merge = require('lodash/merge');
 const omit = require('lodash/omit');
 const defaults = require('lodash/defaults');
 const gen = require('password-generator');
-const defaultOpts = require('../lib/config');
+const conf = require('../lib/config');
 const { CHALLENGE_TYPE_EMAIL } = require('../lib/constants');
 
-const config = merge({}, defaultOpts, conf.get('/'));
+const config = conf.get('/', { env: process.env.NODE_ENV });
 const amqpConfig = omit(config.amqp.transport, ['queue', 'neck', 'listen', 'onComplete']);
 const audience = config.jwt.defaultAudience;
 const prefix = config.router.routes.prefix;

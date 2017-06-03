@@ -18,12 +18,12 @@ const userExists = require('../utils/userExists.js');
  * @apiParam (Payload) {Object} [script] - if present will be called with passed metadata keys & username, provides direct scripting access.
  *   Be careful with granting access to this function.
  */
-function updateMetadataAction(request) {
+module.exports = function updateMetadataAction(request) {
   return Promise
     .bind(this, request.params.username)
     .then(userExists)
     .then(username => ({ ...request.params, username }))
     .then(updateMetadata);
-}
+};
 
-module.exports = updateMetadataAction;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

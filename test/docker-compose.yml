@@ -15,12 +15,10 @@ services:
     image: makeomatic/rabbitmq:3.6.9
     container_name: rabbitmq
     hostname: rabbitmq
-    volumes:
-      - ./docker-configs/rabbitmq.config:/usr/lib/rabbitmq/etc/rabbitmq/rabbitmq.config
 
   tester:
     container_name: tester
-    image: makeomatic/node:7.9.0-tester
+    image: makeomatic/node:8.0.0-vips-tester-chrome
     links:
       - redis
       - rabbitmq
@@ -31,4 +29,8 @@ services:
       NODE_ENV: "test"
       DEBUG: ${DEBUG}
       NCONF_NAMESPACE: MS_USERS
+      FACEBOOK_APP_TOKEN: ${FACEBOOK_APP_TOKEN}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
+      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
+      LIGHTHOUSE_CHROMIUM_PATH: /usr/bin/chromium-browser
     command: tail -f /dev/null

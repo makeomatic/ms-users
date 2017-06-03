@@ -1,27 +1,29 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const set = require('lodash/set');
 const noop = require('lodash/noop');
 const merge = require('lodash/merge');
 const reduce = require('lodash/reduce');
 const constant = require('lodash/constant');
 
 // internal deps
-const setMetadata = require('../utils/updateMetadata.js');
-const redisKey = require('../utils/key.js');
-const jwt = require('../utils/jwt.js');
-const isDisposable = require('../utils/isDisposable.js');
-const mxExists = require('../utils/mxExists.js');
-const makeCaptchaCheck = require('../utils/checkCaptcha.js');
-const userExists = require('../utils/userExists.js');
-const aliasExists = require('../utils/aliasExists.js');
-const assignAlias = require('./alias.js');
-const checkLimits = require('../utils/checkIpLimits.js');
-const challenge = require('../utils/challenges/challenge.js');
-const handlePipeline = require('../utils/pipelineError.js');
+const setMetadata = require('../utils/updateMetadata');
+const redisKey = require('../utils/key');
+const jwt = require('../utils/jwt');
+const isDisposable = require('../utils/isDisposable');
+const mxExists = require('../utils/mxExists');
+const makeCaptchaCheck = require('../utils/checkCaptcha');
+const userExists = require('../utils/userExists');
+const aliasExists = require('../utils/aliasExists');
+const assignAlias = require('./alias');
+const checkLimits = require('../utils/checkIpLimits');
+const challenge = require('../utils/challenges/challenge');
+const handlePipeline = require('../utils/pipelineError');
 const hashPassword = require('../utils/register/password/hash');
 const {
   USERS_REF,
   USERS_INDEX,
+  USERS_SSO_TO_LOGIN,
   USERS_DATA,
   USERS_ACTIVE_FLAG,
   USERS_CREATED_FIELD,
@@ -35,7 +37,7 @@ const {
   CHALLENGE_TYPE_EMAIL,
   USERS_REFERRAL_INDEX,
   TOKEN_METADATA_FIELD_METADATA,
-} = require('../constants.js');
+} = require('../constants');
 
 // cached helpers
 const hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -98,6 +100,22 @@ function verifyReferral() {
 }
 
 /**
+ * Verifies if SSO token provided, injects decoded SSO profile to metadata
+ * @return {Promise}
+ */
+function verifySSO() {
+  const { sso, metadata, defaultAudience } = this;
+  const { uid, provider, profile } = sso;
+
+  return Promise
+    .bind(this, uid)
+    .then(userExists)
+    .throw(ErrorConflictUserExists)
+    .catchReturn(ErrorMissing, true)
+    .tap(() => set(metadata, [defaultAudience, provider], profile));
+}
+
+/**
  * Disposes of the lock
  * @return {Null}
  */
@@ -132,10 +150,11 @@ function lockDisposer(lock) {
  * @apiParam (Payload) {String} [challengeType="email"] - challenge type
  * @apiParam (Payload) {String} [referral] - pass id/fingerprint of the client to see if it was stored before and associate with this account
  */
-function registerUser(request) {
+module.exports = function registerUser(request) {
   const { redis, config, tokenManager } = this;
   const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
   const { defaultAudience } = config.jwt;
+  const { token: ssoTokenOptions } = config.oauth;
 
   // request
   const params = request.params;
@@ -150,7 +169,14 @@ function registerUser(request) {
     skipPassword,
     username,
     referral,
+    sso,
   } = params;
+
+  // note: this is to preserve back-compatibility before sso was introduced
+  // if sso is undefined abd activate is undefined, then it defaults to true,
+  // otherwise it's true/false/undefined based on what's passed
+  let shouldActivate = activate === undefined && sso === undefined ? true : activate;
+
   const alias = params.alias && params.alias.toLowerCase();
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
   const userDataKey = redisKey(username, USERS_DATA);
@@ -166,7 +192,7 @@ function registerUser(request) {
     throw ErrorMalformedAudience;
   }
 
-  if (inviteToken && !activate) {
+  if (inviteToken && !shouldActivate) {
     throw ErrorMalformedInvite;
   }
 
@@ -230,12 +256,17 @@ function registerUser(request) {
           inviteToken,
           metadata,
           referral,
+          sso,
+          ssoTokenOptions,
+          defaultAudience,
           audience: params.audience,
         })
         // verifies token and adds extra meta if this is present
         .tap(inviteToken ? verifyToken : noop)
         // if referral is set - verifies if it was previously saved
         .tap(referral ? verifyReferral : noop)
+        // if sso is provided - decodes token and patches provided SSO object
+        .tap(sso ? verifySSO : noop)
         // prepare next context
         .return([
           password,
@@ -254,18 +285,35 @@ function registerUser(request) {
           const pipeline = redis.pipeline();
           const basicInfo = {
             [USERS_CREATED_FIELD]: created,
-            [USERS_ACTIVE_FLAG]: activate,
           };
+
+          if (sso) {
+            const { provider, email, uid, credentials } = sso;
+
+            // skip activation if email is given by sso provider and equals to registered email
+            if (shouldActivate === undefined) {
+              shouldActivate = email ? username === email : false;
+            }
+
+            // inject sensitive provider info to internal data
+            basicInfo[provider] = JSON.stringify(credentials.internals);
+
+            // link uid to username
+            pipeline.hset(USERS_SSO_TO_LOGIN, uid, username);
+          }
 
           if (hash !== null) {
             basicInfo[USERS_PASSWORD_FIELD] = hash;
           }
 
+          // if user is active
+          basicInfo[USERS_ACTIVE_FLAG] = shouldActivate;
+          // set internal data
           pipeline.hmset(userDataKey, basicInfo);
 
           // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
           // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
-          if (!activate && deleteInactiveAccounts >= 0) {
+          if (!shouldActivate && deleteInactiveAccounts >= 0) {
             pipeline.expire(userDataKey, deleteInactiveAccounts);
           }
 
@@ -290,7 +338,7 @@ function registerUser(request) {
         // activate user or queue challenge
         .then(() => {
           // Option 1. Activation
-          if (!activate) {
+          if (!shouldActivate) {
             return Promise
               .bind(this, [
                 challengeType,
@@ -340,6 +388,37 @@ function registerUser(request) {
         })
       )
     ));
-}
+};
 
-module.exports = registerUser;
+// transform `sso` token if it's present
+module.exports.allowed = function transformSSO({ params }) {
+  const { sso } = params;
+
+  // if there is no sso - don't do anything
+  if (sso === undefined) {
+    return null;
+  }
+
+  // retrieve configuration options
+  const ssoTokenOptions = this.config.oauth.token;
+
+  // verify SSO token & rewrite params.sso
+  return jwt
+    .verifyData(sso, ssoTokenOptions)
+    .then((credentials) => {
+      const { uid, provider, email, profile } = credentials;
+
+      params.sso = {
+        uid,
+        provider,
+        credentials,
+        profile,
+        email,
+      };
+
+      return null;
+    });
+};
+
+// init transport
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

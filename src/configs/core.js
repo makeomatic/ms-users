@@ -45,6 +45,7 @@ exports.plugins = [
   'router',
   'amqp',
   'redisCluster',
+  'http',
 ];
 
 /**
@@ -64,8 +65,8 @@ exports.logger = {
 exports.validator = {
   schemas: [path.resolve(__dirname, '../../schemas')],
   ajv: {
+    $meta: 'ms-validation AJV schema validator options',
     validateSchema: 'log',
-    $data: true,
   },
 };
 
@@ -80,6 +81,10 @@ exports.hooks = {};
  * @type {Object}
  */
 exports.accessTokens = {
-  // NOTE: MAKE SURE TO UPDATE THIS IN PRODUCTION
-  secret: 'dajskd12r1987das071241d-ar-01248120d7as-d98ays',
+  secret: {
+    $filter: 'env',
+    $default: 'dajskd12r1987das071241d-ar-01248120d7as-d98ays',
+    // NOTE: MAKE SURE TO SET THIS IN PRODUCTION
+    production: '',
+  },
 };

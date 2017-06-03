@@ -35,6 +35,7 @@ Makefile
 .env
 src
 .git
+ss
 
 # this is all that's still pretty useless
 .npmrc

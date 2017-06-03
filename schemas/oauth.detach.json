@@ -1,0 +1,15 @@
+{
+  "id": "oauth.detach",
+  "type": "object",
+  "required": ["username", "provider"],
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

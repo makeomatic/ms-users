@@ -1,7 +1,6 @@
 // This migrations adds created field for existing users
 //
 const fs = require('fs');
-const Promise = require('bluebird');
 
 const {
   USERS_INDEX,
@@ -27,17 +26,14 @@ const ARGS = [
 exports.min = MIN;
 exports.final = FINAL;
 
-exports.script = (service, pipeline, versionKey, appendLuaScript) => {
-  const audience = service.config.jwt.defaultAudience;
-  const lua = appendLuaScript(FINAL, MIN, SCRIPT);
+exports.script = (service) => {
+  const { config, redis } = service;
+  const audience = config.jwt.defaultAudience;
   const keys = [
-    versionKey,
     USERS_INDEX,
     `uid!${USERS_DATA}`,
     `uid!${USERS_METADATA}!${audience}`,
   ];
 
-  pipeline.eval(lua, keys.length, keys, ARGS);
-
-  return Promise.resolve(true);
+  return redis.eval(SCRIPT, keys.length, keys, ARGS);
 };

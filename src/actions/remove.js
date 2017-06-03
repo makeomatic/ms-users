@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const get = require('lodash/get');
 const intersection = require('lodash/intersection');
 const key = require('../utils/key');
 const getInternalData = require('../utils/getInternalData');
@@ -8,6 +9,7 @@ const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,
   USERS_PUBLIC_INDEX,
+  USERS_SSO_TO_LOGIN,
   USERS_ALIAS_TO_LOGIN,
   USERS_DATA,
   USERS_METADATA,
@@ -20,6 +22,7 @@ const {
   USERS_ACTION_PASSWORD,
   USERS_ACTION_REGISTER,
   THROTTLE_PREFIX,
+  SSO_PROVIDERS,
 } = require('../constants');
 
 // intersection of priority users
@@ -35,7 +38,7 @@ const ADMINS = [USERS_ADMIN_ROLE, USERS_SUPER_ADMIN_ROLE];
  *
  * @apiParam (Payload) {String} username - currently only email is supported
  */
-function removeUser(request) {
+module.exports = function removeUser(request) {
   const { username } = request.params;
   const audience = this.config.jwt.defaultAudience;
 
@@ -58,6 +61,14 @@ function removeUser(request) {
         transaction.hdel(USERS_ALIAS_TO_LOGIN, alias.toLowerCase(), alias);
       }
 
+      // remove refs to SSO account
+      SSO_PROVIDERS.forEach((provider) => {
+        const uid = get(internal, provider, false);
+        if (uid) {
+          transaction.hdel(USERS_SSO_TO_LOGIN, uid);
+        }
+      });
+
       // clean indices
       transaction.srem(USERS_PUBLIC_INDEX, username);
       transaction.srem(USERS_INDEX, username);
@@ -78,6 +89,6 @@ function removeUser(request) {
       // complete it
       return transaction.exec().then(handlePipeline);
     });
-}
+};
 
-module.exports = removeUser;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

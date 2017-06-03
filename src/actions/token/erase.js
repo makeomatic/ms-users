@@ -31,3 +31,5 @@ module.exports = function eraseToken({ params }) {
     .exec()
     .then(handlePipelineError);
 };
+
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

@@ -1,5 +1,6 @@
 const Errors = require('common-errors');
 const chai = require('chai');
+
 const { expect } = chai;
 
 describe('configuration suite', function ConfigurationSuite() {

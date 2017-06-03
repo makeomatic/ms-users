@@ -43,3 +43,5 @@ module.exports = function createToken({ params }) {
     .then(handlePipelineError)
     .return(token);
 };
+
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

@@ -1,7 +1,7 @@
-local usersIndex = KEYS[2]
-local usersIdsList = KEYS[3]
-local usersMeta = KEYS[4]
-local usersReferralIndex = KEYS[5]
+local usersIndex = KEYS[1]
+local usersIdsList = KEYS[2]
+local usersMeta = KEYS[3]
+local usersReferralIndex = KEYS[4]
 
 local referralField = ARGV[1]
 local uids = redis.call('lrange', usersIdsList, 0, -1)

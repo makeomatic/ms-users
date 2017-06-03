@@ -45,7 +45,7 @@ function decodedToken({ username }) {
  * @apiParam (Payload) {Boolean} [accessToken=false] - uses internal token verification if set to true
  *
  */
-function verify({ params }) {
+module.exports = function verify({ params }) {
   // basic context
   const audience = toArray(params.audience);
   const token = params.token;
@@ -65,6 +65,6 @@ function verify({ params }) {
     .spread(accessToken ? jwt.internal : jwt.verify)
     .bind(ctx)
     .then(decodedToken);
-}
+};
 
-module.exports = verify;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

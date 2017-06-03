@@ -168,7 +168,7 @@ function hook(user) {
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
  */
-function verifyChallenge({ params }) {
+module.exports = function verifyChallenge({ params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
   const { token, username } = params;
@@ -200,6 +200,6 @@ function verifyChallenge({ params }) {
     .bind(this)
     .then(user => [user, audience])
     .spread(jwt.login);
-}
+};
 
-module.exports = verifyChallenge;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

@@ -74,7 +74,7 @@ function verifyDisposablePassword(ctx, data) {
  */
 function getVerifyStrategy(data) {
   if (this.isSSO === true) {
-    return noop(data);
+    return null;
   }
 
   if (is.string(this.password) !== true || this.password.length < 1) {
@@ -130,7 +130,7 @@ function enrichError(err) {
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
-function login({ params }) {
+module.exports = function login({ params }) {
   const config = this.config.jwt;
   const { redis, tokenManager } = this;
   const { isDisposablePassword, isSSO, password } = params;
@@ -177,6 +177,6 @@ function login({ params }) {
     .then(getUserInfo)
     // enriches and rethrows
     .catch(enrichError);
-}
+};
 
-module.exports = login;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

@@ -72,7 +72,7 @@ function extractResponse(responses) {
  * @apiParam (Payload) {String[]} fields.* - fields to return from a passed audience
  *
  */
-function getMetadataAction(request) {
+module.exports = function getMetadataAction(request) {
   const {
     audience: _audience,
     username: _username,
@@ -98,6 +98,6 @@ function getMetadataAction(request) {
     .bind(ctx, usernames)
     .map(retrieveMetadata)
     .then(unnest);
-}
+};
 
-module.exports = getMetadataAction;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

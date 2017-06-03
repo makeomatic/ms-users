@@ -63,16 +63,14 @@ const argv = require('yargs')
 // deps
 const fs = require('fs');
 const Promise = require('bluebird');
-const conf = require('ms-conf');
 const AMQPTransport = require('ms-amqp-transport');
 const csvWriter = require('csv-write-stream');
-const merge = require('lodash/merge');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const moment = require('moment');
-const defaultOpts = require('../lib/config');
+const conf = require('../lib/config');
 
-const config = merge({}, defaultOpts, conf.get('/'));
+const config = conf.get('/', { env: process.env.NODE_ENV });
 const amqpConfig = omit(config.amqp.transport, ['queue', 'neck', 'listen', 'onComplete']);
 const audience = argv.audience || config.jwt.defaultAudience;
 const prefix = argv.prefix || config.router.routes.prefix;

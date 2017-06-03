@@ -1,4 +1,6 @@
+const conf = require('ms-conf');
 const path = require('path');
-const { globFiles } = require('ms-conf/lib/load-config');
 
-module.exports = globFiles(path.resolve(__dirname, 'configs'));
+conf.prependDefaultConfiguration(path.resolve(__dirname, './configs'));
+
+module.exports = conf;

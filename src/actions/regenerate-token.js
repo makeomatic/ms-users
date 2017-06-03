@@ -13,7 +13,7 @@ const { TOKEN_METADATA_FIELD_CONTEXT } = require('../constants');
  *
  * @apiSchema {jsonschema=../../schemas/regenerate-token.json} apiParam
  */
-function regenerateToken(request) {
+module.exports = function regenerateToken(request) {
   const { action, challengeType, id, uid } = request.params;
   const { tokenManager } = this;
   const args = uid ? { uid } : { action, id };
@@ -42,6 +42,6 @@ function regenerateToken(request) {
 
       return response;
     });
-}
+};
 
-module.exports = regenerateToken;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

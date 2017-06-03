@@ -2,12 +2,10 @@
 
 /* eslint-disable no-console */
 const Redis = require('ioredis').Cluster;
-const conf = require('ms-conf');
 const assert = require('assert');
-const defaults = require('../lib/config');
-const merge = require('lodash/merge');
+const conf = require('../lib/config');
 
-const config = merge({}, defaults, conf.get('/'));
+const config = conf.get('/', { env: process.env.NODE_ENV });
 const redisConfig = config.redis;
 const updatePassword = require('../lib/actions/updatePassword').updatePassword;
 

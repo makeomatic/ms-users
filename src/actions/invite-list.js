@@ -20,7 +20,7 @@ const {
  * @apiParam (Payload) {String} [criteria] - if supplied, sort will be performed based on this field
  * @apiParam (Payload) {Object} [filter] to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
  */
-function iterateOverInvites(request) {
+module.exports = function iterateOverInvites(request) {
   const { redis, tokenManager } = this;
   const { criteria, filter } = request.params;
   const strFilter = is.string(filter) ? filter : fsort.filter(filter || {});
@@ -52,6 +52,6 @@ function iterateOverInvites(request) {
       page: Math.floor(offset / limit) + 1,
       pages: Math.ceil(length / limit),
     }));
-}
+};
 
-module.exports = iterateOverInvites;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

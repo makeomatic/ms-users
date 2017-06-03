@@ -52,7 +52,7 @@
     "ms-mailer-templates": "^1.0.0",
     "ms-token": "^2.0.0",
     "ms-validation": "^5.0.1",
-    "mservice": "^7.0.0",
+    "mservice": "^8.0.0",
     "node-uuid": "^1.4.8",
     "password-generator": "^2.1.0",
     "redis-filtered-sort": "^2.2.1",
@@ -93,7 +93,7 @@
     "latest-version-cli": "^1.1.0",
     "lighthouse": "^1.6.5",
     "mocha": "^3.4.2",
-    "nyc": "^11.0.1",
+    "nyc": "^11.0.2",
     "rimraf": "^2.6.1",
     "semantic-release": "^6.3.2",
     "sinon": "^2.3.2"

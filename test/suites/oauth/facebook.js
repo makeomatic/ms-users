@@ -14,7 +14,7 @@ const {
   wait,
   clean,
   submit,
-  captureResponse,
+  captureResponseBody,
   captureScreenshot,
   exec,
 } = require('@makeomatic/deploy/bin/chrome');
@@ -67,23 +67,12 @@ function hostUrl(config) {
   return `http://localhost:${server.port}`;
 }
 
-function expect(code) {
-  return response => assert.equal(response.status, code);
-}
-
 function extractToken() {
   return Promise
     .bind(this, 'window.$ms_users_inj_post_message')
     .then(exec)
     .get('payload')
     .get('token');
-}
-
-function getResponseBody(response) {
-  const { Network } = this.protocol;
-  const { requestId } = response;
-
-  return Network.getResponseBody({ requestId }).then(it => it.body);
 }
 
 function createAccount(token) {
@@ -165,10 +154,9 @@ describe('#facebook', function oauthFacebookSuite() {
       .tap(wait)
       .then(submit)
       .tap(() => _debug('submitted'))
-      .return(/oauth\/facebook/)
-      .then(captureResponse)
-      .catch(captureScreenshot)
-      .tap(expect(401));
+      .return([/oauth\/facebook/, 401])
+      .spread(captureResponseBody)
+      .catch(captureScreenshot);
   });
 
   it('should be able to register via facebook', function test() {
@@ -230,18 +218,16 @@ describe('#facebook', function oauthFacebookSuite() {
       .tap(globalRegisterUser(username))
       .tap(globalAuthUser(username))
       .then(getFacebookToken)
-      .then(assert.ifError)
-      .catchReturn(TypeError)
+      // .then(assert.ifError)
+      // .catchReturn(TypeError)
       .catch(captureScreenshot)
       .tap(() => _debug('loggin in via facebook'))
       .then(() => {
         const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
 
         Page.navigate({ url: executeLink });
-        return Promise.bind(this, /oauth\/facebook/)
-          .then(captureResponse)
-          .tap(expect(200))
-          .then(getResponseBody)
+        return Promise.bind(this, [/oauth\/facebook/, 200])
+          .spread(captureResponseBody)
           .tap((body) => {
             const $ = cheerio.load(body);
             const vmScript = new vm.Script($('.no-js > body > script').html());
@@ -271,10 +257,9 @@ describe('#facebook', function oauthFacebookSuite() {
         const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
 
         Page.navigate({ url: executeLink });
-        return Promise.bind(this, /oauth\/facebook/)
-          .then(captureResponse)
-          .tap(expect(401))
-          .then(getResponseBody)
+        return Promise
+          .bind(this, [/oauth\/facebook/, 401])
+          .spread(captureResponseBody)
           .tap((body) => {
             const $ = cheerio.load(body);
             const vmScript = new vm.Script($('.no-js > body > script').html());
@@ -300,6 +285,7 @@ describe('#facebook', function oauthFacebookSuite() {
       .bind(this)
       .tap(globalRegisterUser(username))
       .tap(globalAuthUser(username))
+      .then(getFacebookToken)
       .catch(captureScreenshot)
       .tap(() => _debug('loggin in via facebook'))
       .then(() => {
@@ -307,19 +293,16 @@ describe('#facebook', function oauthFacebookSuite() {
 
         Page.navigate({ url: executeLink });
         return Promise
-          .bind(this, /oauth\/facebook/)
-          .then(captureResponse)
-          .tap(expect(200));
+          .bind(this, [/oauth\/facebook/, 200])
+          .spread(captureResponseBody);
       })
       .then(() => {
         const executeLink = `${serviceLink}/users/oauth/facebook`;
 
         Page.navigate({ url: executeLink });
         return Promise
-          .bind(this, /oauth\/facebook/)
-          .then(captureResponse)
-          .tap(expect(200))
-          .then(getResponseBody)
+          .bind(this, [/oauth\/facebook/, 200])
+          .spread(captureResponseBody)
           .tap((body) => {
             const $ = cheerio.load(body);
             const vmScript = new vm.Script($('.no-js > body > script').html());

@@ -2,13 +2,14 @@
 # yarn lockfile v1
 
 
-"@makeomatic/deploy@^1.6.4":
-  version "1.6.4"
-  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-1.6.4.tgz#84fc51aabc0f7b4d08e2f024ae817735490674f4"
+"@makeomatic/deploy@^1.7.19":
+  version "1.7.19"
+  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-1.7.19.tgz#fefdebd58c614fee27eadd831864255f14c0d8eb"
   dependencies:
     bluebird "^3.5.0"
     death "^1.1.0"
     glob "^7.1.2"
+    is "^3.2.1"
     ms-conf "^3.1.2"
     npm-path "^2.0.3"
     shelljs "^0.7.7"
@@ -2048,9 +2049,9 @@ handlebars@^4.0.3, handlebars@^4.0.5, handlebars@^4.0.6:
   optionalDependencies:
     uglify-js "^2.6"
 
-hapi@^16.3.0:
-  version "16.3.0"
-  resolved "https://registry.yarnpkg.com/hapi/-/hapi-16.3.0.tgz#f6aa6d480b26eb2141d1ebf535e278c49e840bf0"
+hapi@^16.3.1:
+  version "16.3.1"
+  resolved "https://registry.yarnpkg.com/hapi/-/hapi-16.3.1.tgz#5be09c256e20256456ccf098db37f312a5e626de"
   dependencies:
     accept "2.x.x"
     ammo "2.x.x"

@@ -50,17 +50,17 @@ const config = {
     waitChallenge: true,
   },
   migrations: {
-    // @TODO remove
-    // enabled: false,
-    // meta: {
-    //   generateUsersIds: {
-    //     audiences: ['api', 'ms-files'],
-    //   },
-    //   referralsUsersIds: {
-    //     referrals: ['cappasitycom_tutorial', 'cappasitycom', 'photigy'],
-    //   },
-    // },
-  },
+  // @TODO remove
+  //   enabled: true,
+  //   meta: {
+  //     generateUsersIds: {
+  //       audiences: ['api', 'ms-files'],
+  //     },
+  //     referralsUsersIds: {
+  //       referrals: ['cappasitycom_tutorial', 'cappasitycom', 'photigy'],
+  //     },
+  //   },
+  // },
 };
 
 function registerUser(username, opts = {}) {

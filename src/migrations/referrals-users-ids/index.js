@@ -2,9 +2,6 @@ const Promise = require('bluebird');
 const { USERS_REFERRAL_INDEX } = require('../../constants.js');
 const { getUserId } = require('../../utils/userData');
 
-const FINAL_VERSION = 5;
-const MIN_VERSION = 4;
-
 function referralsUsersIds({ redis, config, log }) {
   const { referrals } = config.migrations.meta.referralsUsersIds;
   const pipeline = redis.pipeline();
@@ -44,6 +41,6 @@ function referralsUsersIds({ redis, config, log }) {
 
 module.exports = {
   script: referralsUsersIds,
-  min: MIN_VERSION,
-  final: FINAL_VERSION,
+  min: 4,
+  final: 5,
 };

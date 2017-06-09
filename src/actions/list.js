@@ -1,9 +1,9 @@
 const Promise = require('bluebird');
-const redisKey = require('../utils/key.js');
 const mapValues = require('lodash/mapValues');
 const passThrough = require('lodash/identity');
 const fsort = require('redis-filtered-sort');
-const handlePipeline = require('../utils/pipelineError.js');
+const handlePipeline = require('../utils/pipelineError');
+const redisKey = require('../utils/key');
 const {
   USERS_INDEX,
   USERS_PUBLIC_INDEX,
@@ -29,6 +29,18 @@ function fetchIds() {
   return redis.fsort(keys, args);
 }
 
+function remapData(id, idx) {
+  const data = this.props[idx];
+  const account = {
+    id,
+    metadata: {
+      [this.audience]: data ? mapValues(data, JSONParse) : {},
+    },
+  };
+
+  return account;
+}
+
 // fetches user data
 function fetchUserData(ids) {
   const {
@@ -36,42 +48,30 @@ function fetchUserData(ids) {
     audience,
     offset,
     limit,
+    userIdsOnly,
   } = this;
 
   const length = +ids.pop();
 
   // fetch extra data
   let userIds;
-  if (length === 0 || ids.length === 0) {
-    userIds = Promise.resolve([[], [], length]);
+  if (length === 0 || ids.length === 0 || userIdsOnly === true) {
+    userIds = Promise.resolve();
   } else {
-    const pipeline = redis.pipeline();
-    ids.forEach((id) => {
-      pipeline.hgetall(redisKey(id, USERS_METADATA, audience));
-    });
-    userIds = pipeline.exec().then(handlePipeline);
+    userIds = redis.pipeline()
+      .addBatch(ids.map(id => [
+        'hgetall', redisKey(id, USERS_METADATA, audience),
+      ]))
+      .exec()
+      .then(handlePipeline);
   }
 
-  return userIds.then((props) => {
-    const users = ids.map(function remapData(id, idx) {
-      const data = props[idx];
-      const account = {
-        id,
-        metadata: {
-          [audience]: data ? mapValues(data, JSONParse) : {},
-        },
-      };
-
-      return account;
-    });
-
-    return {
-      users,
-      cursor: offset + limit,
-      page: Math.floor(offset / limit) + 1,
-      pages: Math.ceil(length / limit),
-    };
-  });
+  return userIds.then(props => ({
+    users: userIdsOnly === true ? ids : ids.map(remapData, { audience, props }),
+    cursor: offset + limit,
+    page: Math.floor(offset / limit) + 1,
+    pages: Math.ceil(length / limit),
+  }));
 }
 
 /**
@@ -91,10 +91,11 @@ function fetchUserData(ids) {
  * @apiParam (Payload) {String} audience - which namespace of metadata should be used for filtering & retrieving
  * @apiParam (Payload) {Mixed} [public=false] - when `true` returns only publicly marked users, if set to string - then uses referral index
  * @apiParam (Payload) {Object} [filter] to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
+ * @apiParam (Payload) {Boolean} [userIdsOnly=false] if set to true - will only return userIds
  */
 module.exports = function iterateOverActiveUsers({ params }) {
   const { redis } = this;
-  const { criteria, audience, filter, expiration = 30000 } = params;
+  const { criteria, audience, filter, userIdsOnly, expiration } = params;
   const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
   const order = params.order || 'ASC';
   const offset = params.offset || 0;
@@ -136,7 +137,10 @@ module.exports = function iterateOverActiveUsers({ params }) {
     // used in 2 places, hence separate args
     offset,
     limit,
+
+    // extra settings
     keyOnly,
+    userIdsOnly,
 
     // extra args
     audience,

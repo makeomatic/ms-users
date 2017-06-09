@@ -111,12 +111,10 @@ describe('#facebook', function oauthFacebookSuite() {
       Promise
         .bind(this, 'input#email')
         .then(wait)
-        .tap(captureScreenshot)
         .return(['input#email', cache.testUser.email])
         .spread(type)
         .return(['input#pass', cache.testUser.password])
         .spread(type)
-        .then(captureScreenshot)
         .return('button[name=login]')
         .then(submit)
         .catch(captureScreenshot)

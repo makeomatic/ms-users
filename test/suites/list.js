@@ -57,10 +57,13 @@ describe('#list', function listSuite() {
       expect(result.pages).to.be.eq(11);
       expect(result.cursor).to.be.eq(61);
       expect(result.users).to.have.lengthOf(10);
-      expect(result.users[0]).to.have.ownProperty('id');
-      expect(result.users[0]).to.have.ownProperty('metadata');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+
+      result.users.forEach((user) => {
+        expect(user).to.have.ownProperty('id');
+        expect(user).to.have.ownProperty('metadata');
+        expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
+        expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+      });
 
       const copy = [].concat(result.users);
       copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
@@ -81,10 +84,13 @@ describe('#list', function listSuite() {
     .then(inspectPromise())
     .then((result) => {
       expect(result.users).to.have.lengthOf(10);
-      expect(result.users[0]).to.have.ownProperty('id');
-      expect(result.users[0]).to.have.ownProperty('metadata');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+
+      result.users.forEach((user) => {
+        expect(user).to.have.ownProperty('id');
+        expect(user).to.have.ownProperty('metadata');
+        expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
+        expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+      });
 
       const copy = [].concat(result.users);
       copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
@@ -107,10 +113,13 @@ describe('#list', function listSuite() {
     .then(inspectPromise())
     .then((result) => {
       expect(result.users).to.have.length.lte(10);
-      expect(result.users[0]).to.have.ownProperty('id');
-      expect(result.users[0]).to.have.ownProperty('metadata');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+
+      result.users.forEach((user) => {
+        expect(user).to.have.ownProperty('id');
+        expect(user).to.have.ownProperty('metadata');
+        expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
+        expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+      });
 
       const copy = [].concat(result.users);
       copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
@@ -137,10 +146,13 @@ describe('#list', function listSuite() {
     .then(inspectPromise())
     .then((result) => {
       expect(result.users).to.have.length.lte(10);
-      expect(result.users[0]).to.have.ownProperty('id');
-      expect(result.users[0]).to.have.ownProperty('metadata');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+
+      result.users.forEach((user) => {
+        expect(user).to.have.ownProperty('id');
+        expect(user).to.have.ownProperty('metadata');
+        expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
+        expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+      });
 
       const copy = [].concat(result.users);
       copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
@@ -166,10 +178,13 @@ describe('#list', function listSuite() {
     .then(inspectPromise())
     .then((result) => {
       expect(result.users).to.have.length.lte(10);
-      expect(result.users[0]).to.have.ownProperty('id');
-      expect(result.users[0]).to.have.ownProperty('metadata');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+
+      result.users.forEach((user) => {
+        expect(user).to.have.ownProperty('id');
+        expect(user).to.have.ownProperty('metadata');
+        expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
+        expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+      });
 
       const copy = [].concat(result.users);
       copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() > b.metadata[this.audience].firstName.toLowerCase());
@@ -191,10 +206,13 @@ describe('#list', function listSuite() {
     .then(inspectPromise())
     .then((result) => {
       expect(result.users).to.have.length.lte(10);
-      expect(result.users[0]).to.have.ownProperty('id');
-      expect(result.users[0]).to.have.ownProperty('metadata');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+
+      result.users.forEach((user) => {
+        expect(user).to.have.ownProperty('id');
+        expect(user).to.have.ownProperty('metadata');
+        expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
+        expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+      });
 
       const copy = [].concat(result.users);
       copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
@@ -219,10 +237,13 @@ describe('#list', function listSuite() {
     .then(inspectPromise())
     .then((result) => {
       expect(result.users).to.have.length.lte(10);
-      expect(result.users[0]).to.have.ownProperty('id');
-      expect(result.users[0]).to.have.ownProperty('metadata');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+
+      result.users.forEach((user) => {
+        expect(user).to.have.ownProperty('id');
+        expect(user).to.have.ownProperty('metadata');
+        expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
+        expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+      });
 
       const copy = [].concat(result.users);
       copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
@@ -252,10 +273,13 @@ describe('#list', function listSuite() {
     .then(inspectPromise())
     .then((result) => {
       expect(result.users).to.have.length.lte(10);
-      expect(result.users[0]).to.have.ownProperty('id');
-      expect(result.users[0]).to.have.ownProperty('metadata');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('firstName');
-      expect(result.users[0].metadata[this.audience]).to.have.ownProperty('lastName');
+
+      result.users.forEach((user) => {
+        expect(user).to.have.ownProperty('id');
+        expect(user).to.have.ownProperty('metadata');
+        expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
+        expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+      });
 
       const copy = [].concat(result.users);
       copy.sort((a, b) => a.metadata[this.audience].lastName.toLowerCase() > b.metadata[this.audience].lastName.toLowerCase());
@@ -266,6 +290,30 @@ describe('#list', function listSuite() {
       });
 
       expect(copy).to.be.deep.eq(result.users);
+    });
+  });
+
+  describe('.userIdsOnly returns only []ids', function userIdsOnlySuite() {
+    it('run query with ids only', function test() {
+      return this.dispatch('users.list', {
+        userIdsOnly: true,
+        audience: this.audience,
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then((result) => {
+        expect(result.page).to.be.eq(1);
+        expect(result.pages).to.be.eq(11);
+        expect(result.cursor).to.be.eq(10);
+
+        expect(result.users).to.have.lengthOf(10);
+        expect(Array.isArray(result.users)).to.be.eq(true);
+
+        // ensure that raw ids are returned
+        result.users.forEach((id) => {
+          expect(typeof id).to.be.eq('string');
+        });
+      });
     });
   });
 });

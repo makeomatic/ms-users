@@ -2,21 +2,22 @@
 # yarn lockfile v1
 
 
-"@makeomatic/deploy@^1.6.4":
-  version "1.6.4"
-  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-1.6.4.tgz#84fc51aabc0f7b4d08e2f024ae817735490674f4"
+"@makeomatic/deploy@^1.8.5":
+  version "1.8.5"
+  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-1.8.5.tgz#2b10f0882a02446bb53b25f896ee3cba16d37a8e"
   dependencies:
     bluebird "^3.5.0"
     death "^1.1.0"
     glob "^7.1.2"
+    is "^3.2.1"
     ms-conf "^3.1.2"
     npm-path "^2.0.3"
-    shelljs "^0.7.7"
+    shelljs "^0.7.8"
     yargs "^8.0.1"
 
-"@microfleet/core@^8.0.1":
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-8.0.1.tgz#d37f371b2a9b06e71e8337077dfc611444be1f54"
+"@microfleet/core@^8.0.4":
+  version "8.0.4"
+  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-8.0.4.tgz#3e51a78974c79b8fcb7428d214779de4808d1655"
   dependencies:
     bluebird "^3.5.0"
     callsite "^1.0.0"
@@ -339,9 +340,9 @@ aws4@^1.2.1:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.6.0.tgz#83ef5ca860b2b32e4a0deedee8c771b9db57471e"
 
-axe-core@2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-2.2.0.tgz#00b410b3fc899207d4f2f8e3753cff150d34e4bb"
+axe-core@2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-2.2.1.tgz#d8fe7be13e2d80e407f96d3374ed64d5fb1c3e54"
 
 b64@3.x.x:
   version "3.0.2"
@@ -802,9 +803,9 @@ center-align@^0.1.1:
     align-text "^0.1.3"
     lazy-cache "^1.0.3"
 
-chai@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/chai/-/chai-4.0.1.tgz#9e41e808e17a7f10807721e2ac5a589d5bb09082"
+chai@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/chai/-/chai-4.0.2.tgz#2f7327c4de6f385dd7787999e2ab02697a32b83b"
   dependencies:
     assertion-error "^1.0.1"
     check-error "^1.0.1"
@@ -877,9 +878,9 @@ chrome-devtools-frontend@1.0.422034:
   version "1.0.422034"
   resolved "https://registry.yarnpkg.com/chrome-devtools-frontend/-/chrome-devtools-frontend-1.0.422034.tgz#071c8ce14466b7653032fcd1ad1a4a68d5e3cbd9"
 
-chrome-remote-interface@^0.23.1:
-  version "0.23.1"
-  resolved "https://registry.yarnpkg.com/chrome-remote-interface/-/chrome-remote-interface-0.23.1.tgz#7c45235229ac5be953d3f5521f6b64805810f5e6"
+chrome-remote-interface@^0.23.2:
+  version "0.23.2"
+  resolved "https://registry.yarnpkg.com/chrome-remote-interface/-/chrome-remote-interface-0.23.2.tgz#f6884b44fb2087c468fcdff8393599da242ab070"
   dependencies:
     commander "2.1.x"
     ws "2.0.x"
@@ -1055,9 +1056,9 @@ create-error-class@^3.0.0:
   dependencies:
     capture-stack-trace "^1.0.0"
 
-cross-env@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-5.0.0.tgz#565ccae4d09676441a5087f406fe7661a29c931b"
+cross-env@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-5.0.1.tgz#ff4e72ea43b47da2486b43a7f2043b2609e44913"
   dependencies:
     cross-spawn "^5.1.0"
     is-windows "^1.0.0"
@@ -2048,9 +2049,9 @@ handlebars@^4.0.3, handlebars@^4.0.5, handlebars@^4.0.6:
   optionalDependencies:
     uglify-js "^2.6"
 
-hapi@^16.3.0:
-  version "16.3.0"
-  resolved "https://registry.yarnpkg.com/hapi/-/hapi-16.3.0.tgz#f6aa6d480b26eb2141d1ebf535e278c49e840bf0"
+hapi@^16.4.3:
+  version "16.4.3"
+  resolved "https://registry.yarnpkg.com/hapi/-/hapi-16.4.3.tgz#be4daaf2dcdbee97957ce503061b09765078aa05"
   dependencies:
     accept "2.x.x"
     ammo "2.x.x"
@@ -2065,10 +2066,10 @@ hapi@^16.3.0:
     items "2.x.x"
     joi "10.x.x"
     mimos "3.x.x"
-    podium "^1.2.x"
+    podium "1.x.x"
     shot "3.x.x"
     statehood "5.x.x"
-    subtext "^4.3.x"
+    subtext "4.x.x"
     topo "2.x.x"
 
 har-schema@^1.0.5:
@@ -2687,11 +2688,11 @@ levn@^0.3.0, levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-lighthouse@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/lighthouse/-/lighthouse-2.0.0.tgz#55962239ab858eadf46af03468ae1ca17703fde2"
+lighthouse@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/lighthouse/-/lighthouse-2.1.0.tgz#caa6a3993e3b22098f82f2f745e16cda84c71aa3"
   dependencies:
-    axe-core "2.2.0"
+    axe-core "2.2.1"
     chrome-devtools-frontend "1.0.422034"
     debug "2.2.0"
     devtools-timeline-model "1.1.6"
@@ -3681,7 +3682,7 @@ pluralize@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-1.2.1.tgz#d1a21483fd22bb41e58a12fa3421823140897c45"
 
-podium@^1.2.x:
+podium@1.x.x:
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/podium/-/podium-1.2.5.tgz#87c566c2f0365bcf0a1ec7602c4d01948cdd2ad5"
   dependencies:
@@ -4166,9 +4167,9 @@ shebang-regex@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-1.0.0.tgz#da42f49740c0b42db2ca9728571cb190c98efea3"
 
-shelljs@^0.7.5, shelljs@^0.7.7:
-  version "0.7.7"
-  resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.7.7.tgz#b2f5c77ef97148f4b4f6e22682e10bba8667cff1"
+shelljs@^0.7.5, shelljs@^0.7.8:
+  version "0.7.8"
+  resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.7.8.tgz#decbcf874b0d1e5fb72e14b164a9683048e9acb3"
   dependencies:
     glob "^7.0.0"
     interpret "^1.0.0"
@@ -4406,15 +4407,15 @@ strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
 
-subtext@^4.3.x:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/subtext/-/subtext-4.4.0.tgz#0cf137965f47fe0e126a56a2488bb1c88dc93514"
+subtext@4.x.x:
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/subtext/-/subtext-4.4.1.tgz#2fcec945de429283c3d18b151ff0fa1f1b87aec9"
   dependencies:
-    boom "4.x.x"
+    boom "5.x.x"
     content "3.x.x"
     hoek "4.x.x"
     pez "2.x.x"
-    wreck "10.x.x"
+    wreck "12.x.x"
 
 supports-color@3.1.2, supports-color@^3.1.2:
   version "3.1.2"
@@ -4822,6 +4823,13 @@ wreck@10.x.x:
   resolved "https://registry.yarnpkg.com/wreck/-/wreck-10.0.0.tgz#98ab882f85e16a526332507f101f5a7841162278"
   dependencies:
     boom "4.x.x"
+    hoek "4.x.x"
+
+wreck@12.x.x:
+  version "12.2.2"
+  resolved "https://registry.yarnpkg.com/wreck/-/wreck-12.2.2.tgz#e21823d34c36d672004eefa347ae8c4f6050e3db"
+  dependencies:
+    boom "5.x.x"
     hoek "4.x.x"
 
 write-file-atomic@^1.1.4:

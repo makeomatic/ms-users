@@ -14,9 +14,10 @@ const {
   wait,
   clean,
   submit,
-  captureResponse,
+  captureResponseBody,
   captureScreenshot,
-} = require('../../helpers/chrome');
+  exec,
+} = require('@makeomatic/deploy/bin/chrome');
 
 const graphApi = request.defaults({
   baseUrl: 'https://graph.facebook.com/v2.9',
@@ -29,12 +30,13 @@ const graphApi = request.defaults({
 const cache = {};
 const defaultAudience = '*.localhost';
 
-function createTestUserAPI() {
+function createTestUserAPI(props = {}) {
   return graphApi({
     uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
     method: 'POST',
     body: {
       installed: false,
+      ...props,
     },
   })
   .promise();
@@ -65,30 +67,12 @@ function hostUrl(config) {
   return `http://localhost:${server.port}`;
 }
 
-function expect(code) {
-  return response => assert.equal(response.status, code);
-}
-
 function extractToken() {
-  const { Runtime } = this.protocol;
-
-  return Runtime.evaluate({
-    expression: 'window.$ms_users_inj_post_message',
-    returnByValue: true,
-    includeCommandLineAPI: true,
-  })
-  .then(({ result, exceptionDetails }) => {
-    if (exceptionDetails) throw new Error(exceptionDetails.exception.description);
-    _debug('extracted token:', result.value.payload.token);
-    return result.value.payload.token;
-  });
-}
-
-function getResponseBody(response) {
-  const { Network } = this.protocol;
-  const { requestId } = response;
-
-  return Network.getResponseBody({ requestId }).then(it => it.body);
+  return Promise
+    .bind(this, 'window.$ms_users_inj_post_message')
+    .then(exec)
+    .get('payload')
+    .get('token');
 }
 
 function createAccount(token) {
@@ -127,12 +111,10 @@ describe('#facebook', function oauthFacebookSuite() {
       Promise
         .bind(this, 'input#email')
         .then(wait)
-        .tap(captureScreenshot)
         .return(['input#email', cache.testUser.email])
         .spread(type)
         .return(['input#pass', cache.testUser.password])
         .spread(type)
-        .then(captureScreenshot)
         .return('button[name=login]')
         .then(submit)
         .catch(captureScreenshot)
@@ -143,19 +125,18 @@ describe('#facebook', function oauthFacebookSuite() {
     return Promise.bind(this)
       .then(initiateAuth)
       .delay(1000)
-      .tap(captureScreenshot)
       .return('button[name=__CONFIRM__]')
       .tap(wait)
-      .catch(captureScreenshot)
-      .then(submit);
+      .then(submit)
+      .catch(captureScreenshot);
   }
 
   function getFacebookToken() {
     return authenticate.call(this)
       .return('.no-js > body > script')
       .then(wait)
-      .catch(captureScreenshot)
-      .then(extractToken);
+      .then(extractToken)
+      .catch(captureScreenshot);
   }
 
   it('should able to retrieve faceboook profile', function test() {
@@ -169,13 +150,11 @@ describe('#facebook', function oauthFacebookSuite() {
       .then(initiateAuth)
       .return('button[name=__CANCEL__]')
       .tap(wait)
-      .tap(captureScreenshot)
       .then(submit)
       .tap(() => _debug('submitted'))
-      .return(/oauth\/facebook/)
-      .then(captureResponse)
-      .catch(captureScreenshot)
-      .tap(expect(401));
+      .return([/oauth\/facebook/, 401])
+      .spread(captureResponseBody)
+      .catch(captureScreenshot);
   });
 
   it('should be able to register via facebook', function test() {
@@ -237,18 +216,16 @@ describe('#facebook', function oauthFacebookSuite() {
       .tap(globalRegisterUser(username))
       .tap(globalAuthUser(username))
       .then(getFacebookToken)
-      .then(assert.ifError)
-      .catchReturn(TypeError)
+      // .then(assert.ifError)
+      // .catchReturn(TypeError)
       .catch(captureScreenshot)
       .tap(() => _debug('loggin in via facebook'))
       .then(() => {
         const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
 
         Page.navigate({ url: executeLink });
-        return Promise.bind(this, /oauth\/facebook/)
-          .then(captureResponse)
-          .tap(expect(200))
-          .then(getResponseBody)
+        return Promise.bind(this, [/oauth\/facebook/, 200])
+          .spread(captureResponseBody)
           .tap((body) => {
             const $ = cheerio.load(body);
             const vmScript = new vm.Script($('.no-js > body > script').html());
@@ -278,10 +255,9 @@ describe('#facebook', function oauthFacebookSuite() {
         const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
 
         Page.navigate({ url: executeLink });
-        return Promise.bind(this, /oauth\/facebook/)
-          .then(captureResponse)
-          .tap(expect(401))
-          .then(getResponseBody)
+        return Promise
+          .bind(this, [/oauth\/facebook/, 401])
+          .spread(captureResponseBody)
           .tap((body) => {
             const $ = cheerio.load(body);
             const vmScript = new vm.Script($('.no-js > body > script').html());
@@ -308,8 +284,6 @@ describe('#facebook', function oauthFacebookSuite() {
       .tap(globalRegisterUser(username))
       .tap(globalAuthUser(username))
       .then(getFacebookToken)
-      .then(assert.ifError)
-      .catchReturn(TypeError)
       .catch(captureScreenshot)
       .tap(() => _debug('loggin in via facebook'))
       .then(() => {
@@ -317,19 +291,16 @@ describe('#facebook', function oauthFacebookSuite() {
 
         Page.navigate({ url: executeLink });
         return Promise
-          .bind(this, /oauth\/facebook/)
-          .then(captureResponse)
-          .tap(expect(200));
+          .bind(this, [/oauth\/facebook/, 200])
+          .spread(captureResponseBody);
       })
       .then(() => {
         const executeLink = `${serviceLink}/users/oauth/facebook`;
 
         Page.navigate({ url: executeLink });
         return Promise
-          .bind(this, /oauth\/facebook/)
-          .then(captureResponse)
-          .tap(expect(200))
-          .then(getResponseBody)
+          .bind(this, [/oauth\/facebook/, 200])
+          .spread(captureResponseBody)
           .tap((body) => {
             const $ = cheerio.load(body);
             const vmScript = new vm.Script($('.no-js > body > script').html());
@@ -376,7 +347,7 @@ describe('#facebook', function oauthFacebookSuite() {
           });
       })
       .tap((registered) => {
-        /** verify that related account has been pruned from metadata */
+        /* verify that related account has been pruned from metadata */
         const { username, metadata } = registered.user;
         return this.dispatch('users.getMetadata', { username, audience: Object.keys(metadata) })
           .reflect()
@@ -388,7 +359,7 @@ describe('#facebook', function oauthFacebookSuite() {
           });
       })
       .tap((registered) => {
-        /** verify that related account has been pruned from internal data */
+        /* verify that related account has been pruned from internal data */
         const { username } = registered.user;
         return this.dispatch('users.getInternalData', { username })
           .reflect()
@@ -398,7 +369,7 @@ describe('#facebook', function oauthFacebookSuite() {
           });
       })
       .tap(() => {
-        /** verify that related account has been dereferenced */
+        /* verify that related account has been dereferenced */
         return this.dispatch('users.getInternalData', { username: uid })
           .reflect()
           .then(inspectPromise(false))

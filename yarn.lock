@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@makeomatic/deploy@^1.8.1":
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-1.8.1.tgz#9e15cda1f3f4df70d7b266eff6dae659d39e36a8"
+"@makeomatic/deploy@^1.8.2":
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-1.8.2.tgz#dae4cd9caa0945e689afcf570bd1b4f3277300d3"
   dependencies:
     bluebird "^3.5.0"
     death "^1.1.0"
@@ -12,7 +12,7 @@
     is "^3.2.1"
     ms-conf "^3.1.2"
     npm-path "^2.0.3"
-    shelljs "^0.7.7"
+    shelljs "^0.7.8"
     yargs "^8.0.1"
 
 "@microfleet/core@^8.0.1":
@@ -4167,9 +4167,17 @@ shebang-regex@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-1.0.0.tgz#da42f49740c0b42db2ca9728571cb190c98efea3"
 
-shelljs@^0.7.5, shelljs@^0.7.7:
+shelljs@^0.7.5:
   version "0.7.7"
   resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.7.7.tgz#b2f5c77ef97148f4b4f6e22682e10bba8667cff1"
+  dependencies:
+    glob "^7.0.0"
+    interpret "^1.0.0"
+    rechoir "^0.6.2"
+
+shelljs@^0.7.8:
+  version "0.7.8"
+  resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.7.8.tgz#decbcf874b0d1e5fb72e14b164a9683048e9acb3"
   dependencies:
     glob "^7.0.0"
     interpret "^1.0.0"

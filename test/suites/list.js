@@ -304,7 +304,7 @@ describe('#list', function listSuite() {
       .then((result) => {
         expect(result.page).to.be.eq(1);
         expect(result.pages).to.be.eq(11);
-        expect(result.cursor).to.be.eq(11);
+        expect(result.cursor).to.be.eq(10);
 
         expect(result.users).to.have.lengthOf(10);
         expect(Array.isArray(result.users)).to.be.eq(true);

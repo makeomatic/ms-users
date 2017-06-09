@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
-    "@microfleet/core": "^8.0.1",
+    "@microfleet/core": "^8.0.2",
     "babel-runtime": "^6.23.0",
     "bell": "^8.5.0",
     "bluebird": "^3.5.0",
@@ -38,7 +38,7 @@
     "flake-idgen": "^1.1.0",
     "get-stdin": "^5.0.1",
     "handlebars": "^4.0.6",
-    "hapi": "^16.4.2",
+    "hapi": "^16.4.3",
     "ioredis": "^3.1.1",
     "is": "^3.2.1",
     "jsonwebtoken": "^7.4.1",
@@ -66,7 +66,7 @@
     "yargs": "^8.0.1"
   },
   "devDependencies": {
-    "@makeomatic/deploy": "^1.8.4",
+    "@makeomatic/deploy": "^1.8.5",
     "apidoc": "^0.17.6",
     "apidoc-plugin-schema": "^0.1.5",
     "babel-cli": "^6.24.1",

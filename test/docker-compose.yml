@@ -7,7 +7,6 @@ services:
     image: makeomatic/redis-cluster:3.2.8
 
   rabbitmq:
-    expose:
     image: makeomatic/rabbitmq:3.6.9
     container_name: rabbitmq
     hostname: rabbitmq

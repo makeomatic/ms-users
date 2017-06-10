@@ -1,87 +1,76 @@
 {
-    "$id": "common.json",
-    "definitions": {
-        "uuid-v4": {
-            "type": "string",
-            "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$"
-        },
-        "filter": {
-            "type": "object",
-            "properties": {
-                "#multi": {
-                    "type": "object",
-                    "required": [
-                        "fields",
-                        "match"
-                    ],
-                    "properties": {
-                        "fields": {
-                            "type": "array",
-                            "minItems": 1,
-                            "items": {
-                                "type": "string",
-                                "minLength": 1
-                            }
-                        },
-                        "match": {
-                            "type": "string",
-                            "minLength": 1
-                        }
-                    }
-                }
+  "$id": "common.json",
+  "definitions": {
+    "uuid-v4": {
+      "type": "string",
+      "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$"
+    },
+    "filter": {
+      "type": "object",
+      "properties": {
+        "#multi": {
+          "type": "object",
+          "required": ["fields", "match"],
+          "properties": {
+            "fields": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
             },
-            "patternProperties": {
-                "^.+$": {
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        {
-                            "type": "object",
-                            "minProperties": 1,
-                            "maxProperties": 2,
-                            "properties": {
-                                "patternProperties": {
-                                    "^(ne|eq|match)$": {
-                                        "type": "string",
-                                        "minLength": 1
-                                    },
-                                    "^(gte|lte)$": {
-                                        "type": "number"
-                                    },
-                                    "^(exists|isempty)$": {
-                                        "type": "boolean",
-                                        "constant": true
-                                    }
-                                }
-                            }
-                        }
-                    ]
-                }
+            "match": {
+              "type": "string",
+              "minLength": 1
             }
-        },
-        "challengeType": {
-            "description": "Challenge type",
-            "enum": [
-                "email",
-                "phone"
-            ],
-            "type": "string"
-        },
-        "userId": {
-            "type": "string",
-            "oneOf": [
-                {
-                    "format": "email"
-                },
-                {
-                    "pattern": "^\\d+$"
-                },
-                {
-                    "pattern": "^(fb|sso)/[\\d_]+$"
-                }
-            ]
+          }
         }
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "type": "object",
+            "minProperties": 1,
+            "maxProperties": 2,
+            "properties": {
+              "patternProperties": {
+                "^(ne|eq|match)$": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "^(gte|lte)$": {
+                  "type": "number"
+                },
+                "^(exists|isempty)$": {
+                  "type": "boolean",
+                  "constant": true
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "challengeType": {
+      "description": "Challenge type",
+      "enum": [
+        "email",
+        "phone"
+      ],
+      "type": "string"
+    },
+    "userId": {
+      "type": "string",
+      "oneOf": [
+        { "format": "email" },
+        { "pattern": "^\\d+$" },
+        { "pattern": "^(fb|sso)/[\\d_]+$" }
+      ]
     }
+  }
 }

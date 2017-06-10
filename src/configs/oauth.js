@@ -11,6 +11,9 @@ exports.oauth = {
       $default: 'dajs123jnida071241d-ar-01129hbad7as-akd810',
       production: '',
     },
+    extra: {
+      expiresIn: '1h',
+    },
   },
   providers: {
     facebook: {

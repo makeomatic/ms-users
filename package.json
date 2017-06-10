@@ -6,11 +6,11 @@
     "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
     "pretest": "npm run compile",
     "test": "npm run lint && npm run test:integration -- -r flake-idgen -r ms-flakeless -r scrypt",
-    "test:integration": "mkdir ./ss; mdep test run",
+    "test:integration": "mkdir -p ./ss && mdep test run",
     "lint": "eslint ./src",
     "doc": "cd ./schemas && apidoc -i ../src/actions -v --debug -o ../docs",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "docker-release": "mdep docker release --node 8.0.0",
+    "docker-release": "mdep docker release --node 8.1.0",
     "release": "yarn; npm run semantic-release; ./scripts/release.sh",
     "start": "node ./bin/mservice.js | bunyan -o short"
   },
@@ -108,6 +108,12 @@
   },
   "engines": {
     "node": ">= 7.6.0",
-    "npm": ">= 3.0.0"
-  }
+    "npm": ">= 4.0.0"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "src/",
+    "yarn.lock"
+  ]
 }

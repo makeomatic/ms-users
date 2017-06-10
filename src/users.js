@@ -9,7 +9,6 @@ const LockManager = require('dlock');
 const get = require('lodash/get');
 const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
-const { NotImplementedError } = require('common-errors');
 const conf = require('./config');
 
 /**
@@ -30,6 +29,8 @@ module.exports = class Users extends Mservice {
    */
   constructor(opts = {}) {
     super(merge({}, Users.defaultOpts, opts));
+
+    // cached ref
     const config = this.config;
 
     // id generator
@@ -49,9 +50,6 @@ module.exports = class Users extends Mservice {
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
       this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
-
-      // run migrations
-      this.migrate('redis', `${__dirname}/migrations`);
     });
 
     this.on('plugin:start:http', (server) => {
@@ -73,23 +71,16 @@ module.exports = class Users extends Mservice {
       this.dlock = null;
       this.tokenManager = null;
     });
-  }
 
-  /**
-   * Getter for mailer client
-   * @return {Object}
-   */
-  get mailer() {
-    const mailer = this._mailer;
-    return mailer || this.emit('error', new NotImplementedError('amqp is not connected'));
-  }
+    // add migration connector
+    if (config.migrations.enabled === true) {
+      this.addConnector(Mservice.ConnectorsTypes.migration, () => (
+        this.migrate('redis', `${__dirname}/migrations`)
+      ));
+    }
 
-  /**
-   * Getter for configuration
-   * @return {Object}
-   */
-  get config() {
-    return this._config;
+    // adds mailer connector
+    this._defineGetter('mailer');
   }
 
   /**
@@ -118,7 +109,7 @@ module.exports = class Users extends Mservice {
 
   /**
    * Gracefully disconnect from the cluster
-   * @return {Promise}
+   * @returns {Promise}
    */
   close() {
     return Promise
@@ -127,13 +118,13 @@ module.exports = class Users extends Mservice {
 
   /**
    * Initializes Admin accounts
-   * @return {Promise}
+   * @returns {Promise}
    */
   initAdminAccounts = require('./accounts/init-admin.js');
 
   /**
    * Initializes fake account for dev purposes
-   * @return {Promise}
+   * @returns {Promise}
    */
   initFakeAccounts = require('./accounts/init-dev.js');
 

@@ -8,17 +8,13 @@ services:
 
   rabbitmq:
     expose:
-      - "4369"
-      - "5672"
-      - "15672"
-      - "25672"
     image: makeomatic/rabbitmq:3.6.9
     container_name: rabbitmq
     hostname: rabbitmq
 
   tester:
     container_name: tester
-    image: makeomatic/node:8.0.0-vips-tester-chrome
+    image: makeomatic/node:8.1.0-vips-tester-chrome
     links:
       - redis
       - rabbitmq

@@ -67,7 +67,7 @@
     "yargs": "^8.0.1"
   },
   "devDependencies": {
-    "@makeomatic/deploy": "^1.9.5",
+    "@makeomatic/deploy": "^1.9.6",
     "apidoc": "^0.17.6",
     "apidoc-plugin-schema": "^0.1.5",
     "babel-cli": "^6.24.1",

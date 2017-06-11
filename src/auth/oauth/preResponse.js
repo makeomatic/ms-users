@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const ActionTransport = require('@microfleet/core').ActionTransport;
 const url = require('url');
 const is = require('is');
+const serializeError = require('serialize-error');
 const serialize = require('serialize-javascript');
 const { Redirect } = require('./utils/errors');
 const { AuthenticationRequiredError } = require('common-errors');
@@ -31,11 +32,16 @@ module.exports = [{
     });
 
     const message = error ? {
-      payload: is.fn(error.toJSON) ? error.toJSON() : JSON.stringify(error),
+      payload: is.fn(error.toJSON) ? error.toJSON() : serializeError(error),
       error: true,
       type: 'ms-users:attached',
       title: 'Failed to attach account',
     } : result;
+
+    // erase stack, no need to push it out
+    if (error && message.payload.stack) {
+      message.payload.stack = undefined;
+    }
 
     let response = request.transportRequest.sendView('providerAttached', {
       targetOrigin,

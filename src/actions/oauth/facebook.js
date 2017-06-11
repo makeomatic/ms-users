@@ -22,7 +22,7 @@ module.exports = function facebookCallbackAction(request) {
 
   // input data
   // TODO: customize what to encode
-  const { uid, provider, email, profile, internals } = account;
+  const { uid, provider, email, profile, internals, missingPermissions } = account;
 
   // compose facebook context, would be encoded
   const facebook = {
@@ -39,6 +39,7 @@ module.exports = function facebookCallbackAction(request) {
     .then(context => ({
       payload: context,
       error: false,
+      missingPermissions,
       type: 'ms-users:attached',
       title: `Attached ${provider} account`,
     }));
@@ -52,4 +53,5 @@ module.exports.allowed = function isAllowed(request) {
 
 module.exports.auth = 'oauth';
 module.exports.strategy = 'facebook';
+module.exports.passAuthError = true;
 module.exports.transports = [require('@microfleet/core').ActionTransport.http];

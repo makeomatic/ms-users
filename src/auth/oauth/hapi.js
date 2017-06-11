@@ -8,8 +8,9 @@ const strategies = require('./providers');
 const isArray = Array.isArray;
 const stringToArray = (scope, scopeSeparator) => (isArray(scope) ? scope : scope.split(scopeSeparator));
 const hapiOauthHandler = (request, reply) => {
-  const { redirectUri } = request;
+  const redirectUri = request.response.redirectUri;
 
+  // redirect if redirectURI is present
   if (redirectUri) {
     return reply.redirect(redirectUri);
   }
@@ -41,7 +42,13 @@ module.exports = function OauthHandler(server, config) {
 
     let provider;
     const defaultOptions = strategy.options;
-    const { scope, fields, profileHandler, scopeSeparator, apiVersion, enabled, ...rest } = options;
+    const { scope, fields, profileHandler, scopeSeparator, apiVersion, enabled, retryOnMissingPermissions, ...rest } = options;
+
+    // make sure runtime params are allowed in we want to retry as we need to defined dynamic
+    // redirect params
+    if (retryOnMissingPermissions === true) {
+      rest.allowRuntimeProviderParams = true;
+    }
 
     if (defaultOptions) {
       const configuredOptions = {
@@ -51,7 +58,7 @@ module.exports = function OauthHandler(server, config) {
       };
 
       if (is.fn(defaultOptions)) {
-        provider = defaultOptions({ ...configuredOptions, apiVersion, fields, profileHandler });
+        provider = defaultOptions({ ...configuredOptions, retryOnMissingPermissions, apiVersion, fields, profileHandler });
       } else {
         provider = defaults(configuredOptions, defaultOptions);
       }

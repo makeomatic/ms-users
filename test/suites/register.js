@@ -1,5 +1,5 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const times = require('lodash/times');
 const assert = require('assert');

@@ -1,4 +1,4 @@
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 
 describe('#AMQP', function AMQPSuite() {
@@ -11,7 +11,7 @@ describe('#AMQP', function AMQPSuite() {
     return this.users.amqp.publishAndWait('users.verify', { token: 'invalid-token', audience })
       .reflect()
       .then(inspectPromise(false))
-      .then(error => {
+      .then((error) => {
         expect(error.name).to.be.eq('HttpStatusError');
         expect(error.statusCode).to.be.eq(403);
         expect(error.message).to.be.eq('invalid token');

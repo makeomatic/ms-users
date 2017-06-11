@@ -1,5 +1,4 @@
-/* global inspectPromise */
-
+const { inspectPromise } = require('@makeomatic/deploy');
 const _ = require('lodash');
 const assert = require('assert');
 const hook = require('../../src/custom/rfx-create-room-on-activate');
@@ -36,7 +35,7 @@ describe('Hook `rfx-create-room-on-activate`', function suite() {
     })
     .reflect()
     .then(inspectPromise())
-    .then(result => {
+    .then((result) => {
       assert.ok(result.context.token.secret);
 
       return this.dispatch('users.register', {
@@ -48,7 +47,7 @@ describe('Hook `rfx-create-room-on-activate`', function suite() {
     })
     .reflect()
     .then(inspectPromise())
-    .then(result => {
+    .then((result) => {
       const stubArgs = amqpStub.args[0];
       assert.equal(stubArgs[0], 'chat.internal.rooms.create');
       assert.deepEqual(stubArgs[1], { name: room.name, createdBy: room.createdBy });

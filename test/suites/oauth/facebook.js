@@ -1,12 +1,14 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
-/* global inspectPromise, globalRegisterUser, globalAuthUser */
+/* global globalRegisterUser, globalAuthUser */
 
+const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const vm = require('vm');
 const cheerio = require('cheerio');
 const assert = require('assert');
 const forEach = require('lodash/forEach');
 const request = require('request-promise');
+const config = require('../../config');
 const _debug = require('debug')('facebook');
 const {
   init,
@@ -43,28 +45,38 @@ function createTestUserAPI(props = {}) {
 }
 
 function createTestUser(localCache = cache) {
-  return createTestUserAPI().tap((body) => {
-    localCache.testUser = body;
+  return Promise.props({
+    testUser: createTestUserAPI(),
+    testUserInstalled: createTestUserAPI({ installed: true }),
+    testUserInstalledPartial: createTestUserAPI({ permissions: 'public_profile' }),
+  })
+  .then((data) => {
+    Object.assign(localCache, data);
   });
 }
 
 function deleteTestUserAPI(id) {
-  return graphApi({
-    uri: `/${id}`,
-    method: 'DELETE',
-  })
-  .promise();
+  return graphApi({ uri: `/${id}`, method: 'DELETE' }).promise();
 }
 
 function deleteTestUser(localCache = cache) {
-  const { testUser: { id } } = localCache;
-  return deleteTestUserAPI(id);
+  return Promise.map(Object.keys(localCache), testUserType => (
+    deleteTestUserAPI(localCache[testUserType].id)
+  ));
 }
 
-function hostUrl(config) {
-  const { http } = config;
+function hostUrl(cfg) {
+  const { http } = cfg;
   const { server } = http;
   return `http://localhost:${server.port}`;
+}
+
+function parseHTML(body) {
+  const $ = cheerio.load(body);
+  const vmScript = new vm.Script($('.no-js > body > script').html());
+  const context = vm.createContext({ window: { close: () => {} } });
+  vmScript.runInContext(context);
+  return context;
 }
 
 function extractToken() {
@@ -75,7 +87,7 @@ function extractToken() {
     .get('token');
 }
 
-function createAccount(token) {
+function createAccount(token, overwrite = {}) {
   const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
   const opts = {
     username: payload.email,
@@ -85,11 +97,51 @@ function createAccount(token) {
       service: 'craft',
     },
     sso: token,
+    ...overwrite,
   };
 
   return this.dispatch('users.register', opts)
     .reflect()
     .then(inspectPromise(true));
+}
+
+function initiateAuth(_user) {
+  const user = _user || cache.testUser;
+  const { Page } = this.protocol;
+  const serviceLink = hostUrl(this.users.config);
+  const executeLink = `${serviceLink}/users/oauth/facebook`;
+
+  Page.navigate({ url: executeLink });
+  return Page.loadEventFired().then(() => (
+    Promise
+      .bind(this, 'input#email')
+      .then(wait)
+      .return(['input#email', user.email])
+      .spread(type)
+      .return(['input#pass', user.password])
+      .spread(type)
+      .return('button[name=login]')
+      .then(submit)
+      .catch(captureScreenshot)
+  ));
+}
+
+function authenticate() {
+  return Promise.bind(this)
+    .then(initiateAuth)
+    .delay(1000)
+    .return('button[name=__CONFIRM__]')
+    .tap(wait)
+    .then(submit)
+    .catch(captureScreenshot);
+}
+
+function getFacebookToken() {
+  return authenticate.call(this)
+    .return('.no-js > body > script')
+    .then(wait)
+    .then(extractToken)
+    .catch(captureScreenshot);
 }
 
 describe('#facebook', function oauthFacebookSuite() {
@@ -100,44 +152,6 @@ describe('#facebook', function oauthFacebookSuite() {
   afterEach(deleteTestUser);
   afterEach(global.clearRedis);
   afterEach('clean Chrome', clean);
-
-  function initiateAuth() {
-    const { Page } = this.protocol;
-    const serviceLink = hostUrl(this.users.config);
-    const executeLink = `${serviceLink}/users/oauth/facebook`;
-
-    Page.navigate({ url: executeLink });
-    return Page.loadEventFired().then(() => (
-      Promise
-        .bind(this, 'input#email')
-        .then(wait)
-        .return(['input#email', cache.testUser.email])
-        .spread(type)
-        .return(['input#pass', cache.testUser.password])
-        .spread(type)
-        .return('button[name=login]')
-        .then(submit)
-        .catch(captureScreenshot)
-    ));
-  }
-
-  function authenticate() {
-    return Promise.bind(this)
-      .then(initiateAuth)
-      .delay(1000)
-      .return('button[name=__CONFIRM__]')
-      .tap(wait)
-      .then(submit)
-      .catch(captureScreenshot);
-  }
-
-  function getFacebookToken() {
-    return authenticate.call(this)
-      .return('.no-js > body > script')
-      .then(wait)
-      .then(extractToken)
-      .catch(captureScreenshot);
-  }
 
   it('should able to retrieve faceboook profile', function test() {
     return getFacebookToken.call(this)
@@ -227,10 +241,7 @@ describe('#facebook', function oauthFacebookSuite() {
         return Promise.bind(this, [/oauth\/facebook/, 200])
           .spread(captureResponseBody)
           .tap((body) => {
-            const $ = cheerio.load(body);
-            const vmScript = new vm.Script($('.no-js > body > script').html());
-            const context = vm.createContext({ window: { close: () => {} } });
-            vmScript.runInContext(context);
+            const context = parseHTML(body);
 
             assert.ok(context.$ms_users_inj_post_message);
             assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
@@ -256,20 +267,22 @@ describe('#facebook', function oauthFacebookSuite() {
 
         Page.navigate({ url: executeLink });
         return Promise
-          .bind(this, [/oauth\/facebook/, 401])
+          .bind(this, [/oauth\/facebook/, 412])
           .spread(captureResponseBody)
           .tap((body) => {
-            const $ = cheerio.load(body);
-            const vmScript = new vm.Script($('.no-js > body > script').html());
-            const context = vm.createContext({ window: { close: () => {} } });
-            vmScript.runInContext(context);
+            const context = parseHTML(body);
 
             assert.ok(context.$ms_users_inj_post_message);
 
             assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
             assert.equal(context.$ms_users_inj_post_message.error, true);
-            assert.equal(context.$ms_users_inj_post_message.payload,
-              'AuthenticationRequiredError: An attempt was made to perform an operation without authentication: HttpStatusError: profile is linked');
+            assert.deepEqual(context.$ms_users_inj_post_message.payload, {
+              status: 412,
+              statusCode: 412,
+              status_code: 412,
+              name: 'HttpStatusError',
+              message: 'profile is linked',
+            });
           });
       });
   });
@@ -302,10 +315,7 @@ describe('#facebook', function oauthFacebookSuite() {
           .bind(this, [/oauth\/facebook/, 200])
           .spread(captureResponseBody)
           .tap((body) => {
-            const $ = cheerio.load(body);
-            const vmScript = new vm.Script($('.no-js > body > script').html());
-            const context = vm.createContext({ window: { close: () => {} } });
-            vmScript.runInContext(context);
+            const context = parseHTML(body);
 
             assert.ok(context.$ms_users_inj_post_message);
             assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:logged-in');
@@ -376,6 +386,110 @@ describe('#facebook', function oauthFacebookSuite() {
           .then((error) => {
             assert.equal(error.statusCode, 404);
           });
+      });
+  });
+
+  it('should reject when signing in with partially returned scope and report it', function test() {
+    return Promise
+      .bind(this, cache.testUserInstalledPartial)
+      .then(initiateAuth)
+      .return('#platformDialogForm a[id]')
+      .then(submit)
+      .return('#platformDialogForm label:nth-child(2) input[type=checkbox]')
+      .then(submit)
+      .return('button[name=__CONFIRM__]')
+      .then(submit)
+      .return([/oauth\/facebook/, 401])
+      .spread(captureResponseBody)
+      .tap((body) => {
+        const context = parseHTML(body);
+
+        assert.ok(context.$ms_users_inj_post_message);
+        assert.deepEqual(context.$ms_users_inj_post_message.payload, {
+          args: { 0: 'missing permissions - email' },
+          message: 'An attempt was made to perform an operation without authentication: missing permissions - email',
+          name: 'AuthenticationRequiredError',
+          missingPermissions: ['email'],
+        });
+      });
+  });
+
+  it('apply config: retryOnMissingPermissions=true', function test() {
+    config.oauth.providers.facebook.retryOnMissingPermissions = true;
+  });
+
+  it('should re-request partially returned scope endlessly', function test() {
+    return Promise
+      .bind(this, cache.testUserInstalledPartial)
+      .then(initiateAuth)
+      .return('#platformDialogForm a[id]')
+      .then(submit)
+      .return('#platformDialogForm label:nth-child(2) input[type=checkbox]')
+      .then(submit)
+      .return('button[name=__CONFIRM__]')
+      .then(submit)
+      .return([/dialog\/oauth\?auth_type=rerequest/, 200])
+      .spread(captureResponseBody);
+  });
+
+  it('apply config: retryOnMissingPermissions=false', function test() {
+    config.oauth.providers.facebook.retryOnMissingPermissions = false;
+  });
+
+  it('should login with partially returned scope and report it', function test() {
+    return Promise
+      .bind(this, cache.testUserInstalledPartial)
+      .then(initiateAuth)
+      .return('#platformDialogForm a[id]')
+      .then(submit)
+      .return('#platformDialogForm label:nth-child(2) input[type=checkbox]')
+      .then(submit)
+      .return('button[name=__CONFIRM__]')
+      .then(submit)
+      .return([/oauth\/facebook/, 200])
+      .spread(captureResponseBody)
+      .tap((body) => {
+        const context = parseHTML(body);
+
+        assert.ok(context.$ms_users_inj_post_message);
+        assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+        assert.equal(context.$ms_users_inj_post_message.error, false);
+        assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
+        assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
+        assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
+      });
+  });
+
+  it('should register with partially returned scope and require email verification', function test() {
+    return Promise
+      .bind(this, cache.testUserInstalledPartial)
+      .then(initiateAuth)
+      .return('#platformDialogForm a[id]')
+      .then(submit)
+      .return('#platformDialogForm label:nth-child(2) input[type=checkbox]')
+      .then(submit)
+      .return('button[name=__CONFIRM__]')
+      .then(submit)
+      .return([/oauth\/facebook/, 200])
+      .spread(captureResponseBody)
+      .then((body) => {
+        const context = parseHTML(body);
+
+        assert.ok(context.$ms_users_inj_post_message);
+        assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+        assert.equal(context.$ms_users_inj_post_message.error, false);
+        assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
+        assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
+        assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
+
+        return [context.$ms_users_inj_post_message.payload.token, { username: 'unverified@makeomatic.ca' }];
+      })
+      .spread(createAccount)
+      .then((response) => {
+        assert.deepEqual(response, {
+          requiresActivation: true,
+          id: 'unverified@makeomatic.ca',
+        });
       });
   });
 });

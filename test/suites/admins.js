@@ -1,8 +1,8 @@
-/* global inspectPromise */
 const assert = require('assert');
 const constants = require('../../src/constants.js');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 const Users = require('../../src');
+const { inspectPromise } = require('@makeomatic/deploy');
 
 describe('#admins', function verifySuite() {
   // this.users used for cleanup redis hook

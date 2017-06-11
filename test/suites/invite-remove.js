@@ -1,5 +1,4 @@
-/* global inspectPromise */
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 
 describe('#invite-remove', function registerSuite() {
@@ -39,7 +38,7 @@ describe('#invite-remove', function registerSuite() {
       .dispatch('users.invite-remove', { id: email })
       .reflect()
       .then(inspectPromise(false))
-      .then(err => {
+      .then((err) => {
         assert.equal(err.name, 'HttpStatusError');
         assert.equal(err.message, `Invite with id "${email}" not found`);
         return null;

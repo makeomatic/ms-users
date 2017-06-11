@@ -1,11 +1,10 @@
-/* global inspectPromise, globalRegisterUser */
+/* global globalRegisterUser */
 const assert = require('assert');
+const { inspectPromise } = require('@makeomatic/deploy');
 const { USERS_ADMIN_ROLE } = require('../../src/constants');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
 describe('#remove', function registerSuite() {
-  const headers = { routingKey: 'users.remove' };
-
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
@@ -17,7 +16,7 @@ describe('#remove', function registerSuite() {
     return simpleDispatcher(this.users.router)('users.remove', {})
       .reflect()
       .then(inspectPromise(false))
-      .then(registered => {
+      .then((registered) => {
         assert.equal(registered.name, 'ValidationError');
         assert.equal(registered.errors.length, 1);
       });
@@ -27,7 +26,7 @@ describe('#remove', function registerSuite() {
     return simpleDispatcher(this.users.router)('users.remove', { username: 'admin@me.com' })
       .reflect()
       .then(inspectPromise(false))
-      .then(registered => {
+      .then((registered) => {
         assert.equal(registered.name, 'HttpStatusError');
         assert.equal(registered.statusCode, 400);
       });
@@ -37,7 +36,7 @@ describe('#remove', function registerSuite() {
     return simpleDispatcher(this.users.router)('users.remove', { username: 'normal-2@me.com' })
       .reflect()
       .then(inspectPromise(false))
-      .then(registered => {
+      .then((registered) => {
         assert.equal(registered.name, 'HttpStatusError');
         assert.equal(registered.statusCode, 404);
       });

@@ -1,4 +1,4 @@
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
 const is = require('is');
@@ -24,7 +24,7 @@ describe('#register stubbed', function suite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
-      .then(value => {
+      .then((value) => {
         assert.equal(amqpStub.args.length, 1);
 
         const args = amqpStub.args[0];
@@ -58,7 +58,7 @@ describe('#register stubbed', function suite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
-      .then(value => {
+      .then((value) => {
         assert.equal(amqpStub.args.length, 1);
 
         const args = amqpStub.args[0];
@@ -101,7 +101,7 @@ describe('#register stubbed', function suite() {
       })
       .reflect()
       .then(inspectPromise())
-      .then(response => {
+      .then((response) => {
         assert.equal(is.string(response.jwt), true);
         assert.equal(response.user.username, '79215555555');
 
@@ -109,7 +109,7 @@ describe('#register stubbed', function suite() {
       })
       .reflect()
       .then(inspectPromise())
-      .then(response => {
+      .then((response) => {
         assert.equal(is.undefined(response.password), true);
       });
   });

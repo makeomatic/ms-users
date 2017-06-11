@@ -1,4 +1,4 @@
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
 const times = require('lodash/times');
@@ -36,12 +36,12 @@ describe('#invite', function registerSuite() {
       })
       .reflect()
       .then(inspectPromise())
-      .then(result => {
+      .then((result) => {
         assert.equal(result.invites.length, 10);
         assert.equal(result.pages, 10);
         assert.equal(result.page, 1);
 
-        result.invites.forEach(invite => {
+        result.invites.forEach((invite) => {
           assert(invite.created);
           assert(invite.id);
           assert(invite.action);

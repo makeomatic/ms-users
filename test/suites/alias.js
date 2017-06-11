@@ -1,5 +1,6 @@
-/* global inspectPromise, globalRegisterUser */
+/* global globalRegisterUser */
 const { expect } = require('chai');
+const { inspectPromise } = require('@makeomatic/deploy');
 
 describe('#alias', function activateSuite() {
   before(global.startService);

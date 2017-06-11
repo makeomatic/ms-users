@@ -1,4 +1,4 @@
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
@@ -12,7 +12,7 @@ describe('#logout', function logoutSuite() {
     return simpleDispatcher(this.users.router)('users.logout', { jwt: 'tests', audience })
       .reflect()
       .then(inspectPromise(false))
-      .then(logout => {
+      .then((logout) => {
         expect(logout.name).to.be.eq('HttpStatusError');
         expect(logout.statusCode).to.be.eq(403);
       });
@@ -26,7 +26,7 @@ describe('#logout', function logoutSuite() {
     return simpleDispatcher(this.users.router)('users.logout', { jwt: token, audience: defaultAudience })
       .reflect()
       .then(inspectPromise())
-      .then(logout => {
+      .then((logout) => {
         expect(logout).to.be.deep.eq({ success: true });
       });
   });

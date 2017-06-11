@@ -1,4 +1,4 @@
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
@@ -24,7 +24,7 @@ describe('#updatePassword', function updatePasswordSuite() {
     })
     .reflect()
     .then(inspectPromise(false))
-    .then(updatePassword => {
+    .then((updatePassword) => {
       expect(updatePassword.name).to.be.eq('HttpStatusError');
       expect(updatePassword.statusCode).to.be.eq(404);
     });
@@ -39,7 +39,7 @@ describe('#updatePassword', function updatePasswordSuite() {
       return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: password, newPassword: 'vvv' })
         .reflect()
         .then(inspectPromise(false))
-        .then(updatePassword => {
+        .then((updatePassword) => {
           expect(updatePassword.name).to.be.eq('HttpStatusError');
           expect(updatePassword.statusCode).to.be.eq(412);
         });
@@ -55,7 +55,7 @@ describe('#updatePassword', function updatePasswordSuite() {
       return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: password, newPassword: 'vvv' })
         .reflect()
         .then(inspectPromise(false))
-        .then(updatePassword => {
+        .then((updatePassword) => {
           expect(updatePassword.name).to.be.eq('HttpStatusError');
           expect(updatePassword.statusCode).to.be.eq(423);
         });
@@ -67,7 +67,7 @@ describe('#updatePassword', function updatePasswordSuite() {
       return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: 'xxx', newPassword: 'vvv' })
         .reflect()
         .then(inspectPromise(false))
-        .then(updatePassword => {
+        .then((updatePassword) => {
           expect(updatePassword.name).to.be.eq('HttpStatusError');
           expect(updatePassword.statusCode).to.be.eq(403);
         });
@@ -79,7 +79,7 @@ describe('#updatePassword', function updatePasswordSuite() {
       })
       .reflect()
       .then(inspectPromise())
-      .then(updatePassword => {
+      .then((updatePassword) => {
         expect(updatePassword).to.be.deep.eq({ success: true });
       });
     });
@@ -91,7 +91,7 @@ describe('#updatePassword', function updatePasswordSuite() {
             id: username,
             action: 'reset',
           })
-          .then(data => {
+          .then((data) => {
             this.token = data.context.token.secret;
           });
       });
@@ -100,7 +100,7 @@ describe('#updatePassword', function updatePasswordSuite() {
         return simpleDispatcher(this.users.router)('users.updatePassword', { resetToken: 'wrong', newPassword: 'vvv' })
           .reflect()
           .then(inspectPromise(false))
-          .then(updatePassword => {
+          .then((updatePassword) => {
             expect(updatePassword.name).to.be.eq('HttpStatusError');
             expect(updatePassword.statusCode).to.be.eq(403);
           });
@@ -110,7 +110,7 @@ describe('#updatePassword', function updatePasswordSuite() {
         return simpleDispatcher(this.users.router)('users.updatePassword', { resetToken: this.token, newPassword: 'vvv' })
           .reflect()
           .then(inspectPromise())
-          .then(updatePassword => {
+          .then((updatePassword) => {
             expect(updatePassword).to.be.deep.eq({ success: true });
           });
       });

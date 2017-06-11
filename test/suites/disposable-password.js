@@ -29,7 +29,7 @@ describe('`disposable-password` action', function regenerateTokenSuite() {
         .then(() =>
           this.dispatch('users.disposable-password', params)
         )
-        .then(response => {
+        .then((response) => {
           assert.equal(response.requested, true);
           assert.ok(response.uid, true);
           assert.equal(amqpStub.args.length, 1);

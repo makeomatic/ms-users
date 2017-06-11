@@ -58,7 +58,7 @@ module.exports = function OauthHandler(server, config) {
       };
 
       if (is.fn(defaultOptions)) {
-        provider = defaultOptions({ ...configuredOptions, retryOnMissingPermissions, apiVersion, fields, profileHandler });
+        provider = defaultOptions({ ...configuredOptions, apiVersion, fields, profileHandler });
       } else {
         provider = defaults(configuredOptions, defaultOptions);
       }

@@ -23,7 +23,7 @@ module.exports = [{
     }
 
     // will be copied over from mail server configuration
-    const { config: { server }, oauth: { debug } } = this;
+    const { config: { server, oauth: { debug } } } = this;
 
     const targetOrigin = debug ? '*' : url.format({
       port: server.port,

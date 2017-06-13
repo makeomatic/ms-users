@@ -3,6 +3,11 @@ exports.oauth = {
   urlKey: 'jwt',
   cookieKey: 'jwt',
   headerKey: 'authorization',
+  debug: {
+    $filter: 'env',
+    $default: true,
+    production: false,
+  },
   token: {
     hashingFunction: 'HS256',
     issuer: 'ms-users',

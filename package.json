@@ -64,7 +64,7 @@
     "stdout-stream": "^1.4.0",
     "tough-cookie": "^2.3.2",
     "vision": "^4.1.1",
-    "yargs": "^8.0.1"
+    "yargs": "^8.0.2"
   },
   "devDependencies": {
     "@makeomatic/deploy": "^1.9.6",
@@ -86,7 +86,7 @@
     "eslint": "^3.19.0",
     "eslint-config-makeomatic": "^1.0.1",
     "eslint-plugin-import": "^2.3.0",
-    "eslint-plugin-mocha": "^4.9.0",
+    "eslint-plugin-mocha": "^4.10.1",
     "eslint-plugin-promise": "^3.5.0",
     "faker": "^4.1.0",
     "glob": "^7.1.2",

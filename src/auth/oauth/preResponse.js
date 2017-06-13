@@ -23,9 +23,9 @@ module.exports = [{
     }
 
     // will be copied over from mail server configuration
-    const { config: { server } } = this;
+    const { config: { server }, oauth: { debug } } = this;
 
-    const targetOrigin = url.format({
+    const targetOrigin = debug ? '*' : url.format({
       port: server.port,
       host: server.host,
       protocol: server.proto,

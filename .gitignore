@@ -36,3 +36,7 @@ lib
 
 # documentation
 docs
+ss
+
+# Other files
+.vscode

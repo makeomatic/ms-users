@@ -92,7 +92,7 @@ function fetchUserData(ids) {
  * @apiParam (Payload) {Mixed} [public=false] - when `true` returns only publicly marked users, if set to string - then uses referral index
  * @apiParam (Payload) {Object} [filter] to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
  */
-function iterateOverActiveUsers({ params }) {
+module.exports = function iterateOverActiveUsers({ params }) {
   const { redis } = this;
   const { criteria, audience, filter, expiration = 30000 } = params;
   const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
@@ -146,6 +146,6 @@ function iterateOverActiveUsers({ params }) {
     .bind(ctx)
     .then(fetchIds)
     .then(keyOnly ? passThrough : fetchUserData);
-}
+};
 
-module.exports = iterateOverActiveUsers;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

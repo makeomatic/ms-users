@@ -203,4 +203,6 @@ function activateAction({ params }) {
     .spread(jwt.login);
 }
 
+activateAction.transports = [require('@microfleet/core').ActionTransport.amqp];
+
 module.exports = activateAction;

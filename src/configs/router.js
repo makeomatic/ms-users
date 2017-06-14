@@ -1,5 +1,10 @@
 const path = require('path');
-const routerExtension = require('mservice').routerExtension;
+const { routerExtension, ActionTransport } = require('@microfleet/core');
+
+/**
+ * Loads existing auth strategies
+ */
+const strategies = require('../auth/strategies');
 
 /**
  * This extension defaults schemas to the name of the action
@@ -14,6 +19,12 @@ const autoSchema = routerExtension('validate/schemaLessAction');
 const auditLog = routerExtension('audit/log');
 
 /**
+ * Catches errors from oauth.facebook and wraps them into HTML
+ * @type {Function}
+ */
+const preResponse = require('../auth/oauth/preResponse');
+
+/**
  * Specifies configuration for the router of the microservice
  * @type {Object}
  */
@@ -21,11 +32,15 @@ exports.router = {
   routes: {
     directory: path.resolve(__dirname, '../actions'),
     prefix: 'users',
-    setTransportsAsDefault: true,
-    transports: ['amqp'],
+    transports: [ActionTransport.amqp, ActionTransport.http],
   },
   extensions: {
     enabled: ['postRequest', 'preRequest', 'preResponse'],
-    register: [autoSchema, auditLog],
+    register: [autoSchema, preResponse, auditLog],
+  },
+  auth: {
+    strategies: {
+      ...strategies,
+    },
   },
 };

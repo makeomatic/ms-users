@@ -21,7 +21,7 @@ describe('#invite', function registerSuite() {
       })
       .reflect()
       .then(inspectPromise(false))
-      .then(err => {
+      .then((err) => {
         assert.equal(err.name, 'ValidationError');
       });
   });
@@ -43,7 +43,7 @@ describe('#invite', function registerSuite() {
       })
       .reflect()
       .then(inspectPromise())
-      .then(result => {
+      .then((result) => {
         assert.ok(result.queued);
         assert.ok(result.context.token);
         assert.ok(result.context.qs);
@@ -62,7 +62,7 @@ describe('#invite', function registerSuite() {
       })
       .reflect()
       .then(inspectPromise())
-      .then(result => {
+      .then((result) => {
         assert.ok(result.jwt);
         assert.ok(result.user.id);
         assert.ok(result.user.metadata['*.localhost'].created);
@@ -82,8 +82,8 @@ describe('#invite', function registerSuite() {
       })
       .reflect()
       .then(inspectPromise(false))
-      .then(err => {
-        assert.equal(err.name, 'AssertionError');
+      .then((err) => {
+        assert.equal(err.name, 'AssertionError [ERR_ASSERTION]');
         assert.equal(err.message, `Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "${email}"`);
       });
   });
@@ -99,7 +99,7 @@ describe('#invite', function registerSuite() {
       })
       .reflect()
       .then(inspectPromise(false))
-      .then(err => {
+      .then((err) => {
         assert.equal(err.statusCode, 400);
         assert.equal(err.message, 'Invitation has expired or already been used');
       });

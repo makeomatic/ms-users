@@ -79,7 +79,7 @@ function createChallenge(metadata) {
  * @apiParam (Payload) {String} [metadata] - not used, but in the future this would be associated with user when challenge is required
  *
  */
-function sendChallenge({ params }) {
+module.exports = function sendChallenge({ params }) {
   // TODO: record all attempts
   // TODO: add metadata processing on successful email challenge
 
@@ -105,6 +105,6 @@ function sendChallenge({ params }) {
     .catch(inactiveStatus, passThrough)
     .then(fetchMetadata)
     .then(createChallenge);
-}
+};
 
-module.exports = sendChallenge;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

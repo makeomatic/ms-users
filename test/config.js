@@ -61,7 +61,23 @@ const config = {
   //     },
   //   },
   // },
+  },
+  oauth: {
+    enabled: true,
+    providers: {
+      facebook: {
+        enabled: true,
+        clientId: process.env.FACEBOOK_CLIENT_ID,
+        clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+        location: 'http://localhost:3000',
+        password: 'lB4wlZByzpp2R9mGefiLeaZUwVooUuX7G7uctaoeNgxvUs3W',
+        apiVersion: 'v2.9',
+      },
+    },
+  },
 };
+
+module.exports = config;
 
 function registerUser(username, opts = {}) {
   return function register() {

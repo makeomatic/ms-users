@@ -109,8 +109,8 @@ function updatePassword(request) {
 }
 
 /**
- * Update password handler
+ * Public API
  */
-updatePassword.updatePassword = setPassword;
-
 module.exports = updatePassword;
+module.exports.updatePassword = setPassword;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

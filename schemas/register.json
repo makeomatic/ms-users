@@ -1,91 +1,91 @@
 {
-    "$id": "register",
-    "type": "object",
-    "required": [
-        "username",
-        "audience"
-    ],
-    "properties": {
-        "username": {
-            "$ref": "common.json#/definitions/userId"
+  "$id": "register",
+  "type": "object",
+  "required": [
+    "username",
+    "audience"
+  ],
+  "properties": {
+    "username": {
+      "$ref": "common.json#/definitions/userId"
+    },
+    "alias": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 20,
+      "pattern": "^[a-zA-Z0-9\\-\\.\\_]+$"
+    },
+    "password": {
+      "type": "string"
+    },
+    "activate": {
+      "type": "boolean"
+    },
+    "captcha": {
+      "type": "object",
+      "required": [
+        "response",
+        "remoteip"
+      ],
+      "properties": {
+        "response": {
+          "type": "string",
+          "minLength": 1
         },
-        "alias": {
-            "type": "string",
-            "minLength": 3,
-            "maxLength": 20,
-            "pattern": "^[a-zA-Z0-9\\-\\.\\_]+$"
-        },
-        "password": {
-            "type": "string"
-        },
-        "captcha": {
-            "type": "object",
-            "required": [
-                "response",
-                "remoteip"
-            ],
-            "properties": {
-                "response": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "remoteip": {
-                    "type": "string",
-                    "oneOf": [
-                        {
-                            "format": "ipv4"
-                        },
-                        {
-                            "format": "ipv6"
-                        }
-                    ]
-                },
-                "secret": {
-                    "type": "string",
-                    "minLength": 1
-                }
+        "remoteip": {
+          "type": "string",
+          "oneOf": [{
+              "format": "ipv4"
+            },
+            {
+              "format": "ipv6"
             }
+          ]
         },
-        "metadata": {
-            "type": "object",
-            "minProperties": 1
-        },
-        "activate": {
-            "type": "boolean",
-            "default": true
-        },
-        "audience": {
-            "type": "string",
-            "minLength": 1
-        },
-        "inviteToken": {
-            "type": "string",
-            "minLength": 1
-        },
-        "ipaddress": {
-            "type": "string",
-            "oneOf": [
-                {
-                    "format": "ipv4"
-                },
-                {
-                    "format": "ipv6"
-                }
-            ]
-        },
-        "skipChallenge": {
-            "type": "boolean"
-        },
-        "skipPassword": {
-            "default": false,
-            "type": "boolean"
-        },
-        "challengeType": {
-            "default": "email",
-            "$ref": "common.json#/definitions/challengeType"
-        },
-        "referral": {
-            "type": "string"
+        "secret": {
+          "type": "string",
+          "minLength": 1
         }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inviteToken": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ipaddress": {
+      "type": "string",
+      "oneOf": [{
+          "format": "ipv4"
+        },
+        {
+          "format": "ipv6"
+        }
+      ]
+    },
+    "skipChallenge": {
+      "type": "boolean"
+    },
+    "skipPassword": {
+      "default": false,
+      "type": "boolean"
+    },
+    "challengeType": {
+      "default": "email",
+      "$ref": "common.json#/definitions/challengeType"
+    },
+    "referral": {
+      "type": "string"
+    },
+    "sso": {
+      "type": "string"
     }
+  }
 }

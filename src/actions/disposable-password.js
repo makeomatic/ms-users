@@ -16,7 +16,7 @@ const { USERS_ACTION_DISPOSABLE_PASSWORD, USERS_USERNAME_FIELD } = require('../c
  *
  * @apiSchema {jsonschema=../../schemas/disposable-password.json} apiParam
  */
-function disposablePassword(request) {
+module.exports = function disposablePassword(request) {
   const { challengeType, id } = request.params;
   const { [challengeType]: tokenOptions } = this.config.token;
 
@@ -40,6 +40,6 @@ function disposablePassword(request) {
         uid,
       };
     });
-}
+};
 
-module.exports = disposablePassword;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

@@ -3,13 +3,11 @@
 // quickly generates bearer for a passed username
 /* eslint-disable no-console */
 
-const conf = require('ms-conf');
+const conf = require('../lib/config');
 const AMQPTransport = require('ms-amqp-transport');
 const assert = require('assert');
-const merge = require('lodash/merge');
-const defaults = require('../lib/config');
 
-const config = merge({}, defaults, conf.get('/'));
+const config = conf.get('/', { env: process.env.NODE_ENV });
 const amqpConfig = config.amqp.transport;
 const prefix = config.router.routes.prefix;
 

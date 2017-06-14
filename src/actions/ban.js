@@ -60,13 +60,13 @@ function unlockUser({ id }) {
  * @apiParam (Payload) {String} [whom] - id of the person, who banned the user
  *
  */
-function banUser(request) {
+module.exports = function banUser(request) {
   return Promise
     .bind(this, request.params.username)
     .then(getInternalData)
     .then(({ id }) => ({ ...request.params, id }))
     .then(request.params.ban ? lockUser : unlockUser)
     .then(handlePipeline);
-}
+};
 
-module.exports = banUser;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

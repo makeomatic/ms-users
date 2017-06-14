@@ -44,4 +44,6 @@ function eraseToken({ params }) {
     .then(eraseData);
 }
 
+eraseToken.transports = [require('@microfleet/core').ActionTransport.amqp];
+
 module.exports = eraseToken;

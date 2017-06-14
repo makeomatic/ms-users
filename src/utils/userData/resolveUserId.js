@@ -3,6 +3,7 @@ const {
   USERS_ID_FIELD,
   USERS_ALIAS_TO_ID,
   USERS_DATA,
+  USERS_SSO_TO_ID,
   USERS_USERNAME_TO_ID,
 } = require('../../constants');
 
@@ -38,7 +39,7 @@ function resolveUserId(id, fetchData = false) {
   const { redis } = this;
   const indexPlaceholder = 'userId';
   const userDataIndex = makeKey(indexPlaceholder, USERS_DATA);
-  const numberOfKeys = 3;
+  const numberOfKeys = 4;
 
   return redis
     .resolveUserIdBuffer(
@@ -46,6 +47,7 @@ function resolveUserId(id, fetchData = false) {
       userDataIndex,
       USERS_USERNAME_TO_ID,
       USERS_ALIAS_TO_ID,
+      USERS_SSO_TO_ID,
       id,
       fetchData === true ? 1 : 0,
       indexPlaceholder

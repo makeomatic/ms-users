@@ -53,21 +53,19 @@
         "script": {
           "type": "object",
           "minProperties": 1,
-          "patternProperties": {
-            "^.+$": {
-              "type": "object",
-              "required": ["lua"],
-              "properties": {
-                "lua": {
+          "additionalProperties": {
+            "type": "object",
+            "required": ["lua"],
+            "properties": {
+              "lua": {
+                "type": "string",
+                "minLength": 1
+              },
+              "argv": {
+                "type": "array",
+                "items": {
                   "type": "string",
                   "minLength": 1
-                },
-                "argv": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "minLength": 1
-                  }
                 }
               }
             }
@@ -89,27 +87,25 @@
         "$set": {
           "type": "object",
           "minProperties": 1,
-          "patternProperties": {
-            "^.+$": {
-              "oneOf": [
-                {
-                  "type": "string",
-                  "minLength": 1
-                },
-                {
-                  "type": "array"
-                },
-                {
-                  "type": "object"
-                },
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "number"
-                }
-              ]
-            }
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "array"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              }
+            ]
           }
         },
         "$remove": {
@@ -123,10 +119,8 @@
         "$incr": {
           "type": "object",
           "minProperties": 1,
-          "patternProperties": {
-            "^.+$": {
-              "type": "integer"
-            }
+          "additionalProperties": {
+            "type": "integer"
           }
         }
       }

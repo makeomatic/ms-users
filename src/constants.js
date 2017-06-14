@@ -4,8 +4,10 @@ module.exports = {
   // indices
   USERS_INDEX: 'user-iterator-set',
   USERS_PUBLIC_INDEX: 'users-public',
-  USERS_ALIAS_TO_ID: 'users-alias',
   USERS_REFERRAL_INDEX: 'users-referral',
+  // id mapping
+  USERS_ALIAS_TO_ID: 'users-alias',
+  USERS_SSO_TO_ID: 'users-sso-hash',
   USERS_USERNAME_TO_ID: 'users-username',
 
   // referral tracking
@@ -32,6 +34,7 @@ module.exports = {
   USERS_PASSWORD_FIELD: 'password',
   USERS_NEXT_CYCLE_FIELD: 'nextCycle',
   USERS_REFERRAL_FIELD: 'referral',
+  USERS_SSO_FACEBOOK_FIELD: 'facebook',
 
   // pre-generated errors
   USERS_DISPOSABLE_PASSWORD_MIA: new Errors.HttpStatusError(403, 'Invalid or Expired Password'),
@@ -61,3 +64,11 @@ module.exports = {
   lockAlias: alias => `users:alias:${alias}`,
   lockRegister: username => `users:register:${username}`,
 };
+
+module.exports.SSO_PROVIDERS = [
+  module.exports.USERS_SSO_FACEBOOK_FIELD,
+];
+
+module.exports.FIELDS_TO_STRINGIFY = [
+  module.exports.USERS_SSO_FACEBOOK_FIELD,
+];

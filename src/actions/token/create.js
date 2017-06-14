@@ -53,4 +53,6 @@ function createToken({ params }) {
     .then(storeData);
 }
 
+createToken.transports = [require('@microfleet/core').ActionTransport.amqp];
+
 module.exports = createToken;

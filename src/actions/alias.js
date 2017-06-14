@@ -29,7 +29,7 @@ const {
  * @apiParam (Payload) {String{3..15}} alias - chosen alias
  *
  */
-function assignAlias(request) {
+module.exports = function assignAlias(request) {
   const { redis, config: { jwt: { defaultAudience } } } = this;
   const { username, internal } = request.params;
 
@@ -87,6 +87,6 @@ function assignAlias(request) {
           return null;
         }));
     });
-}
+};
 
-module.exports = assignAlias;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

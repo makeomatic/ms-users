@@ -19,12 +19,12 @@ const { getUserId } = require('../utils/userData');
  * @apiParam (Payload) {Object} [script] - if present will be called with passed metadata keys & username, provides direct scripting access.
  *   Be careful with granting access to this function.
  */
-function updateMetadataAction(request) {
+module.exports = function updateMetadataAction(request) {
   return Promise
     .bind(this, request.params.username)
     .then(getUserId)
     .then(userId => ({ ...omit(request.params, 'username'), userId }))
     .then(updateMetadata);
-}
+};
 
-module.exports = updateMetadataAction;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

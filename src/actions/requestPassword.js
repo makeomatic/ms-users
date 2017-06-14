@@ -26,7 +26,7 @@ const {
  *
  * @apiSchema {jsonschema=../../schemas/requestPassword.json} apiParam
  */
-function requestPassword(request) {
+module.exports = function requestPassword(request) {
   const { challengeType, username: usernameOrAlias, generateNewPassword } = request.params;
   const { [challengeType]: tokenOptions } = this.config.token;
   const { defaultAudience } = this.config.jwt;
@@ -55,6 +55,6 @@ function requestPassword(request) {
     ])
     .spread(challenge)
     .return({ success: true });
-}
+};
 
-module.exports = requestPassword;
+module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

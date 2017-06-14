@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
-    "@microfleet/core": "^8.1.1",
+    "@microfleet/core": "^9.0.0",
     "babel-runtime": "^6.23.0",
     "bell": "^8.5.0",
     "bluebird": "^3.5.0",

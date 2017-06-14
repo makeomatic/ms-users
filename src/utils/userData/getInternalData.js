@@ -3,7 +3,7 @@ const reduce = require('lodash/reduce');
 const Promise = require('bluebird');
 const resolveUserId = require('./resolveUserId');
 const { USERS_PASSWORD_FIELD, FIELDS_TO_STRINGIFY } = require('../../constants');
-const safeParse = require('../safeParse.js');
+const safeParse = require('../safeParse');
 const zipObject = require('lodash/zipObject');
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;

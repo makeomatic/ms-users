@@ -10,12 +10,14 @@ const {
   // keys: hash
   USERS_ALIAS_TO_ID,
   USERS_USERNAME_TO_ID,
+  USERS_SSO_TO_ID,
   // keys sorted set
   USERS_API_TOKENS_ZSET,
   // fields
   USERS_ID_FIELD,
 } = require('../../constants');
 const makeKey = require('../../utils/key');
+const safeParse = require('../../utils/safeParse');
 
 function generateUsersIds({ flake, redis, config, log }) {
   // used for renaming metadata keys
@@ -40,6 +42,13 @@ function generateUsersIds({ flake, redis, config, log }) {
       // alias to id
       if (userData.alias) {
         pipeline.hset(USERS_ALIAS_TO_ID, userData.alias, userId);
+      }
+
+      // sso
+      if (userData.facebook) {
+        const { uid: ssoId } = safeParse(userData.facebook);
+
+        pipeline.hset(USERS_SSO_TO_ID, ssoId, userId);
       }
 
       // user data

@@ -4,6 +4,7 @@ const differenceWith = require('lodash/differenceWith');
 const get = require('lodash/get');
 const partial = require('lodash/partial');
 const defaults = require('lodash/defaults');
+const Urls = require('../utils/fb-urls');
 
 const FIELDS = [
   'id',
@@ -20,57 +21,6 @@ const FIELDS = [
   'verified',
   'picture.type(square).width(200).height(200)',
 ].join(',');
-
-class Urls {
-  static DEFAULT_API_VERSION = 'v2.9';
-  static self = null;
-  static instance(version = Urls.DEFAULT_API_VERSION) {
-    let { self } = this;
-
-    if (!self) {
-      self = this.self = new Urls(version);
-    }
-
-    return self;
-  }
-
-  static setVersion(version) {
-    return this.instance().setVersion(version);
-  }
-
-  static get auth() {
-    return Urls.instance().auth;
-  }
-
-  static get token() {
-    return Urls.instance().token;
-  }
-
-  constructor(apiVersion) {
-    this.apiVersion = apiVersion;
-  }
-
-  setVersion(version) {
-    this.apiVersion = version;
-    return this;
-  }
-
-  get auth() {
-    return `https://www.facebook.com/${this.apiVersion}/dialog/oauth`;
-  }
-
-  get token() {
-    return `https://graph.facebook.com/${this.apiVersion}/oauth/access_token`;
-  }
-
-  get permissions() {
-    return `https://graph.facebook.com/${this.apiVersion}/me/permissions`;
-  }
-
-  get profile() {
-    return `https://graph.facebook.com/${this.apiVersion}/me`;
-  }
-}
 
 function scopeComparator(scopeValue, fbPermission) {
   return scopeValue === fbPermission.permission && fbPermission.status === 'granted';
@@ -101,19 +51,19 @@ function defaultProfileHandler(profile) {
     credentials.profile.picture = profile.picture.data.url;
   }
 
-  // inject email directly to credentials
-  if (email) {
-    credentials.email = email;
-  }
-
   // private data to store
   credentials.internals = {
     id,
-    email,
     token,
     refreshToken,
     username,
   };
+
+  // inject email directly to credentials
+  if (email) {
+    credentials.email = email;
+    credentials.internals.email = email;
+  }
 
   return credentials;
 }
@@ -139,19 +89,14 @@ function verifyPermissions(permissions) {
 
   if (missingPermissions.length) {
     credentials.missingPermissions = missingPermissions;
-
-    // doesn't matter what to throw here because there's no handling in bell
-    // https://github.com/hapijs/bell/blob/master/lib/oauth.js#L304
-    // leave it for the route handler
-    throw new Error('missing permissions');
+    return false;
   }
 
   return true;
 }
 
-
 function profileFactory(fields, profileHandler = defaultProfileHandler) {
-  function obtainProfile(credentials, params, getter, callback) {
+  return function obtainProfile(credentials, params, getter, callback) {
     // eslint-disable-next-line camelcase
     const appsecret_proof = Crypto.createHmac('sha256', this.clientSecret)
       .update(credentials.token)
@@ -172,9 +117,7 @@ function profileFactory(fields, profileHandler = defaultProfileHandler) {
       .spread(fetchProfile)
       .then(profileHandler)
       .asCallback(callback);
-  }
-
-  return obtainProfile;
+  };
 }
 
 const defaultOptions = {

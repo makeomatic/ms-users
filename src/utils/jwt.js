@@ -212,8 +212,8 @@ exports.internal = function verifyInternalToken(token) {
  * @return {Promise}
  */
 exports.signData = function signData(payload, tokenOptions) {
-  const { hashingFunction: algorithm, secret, issuer } = tokenOptions;
-  return jwt.sign(payload, secret, { algorithm, issuer });
+  const { hashingFunction: algorithm, secret, issuer, extra } = tokenOptions;
+  return jwt.sign(payload, secret, { ...extra, algorithm, issuer });
 };
 
 /**

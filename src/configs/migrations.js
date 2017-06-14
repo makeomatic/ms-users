@@ -1,3 +1,7 @@
+/**
+ * Migration settings
+ * @type {Object}
+ */
 module.exports = {
   migrations: {
     enabled: false,

@@ -456,75 +456,69 @@
         },
         "providers": {
           "type": "object",
-          "patternProperties": {
-            ".*": {
-              "type": "object",
-              "required": ["clientId", "clientSecret"],
-              "additionalProperties": true,
-              "properties": {
-                "clientId": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "clientSecret": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "location": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "scope": {
-                  "anyOf": [{
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "minItems": 1
-                  }, {
-                    "type": "string",
-                    "pattern": "^(?:[._,]?[a-zA-Z]+)+$"
-                  }],
-                  "default": "email"
-                },
-                "scopeSeparator": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "password": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "forceHttps": {
-                  "type": "boolean",
-                  "default": false
-                },
-                "isSecure": {
-                  "type": "boolean",
-                  "default": false
-                },
-                "apiVersion": {
-                  "type": "string"
-                },
-                "fields": {
+          "additionalProperties": {
+            "type": "object",
+            "required": ["clientId", "clientSecret"],
+            "additionalProperties": true,
+            "properties": {
+              "retryOnMissingPermissions": {
+                "type": "boolean"
+              },
+              "clientId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "clientSecret": {
+                "type": "string",
+                "minLength": 1
+              },
+              "location": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scope": {
+                "anyOf": [{
                   "type": "array",
                   "items": {
                     "type": "string",
                     "minLength": 1
-                  }
-                },
-                "profileHandler": {
-                  "type": "object"
+                  },
+                  "minItems": 1
+                }, {
+                  "type": "string",
+                  "pattern": "^(?:[._,]?[a-zA-Z]+)+$"
+                }],
+                "default": "email"
+              },
+              "scopeSeparator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "password": {
+                "type": "string",
+                "minLength": 1
+              },
+              "forceHttps": {
+                "type": "boolean",
+                "default": false
+              },
+              "isSecure": {
+                "type": "boolean",
+                "default": false
+              },
+              "apiVersion": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
                 }
+              },
+              "profileHandler": {
+                "type": "object"
               }
-            },
-            "retryOnMissingPermissions": {
-              "type": "boolean",
-              "default": true
-            },
-            "targetOrigin": {
-              "type": "string"
             }
           }
         }

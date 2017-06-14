@@ -1,48 +1,53 @@
 {
-    "$id": "list",
-    "type": "object",
-    "required": [
-        "audience"
-    ],
-    "properties": {
-        "offset": {
-            "type": "integer",
-            "minimum": 0
-        },
-        "limit": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100
-        },
-        "order": {
-            "type": "string",
-            "enum": [
-                "ASC",
-                "DESC"
-            ]
-        },
-        "criteria": {
-            "type": "string"
-        },
-        "audience": {
-            "type": "string"
-        },
-        "public": {
-            "oneOf": [
-                { "type": "boolean" },
-                { "type": "string" }
-            ]
-        },
-        "filter": {
-            "$ref": "common.json#/definitions/filter"
-        },
-        "expiration": {
-            "type": "integer",
-            "minimum": 0
-        },
-        "keyOnly": {
-            "type": "boolean",
-            "default": false
-        }
+  "$id": "list",
+  "type": "object",
+  "required": [
+    "audience"
+  ],
+  "properties": {
+    "offset": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "order": {
+      "type": "string",
+      "enum": [
+        "ASC",
+        "DESC"
+      ]
+    },
+    "criteria": {
+      "type": "string"
+    },
+    "audience": {
+      "type": "string"
+    },
+    "public": {
+      "oneOf": [
+        { "type": "boolean" },
+        { "type": "string" }
+      ]
+    },
+    "filter": {
+      "$ref": "common.json#/definitions/filter"
+    },
+    "expiration": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 30000
+    },
+    "keyOnly": {
+      "type": "boolean",
+      "default": false
+    },
+    "userIdsOnly": {
+      "type": "boolean",
+      "default": false
     }
+  }
 }

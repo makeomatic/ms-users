@@ -1,5 +1,5 @@
-/* global inspectPromise */
 const assert = require('assert');
+const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
@@ -13,7 +13,7 @@ describe('#verify', function verifySuite() {
     return simpleDispatcher(this.users.router)('users.verify', { token: 'invalid-token', audience })
       .reflect()
       .then(inspectPromise(false))
-      .then(verify => {
+      .then((verify) => {
         expect(verify.name).to.be.eq('HttpStatusError');
         expect(verify.statusCode).to.be.eq(403);
         expect(verify.message).to.be.eq('invalid token');
@@ -29,7 +29,7 @@ describe('#verify', function verifySuite() {
     return simpleDispatcher(this.users.router)('users.verify', { token, audience: defaultAudience })
       .reflect()
       .then(inspectPromise(false))
-      .then(verify => {
+      .then((verify) => {
         expect(verify.name).to.be.eq('HttpStatusError');
         expect(verify.statusCode).to.be.eq(403);
         expect(verify.message).to.be.eq('token has expired or was forged');
@@ -52,7 +52,7 @@ describe('#verify', function verifySuite() {
     });
 
     beforeEach(function pretest() {
-      return jwt.login.call(this.users, this.userId, 'test').then(data => {
+      return jwt.login.call(this.users, this.userId, 'test').then((data) => {
         this.token = data.jwt;
       });
     });
@@ -61,7 +61,7 @@ describe('#verify', function verifySuite() {
       return simpleDispatcher(this.users.router)('users.verify', { token: this.token, audience: 'test' })
         .reflect()
         .then(inspectPromise())
-        .then(verify => {
+        .then((verify) => {
           assert.ok(verify.id);
           expect(verify.metadata['*.localhost'].username).to.be.eq('v@makeomatic.ru');
           expect(verify.metadata.test).to.be.deep.eq({

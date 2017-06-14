@@ -1,7 +1,6 @@
 require('chai').config.includeStack = true;
 const merge = require('lodash/merge');
 const Promise = require('bluebird');
-const { expect } = require('chai');
 const simpleDispatcher = require('./helpers/simpleDispatcher');
 
 global.Promise = Promise;
@@ -112,26 +111,6 @@ function getJWTToken(username, password = '123') {
   };
 }
 
-function inspectPromise(mustBeFulfilled = true) {
-  return function inspection(promise) {
-    const isFulfilled = promise.isFulfilled();
-    const isRejected = promise.isRejected();
-
-    try {
-      expect(isFulfilled).to.be.eq(mustBeFulfilled);
-    } catch (e) {
-      if (isFulfilled) {
-        return Promise.reject(new Error(JSON.stringify(promise.value())));
-      }
-
-      throw promise.reason();
-    }
-
-    expect(isRejected).to.be.eq(!mustBeFulfilled);
-    return mustBeFulfilled ? promise.value() : promise.reason();
-  };
-}
-
 function startService(testConfig = {}) {
   const Users = require('../src');
 
@@ -165,6 +144,5 @@ function clearRedis() {
 global.initFakeAccounts = initFakeAccounts;
 global.globalAuthUser = getJWTToken;
 global.startService = startService;
-global.inspectPromise = inspectPromise;
 global.clearRedis = clearRedis;
 global.globalRegisterUser = registerUser;

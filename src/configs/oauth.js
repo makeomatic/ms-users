@@ -3,6 +3,11 @@ exports.oauth = {
   urlKey: 'jwt',
   cookieKey: 'jwt',
   headerKey: 'authorization',
+  debug: {
+    $filter: 'env',
+    $default: true,
+    production: false,
+  },
   token: {
     hashingFunction: 'HS256',
     issuer: 'ms-users',
@@ -11,6 +16,9 @@ exports.oauth = {
       $default: 'dajs123jnida071241d-ar-01129hbad7as-akd810',
       production: '',
     },
+    extra: {
+      expiresIn: '1h',
+    },
   },
   providers: {
     facebook: {
@@ -18,6 +26,12 @@ exports.oauth = {
       clientId: 'fb-client-id',
       location: 'location',
       clientSecret: 'fb-client-secret',
+      cookie: 'bell-fb',
+      isSecure: {
+        $filter: 'env',
+        $default: false,
+        production: true,
+      },
       forceHttps: {
         $filter: 'env',
         $default: false,

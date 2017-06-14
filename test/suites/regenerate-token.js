@@ -1,4 +1,4 @@
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
 const is = require('is');
@@ -25,7 +25,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
       return this.dispatch('users.register', opts)
         .reflect()
         .then(inspectPromise())
-        .then(response => {
+        .then((response) => {
           assert.ok(response.id);
           assert.equal(response.requiresActivation, true);
           assert.equal(is.string(response.uid), true);
@@ -37,7 +37,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         })
         .reflect()
         .then(inspectPromise())
-        .then(response => {
+        .then((response) => {
           assert.equal(response.regenerated, true);
           assert.equal(amqpStub.args.length, 2);
 
@@ -74,7 +74,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         .then(() => this.dispatch('users.requestPassword', requestPasswordParams))
         .reflect()
         .then(inspectPromise())
-        .then(response => {
+        .then((response) => {
           assert.deepEqual(response, { success: true });
 
           return this.dispatch('users.regenerate-token', {
@@ -85,7 +85,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         })
         .reflect()
         .then(inspectPromise())
-        .then(response => {
+        .then((response) => {
           assert.equal(response.regenerated, true);
           assert.equal(amqpStub.args.length, 2);
 
@@ -121,7 +121,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
       })
       .reflect()
       .then(inspectPromise())
-      .then(response => {
+      .then((response) => {
         assert.ok(response.queued);
         assert.ok(mailerStub.args[0][1].html.includes(response.context.token.secret));
 
@@ -132,13 +132,13 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
       })
       .reflect()
       .then(inspectPromise())
-      .then(response => {
+      .then((response) => {
         assert.ok(response.regenerated);
         assert.ok(response.uid);
 
         return this.users.tokenManager.info({ uid: response.uid });
       })
-      .then(token => {
+      .then((token) => {
         assert.ok(mailerStub.args[1][1].html.includes(token.secret));
 
         mailerStub.restore();

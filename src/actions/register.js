@@ -302,7 +302,7 @@ module.exports = function registerUser(request) {
             basicInfo[provider] = JSON.stringify(credentials.internals);
 
             // link uid to username
-            pipeline.hset(USERS_SSO_TO_ID, uid, username);
+            pipeline.hset(USERS_SSO_TO_ID, uid, userId);
           }
 
           if (hash !== null) {

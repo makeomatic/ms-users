@@ -1,4 +1,4 @@
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
@@ -14,7 +14,7 @@ describe('#ban', function banSuite() {
     return simpleDispatcher(this.users.router)('users.ban', { username: 'doesntexist', ban: true })
       .reflect()
       .then(inspectPromise(false))
-      .then(ban => {
+      .then((ban) => {
         expect(ban.name).to.be.eq('HttpStatusError');
         expect(ban.statusCode).to.be.eq(404);
       });
@@ -29,7 +29,7 @@ describe('#ban', function banSuite() {
       return simpleDispatcher(this.users.router)('users.ban', { username })
         .reflect()
         .then(inspectPromise(false))
-        .then(ban => {
+        .then((ban) => {
           expect(ban.name).to.be.eq('ValidationError');
         });
     });
@@ -38,7 +38,7 @@ describe('#ban', function banSuite() {
       return simpleDispatcher(this.users.router)('users.ban', { username, ban: true })
         .reflect()
         .then(inspectPromise())
-        .then(ban => {
+        .then((ban) => {
           expect(ban[0]).to.be.eq(1);
           expect(ban[1]).to.be.eq('OK');
         });
@@ -49,7 +49,7 @@ describe('#ban', function banSuite() {
         .then(() => simpleDispatcher(this.users.router)('users.ban', { username, ban: false }))
         .reflect()
         .then(inspectPromise())
-        .then(ban => {
+        .then((ban) => {
           expect(ban[0]).to.be.eq(1);
           expect(ban[1]).to.be.eq(2);
         });

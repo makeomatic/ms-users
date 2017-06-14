@@ -21,7 +21,7 @@ module.exports = function detachAction(request) {
 
   return Promise.bind(this, username)
     .then(getInternalData)
-    .then(partial(detach, username, provider))
+    .then(partial(detach, provider))
     .return({ success: true });
 };
 

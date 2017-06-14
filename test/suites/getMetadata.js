@@ -1,4 +1,4 @@
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 
 describe('#getMetadata', function getMetadataSuite() {

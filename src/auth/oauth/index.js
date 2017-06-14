@@ -8,47 +8,14 @@ const refresh = require('./utils/refresh');
 const extractJWT = require('./utils/extractJWT');
 const { getInternalData } = require('../../utils/userData');
 
+const { verifyToken, loginAttempt } = require('../../utils/amqp');
 const { Redirect } = require('./utils/errors');
-const { USERS_USERNAME_FIELD } = require('../../constants');
+const { USERS_ID_FIELD } = require('../../constants');
 
 // helpers
 const isRedirect = ({ statusCode }) => statusCode === 301 || statusCode === 302;
 const isError = ({ statusCode }) => statusCode >= 400;
-
-/**
- * Attempts to sign in with a registered user
- * @param  {string} username
- * @returns {Promise}
- */
-function loginAttempt(username) {
-  const { amqp, config } = this;
-  const prefix = config.router.routes.prefix;
-  const audience = config.jwt.defaultAudience;
-  const payload = {
-    username,
-    audience,
-    isSSO: true,
-  };
-
-  return amqp.publishAndWait(`${prefix}.login`, payload);
-}
-
-/**
- * Performs JWT token verification
- * @param  {string} token
- * @returns {Promise}
- */
-function verifyToken(token) {
-  const { amqp, config } = this;
-  const prefix = config.router.routes.prefix;
-  const audience = config.jwt.defaultAudience;
-  const payload = {
-    token,
-    audience,
-  };
-
-  return amqp.publishAndWait(`${prefix}.verify`, payload);
-}
+const is404 = ({ statusCode }) => statusCode === 404;
 
 /**
  * Authentication handler
@@ -67,7 +34,7 @@ function oauthVerification(response, credentials) {
 
     if (shouldRedirect) {
       // set redirect uri to rewrite the response in the hapi's preResponse hook
-      const redirectUri = this.transportRequest.redirectUri = get(response, 'headers.location');
+      const redirectUri = get(response, 'headers.location');
       return Promise.reject(new Redirect(redirectUri));
     }
   }
@@ -77,8 +44,17 @@ function oauthVerification(response, credentials) {
   }
 
   const { missingPermissions } = credentials;
+  // verify missing permissions
   if (missingPermissions) {
-    return Promise.reject(new Errors.AuthenticationRequiredError(`missing permissions - ${missingPermissions.join(',')}`));
+    const { retryOnMissingPermissions, location } = this.config;
+
+    if (retryOnMissingPermissions === true) {
+      return Promise.reject(new Redirect(`${location}${this.transportRequest.path}?auth_type=rerequest&scope=${missingPermissions.join(',')}`));
+    } else if (retryOnMissingPermissions !== false) {
+      const error = new Errors.AuthenticationRequiredError(`missing permissions - ${missingPermissions.join(',')}`);
+      error.missingPermissions = missingPermissions;
+      return Promise.reject(error);
+    }
   }
 
   // set actual strategy for confidence
@@ -94,7 +70,7 @@ function oauthVerification(response, credentials) {
 }
 
 function mserviceVerification(credentials) {
-  // query on initial request is recorded and is available via credentials.queyr
+  // query on initial request is recorded and is available via credentials.query
   // https://github.com/hapijs/bell/blob/63603c9e897f3607efeeca87b6ef3c02b939884b/lib/oauth.js#L261
   const oauthConfig = this.service.config.oauth;
   const jwt = extractJWT(this.transportRequest, oauthConfig) || credentials.query[oauthConfig.urlKey];
@@ -103,19 +79,20 @@ function mserviceVerification(credentials) {
   const checkAuth = jwt ? verifyToken.call(this.service, jwt) : Promise.resolve(false);
 
   // check if the profile is already attached to any existing credentials
-  const getUsername = getInternalData.call(this.service, credentials.uid)
-    .get(USERS_USERNAME_FIELD)
-    .catchReturn({ statusCode: 404 }, false);
+  const getUserId = getInternalData
+    .call(this.service, credentials.uid)
+    .get(USERS_ID_FIELD)
+    .catchReturn(is404, false);
 
-  return Promise.join(checkAuth, getUsername, (user, username) => {
+  return Promise.join(checkAuth, getUserId, (user, userId) => {
     // user is authenticated and profile is attached
-    if (user && username) {
+    if (user && userId) {
       throw new Errors.HttpStatusError(412, 'profile is linked');
     }
 
     // found a linked user, log in
-    if (username) {
-      return Promise.bind(this.service, username)
+    if (userId) {
+      return Promise.bind(this.service, userId)
         .then(loginAttempt)
         .tap(partial(refresh, credentials));
     }
@@ -130,7 +107,7 @@ function mserviceVerification(credentials) {
  * @returns {Promise}
  */
 module.exports = function authHandler(request) {
-  const { http } = this;
+  const { http, config } = this;
   const { action, transportRequest } = request;
   const { strategy } = action;
 
@@ -142,6 +119,7 @@ module.exports = function authHandler(request) {
     strategy,
     transportRequest,
     service: this,
+    config: config.oauth.providers[strategy],
   };
 
   return Promise

@@ -1,4 +1,4 @@
-/* global inspectPromise */
+const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const assert = require('assert');
 const redisKey = require('../../src/utils/key.js');

@@ -1,6 +1,7 @@
-/* global inspectPromise, globalRegisterUser, globalAuthUser */
+/* global globalRegisterUser, globalAuthUser */
 const Promise = require('bluebird');
 const assert = require('assert');
+const { inspectPromise } = require('@makeomatic/deploy');
 
 describe('#token.*', function activateSuite() {
   // actions supported by this

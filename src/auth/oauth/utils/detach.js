@@ -10,13 +10,14 @@ const {
   USERS_DATA,
 } = require('../../../constants');
 
-module.exports = function detach(username, provider, data) {
+module.exports = function detach(provider, userData) {
+  const { id: userId } = userData;
   const { redis, config } = this;
   const audience = get(config, 'jwt.defaultAudience');
-  const userDataKey = redisKey(username, USERS_DATA);
+  const userDataKey = redisKey(userId, USERS_DATA);
   const pipeline = redis.pipeline();
 
-  const uid = get(data, [provider, 'uid'], false);
+  const uid = get(userData, [provider, 'uid'], false);
   if (!uid) {
     throw Errors.HttpStatusError(412, `${provider} account not found`);
   }
@@ -30,7 +31,7 @@ module.exports = function detach(username, provider, data) {
   return pipeline.exec().then(handlePipeline)
     .bind(this)
     .return({
-      username,
+      userId,
       audience,
       metadata: {
         $remove: [

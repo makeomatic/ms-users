@@ -1,5 +1,5 @@
-/* global inspectPromise */
 const assert = require('assert');
+const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
 
@@ -13,13 +13,14 @@ describe('#updateMetadata', function getMetadataSuite() {
 
   beforeEach(function pretest() {
     return simpleDispatcher(this.users.router)('users.register', { username, password: '123', audience })
+      .tap(({ user }) => (this.userId = user.id));
   });
 
   it('must reject updating metadata on a non-existing user', function test() {
     return simpleDispatcher(this.users.router)('users.updateMetadata', { username: 'ok google', audience, metadata: { $remove: ['test'] } })
       .reflect()
       .then(inspectPromise(false))
-      .then(getMetadata => {
+      .then((getMetadata) => {
         expect(getMetadata.name).to.be.eq('HttpStatusError');
         expect(getMetadata.statusCode).to.be.eq(404);
       });
@@ -35,14 +36,15 @@ describe('#updateMetadata', function getMetadataSuite() {
     return simpleDispatcher(this.users.router)('users.updateMetadata', { username, audience, metadata: { $remove: ['x'] } })
       .reflect()
       .then(inspectPromise())
-      .then(data => {
+      .then((data) => {
         expect(data.$remove).to.be.eq(0);
       });
   });
 
   it('rejects on mismatch of audience & metadata arrays', function test() {
     return simpleDispatcher(this.users.router)('users.updateMetadata', {
-      username, audience: [audience],
+      username,
+      audience: [audience],
       metadata: [{ $set: { x: 10 } }, { $remove: ['x'] }],
     }).reflect()
       .then(inspectPromise(false));
@@ -72,7 +74,7 @@ describe('#updateMetadata', function getMetadataSuite() {
       ],
     }).reflect()
       .then(inspectPromise())
-      .then(data => {
+      .then((data) => {
         const [mainData, extraData] = data;
 
         expect(mainData.$set).to.be.eq('OK');
@@ -82,19 +84,21 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('must be able to run dynamic scripts', function test() {
-    return simpleDispatcher(this.users.router)('users.updateMetadata', { username, audience: [audience, extra], script: {
-      balance: {
-        lua: 'return {KEYS[1],KEYS[2],ARGV[1]}',
-        argv: ['nom-nom'],
-      },
-    } }).reflect()
+    return simpleDispatcher(this.users.router)('users.updateMetadata', { username,
+      audience: [audience, extra],
+      script: {
+        balance: {
+          lua: 'return {KEYS[1],KEYS[2],ARGV[1]}',
+          argv: ['nom-nom'],
+        },
+      } }).reflect()
     .then(inspectPromise())
-    .then(data => {
-      const [key1, key2, argv] = data.balance;
-
-      assert(/^{ms-users}\d+!metadata!\*\.localhost$/.test(key1));
-      assert(/^{ms-users}\d+!metadata!extra\.localhost$/.test(key2));
-      assert.equal(argv, 'nom-nom');
+    .then((data) => {
+      expect(data.balance).to.be.deep.eq([
+        `{ms-users}${this.userId}!metadata!${audience}`,
+        `{ms-users}${this.userId}!metadata!${extra}`,
+        'nom-nom',
+      ]);
     });
   });
 });

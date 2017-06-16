@@ -191,9 +191,10 @@ function activateAction({ params }) {
     .bind(context)
     .then(verifyRequest)
     .bind(this)
-    .then(resolvedUsername => Promise.join(
-      getInternalData.call(this, resolvedUsername),
-      getMetadata.call(this, resolvedUsername, audience).get(audience)
+    .then(resolvedUsername => getInternalData.call(this, resolvedUsername))
+    .then(internalData => Promise.join(
+      internalData,
+      getMetadata.call(this, internalData[USERS_ID_FIELD], audience).get(audience)
     ))
     .spread(activateAccount)
     .bind(context)

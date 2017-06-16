@@ -5,7 +5,7 @@ const intersection = require('lodash/intersection');
 const key = require('../utils/key');
 const getInternalData = require('../utils/getInternalData');
 const getMetadata = require('../utils/getMetadata');
-const handlePipeline = require('../utils/pipelineError.js');
+const handlePipeline = require('../utils/pipelineError');
 const {
   USERS_INDEX,
   USERS_PUBLIC_INDEX,
@@ -55,7 +55,7 @@ module.exports = function removeUser(request) {
         throw new Errors.HttpStatusError(400, 'can\'t remove admin user from the system');
       }
 
-      const transaction = this.redis.multi();
+      const transaction = this.redis.pipeline();
       const alias = internal[USERS_ALIAS_FIELD];
       if (alias) {
         transaction.hdel(USERS_ALIAS_TO_LOGIN, alias.toLowerCase(), alias);
@@ -63,7 +63,7 @@ module.exports = function removeUser(request) {
 
       // remove refs to SSO account
       SSO_PROVIDERS.forEach((provider) => {
-        const uid = get(internal, provider, false);
+        const uid = get(internal, `${provider}.uid`, false);
         if (uid) {
           transaction.hdel(USERS_SSO_TO_LOGIN, uid);
         }

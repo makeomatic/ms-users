@@ -25,7 +25,8 @@
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
-    "@microfleet/core": "^8.1.1",
+    "@microfleet/core": "^9.0.0",
+    "@microfleet/transport-amqp": "^9.0.1",
     "babel-runtime": "^6.23.0",
     "bell": "^8.5.0",
     "bluebird": "^3.5.0",
@@ -46,7 +47,6 @@
     "lodash": "^4.17.4",
     "md5": "^2.2.1",
     "moment": "^2.18.1",
-    "ms-amqp-transport": "^9.0.0",
     "ms-conf": "^3.1.2",
     "ms-flakeless": "^4.0.1",
     "ms-mailer-client": "^6.0.2",

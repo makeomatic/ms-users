@@ -63,7 +63,7 @@ const argv = require('yargs')
 // deps
 const fs = require('fs');
 const Promise = require('bluebird');
-const AMQPTransport = require('ms-amqp-transport');
+const AMQPTransport = require('@microfleet/transport-amqp');
 const csvWriter = require('csv-write-stream');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');

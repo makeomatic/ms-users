@@ -49,7 +49,9 @@ module.exports = function assignAlias(request) {
         .hsetnx(USERS_ALIAS_TO_LOGIN, alias, username)
         .then((assigned) => {
           if (assigned === 0) {
-            throw new Errors.HttpStatusError(409, 'alias was already taken');
+            const err = new Errors.HttpStatusError(409, `"${alias}" already exists`);
+            err.code = 'E_ALIAS_CONFLICT';
+            return Promise.reject(err);
           }
 
           const pipeline = redis

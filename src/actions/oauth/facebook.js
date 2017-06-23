@@ -10,6 +10,11 @@ module.exports = function facebookCallbackAction(request) {
 
   // logged in, no account provided - bypass
   if (!account) {
+    const cookies = this.config.jwt.cookies;
+    if (cookies.enabled === true) {
+      request.transportRequest.setState(cookies.name, credentials.jwt, cookies.settings);
+    }
+
     return {
       payload: {
         ...credentials,

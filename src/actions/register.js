@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
-const Errors = require('common-errors');
+const { HttpStatusError } = require('common-errors');
+
 const set = require('lodash/set');
 const noop = require('lodash/noop');
 const merge = require('lodash/merge');
@@ -39,15 +40,15 @@ const {
   CHALLENGE_TYPE_EMAIL,
   USERS_REFERRAL_INDEX,
   TOKEN_METADATA_FIELD_METADATA,
+  ErrorConflictUserExists,
 } = require('../constants');
 
 // cached helpers
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const retNull = constant(null);
-const ErrorConflictUserExists = new Errors.HttpStatusError(409, 'user already exists');
-const ErrorMalformedAudience = new Errors.HttpStatusError(400, 'non-default audience must be accompanied by non-empty metadata or inviteToken');
-const ErrorMalformedInvite = new Errors.HttpStatusError(400, 'Account must be activated when using invite token');
-const ErrorInvitationExpiredOrUsed = new Errors.HttpStatusError(400, 'Invitation has expired or already been used');
+const ErrorMalformedAudience = new HttpStatusError(400, 'non-default audience must be accompanied by non-empty metadata or inviteToken');
+const ErrorMalformedInvite = new HttpStatusError(400, 'Account must be activated when using invite token');
+const ErrorInvitationExpiredOrUsed = new HttpStatusError(400, 'Invitation has expired or already been used');
 const ErrorMissing = { statusCode: 404 };
 
 // metadata merger

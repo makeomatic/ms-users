@@ -25,8 +25,8 @@
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
-    "@microfleet/core": "^9.0.0",
-    "@microfleet/transport-amqp": "^9.0.1",
+    "@microfleet/core": "^9.1.0",
+    "@microfleet/transport-amqp": "^9.1.1",
     "babel-runtime": "^6.23.0",
     "bell": "^8.5.0",
     "bluebird": "^3.5.0",
@@ -84,8 +84,8 @@
     "cz-conventional-changelog": "^2.0.0",
     "eslint": "^3.19.0",
     "eslint-config-makeomatic": "^1.0.1",
-    "eslint-plugin-import": "^2.3.0",
-    "eslint-plugin-mocha": "^4.10.1",
+    "eslint-plugin-import": "^2.6.0",
+    "eslint-plugin-mocha": "^4.11.0",
     "eslint-plugin-promise": "^3.5.0",
     "faker": "^4.1.0",
     "glob": "^7.1.2",
@@ -96,7 +96,7 @@
     "nyc": "^11.0.2",
     "rimraf": "^2.6.1",
     "semantic-release": "^6.3.2",
-    "sinon": "^2.3.4"
+    "sinon": "^2.3.5"
   },
   "release": {
     "verifyConditions": []

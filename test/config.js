@@ -74,6 +74,14 @@ const config = {
       },
     },
   },
+  jwt: {
+    cookies: {
+      enabled: true,
+      settings: {
+        domain: 'localhost',
+      },
+    },
+  },
 };
 
 module.exports = config;

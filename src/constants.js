@@ -1,6 +1,6 @@
-const Errors = require('common-errors');
+const { HttpStatusError } = require('common-errors');
 
-module.exports = {
+module.exports = exports = {
   // indices
   USERS_INDEX: 'user-iterator-set',
   USERS_PUBLIC_INDEX: 'users-public',
@@ -37,8 +37,9 @@ module.exports = {
   USERS_SSO_FACEBOOK_FIELD: 'facebook',
 
   // pre-generated errors
-  USERS_DISPOSABLE_PASSWORD_MIA: new Errors.HttpStatusError(403, 'Invalid or Expired Password'),
-  USER_ALREADY_ACTIVE: new Errors.HttpStatusError(417, 'this user is already active'),
+  USERS_DISPOSABLE_PASSWORD_MIA: new HttpStatusError(403, 'Invalid or Expired Password'),
+  USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
+  ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
@@ -65,10 +66,13 @@ module.exports = {
   lockRegister: username => `users:register:${username}`,
 };
 
-module.exports.SSO_PROVIDERS = [
-  module.exports.USERS_SSO_FACEBOOK_FIELD,
+// embed error codes
+exports.ErrorConflictUserExists.code = 'E_USERNAME_CONFLICT';
+
+exports.SSO_PROVIDERS = [
+  exports.USERS_SSO_FACEBOOK_FIELD,
 ];
 
-module.exports.FIELDS_TO_STRINGIFY = [
-  module.exports.USERS_SSO_FACEBOOK_FIELD,
+exports.FIELDS_TO_STRINGIFY = [
+  exports.USERS_SSO_FACEBOOK_FIELD,
 ];

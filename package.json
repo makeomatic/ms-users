@@ -79,7 +79,7 @@
     "babel-register": "^6.24.1",
     "chai": "^4.0.2",
     "cheerio": "^1.0.0-rc.1",
-    "chrome-remote-interface": "^0.23.2",
+    "chrome-remote-interface": "^0.24.0",
     "codecov": "^2.2.0",
     "cross-env": "^5.0.1",
     "cz-conventional-changelog": "^2.0.0",

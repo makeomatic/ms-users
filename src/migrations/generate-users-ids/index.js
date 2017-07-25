@@ -22,6 +22,8 @@ const safeParse = require('../../utils/safeParse');
 function generateUsersIds({ flake, redis, config, log }) {
   // used for renaming metadata keys
   const { audiences } = config.migrations.meta.generateUsersIds;
+  const pipeline = redis.pipeline();
+
   audiences.push(config.jwt.defaultAudience);
 
   return redis
@@ -30,7 +32,6 @@ function generateUsersIds({ flake, redis, config, log }) {
     .map(username => Promise.join(username, redis.hgetall(makeKey(username, USERS_DATA))))
     .map(([username, userData]) => {
       const userId = flake.next();
-      const pipeline = redis.pipeline();
       const oldUserDataKey = makeKey(username, USERS_DATA);
       const newUserDataKey = makeKey(userId, USERS_DATA);
 
@@ -72,16 +73,12 @@ function generateUsersIds({ flake, redis, config, log }) {
         makeKey(USERS_API_TOKENS_ZSET, userId)
       );
 
-      return pipeline
-        .exec()
-        .return([username, userId]);
+      return [username, userId];
     })
     .map(([username, userId]) =>
       Promise.join(username, userId, redis.sismember(USERS_PUBLIC_INDEX, username))
     )
-    .map(([username, userId, needUpdate]) => {
-      const pipeline = redis.pipeline();
-
+    .each(([username, userId, needUpdate]) => {
       // users index
       pipeline.sadd(USERS_INDEX, userId);
       pipeline.srem(USERS_INDEX, username);
@@ -91,9 +88,8 @@ function generateUsersIds({ flake, redis, config, log }) {
         pipeline.sadd(USERS_PUBLIC_INDEX, userId);
         pipeline.srem(USERS_PUBLIC_INDEX, username);
       }
-
-      return pipeline.exec();
-    });
+    })
+    .then(() => pipeline.exec());
 }
 
 module.exports = {

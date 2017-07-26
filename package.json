@@ -25,8 +25,8 @@
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
-    "@microfleet/core": "^9.1.0",
-    "@microfleet/transport-amqp": "^9.1.1",
+    "@microfleet/core": "^9.4.0",
+    "@microfleet/transport-amqp": "^12.1.0",
     "babel-runtime": "^6.23.0",
     "bell": "^8.5.0",
     "bluebird": "^3.5.0",

@@ -9,9 +9,6 @@ module.exports = {
       generateUsersIds: {
         audiences: [],
       },
-      referralsUsersIds: {
-        referrals: [],
-      },
     },
   },
 };

@@ -1,20 +1,38 @@
 const Promise = require('bluebird');
+const calcSlot = require('cluster-key-slot');
 const { USERS_REFERRAL_INDEX } = require('../../constants.js');
 const { getUserId } = require('../../utils/userData');
 
+/**
+ *
+ */
+function getRedisMasterNode(redis, config) {
+  const keyPrefix = config.redis.options.keyPrefix;
+  const slot = calcSlot(keyPrefix);
+  const nodeKeys = redis.slots[slot];
+  const masters = redis.connectionPool.nodes.master;
+
+  return nodeKeys.reduce((node, key) => node || masters[key], null);
+}
+
+/**
+ *
+ */
 function referralsUsersIds({ redis, config, log }) {
-  const { referrals } = config.migrations.meta.referralsUsersIds;
+  const keyPrefix = config.redis.options.keyPrefix;
+  const masterNode = getRedisMasterNode(redis, config);
   const pipeline = redis.pipeline();
 
-  return Promise
-    .map(
-      referrals,
-      (referral) => {
-        log.info('Get members for:', referral);
+  return masterNode
+    .keys(`${keyPrefix}${USERS_REFERRAL_INDEX}:*`)
+    .map(key => key.replace(keyPrefix, ''))
+    .map((key) => {
+      const referral = key.split(':')[1];
 
-        return Promise.join(referral, redis.smembers(`${USERS_REFERRAL_INDEX}:${referral}`));
-      }
-    )
+      log.info('Get members for:', referral);
+
+      return Promise.join(referral, redis.smembers(`${USERS_REFERRAL_INDEX}:${referral}`));
+    })
     .map(([referral, usernames]) =>
       Promise
         // resolve user id for username

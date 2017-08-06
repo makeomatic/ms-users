@@ -33,7 +33,11 @@ exports.admins = [];
  * To make some room for bringing up parts of services
  * @type {Number}
  */
-exports.initAdminAccountsDelay = 10000;
+exports.initAdminAccountsDelay = {
+  $filter: 'env',
+  test: 0,
+  production: 1000,
+};
 
 /**
  * Enables plugins. This is a minimum list

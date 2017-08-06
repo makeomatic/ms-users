@@ -88,13 +88,13 @@ describe('#register', function registerSuite() {
         ...opts,
         username: 'test@makeomatic.ru',
       })
-      .reflect()
-      .then(inspectPromise(false))
-      .then((error) => {
-        assert.equal(error.message, `"${opts.alias}" already exists`);
-        assert.equal(error.name, 'HttpStatusError');
-        assert.equal(error.statusCode, 409);
-      });
+        .reflect()
+        .then(inspectPromise(false))
+        .then((error) => {
+          assert.equal(error.message, `"${opts.alias}" already exists`);
+          assert.equal(error.name, 'HttpStatusError');
+          assert.equal(error.statusCode, 409);
+        });
     });
   });
 

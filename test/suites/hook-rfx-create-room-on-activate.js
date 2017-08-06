@@ -33,34 +33,34 @@ describe('Hook `rfx-create-room-on-activate`', function suite() {
         },
       },
     })
-    .reflect()
-    .then(inspectPromise())
-    .then((result) => {
-      assert.ok(result.context.token.secret);
+      .reflect()
+      .then(inspectPromise())
+      .then((result) => {
+        assert.ok(result.context.token.secret);
 
-      return this.dispatch('users.register', {
-        username: 'foo@gmail.com',
-        password: '123',
-        inviteToken: result.context.token.secret,
-        audience: '*.localhost',
+        return this.dispatch('users.register', {
+          username: 'foo@gmail.com',
+          password: '123',
+          inviteToken: result.context.token.secret,
+          audience: '*.localhost',
+        });
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then((result) => {
+        const stubArgs = amqpStub.args[0];
+        assert.equal(stubArgs[0], 'chat.internal.rooms.create');
+        assert.deepEqual(stubArgs[1], { name: room.name, createdBy: room.createdBy });
+
+        assert.equal(result.user.username, 'foo@gmail.com');
+        assert.equal(
+          result.user.metadata['*.localhost'].stationChatId,
+          'ee39afd6-b99a-47d0-a43b-a942cfd5451f'
+        );
+
+        amqpStub.restore();
+
+        return null;
       });
-    })
-    .reflect()
-    .then(inspectPromise())
-    .then((result) => {
-      const stubArgs = amqpStub.args[0];
-      assert.equal(stubArgs[0], 'chat.internal.rooms.create');
-      assert.deepEqual(stubArgs[1], { name: room.name, createdBy: room.createdBy });
-
-      assert.equal(result.user.username, 'foo@gmail.com');
-      assert.equal(
-        result.user.metadata['*.localhost'].stationChatId,
-        'ee39afd6-b99a-47d0-a43b-a942cfd5451f'
-      );
-
-      amqpStub.restore();
-
-      return null;
-    });
   });
 });

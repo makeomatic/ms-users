@@ -41,13 +41,14 @@ module.exports = function initAccounts() {
 
       // this will be performed each time on startup, but shouldnt be a problem due to NX
       // and lack of side-effect
-      return saveReferral.call(this, {
-        params: {
-          id: userData.referral,
-          referral: account.referral,
-        },
-      })
-      .return({ params: userData });
+      return saveReferral
+        .call(this, {
+          params: {
+            id: userData.referral,
+            referral: account.referral,
+          },
+        })
+        .return({ params: userData });
     })
     .map(userData => register.call(this, userData).reflect())
     .then((users) => {

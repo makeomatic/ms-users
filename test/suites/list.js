@@ -161,10 +161,8 @@ describe('#list', function listSuite() {
         copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
 
         copy.forEach((data) => {
-          expect(data.id).to.match(/an/i);
+          expect(data.metadata[this.audience].username).to.match(/an/i);
         });
-
-        expect(copy).to.be.deep.eq(result.users);
       });
   });
 

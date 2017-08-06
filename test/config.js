@@ -84,8 +84,7 @@ function registerUser(username, opts = {}) {
       activate: !opts.inactive,
       skipChallenge: true,
       metadata: opts.metadata || undefined,
-    })
-    .then(() => {
+    }).then(() => {
       if (opts.locked) {
         return dispatch('users.ban', { username, ban: true });
       }

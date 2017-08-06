@@ -32,28 +32,22 @@ const graphApi = request.defaults({
 const cache = {};
 const defaultAudience = '*.localhost';
 
-function createTestUserAPI(props = {}) {
-  return graphApi({
-    uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
-    method: 'POST',
-    body: {
-      installed: false,
-      ...props,
-    },
-  })
-  .promise();
-}
+const createTestUserAPI = (props = {}) => graphApi({
+  uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
+  method: 'POST',
+  body: {
+    installed: false,
+    ...props,
+  },
+}).promise();
 
-function createTestUser(localCache = cache) {
-  return Promise.props({
-    testUser: createTestUserAPI(),
-    testUserInstalled: createTestUserAPI({ installed: true }),
-    testUserInstalledPartial: createTestUserAPI({ permissions: 'public_profile' }),
-  })
-  .then((data) => {
-    Object.assign(localCache, data);
-  });
-}
+const createTestUser = (localCache = cache) => Promise.props({
+  testUser: createTestUserAPI(),
+  testUserInstalled: createTestUserAPI({ installed: true }),
+  testUserInstalledPartial: createTestUserAPI({ permissions: 'public_profile' }),
+}).then((data) => {
+  Object.assign(localCache, data);
+});
 
 function deleteTestUserAPI(id) {
   return graphApi({ uri: `/${id}`, method: 'DELETE' }).promise();

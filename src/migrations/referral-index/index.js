@@ -28,27 +28,28 @@ exports.script = (service) => {
   const audience = config.jwt.defaultAudience;
   const prefix = config.redis.options.keyPrefix;
 
-  return list.call(service, {
-    params: {
-      audience,
-      keyOnly: true,
-      public: false,
-      filter: {
-        [USERS_REFERRAL_FIELD]: {
-          exists: 1,
+  return list
+    .call(service, {
+      params: {
+        audience,
+        keyOnly: true,
+        public: false,
+        filter: {
+          [USERS_REFERRAL_FIELD]: {
+            exists: 1,
+          },
         },
       },
-    },
-  })
-  .then(key => key.slice(prefix.length))
-  .then((userIdsKey) => {
-    const keys = [
-      USERS_INDEX,
-      userIdsKey,
-      `uid!${USERS_METADATA}!${audience}`,
-      `${USERS_REFERRAL_INDEX}:uid`,
-    ];
+    })
+    .then(key => key.slice(prefix.length))
+    .then((userIdsKey) => {
+      const keys = [
+        USERS_INDEX,
+        userIdsKey,
+        `uid!${USERS_METADATA}!${audience}`,
+        `${USERS_REFERRAL_INDEX}:uid`,
+      ];
 
-    return redis.eval(SCRIPT, keys.length, keys, ARGS);
-  });
+      return redis.eval(SCRIPT, keys.length, keys, ARGS);
+    });
 };

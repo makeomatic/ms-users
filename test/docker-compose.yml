@@ -4,7 +4,7 @@ services:
   redis:
     hostname: redis
     container_name: redis
-    image: makeomatic/redis-cluster:3.2.8
+    image: makeomatic/redis-cluster:3.2.9
     # @TODO remove
     # volumes:
     #   - ./backup/7000.rdb:/redis-data/7005/dump.rdb
@@ -17,7 +17,7 @@ services:
 
   tester:
     container_name: tester
-    image: makeomatic/node:8.1.0-vips-tester-chrome
+    image: makeomatic/node:8.2.1-chrome-tester
     links:
       - redis
       - rabbitmq
@@ -31,5 +31,5 @@ services:
       FACEBOOK_APP_TOKEN: ${FACEBOOK_APP_TOKEN}
       FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
       FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
-      LIGHTHOUSE_CHROMIUM_PATH: /usr/bin/chromium-browser
+      CHROME_PATH: /usr/bin/chromium-browser
     command: tail -f /dev/null

@@ -35,23 +35,24 @@ module.exports = function generateInvite(request) {
   const now = Date.now();
 
   // do not throttle
-  return tokenManager.create({
-    id: email,
-    action: USERS_ACTION_INVITE,
-    regenerate: true,
-    ttl, // defaults to never expiring
-    throttle, // defaults to no throttle
-    metadata: {
-      [TOKEN_METADATA_FIELD_METADATA]: metadata,
-      [TOKEN_METADATA_FIELD_CONTEXT]: ctx,
-      [TOKEN_METADATA_FIELD_SENDED_AT]: now,
-    },
-  })
-  .then(token => Promise
-    .bind(this, [email, USERS_ACTION_INVITE, { ...ctx, token }, { send: true }, nodemailer])
-    .spread(generateEmail)
-    .tap(() => redis.sadd(INVITATIONS_INDEX, email))
-  );
+  return tokenManager
+    .create({
+      id: email,
+      action: USERS_ACTION_INVITE,
+      regenerate: true,
+      ttl, // defaults to never expiring
+      throttle, // defaults to no throttle
+      metadata: {
+        [TOKEN_METADATA_FIELD_METADATA]: metadata,
+        [TOKEN_METADATA_FIELD_CONTEXT]: ctx,
+        [TOKEN_METADATA_FIELD_SENDED_AT]: now,
+      },
+    })
+    .then(token => Promise
+      .bind(this, [email, USERS_ACTION_INVITE, { ...ctx, token }, { send: true }, nodemailer])
+      .spread(generateEmail)
+      .tap(() => redis.sadd(INVITATIONS_INDEX, email))
+    );
 };
 
 module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

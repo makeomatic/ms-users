@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const Mservice = require('@microfleet/core');
 const Mailer = require('ms-mailer-client');
 const merge = require('lodash/merge');
@@ -15,7 +14,6 @@ const conf = require('./config');
  * @namespace Users
  */
 module.exports = class Users extends Mservice {
-
   /**
    * Configuration options for the service
    * @type {Object}
@@ -81,51 +79,56 @@ module.exports = class Users extends Mservice {
 
     // adds mailer connector
     this._defineGetter('mailer');
-  }
 
-  /**
-   * Gracefully connect to cluster
-   * @return {Promise}
-   */
-  connect() {
-    const config = this.config;
-    this._pubsub = new RedisCluster(config.redis.hosts, {
-      ...config.redis.options,
-      lazyConnect: true,
+    // pubsub connection for lock service
+    this.addConnector(Mservice.ConnectorsTypes.database, () => {
+      this._pubsub = new RedisCluster(config.redis.hosts, {
+        ...config.redis.options,
+        lazyConnect: true,
+      });
+
+      return this._pubsub.connect();
     });
 
-    return Promise
-      .join(super.connect(), this._pubsub.connect())
-      .tap(() => {
-        // lock manager
-        this.dlock = new LockManager({
-          ...config.lockManager,
-          client: this._redis,
-          pubsub: this._pubsub,
-          log: this.log,
-        });
-      });
-  }
+    // ensure we close connection when needed
+    this.addDestructor(Mservice.ConnectorsTypes.database, () => (
+      this._pubsub.quit().reflect()
+    ));
 
-  /**
-   * Gracefully disconnect from the cluster
-   * @returns {Promise}
-   */
-  close() {
-    return Promise
-      .join(super.close(), this._pubsub.quit().reflect());
+    // add lock manager
+    this.addConnector(Mservice.ConnectorsTypes.application, () => {
+      this.dlock = new LockManager({
+        ...config.lockManager,
+        client: this._redis,
+        pubsub: this._pubsub,
+        log: this.log,
+      });
+
+      return this.dlock;
+    });
+
+    // init account seed
+    this.addConnector(Mservice.ConnectorsTypes.application, () => (
+      this.initAdminAccounts()
+    ));
+
+    // fake accounts for development
+    if (process.env.NODE_ENV === 'development') {
+      this.addConnector(Mservice.ConnectorsTypes.application, () => (
+        this.initFakeAccounts()
+      ));
+    }
   }
 
   /**
    * Initializes Admin accounts
    * @returns {Promise}
    */
-  initAdminAccounts = require('./accounts/init-admin.js');
+  initAdminAccounts = require('./accounts/init-admin');
 
   /**
    * Initializes fake account for dev purposes
    * @returns {Promise}
    */
-  initFakeAccounts = require('./accounts/init-dev.js');
-
+  initFakeAccounts = require('./accounts/init-dev');
 };

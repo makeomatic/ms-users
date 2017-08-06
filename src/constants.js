@@ -38,6 +38,7 @@ module.exports = exports = {
 
   // pre-generated errors
   USERS_DISPOSABLE_PASSWORD_MIA: new HttpStatusError(403, 'Invalid or Expired Password'),
+  USERS_INCORRECT_PASSWORD: new HttpStatusError(403, 'incorrect password'),
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
 

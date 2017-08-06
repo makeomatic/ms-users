@@ -240,161 +240,159 @@ module.exports = function registerUser(request) {
     .disposer(lockDisposer);
 
   // acquire lock now!
-  return promise
-    .then(() => Promise.using(acquireLock, () => (
-      Promise
-        .bind(this, username)
+  return promise.then(() => Promise.using(acquireLock, () => (
+    Promise
+      .bind(this, username)
 
-        // do verifications of DB state
-        .tap(getUserId)
-        .throw(ErrorConflictUserExists)
-        .catchReturn(ErrorMissing, username)
-        .tap(alias ? aliasExists(alias, true) : noop)
+      // do verifications of DB state
+      .tap(getUserId)
+      .throw(ErrorConflictUserExists)
+      .catchReturn(ErrorMissing, username)
+      .tap(alias ? aliasExists(alias, true) : noop)
 
-        // generate password hash
-        .bind({
-          redis,
-          tokenManager,
-          control,
-          inviteToken,
-          metadata,
-          referral,
-          sso,
-          ssoTokenOptions,
-          defaultAudience,
-          audience: params.audience,
-        })
-        // verifies token and adds extra meta if this is present
-        .tap(inviteToken ? verifyToken : noop)
-        // if referral is set - verifies if it was previously saved
-        .tap(referral ? verifyReferral : noop)
-        // if sso is provided - decodes token and patches provided SSO object
-        .tap(sso ? verifySSO : noop)
-        // prepare next context
-        .return([
-          password,
-          challengeType,
-          username,
-          // this will be passed as context if we need to send an email
-          // effectively allowing us to get some meta like firstName and lastName
-          // for personalized emails
-          metadata[params.audience],
-        ])
-        .bind(this)
-        .spread(skipPassword === false ? hashPassword : retNull)
+      // generate password hash
+      .bind({
+        redis,
+        tokenManager,
+        control,
+        inviteToken,
+        metadata,
+        referral,
+        sso,
+        ssoTokenOptions,
+        defaultAudience,
+        audience: params.audience,
+      })
+      // verifies token and adds extra meta if this is present
+      .tap(inviteToken ? verifyToken : noop)
+      // if referral is set - verifies if it was previously saved
+      .tap(referral ? verifyReferral : noop)
+      // if sso is provided - decodes token and patches provided SSO object
+      .tap(sso ? verifySSO : noop)
+      // prepare next context
+      .return([
+        password,
+        challengeType,
+        username,
+        // this will be passed as context if we need to send an email
+        // effectively allowing us to get some meta like firstName and lastName
+        // for personalized emails
+        metadata[params.audience],
+      ])
+      .bind(this)
+      .spread(skipPassword === false ? hashPassword : retNull)
 
-        // create user
-        .then((hash) => {
-          const pipeline = redis.pipeline();
-          const basicInfo = {
-            [USERS_CREATED_FIELD]: created,
+      // create user
+      .then((hash) => {
+        const pipeline = redis.pipeline();
+        const basicInfo = {
+          [USERS_CREATED_FIELD]: created,
+          [USERS_USERNAME_FIELD]: username,
+        };
+
+        if (sso) {
+          const { provider, email, uid, credentials } = sso;
+
+          // skip activation if email is given by sso provider and equals to registered email
+          if (shouldActivate === undefined) {
+            shouldActivate = email ? username === email : false;
+          }
+
+          // inject sensitive provider info to internal data
+          basicInfo[provider] = JSON.stringify(credentials.internals);
+
+          // link uid to username
+          pipeline.hset(USERS_SSO_TO_ID, uid, userId);
+        }
+
+        if (hash !== null) {
+          basicInfo[USERS_PASSWORD_FIELD] = hash;
+        }
+
+        // if user is active
+        basicInfo[USERS_ACTIVE_FLAG] = shouldActivate;
+        // set internal data
+        pipeline.hmset(userDataKey, basicInfo);
+        // @TODO expire?
+        pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
+
+        // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
+        // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
+        if (!shouldActivate && deleteInactiveAccounts >= 0) {
+          pipeline.expire(userDataKey, deleteInactiveAccounts);
+        }
+
+        return pipeline.exec().then(handlePipeline);
+      })
+      // passed metadata
+      .return({
+        userId,
+        audience,
+        metadata: audience.map(metaAudience => ({
+          $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
+            [USERS_ID_FIELD]: userId,
             [USERS_USERNAME_FIELD]: username,
-          };
+            [USERS_CREATED_FIELD]: created,
+          }),
+        })),
+      })
+      .then(setMetadata)
+      // NOTE: alias: if present, if account is not activated - it will lock that alias
+      // until it's manually cleaned from the DB somehow
+      .return({ params: { username, alias, internal: true } })
+      .then(alias ? assignAlias : noop)
+      // activate user or queue challenge
+      .then(() => {
+        // Option 1. Activation
+        if (!shouldActivate) {
+          return Promise
+            .bind(this, [
+              challengeType,
+              {
+                id: username,
+                action: USERS_ACTION_ACTIVATE,
+                ...tokenOptions,
+              },
+              {
+                ...metadata[params.audience],
+              },
+            ])
+            .spread(skipChallenge ? noop : challenge) // eslint-disable-line promise/always-return
+            .then((challengeResponse) => {
+              const response = { requiresActivation: true, id: userId };
+              const uid = challengeResponse ? challengeResponse.context.token.uid : null;
 
-          if (sso) {
-            const { provider, email, uid, credentials } = sso;
+              if (uid) {
+                response.uid = uid;
+              }
 
-            // skip activation if email is given by sso provider and equals to registered email
-            if (shouldActivate === undefined) {
-              shouldActivate = email ? username === email : false;
-            }
+              return response;
+            });
+        }
 
-            // inject sensitive provider info to internal data
-            basicInfo[provider] = JSON.stringify(credentials.internals);
+        // perform instant activation
+        // internal username index
+        const pipeline = redis.pipeline().sadd(USERS_INDEX, userId);
+        const ref = metadata[params.audience][USERS_REFERRAL_FIELD];
 
-            // link uid to username
-            pipeline.hset(USERS_SSO_TO_ID, uid, userId);
-          }
+        // add to referral index during registration
+        // on instant activation
+        if (ref) {
+          pipeline.sadd(`${USERS_REFERRAL_INDEX}:${ref}`, userId);
+        }
 
-          if (hash !== null) {
-            basicInfo[USERS_PASSWORD_FIELD] = hash;
-          }
-
-          // if user is active
-          basicInfo[USERS_ACTIVE_FLAG] = shouldActivate;
-          // set internal data
-          pipeline.hmset(userDataKey, basicInfo);
-          // @TODO expire?
-          pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
-
-          // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
-          // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
-          if (!shouldActivate && deleteInactiveAccounts >= 0) {
-            pipeline.expire(userDataKey, deleteInactiveAccounts);
-          }
-
-          return pipeline.exec().then(handlePipeline);
-        })
-        // passed metadata
-        .return({
-          userId,
-          audience,
-          metadata: audience.map(metaAudience => ({
-            $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
-              [USERS_ID_FIELD]: userId,
-              [USERS_USERNAME_FIELD]: username,
-              [USERS_CREATED_FIELD]: created,
-            }),
-          })),
-        })
-        .then(setMetadata)
-        // NOTE: alias: if present, if account is not activated - it will lock that alias
-        // until it's manually cleaned from the DB somehow
-        .return({ params: { username, alias, internal: true } })
-        .then(alias ? assignAlias : noop)
-        // activate user or queue challenge
-        .then(() => {
-          // Option 1. Activation
-          if (!shouldActivate) {
-            return Promise
-              .bind(this, [
-                challengeType,
-                {
-                  id: username,
-                  action: USERS_ACTION_ACTIVATE,
-                  ...tokenOptions,
-                },
-                {
-                  ...metadata[params.audience],
-                },
-              ])
-              .spread(skipChallenge ? noop : challenge) // eslint-disable-line promise/always-return
-              .then((challengeResponse) => {
-                const response = { requiresActivation: true, id: userId };
-                const uid = challengeResponse ? challengeResponse.context.token.uid : null;
-
-                if (uid) {
-                  response.uid = uid;
-                }
-
-                return response;
-              });
-          }
-
-          // perform instant activation
-          // internal username index
-          const pipeline = redis.pipeline().sadd(USERS_INDEX, userId);
-          const ref = metadata[params.audience][USERS_REFERRAL_FIELD];
-
-          // add to referral index during registration
-          // on instant activation
-          if (ref) {
-            pipeline.sadd(`${USERS_REFERRAL_INDEX}:${ref}`, userId);
-          }
-
-          return pipeline
-            .exec()
-            .then(handlePipeline)
-            // custom actions
-            .bind(this)
-            .return(['users:activate', userId, params, metadata])
-            .spread(this.hook)
-            // login & return JWT
-            .return([userId, params.audience])
-            .spread(jwt.login);
-        })
-      )
-    ));
+        return pipeline
+          .exec()
+          .then(handlePipeline)
+          // custom actions
+          .bind(this)
+          .return(['users:activate', userId, params, metadata])
+          .spread(this.hook)
+          // login & return JWT
+          .return([userId, params.audience])
+          .spread(jwt.login);
+      })
+  )));
 };
 
 // transform `sso` token if it's present

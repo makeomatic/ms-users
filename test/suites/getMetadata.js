@@ -83,51 +83,53 @@ describe('#getMetadata', function getMetadataSuite() {
     });
 
     it('must return partial response for default and passed audiences', function test() {
-      return this.dispatch('users.getMetadata', {
-        username,
-        audience: [audience, 'matic.ninja'],
-        fields: {
-          [audience]: ['username'],
-          'matic.ninja': ['iat'],
-        },
-      })
-      .reflect()
-      .then(inspectPromise())
-      .then((getMetadata) => {
-        assert.deepEqual(getMetadata, {
-          [audience]: {
-            username,
+      return this
+        .dispatch('users.getMetadata', {
+          username,
+          audience: [audience, 'matic.ninja'],
+          fields: {
+            [audience]: ['username'],
+            'matic.ninja': ['iat'],
           },
-          'matic.ninja': {
-            iat: 10,
-          },
+        })
+        .reflect()
+        .then(inspectPromise())
+        .then((getMetadata) => {
+          assert.deepEqual(getMetadata, {
+            [audience]: {
+              username,
+            },
+            'matic.ninja': {
+              iat: 10,
+            },
+          });
         });
-      });
     });
 
     it('must return metadata for multiple users', function test() {
-      return this.dispatch('users.getMetadata', {
-        username: [username, usernameB],
-        audience,
-        fields: {
-          [audience]: ['username'],
-        },
-      })
-      .reflect()
-      .then(inspectPromise())
-      .then((meta) => {
-        assert.ok(Array.isArray(meta));
-        assert.ok(meta.length === 2);
-        assert.deepEqual(meta, [{
-          [audience]: {
-            username,
+      return this
+        .dispatch('users.getMetadata', {
+          username: [username, usernameB],
+          audience,
+          fields: {
+            [audience]: ['username'],
           },
-        }, {
-          [audience]: {
-            username: usernameB,
-          },
-        }]);
-      });
+        })
+        .reflect()
+        .then(inspectPromise())
+        .then((meta) => {
+          assert.ok(Array.isArray(meta));
+          assert.ok(meta.length === 2);
+          assert.deepEqual(meta, [{
+            [audience]: {
+              username,
+            },
+          }, {
+            [audience]: {
+              username: usernameB,
+            },
+          }]);
+        });
     });
   });
 });

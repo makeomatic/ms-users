@@ -185,6 +185,9 @@ exports.internal = function verifyInternalToken(token) {
     throw new Errors.HttpStatusError(403, 'malformed token');
   }
 
+  // md5 hash
+  const isLegacyToken = /^[a-f0-9]{32}$/i.test(userId);
+
   // this is needed to pass ctx of the
   const payload = `${userId}.${uuid}`;
   const isValid = verifyHMAC.call(this, payload, signature);
@@ -199,9 +202,8 @@ exports.internal = function verifyInternalToken(token) {
   const redis = this.redis;
 
   return redis
-    .hget(key, 'userId')
-    // @TODO comment
-    .then(username => ({ username }));
+    .hget(key, isLegacyToken ? 'username' : 'userId')
+    .then(id => ({ [isLegacyToken ? 'username' : 'userId']: id }));
 };
 
 

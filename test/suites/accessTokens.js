@@ -2,6 +2,11 @@
 const Promise = require('bluebird');
 const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
+const uuid = require('node-uuid');
+const { sign } = require('../../src/utils/signatures');
+const { USERS_API_TOKENS } = require('../../src/constants');
+const md5 = require('md5');
+const redisKey = require('../../src/utils/key');
 
 describe('#token.*', function activateSuite() {
   // actions supported by this
@@ -148,5 +153,43 @@ describe('#token.*', function activateSuite() {
         .then(inspectPromise(false))
       ));
     });
+  });
+});
+
+describe('legacy API tokens', function suit() {
+  const username = 'test@ms-users.com';
+
+  after('clean up redis', global.clearRedis);
+
+  before('start service', function startService() {
+    return global.startService.call(this, { registrationLimits: { checkMX: false } });
+  });
+
+  before('register user', globalRegisterUser(username));
+
+  before('create token', function createToken() {
+    const uniqId = uuid.v4();
+    const hashedUsername = md5(username);
+    const payload = `${hashedUsername}.${uniqId}`;
+    const signature = sign.call(this.users, payload);
+    const key = redisKey(USERS_API_TOKENS, payload);
+
+    this.token = `${payload}.${signature}`;
+
+    return this.users.redis.hmset(key, { username, name: 'token for test', uuid: uniqId });
+  });
+
+  it('should be able to verify', function test() {
+    return this
+      .dispatch('users.verify', {
+        token: this.token,
+        accessToken: true,
+        audience: '*.localhost',
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then((response) => {
+        assert.equal(username, response.metadata['*.localhost'].username);
+      });
   });
 });

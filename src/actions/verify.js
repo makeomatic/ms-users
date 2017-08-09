@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const { HttpStatusError } = require('common-errors');
 const jwt = require('../utils/jwt.js');
 const getMetadata = require('../utils/getMetadata.js');
+const { getUserId } = require('../utils/userData');
 
 /**
  * Internal functions
@@ -10,11 +11,10 @@ const isArray = Array.isArray;
 const toArray = maybeArray => (isArray(maybeArray) ? maybeArray : [maybeArray]);
 
 /**
- * @TODO comment (userId)
  * Verifies decoded token
  */
-function decodedToken({ username: userId }) {
-  if (!userId) {
+function decodedToken({ username, userId }) {
+  if (!userId && !username) {
     throw new HttpStatusError(403, 'forged or expired token');
   }
 
@@ -25,11 +25,14 @@ function decodedToken({ username: userId }) {
     audience.push(defaultAudience);
   }
 
-  // get metadata and return success
-  return Promise.props({
-    id: userId,
-    metadata: getMetadata.call(service, userId, audience),
-  });
+  return Promise
+    .resolve(userId || getUserId.call(service, username))
+    .then(resolveduserId =>
+      Promise.props({
+        id: resolveduserId,
+        metadata: getMetadata.call(service, resolveduserId, audience),
+      })
+    );
 }
 
 /**

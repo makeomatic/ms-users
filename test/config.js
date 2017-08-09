@@ -48,16 +48,6 @@ const config = {
     account: 'twilio',
     waitChallenge: true,
   },
-  migrations: {
-  // @TODO remove
-  // enabled: true,
-  //   meta: {
-  //     generateUsersIds: {
-  //       audiences: ['api', 'ms-files'],
-  //     },
-  //   },
-  // },
-  },
   oauth: {
     enabled: true,
     providers: {

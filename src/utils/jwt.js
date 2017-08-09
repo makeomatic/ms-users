@@ -32,7 +32,6 @@ exports.login = function login(userId, _audience) {
   // will have iat field, which is when this token was issued
   // we can check last access and verify the expiration date based on it
   const payload = {
-    // @TODO comment
     username: userId,
     cs: flake.next(),
   };
@@ -128,7 +127,6 @@ function verifyDecodedToken(decoded) {
     throw new Errors.HttpStatusError(403, 'audience mismatch');
   }
 
-  // @TODO comment (userId)
   const { username } = decoded;
   const tokensHolder = this.tokensHolder = redisKey(username, USERS_TOKENS);
 

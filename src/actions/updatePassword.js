@@ -9,7 +9,12 @@ const isBanned = require('../utils/isBanned.js');
 const hasPassword = require('../utils/hasPassword.js');
 const { getUserId } = require('../utils/userData');
 const partialRight = require('lodash/partialRight');
-const { USERS_DATA, USERS_ACTION_RESET, USERS_PASSWORD_FIELD } = require('../constants.js');
+const {
+  USERS_DATA,
+  USERS_ACTION_RESET,
+  USERS_PASSWORD_FIELD,
+  USERS_ID_FIELD
+} = require('../constants.js');
 
 // cache error
 const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
@@ -27,7 +32,7 @@ function usernamePasswordReset(username, password) {
     .tap(isBanned)
     .tap(hasPassword)
     .tap(data => scrypt.verify(data.password, password))
-    .then(data => data.username);
+    .then(data => data[USERS_ID_FIELD]);
 }
 
 /**

@@ -13,7 +13,7 @@ const {
   USERS_DATA,
   USERS_ACTION_RESET,
   USERS_PASSWORD_FIELD,
-  USERS_ID_FIELD
+  USERS_ID_FIELD,
 } = require('../constants.js');
 
 // cache error

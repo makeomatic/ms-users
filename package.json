@@ -67,7 +67,7 @@
     "stdout-stream": "^1.4.0",
     "tough-cookie": "^2.3.2",
     "vision": "^4.1.1",
-    "yargs": "^8.0.2"
+    "yargs": "^9.0.1"
   },
   "devDependencies": {
     "@makeomatic/deploy": "^4.1.3",

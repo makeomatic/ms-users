@@ -41,3 +41,4 @@ ss
 
 # Other files
 .vscode
+.npmrc

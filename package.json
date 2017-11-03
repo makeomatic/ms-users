@@ -42,7 +42,7 @@
     "flake-idgen": "^1.1.0",
     "get-stdin": "^5.0.1",
     "handlebars": "^4.0.6",
-    "hapi": "^16.5.2",
+    "hapi": "^17.0.0",
     "ioredis": "^3.1.2",
     "is": "^3.2.1",
     "jsonwebtoken": "^8.0.1",

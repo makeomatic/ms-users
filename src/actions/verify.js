@@ -6,7 +6,7 @@ const getMetadata = require('../utils/getMetadata.js');
 /**
  * Internal functions
  */
-const isArray = Array.isArray;
+const { isArray } = Array;
 const toArray = maybeArray => (isArray(maybeArray) ? maybeArray : [maybeArray]);
 
 /**
@@ -48,9 +48,7 @@ function decodedToken({ username }) {
 module.exports = function verify({ params }) {
   // basic context
   const audience = toArray(params.audience);
-  const token = params.token;
-  const peek = params.peek;
-  const accessToken = params.accessToken;
+  const { token, peek, accessToken } = params;
 
   // internal context
   const ctx = {

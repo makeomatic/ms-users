@@ -35,7 +35,7 @@ module.exports = function makeCaptchaCheck(redis, username, captcha, captchaConf
           .post({ uri, qs: defaults(captcha, { secret }), json: true })
           .then(function captchaSuccess(body) {
             if (!body.success) {
-              return Promise.reject({ statusCode: 200, error: body });
+              return Promise.reject(new Errors.HttpStatusError(200, body));
             }
 
             return true;

@@ -1,9 +1,9 @@
 const Promise = require('bluebird');
-const ActionTransport = require('@microfleet/core').ActionTransport;
 const url = require('url');
 const is = require('is');
 const serializeError = require('serialize-error');
 const serialize = require('serialize-javascript');
+const { ActionTransport } = require('@microfleet/core');
 const { Redirect } = require('./utils/errors');
 const { AuthenticationRequiredError } = require('common-errors');
 

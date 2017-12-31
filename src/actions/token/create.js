@@ -22,7 +22,7 @@ const handlePipelineError = require('../../utils/pipelineError');
 module.exports = function createToken({ params }) {
   const { username, name } = params;
   const tokenPart = uuid.v4();
-  const redis = this.redis;
+  const { redis } = this;
 
   // transform input
   const hashedUsername = md5(username);

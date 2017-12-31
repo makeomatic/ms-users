@@ -6,7 +6,7 @@ const { CHALLENGE_TYPE_EMAIL } = require('../constants.js');
 module.exports = function initFakeAccounts() {
   const faker = require('faker');
 
-  const config = this.config;
+  const { config } = this;
   const accounts = times(103, () => ({
     id: faker.internet.email(),
     metadata: {
@@ -34,8 +34,7 @@ module.exports = function initFakeAccounts() {
           skipPassword: false,
         },
       })
-      .reflect()
-    )
+      .reflect())
     .bind(this)
     .then(function reportStats(users) {
       const totalAccounts = users.length;

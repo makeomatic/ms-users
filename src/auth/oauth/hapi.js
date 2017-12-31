@@ -5,17 +5,17 @@ const defaults = require('lodash/defaults');
 const strategies = require('./providers');
 
 // helpers
-const isArray = Array.isArray;
+const { isArray } = Array;
 const stringToArray = (scope, scopeSeparator) => (isArray(scope) ? scope : scope.split(scopeSeparator));
-const hapiOauthHandler = (request, reply) => {
-  const redirectUri = request.response.redirectUri;
+const hapiOauthHandler = (request, h) => {
+  const { redirectUri } = request.response;
 
   // redirect if redirectURI is present
   if (redirectUri) {
-    return reply.redirect(redirectUri);
+    return h.redirect(redirectUri);
   }
 
-  return reply.continue();
+  return h.continue;
 };
 
 /**
@@ -42,7 +42,9 @@ module.exports = function OauthHandler(server, config) {
 
     let provider;
     const defaultOptions = strategy.options;
-    const { scope, fields, profileHandler, scopeSeparator, apiVersion, enabled, retryOnMissingPermissions, ...rest } = options;
+    const {
+      scope, fields, profileHandler, scopeSeparator, apiVersion, enabled, retryOnMissingPermissions, ...rest
+    } = options;
 
     // make sure runtime params are allowed in we want to retry as we need to defined dynamic
     // redirect params
@@ -58,7 +60,9 @@ module.exports = function OauthHandler(server, config) {
       };
 
       if (is.fn(defaultOptions)) {
-        provider = defaultOptions({ ...configuredOptions, apiVersion, fields, profileHandler });
+        provider = defaultOptions({
+          ...configuredOptions, apiVersion, fields, profileHandler,
+        });
       } else {
         provider = defaults(configuredOptions, defaultOptions);
       }

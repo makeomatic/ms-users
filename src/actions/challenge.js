@@ -84,7 +84,7 @@ module.exports = function sendChallenge({ params }) {
   // TODO: add metadata processing on successful email challenge
 
   const service = this;
-  const config = service.config;
+  const { config } = service;
   const { defaultAudience } = config.jwt;
   const { throttle, ttl } = config.token[CHALLENGE_TYPE_EMAIL];
 

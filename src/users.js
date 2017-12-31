@@ -29,7 +29,7 @@ module.exports = class Users extends Mservice {
     super(merge({}, Users.defaultOpts, opts));
 
     // cached ref
-    const config = this.config;
+    const { config } = this;
 
     // id generator
     this.flake = new Flakeless(config.flake);

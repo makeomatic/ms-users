@@ -13,7 +13,7 @@ const {
   FIELDS_TO_STRINGIFY,
 } = require('../constants.js');
 
-const hasOwnProperty = Object.prototype.hasOwnProperty;
+const { hasOwnProperty } = Object.prototype;
 const STRINGIFY_FIELDS = zipObject(FIELDS_TO_STRINGIFY);
 
 const reducer = (accumulator, value, prop) => {

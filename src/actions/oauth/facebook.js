@@ -4,13 +4,13 @@ const Errors = require('common-errors');
 const attach = require('../../auth/oauth/utils/attach');
 const getSignedToken = require('../../auth/oauth/utils/getSignedToken');
 
-module.exports = function facebookCallbackAction(request) {
+function facebookCallbackAction(request) {
   const { credentials } = request.auth;
   const { user, account } = credentials;
 
   // logged in, no account provided - bypass
   if (!account) {
-    const cookies = this.config.jwt.cookies;
+    const { cookies } = this.config.jwt;
     if (cookies.enabled === true) {
       request.transportRequest.setState(cookies.name, credentials.jwt, cookies.settings);
     }
@@ -27,7 +27,9 @@ module.exports = function facebookCallbackAction(request) {
 
   // input data
   // TODO: customize what to encode
-  const { uid, provider, email, profile, internals, missingPermissions } = account;
+  const {
+    uid, provider, email, profile, internals, missingPermissions,
+  } = account;
 
   // compose facebook context, would be encoded
   const facebook = {
@@ -48,15 +50,17 @@ module.exports = function facebookCallbackAction(request) {
       type: 'ms-users:attached',
       title: `Attached ${provider} account`,
     }));
-};
+}
 
-module.exports.allowed = function isAllowed(request) {
+facebookCallbackAction.allowed = function isAllowed(request) {
   if (!request.auth.credentials) {
     throw new Errors.HttpStatusError(401, 'authentication required');
   }
 };
 
-module.exports.auth = 'oauth';
-module.exports.strategy = 'facebook';
-module.exports.passAuthError = true;
-module.exports.transports = [require('@microfleet/core').ActionTransport.http];
+facebookCallbackAction.auth = 'oauth';
+facebookCallbackAction.strategy = 'facebook';
+facebookCallbackAction.passAuthError = true;
+facebookCallbackAction.transports = [require('@microfleet/core').ActionTransport.http];
+
+module.exports = facebookCallbackAction;

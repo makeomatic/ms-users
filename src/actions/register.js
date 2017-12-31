@@ -42,7 +42,7 @@ const {
 } = require('../constants');
 
 // cached helpers
-const hasOwnProperty = Object.prototype.hasOwnProperty;
+const { hasOwnProperty } = Object.prototype;
 const retNull = constant(null);
 const ErrorMalformedAudience = new HttpStatusError(400, 'non-default audience must be accompanied by non-empty metadata or inviteToken');
 const ErrorMalformedInvite = new HttpStatusError(400, 'Account must be activated when using invite token');
@@ -158,7 +158,7 @@ module.exports = function registerUser(request) {
   const { token: ssoTokenOptions } = config.oauth;
 
   // request
-  const params = request.params;
+  const { params } = request;
   const {
     activate,
     anyUsername,
@@ -288,7 +288,9 @@ module.exports = function registerUser(request) {
         };
 
         if (sso) {
-          const { provider, email, uid, credentials } = sso;
+          const {
+            provider, email, uid, credentials,
+          } = sso;
 
           // skip activation if email is given by sso provider and equals to registered email
           if (shouldActivate === undefined) {
@@ -405,7 +407,9 @@ module.exports.allowed = function transformSSO({ params }) {
   return jwt
     .verifyData(sso, ssoTokenOptions)
     .then((credentials) => {
-      const { uid, provider, email, profile } = credentials;
+      const {
+        uid, provider, email, profile,
+      } = credentials;
 
       params.sso = {
         uid,

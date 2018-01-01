@@ -105,9 +105,8 @@ function mserviceVerification(credentials) {
  * @param  {MserviceRequest} request
  * @returns {Promise}
  */
-module.exports = async function authHandler(request) {
+module.exports = async function authHandler({ action, transportRequest }) {
   const { http, config } = this;
-  const { action, transportRequest } = request;
   const { strategy } = action;
 
   /**

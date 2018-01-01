@@ -314,7 +314,7 @@ describe('#facebook', function oauthFacebookSuite() {
             assert.ok(context.$ms_users_inj_post_message);
             assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:logged-in');
 
-            const payload = context.$ms_users_inj_post_message.payload;
+            const { payload } = context.$ms_users_inj_post_message;
             assert(payload.hasOwnProperty('jwt'));
             assert(payload.hasOwnProperty('user'));
             assert(payload.user.hasOwnProperty('metadata'));

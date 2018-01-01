@@ -103,9 +103,9 @@
     debug "^2.6.8"
     lodash "^4.17.4"
 
-"@microfleet/core@^10.2.0":
-  version "10.2.0"
-  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-10.2.0.tgz#1a2b2ffa821ecd66028ae062d9b0c5e15ebcf08b"
+"@microfleet/core@^10.2.1":
+  version "10.2.1"
+  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-10.2.1.tgz#edf71ef73160ef678b30ad18734031652623d854"
   dependencies:
     bluebird "^3.5.1"
     callsite "^1.0.0"

@@ -30,6 +30,19 @@ module.exports = class Users extends Mservice {
 
     // cached ref
     const { config } = this;
+    const { prefix } = config.router.routes;
+
+    /**
+     * Setup data for bearer token authentication
+     * @type {Object}
+     */
+    config.users = {
+      audience: config.jwt.defaultAudience,
+      verify: `${prefix}.verify`,
+      timeouts: {
+        verify: 5000,
+      },
+    };
 
     // id generator
     this.flake = new Flakeless(config.flake);

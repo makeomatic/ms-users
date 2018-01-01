@@ -1,7 +1,8 @@
 const { HttpStatusCode } = require('common-errors');
 const { parse } = require('tough-cookie');
 
-const hasOwnProperty = Object.prototype.hasOwnProperty;
+const { hasOwnProperty } = Object.prototype;
+const { isArray } = Array;
 
 /**
 * Extract the JWT from URL, Auth Header or Cookie
@@ -12,15 +13,17 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 */
 module.exports = function extract(request, options = {}) {
   // The key holding token value in url or cookie defaults to token
-  const urlKey = options.urlKey || 'token';
-  const cookieKey = options.cookieKey || 'token';
-  const headerKey = options.headerKey || 'authorization';
+  const {
+    urlKey = 'token',
+    cookieKey = 'token',
+    headerKey = 'authorization',
+  } = options;
   const { headers, query } = request;
 
   const hasHeaderKey = hasOwnProperty.call(headers, headerKey);
   if (hasHeaderKey) {
     const header = headers[headerKey];
-    if (Array.isArray(header)) {
+    if (isArray(header)) {
       throw new HttpStatusCode(400, `must only containe one "${headerKey}"`);
     }
 

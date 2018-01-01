@@ -95,12 +95,19 @@ function fetchUserData(ids) {
  */
 module.exports = function iterateOverActiveUsers({ params }) {
   const { redis } = this;
-  const { criteria, audience, filter, userIdsOnly, expiration } = params;
+  const {
+    criteria,
+    audience,
+    filter,
+    userIdsOnly,
+    expiration,
+    keyOnly,
+    limit = 10,
+    offset = 0,
+    order = 'ASC',
+  } = params;
+
   const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
-  const order = params.order || 'ASC';
-  const offset = params.offset || 0;
-  const limit = params.limit || 10;
-  const keyOnly = params.keyOnly;
   const metaKey = redisKey('*', USERS_METADATA, audience);
   const currentTime = Date.now();
 

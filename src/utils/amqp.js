@@ -5,7 +5,7 @@
  */
 exports.verifyToken = function verifyToken(token) {
   const { amqp, config } = this;
-  const prefix = config.router.routes.prefix;
+  const { prefix } = config.router.routes;
   const audience = config.jwt.defaultAudience;
   const payload = {
     token,
@@ -22,7 +22,7 @@ exports.verifyToken = function verifyToken(token) {
  */
 exports.loginAttempt = function loginAttempt(username, opts = {}) {
   const { amqp, config } = this;
-  const prefix = config.router.routes.prefix;
+  const { prefix } = config.router.routes;
   const audience = config.jwt.defaultAudience;
   const payload = {
     username,

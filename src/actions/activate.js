@@ -95,7 +95,9 @@ function verifyToken() {
   return this.service
     .tokenManager
     .verify(args, opts)
-    .bind({ log: service.log, redis: service.redis, token, username })
+    .bind({
+      log: service.log, redis: service.redis, token, username,
+    })
     .catch(RethrowForbidden)
     .get('id');
 }

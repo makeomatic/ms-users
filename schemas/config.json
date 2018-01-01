@@ -439,15 +439,17 @@
     },
     "oauth": {
       "type": "object",
-      "required": ["token", "providers"],
       "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
         "token": {
           "hashingFunction": {
             "type": "string"
           },
           "secret": {
-            "type": "string",
-            "minLength": 32
+            "type": "string"
           },
           "issuer": {
             "type": "string",
@@ -461,6 +463,10 @@
             "required": ["clientId", "clientSecret"],
             "additionalProperties": true,
             "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
               "retryOnMissingPermissions": {
                 "type": "boolean"
               },
@@ -495,8 +501,7 @@
                 "minLength": 1
               },
               "password": {
-                "type": "string",
-                "minLength": 1
+                "type": "string"
               },
               "forceHttps": {
                 "type": "boolean",
@@ -518,6 +523,36 @@
               },
               "profileHandler": {
                 "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": { "enabled": { "constant": true } }
+      },
+      "then": {
+        "required": ["token", "providers"],
+        "properties": {
+          "token": {
+            "properties": {
+              "secret": {
+                "minLength": 32
+              },
+              "providers": {
+                "minProperties": 1,
+                "additionalProperties": {
+                  "if": {
+                    "properties": { "enabled": { "constant": true } }
+                  },
+                  "then": {
+                    "properties": {
+                      "password": {
+                        "minLength": 32
+                      }
+                    }
+                  }
+                }
               }
             }
           }

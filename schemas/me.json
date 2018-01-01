@@ -1,0 +1,12 @@
+{
+  "$id": "me",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "audience": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
+    }
+  }
+}

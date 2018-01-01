@@ -26,9 +26,9 @@ describe('`disposable-password` action', function regenerateTokenSuite() {
       };
 
       return this.dispatch('users.register', opts)
-        .then(() =>
+        .then(() => (
           this.dispatch('users.disposable-password', params)
-        )
+        ))
         .then((response) => {
           assert.equal(response.requested, true);
           assert.ok(response.uid, true);

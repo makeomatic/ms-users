@@ -16,7 +16,7 @@ const {
 } = require('../../../constants.js');
 
 // will be replaced later
-const placeholder = partial.placeholder;
+const { placeholder } = partial;
 
 function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   const { config } = this;

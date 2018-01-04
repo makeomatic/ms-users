@@ -6,7 +6,7 @@ const saveReferral = require('../actions/referral');
 const { USERS_ADMIN_ROLE, CHALLENGE_TYPE_EMAIL } = require('../constants');
 
 module.exports = function initAccounts() {
-  const config = this.config;
+  const { config } = this;
   const accounts = config.admins;
   const audience = config.jwt.defaultAudience;
 

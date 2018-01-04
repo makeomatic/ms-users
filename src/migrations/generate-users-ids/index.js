@@ -19,7 +19,9 @@ const {
 const makeKey = require('../../utils/key');
 const safeParse = require('../../utils/safeParse');
 
-function generateUsersIds({ flake, redis, config, log }) {
+function generateUsersIds({
+  flake, redis, config, log,
+}) {
   // used for renaming metadata keys
   const { audiences } = config.migrations.meta.generateUsersIds;
   const pipeline = redis.pipeline();
@@ -76,8 +78,7 @@ function generateUsersIds({ flake, redis, config, log }) {
       return [username, userId];
     })
     .map(([username, userId]) =>
-      Promise.join(username, userId, redis.sismember(USERS_PUBLIC_INDEX, username))
-    )
+      Promise.join(username, userId, redis.sismember(USERS_PUBLIC_INDEX, username)))
     .each(([username, userId, needUpdate]) => {
       // users index
       pipeline.sadd(USERS_INDEX, userId);

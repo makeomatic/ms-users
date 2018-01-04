@@ -7,7 +7,7 @@ const { getUserId } = require('../../utils/userData');
  *
  */
 function getRedisMasterNode(redis, config) {
-  const keyPrefix = config.redis.options.keyPrefix;
+  const { keyPrefix } = config.redis.options;
   const slot = calcSlot(keyPrefix);
   const nodeKeys = redis.slots[slot];
   const masters = redis.connectionPool.nodes.master;
@@ -19,7 +19,7 @@ function getRedisMasterNode(redis, config) {
  *
  */
 function referralsUsersIds({ redis, config, log }) {
-  const keyPrefix = config.redis.options.keyPrefix;
+  const { keyPrefix } = config.redis.options;
   const masterNode = getRedisMasterNode(redis, config);
   const pipeline = redis.pipeline();
 
@@ -52,8 +52,7 @@ function referralsUsersIds({ redis, config, log }) {
           pipeline.srem(`${USERS_REFERRAL_INDEX}:${referral}`, username);
 
           return null;
-        })
-    )
+        }))
     .then(() => pipeline.exec());
 }
 

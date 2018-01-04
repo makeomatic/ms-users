@@ -17,20 +17,20 @@ const JSONStringify = data => JSON.stringify(data);
  * @param  {Object} metadata
  */
 function handleAudience(pipeline, key, metadata) {
-  const $remove = metadata.$remove;
+  const { $remove } = metadata;
   const $removeOps = $remove && $remove.length || 0;
   if ($removeOps > 0) {
     pipeline.hdel(key, $remove);
   }
 
-  const $set = metadata.$set;
+  const { $set } = metadata;
   const $setKeys = $set && Object.keys($set);
   const $setLength = $setKeys && $setKeys.length || 0;
   if ($setLength > 0) {
     pipeline.hmset(key, mapValues($set, JSONStringify));
   }
 
-  const $incr = metadata.$incr;
+  const { $incr } = metadata;
   const $incrFields = $incr && Object.keys($incr);
   const $incrLength = $incrFields && $incrFields.length || 0;
   if ($incrLength > 0) {
@@ -39,7 +39,9 @@ function handleAudience(pipeline, key, metadata) {
     });
   }
 
-  return { $removeOps, $setLength, $incrLength, $incrFields };
+  return {
+    $removeOps, $setLength, $incrLength, $incrFields,
+  };
 }
 
 /**
@@ -52,7 +54,9 @@ function mapMetaResponse(operations, responses) {
   let cursor = 0;
   return Promise
     .map(operations, (props) => {
-      const { $removeOps, $setLength, $incrLength, $incrFields } = props;
+      const {
+        $removeOps, $setLength, $incrLength, $incrFields,
+      } = props;
       const output = {};
 
       if ($removeOps > 0) {
@@ -98,7 +102,9 @@ function mapScriptResponse(scriptKeys, responses) {
  */
 function updateMetadata(opts) {
   const { redis } = this;
-  const { userId, audience, metadata, script } = opts;
+  const {
+    userId, audience, metadata, script,
+  } = opts;
   const audiences = is.array(audience) ? audience : [audience];
 
   // keys

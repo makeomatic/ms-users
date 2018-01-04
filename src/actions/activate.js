@@ -76,9 +76,13 @@ function verifyToken(args, opts) {
 }
 
 function verifyRequest() {
-  const { username, token, service: { tokenManager, redis, log }, erase } = this;
+  const {
+    username, token, service: { tokenManager, redis, log }, erase,
+  } = this;
   const action = USERS_ACTION_ACTIVATE;
-  const context = { log, redis, token, username, tokenManager };
+  const context = {
+    log, redis, token, username, tokenManager,
+  };
 
   if (username && token) {
     return getInternalData

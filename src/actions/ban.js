@@ -11,7 +11,9 @@ const {
 // helper
 const stringify = data => JSON.stringify(data);
 
-function lockUser({ id, reason, whom, remoteip }) {
+function lockUser({
+  id, reason, whom, remoteip,
+}) {
   const { redis, config } = this;
   const { jwt: { defaultAudience } } = config;
   const data = {

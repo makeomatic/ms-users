@@ -10,7 +10,9 @@ const {
 module.exports = function attach(account, user) {
   const { redis, config } = this;
   const { id: userId } = user;
-  const { uid, provider, internals, profile } = account;
+  const {
+    uid, provider, internals, profile,
+  } = account;
   const audience = get(config, 'jwt.defaultAudience');
   const userDataKey = redisKey(userId, USERS_DATA);
   const pipeline = redis.pipeline();

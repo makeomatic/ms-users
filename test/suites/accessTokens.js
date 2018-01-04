@@ -2,7 +2,7 @@
 const Promise = require('bluebird');
 const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
-const uuid = require('node-uuid');
+const uuid = require('uuid/v4');
 const { sign } = require('../../src/utils/signatures');
 const { USERS_API_TOKENS } = require('../../src/constants');
 const md5 = require('md5');
@@ -168,7 +168,7 @@ describe('legacy API tokens', function suit() {
   before('register user', globalRegisterUser(username));
 
   before('create token', function createToken() {
-    const uniqId = uuid.v4();
+    const uniqId = uuid();
     const hashedUsername = md5(username);
     const payload = `${hashedUsername}.${uniqId}`;
     const signature = sign.call(this.users, payload);

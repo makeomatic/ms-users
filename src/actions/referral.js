@@ -17,7 +17,7 @@ module.exports = function storeReferral({ params }) {
   // basic context
   const { id, referral } = params;
   const key = redisKey(USERS_REF, id);
-  const expiration = this.config.referral.expiration;
+  const { expiration } = this.config.referral;
 
   // set key -> referral
   // returns OK if op was performed, null otherwise

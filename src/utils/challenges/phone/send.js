@@ -10,7 +10,9 @@ const {
 } = require('../../../constants');
 
 function send(tel, action, context = {}) {
-  const { account, prefix, messages, waitChallenge } = this.config.phone;
+  const {
+    account, prefix, messages, waitChallenge,
+  } = this.config.phone;
   const template = messages[action];
   let message;
 

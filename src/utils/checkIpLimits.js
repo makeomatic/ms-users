@@ -1,6 +1,6 @@
 const { HttpStatusError } = require('common-errors');
 const redisKey = require('./key');
-const uuid = require('node-uuid');
+const uuid = require('uuid/v4');
 const handlePipeline = require('../utils/pipelineError.js');
 
 /**
@@ -19,7 +19,7 @@ module.exports = function checkLimits(redis, registrationLimits, ipaddress) {
   return function iplimits() {
     return redis
       .pipeline()
-      .zadd(ipaddressLimitKey, now, uuid.v4())
+      .zadd(ipaddressLimitKey, now, uuid())
       .pexpire(ipaddressLimitKey, time)
       .zremrangebyscore(ipaddressLimitKey, '-inf', old)
       .zcard(ipaddressLimitKey)

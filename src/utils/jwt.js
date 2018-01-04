@@ -102,10 +102,10 @@ exports.reset = function reset(userId) {
  */
 function getLastAccess(_score) {
   // parseResponse
-  const score = parseInt(_score, 10);
+  const score = _score * 1;
 
   // throw if token not found or expired
-  if (isNaN(score) || Date.now() > (score + this.ttl)) {
+  if (_score == null || Date.now() > score + this.ttl) {
     throw new Errors.HttpStatusError(403, 'token has expired or was forged');
   }
 
@@ -153,11 +153,15 @@ function verifyDecodedToken(decoded) {
 exports.verify = function verifyToken(token, audience, peek) {
   const { redis, config, log } = this;
   const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, secret, ttl, issuer } = jwtConfig;
+  const {
+    hashingFunction: algorithm, secret, ttl, issuer,
+  } = jwtConfig;
 
   return jwt
     .verifyAsync(token, secret, { issuer, algorithms: [algorithm] })
-    .bind({ redis, log, ttl, audience, token, peek })
+    .bind({
+      redis, log, ttl, audience, token, peek,
+    })
     .catch(remapInvalidTokenError)
     .then(verifyDecodedToken);
 };
@@ -197,7 +201,7 @@ exports.internal = function verifyInternalToken(token) {
   // at this point signature is valid and we need to verify that it was not
   // erase or expired
   const key = redisKey(USERS_API_TOKENS, payload);
-  const redis = this.redis;
+  const { redis } = this;
 
   return redis
     .hget(key, isLegacyToken ? 'username' : 'userId')
@@ -212,7 +216,9 @@ exports.internal = function verifyInternalToken(token) {
  * @return {Promise}
  */
 exports.signData = function signData(payload, tokenOptions) {
-  const { hashingFunction: algorithm, secret, issuer, extra } = tokenOptions;
+  const {
+    hashingFunction: algorithm, secret, issuer, extra,
+  } = tokenOptions;
   return jwt.sign(payload, secret, { ...extra, algorithm, issuer });
 };
 

@@ -53,8 +53,7 @@ function setPassword(_username, password) {
     .then(({ userId, hash }) =>
       redis
         .hset(redisKey(userId, USERS_DATA), USERS_PASSWORD_FIELD, hash)
-        .return(userId)
-    );
+        .return(userId));
 }
 
 /**

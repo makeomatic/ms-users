@@ -1,4 +1,4 @@
-const uuid = require('node-uuid');
+const uuid = require('uuid/v4');
 const Promise = require('bluebird');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
 const { sign } = require('../../utils/signatures');
@@ -8,7 +8,7 @@ const { getUserId } = require('../../utils/userData');
 
 function storeData(userId) {
   const { redis, name } = this;
-  const tokenPart = uuid.v4();
+  const tokenPart = uuid();
 
   // transform input
   const payload = `${userId}.${tokenPart}`;

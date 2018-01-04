@@ -33,7 +33,7 @@ module.exports = function disposablePassword(request) {
     }]))
     .spread(challenge)
     .then((response) => {
-      const uid = response.context.token.uid;
+      const { uid } = response.context.token;
 
       return {
         requested: true,

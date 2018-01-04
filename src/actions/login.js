@@ -27,9 +27,9 @@ const is404 = e => parseInt(e.message, 10) === 404;
  * limits
  */
 function checkLoginAttempts(data) {
+  const { config } = this;
   const pipeline = this.redis.pipeline();
   const userId = data[USERS_ID_FIELD];
-  const config = this.config;
   const remoteipKey = this.remoteipKey = redisKey(userId, 'ip', this.remoteip);
 
   pipeline.incrby(remoteipKey, 1);

@@ -1,13 +1,14 @@
 const Promise = require('bluebird');
 const { HttpStatusError } = require('common-errors');
-const jwt = require('../utils/jwt.js');
-const getMetadata = require('../utils/getMetadata.js');
+const { ActionTransport } = require('@microfleet/core');
+const jwt = require('../utils/jwt');
+const getMetadata = require('../utils/getMetadata');
 const { getUserId } = require('../utils/userData');
 
 /**
  * Internal functions
  */
-const isArray = Array.isArray;
+const { isArray } = Array;
 const toArray = maybeArray => (isArray(maybeArray) ? maybeArray : [maybeArray]);
 
 /**
@@ -31,8 +32,7 @@ function decodedToken({ username, userId }) {
       Promise.props({
         id: resolveduserId,
         metadata: getMetadata.call(service, resolveduserId, audience),
-      })
-    );
+      }));
 }
 
 /**
@@ -49,12 +49,10 @@ function decodedToken({ username, userId }) {
  * @apiParam (Payload) {Boolean} [accessToken=false] - uses internal token verification if set to true
  *
  */
-module.exports = function verify({ params }) {
+function Verify({ params }) {
   // basic context
   const audience = toArray(params.audience);
-  const token = params.token;
-  const peek = params.peek;
-  const accessToken = params.accessToken;
+  const { token, peek, accessToken } = params;
 
   // internal context
   const ctx = {
@@ -69,6 +67,8 @@ module.exports = function verify({ params }) {
     .spread(accessToken ? jwt.internal : jwt.verify)
     .bind(ctx)
     .then(decodedToken);
-};
+}
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+Verify.transports = [ActionTransport.amqp];
+
+module.exports = Verify;

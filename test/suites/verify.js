@@ -23,7 +23,9 @@ describe('#verify', function verifySuite() {
   it('must reject on an expired JWT token', function test() {
     const jwt = require('jsonwebtoken');
 
-    const { hashingFunction: algorithm, secret, issuer, defaultAudience } = this.users._config.jwt;
+    const {
+      hashingFunction: algorithm, secret, issuer, defaultAudience,
+    } = this.users._config.jwt;
     const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
 
     return simpleDispatcher(this.users.router)('users.verify', { token, audience: defaultAudience })

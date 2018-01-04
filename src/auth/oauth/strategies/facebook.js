@@ -2,7 +2,6 @@ const Promise = require('bluebird');
 const Crypto = require('crypto');
 const differenceWith = require('lodash/differenceWith');
 const get = require('lodash/get');
-const partial = require('lodash/partial');
 const defaults = require('lodash/defaults');
 const Urls = require('../utils/fb-urls');
 
@@ -70,10 +69,7 @@ function defaultProfileHandler(profile) {
 
 function fetch(resource) {
   const endpoint = Urls.instance()[resource];
-
-  return (fetcher, options) => Promise.fromCallback(callback =>
-    fetcher(endpoint, options, partial(callback, null))
-  );
+  return (fetcher, options) => fetcher(endpoint, options);
 }
 
 const fetchProfile = fetch('profile');
@@ -96,7 +92,7 @@ function verifyPermissions(permissions) {
 }
 
 function profileFactory(fields, profileHandler = defaultProfileHandler) {
-  return function obtainProfile(credentials, params, getter, callback) {
+  return async function obtainProfile(credentials, params, getter) {
     // eslint-disable-next-line camelcase
     const appsecret_proof = Crypto.createHmac('sha256', this.clientSecret)
       .update(credentials.token)
@@ -115,8 +111,7 @@ function profileFactory(fields, profileHandler = defaultProfileHandler) {
       .tap(verifyPermissions)
       .return([getter, { appsecret_proof, fields }])
       .spread(fetchProfile)
-      .then(profileHandler)
-      .asCallback(callback);
+      .then(profileHandler);
   };
 }
 

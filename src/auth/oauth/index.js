@@ -106,9 +106,8 @@ function mserviceVerification(credentials) {
  * @param  {MserviceRequest} request
  * @returns {Promise}
  */
-module.exports = function authHandler(request) {
+module.exports = async function authHandler({ action, transportRequest }) {
   const { http, config } = this;
-  const { action, transportRequest } = request;
   const { strategy } = action;
 
   /**
@@ -122,11 +121,15 @@ module.exports = function authHandler(request) {
     config: config.oauth.providers[strategy],
   };
 
+  let response;
+  try {
+    response = [null, await http.auth.test(strategy, transportRequest)];
+  } catch (err) {
+    response = [err];
+  }
+
   return Promise
-    .fromCallback((next) => {
-      http.auth.test(strategy, transportRequest, (response, credentials) => next(null, [response, credentials]));
-    })
-    .bind(ctx)
+    .bind(ctx, response)
     .spread(oauthVerification)
     .then(mserviceVerification);
 };

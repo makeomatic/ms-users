@@ -1,4 +1,4 @@
-const uuid = require('node-uuid');
+const uuid = require('uuid');
 const md5 = require('md5');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
 const { sign } = require('../../utils/signatures');

@@ -90,7 +90,7 @@ describe('/_/me', function verifySuite() {
       return request
         .get({ headers: { authorization: `JWT ${this.token}` }, qs: { audience: 'test' } })
         .then((body) => {
-          assert.equal(body.username, 'v@makeomatic.ru');
+          assert.ok(body.id);
           assert.equal(body.metadata['*.localhost'].username, 'v@makeomatic.ru');
           assert.deepEqual(body.metadata.test, { fine: true });
         });
@@ -102,7 +102,7 @@ describe('/_/me', function verifySuite() {
           headers: { authorization: `JWT ${this.token}` },
         })
         .then((body) => {
-          assert.equal(body.username, 'v@makeomatic.ru');
+          assert.ok(body.id);
           assert.equal(body.metadata['*.localhost'].username, 'v@makeomatic.ru');
           assert.deepEqual(body.metadata.test, { fine: true });
         });

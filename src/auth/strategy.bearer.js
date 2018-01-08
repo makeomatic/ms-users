@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const is = require('is');
 const { AuthenticationRequiredError, HttpStatusError } = require('common-errors');
 
 function getAuthToken(authHeader) {
@@ -35,7 +36,7 @@ function tokenAuth(request) {
     const { amqp, config } = this;
     const { users: { audience: defaultAudience, verify, timeouts } } = config;
     const timeout = timeouts.verify;
-    const audience = params.audience || defaultAudience;
+    const audience = (is.object(params) && params.audience) || defaultAudience;
 
     return amqp.publishAndWait(verify, { token, audience }, { timeout });
   } else if (strategy === 'required') {

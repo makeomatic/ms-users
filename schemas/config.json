@@ -529,7 +529,7 @@
         }
       },
       "if": {
-        "properties": { "enabled": { "constant": true } }
+        "properties": { "enabled": { "const": true } }
       },
       "then": {
         "required": ["token", "providers"],
@@ -543,7 +543,7 @@
                 "minProperties": 1,
                 "additionalProperties": {
                   "if": {
-                    "properties": { "enabled": { "constant": true } }
+                    "properties": { "enabled": { "const": true } }
                   },
                   "then": {
                     "properties": {

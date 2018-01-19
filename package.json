@@ -54,7 +54,7 @@
     "ms-mailer-client": "^6.0.2",
     "ms-mailer-templates": "^1.5.0",
     "ms-token": "^2.0.0",
-    "ms-validation": "^6.0.2",
+    "ms-validation": "^7.0.0",
     "password-generator": "^2.2.0",
     "redis-filtered-sort": "^2.2.1",
     "request": "^2.81.0",

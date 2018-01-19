@@ -51,7 +51,7 @@
     "moment": "^2.20.1",
     "ms-conf": "^3.1.2",
     "ms-flakeless": "^4.0.1",
-    "ms-mailer-client": "^6.0.2",
+    "ms-mailer-client": "^7.0.0",
     "ms-mailer-templates": "^1.5.0",
     "ms-token": "^2.0.0",
     "ms-validation": "^6.0.2",

@@ -196,26 +196,27 @@
     debug "^2.6.8"
     lodash "^4.17.4"
 
-"@microfleet/core@^10.2.2":
-  version "10.2.2"
-  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-10.2.2.tgz#9f775ea486076ef76a4ef87915772c4e22800799"
+"@microfleet/core@^10.2.4":
+  version "10.2.4"
+  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-10.2.4.tgz#dfee9867da3ce0ad6ec10f74942004062a33bf64"
   dependencies:
     bluebird "^3.5.1"
     callsite "^1.0.0"
     chalk "^2.3.0"
+    death "^1.1.0"
     debug "^3.1.0"
     eventemitter3 "^3.0.0"
     glob "^7.1.1"
     is "^3.2.1"
     lodash "^4.17.4"
     opentracing "^0.14.1"
-    semver "^5.4.1"
+    semver "^5.5.0"
     sort-by "^1.1.1"
     stdout-stream "^1.4.0"
 
-"@microfleet/transport-amqp@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@microfleet/transport-amqp/-/transport-amqp-13.0.0.tgz#f7cd1899db9d0e980b1d29e88f97617c768288ae"
+"@microfleet/transport-amqp@^13.0.1":
+  version "13.0.1"
+  resolved "https://registry.yarnpkg.com/@microfleet/transport-amqp/-/transport-amqp-13.0.1.tgz#17b39ab5fca64b48f149c327d998a26c3d83cb20"
   dependencies:
     "@microfleet/amqp-coffee" "^1.1.0"
     bluebird "^3.5.1"
@@ -230,7 +231,7 @@
     object-hash "^1.2.0"
     opentracing "^0.14.1"
     pino "^4.10.3"
-    uuid "^3.1.0"
+    uuid "^3.2.1"
 
 "@semantic-release/commit-analyzer@^5.0.0":
   version "5.0.0"
@@ -349,6 +350,10 @@ ajv-keywords@^2.1.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-2.1.1.tgz#617997fc5f60576894c435f940d819e135b80762"
 
+ajv-keywords@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-3.0.0.tgz#d1c2d845e2664dd3b95551d0cedc7675d6d1cec3"
+
 ajv@^4.9.1:
   version "4.11.8"
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-4.11.8.tgz#82ffb02b29e662ae53bdc20af15947706739c536"
@@ -356,11 +361,19 @@ ajv@^4.9.1:
     co "^4.6.0"
     json-stable-stringify "^1.0.1"
 
-ajv@^5.1.0, ajv@^5.2.2, ajv@^5.2.3, ajv@^5.3.0:
+ajv@^5.1.0, ajv@^5.2.3, ajv@^5.3.0:
   version "5.5.2"
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-5.5.2.tgz#73b5eeca3fab653e3d3f9422b341ad42205dc965"
   dependencies:
     co "^4.6.0"
+    fast-deep-equal "^1.0.0"
+    fast-json-stable-stringify "^2.0.0"
+    json-schema-traverse "^0.3.0"
+
+ajv@^6.0.1:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/ajv/-/ajv-6.1.0.tgz#adc4b3dd64b2d8740d13c5b38e4596115970e59d"
+  dependencies:
     fast-deep-equal "^1.0.0"
     fast-json-stable-stringify "^2.0.0"
     json-schema-traverse "^0.3.0"
@@ -847,7 +860,7 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
-bluebird@^3.3.4, bluebird@^3.4.1, bluebird@^3.5.0, bluebird@^3.5.1:
+bluebird@^3.3.4, bluebird@^3.5.0, bluebird@^3.5.1:
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
 
@@ -1555,13 +1568,13 @@ dir-glob@^2.0.0:
     arrify "^1.0.1"
     path-type "^3.0.0"
 
-disposable-email-domains@^1.0.23:
-  version "1.0.23"
-  resolved "https://registry.yarnpkg.com/disposable-email-domains/-/disposable-email-domains-1.0.23.tgz#3fa61ec9d66d0da7150113440c24c5483dd78608"
+disposable-email-domains@^1.0.24:
+  version "1.0.24"
+  resolved "https://registry.yarnpkg.com/disposable-email-domains/-/disposable-email-domains-1.0.24.tgz#8b1fb3f2106fbe4076fc3042c932915094ec8b93"
 
-dlock@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/dlock/-/dlock-7.0.0.tgz#cf3c2cad505d232f8669dd42111b7ad7a53996da"
+dlock@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/dlock/-/dlock-8.0.0.tgz#830eaed840fde36e953cc920a55c422fcdf630be"
   dependencies:
     bluebird "^3.5.1"
     bunyan "^1.8.12"
@@ -1578,7 +1591,7 @@ doctrine@1.5.0:
     esutils "^2.0.2"
     isarray "^1.0.0"
 
-doctrine@^2.0.2:
+doctrine@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/doctrine/-/doctrine-2.1.0.tgz#5cd01fc101621b42c4cd7f5d1a66243716d3f39d"
   dependencies:
@@ -1757,9 +1770,9 @@ eslint-visitor-keys@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#3f3180fb2e291017716acb4c9d6d5b5c34a6a81d"
 
-eslint@^4.15.0:
-  version "4.15.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-4.15.0.tgz#89ab38c12713eec3d13afac14e4a89e75ef08145"
+eslint@^4.16.0:
+  version "4.16.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-4.16.0.tgz#934ada9e98715e1d7bbfd6f6f0519ed2fab35cc1"
   dependencies:
     ajv "^5.3.0"
     babel-code-frame "^6.22.0"
@@ -1767,7 +1780,7 @@ eslint@^4.15.0:
     concat-stream "^1.6.0"
     cross-spawn "^5.1.0"
     debug "^3.1.0"
-    doctrine "^2.0.2"
+    doctrine "^2.1.0"
     eslint-scope "^3.7.1"
     eslint-visitor-keys "^1.0.0"
     espree "^3.5.2"
@@ -2942,9 +2955,9 @@ jsonparse@^1.2.0:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/jsonparse/-/jsonparse-1.3.1.tgz#3f4dae4a91fac315f71062f8521cc239f1366280"
 
-jsonwebtoken@^8.1.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/jsonwebtoken/-/jsonwebtoken-8.1.0.tgz#c6397cd2e5fd583d65c007a83dc7bb78e6982b83"
+jsonwebtoken@^8.1.1:
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/jsonwebtoken/-/jsonwebtoken-8.1.1.tgz#b04d8bb2ad847bc93238c3c92170ffdbdd1cb2ea"
   dependencies:
     jws "^3.1.4"
     lodash.includes "^4.3.0"
@@ -2954,7 +2967,7 @@ jsonwebtoken@^8.1.0:
     lodash.isplainobject "^4.0.6"
     lodash.isstring "^4.0.1"
     lodash.once "^4.0.0"
-    ms "^2.0.0"
+    ms "^2.1.1"
     xtend "^4.0.1"
 
 jsprim@^1.2.2:
@@ -3418,9 +3431,9 @@ mkdirp@0.5.1, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.1:
   dependencies:
     minimist "0.0.8"
 
-mocha@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/mocha/-/mocha-4.1.0.tgz#7d86cfbcf35cb829e2754c32e17355ec05338794"
+mocha@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/mocha/-/mocha-5.0.0.tgz#cccac988b0bc5477119cba0e43de7af6d6ad8f4e"
   dependencies:
     browser-stdout "1.3.0"
     commander "2.11.0"
@@ -3461,11 +3474,11 @@ ms-flakeless@^4.0.1:
   dependencies:
     nan "^2.4.0"
 
-ms-mailer-client@^6.0.2:
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/ms-mailer-client/-/ms-mailer-client-6.0.2.tgz#8edd06ccde397dd66f0437a40454c163c9464da3"
+ms-mailer-client@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/ms-mailer-client/-/ms-mailer-client-7.0.0.tgz#c6f1ea0aeef2b5965a3e2b5fdd360dcff2fbd840"
   dependencies:
-    lodash "^4.17.2"
+    lodash.merge "^4.6.0"
 
 ms-mailer-templates@^1.5.0:
   version "1.5.0"
@@ -3487,23 +3500,23 @@ ms-token@^2.0.0:
     lodash "^4.17.2"
     uuid "^3.0.1"
 
-ms-validation@^6.0.2:
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/ms-validation/-/ms-validation-6.0.2.tgz#929e22901b3bc996660fb4a240423291560caa40"
+ms-validation@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/ms-validation/-/ms-validation-7.0.0.tgz#c61b2bfac7d1afe141d09d8f2f1f134f94d4bd26"
   dependencies:
-    ajv "^5.2.2"
-    ajv-keywords "^2.1.0"
-    bluebird "^3.4.1"
+    ajv "^6.0.1"
+    ajv-keywords "^3.0.0"
+    bluebird "^3.5.1"
     callsite "^1.0.0"
-    common-errors "^1.0.4"
-    debug "^3.0.0"
+    common-errors "^1.0.5"
+    debug "^3.1.0"
     glob "^7.1.2"
 
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
 
-ms@^2.0.0:
+ms@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz#30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a"
 
@@ -4219,9 +4232,9 @@ redis-commands@^1.2.0:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/redis-commands/-/redis-commands-1.3.1.tgz#81d826f45fa9c8b2011f4cd7a0fe597d241d442b"
 
-redis-filtered-sort@^2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/redis-filtered-sort/-/redis-filtered-sort-2.2.1.tgz#8813a22e8bd84b0e1c0f626b9a345b263dbd5349"
+redis-filtered-sort@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/redis-filtered-sort/-/redis-filtered-sort-2.3.0.tgz#35f449a9a2c94a1b038d0a7b8e63aaeb0abc6130"
   dependencies:
     cluster-key-slot "^1.0.6"
 
@@ -4480,6 +4493,10 @@ semantic-release@^12.0.0:
   version "5.4.1"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.4.1.tgz#e059c09d8571f0540823733433505d3a2f00b18e"
 
+semver@^5.5.0:
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-5.5.0.tgz#dc4bbc7a6ca9d916dee5d43516f0092b58f7b8ab"
+
 semver@~5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.3.0.tgz#9b2ce5d3de02d17c6012ad326aa6b4d0cf54f94f"
@@ -4529,16 +4546,16 @@ signal-exit@^3.0.0, signal-exit@^3.0.1, signal-exit@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
 
-sinon@^4.1.5:
-  version "4.1.5"
-  resolved "https://registry.yarnpkg.com/sinon/-/sinon-4.1.5.tgz#620a9b2ac599f88b0455763070f16f4057ed6395"
+sinon@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/sinon/-/sinon-4.2.1.tgz#3664e90ea4bccec6ebde3c06e3da8179983371d9"
   dependencies:
     diff "^3.1.0"
     formatio "1.2.0"
     lodash.get "^4.4.2"
     lolex "^2.2.0"
     nise "^1.2.0"
-    supports-color "^4.4.0"
+    supports-color "^5.1.0"
     type-detect "^4.0.5"
 
 slash@^1.0.0:
@@ -4801,9 +4818,15 @@ supports-color@^3.1.2:
   dependencies:
     has-flag "^1.0.0"
 
-supports-color@^4.0.0, supports-color@^4.4.0:
+supports-color@^4.0.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-4.5.0.tgz#be7a0de484dec5c5cddf8b3d59125044912f635b"
+  dependencies:
+    has-flag "^2.0.0"
+
+supports-color@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-5.1.0.tgz#058a021d1b619f7ddf3980d712ea3590ce7de3d5"
   dependencies:
     has-flag "^2.0.0"
 
@@ -5005,9 +5028,13 @@ util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
 
-uuid@^3.0.0, uuid@^3.0.1, uuid@^3.1.0, uuid@^3.2.0:
+uuid@^3.0.0, uuid@^3.0.1, uuid@^3.1.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.0.tgz#19a63e22b3b32a0ba23984a4f384836465e24949"
+
+uuid@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
 
 v8flags@^2.1.1:
   version "2.1.1"
@@ -5171,6 +5198,12 @@ yargs-parser@^8.0.0, yargs-parser@^8.1.0:
   dependencies:
     camelcase "^4.1.0"
 
+yargs-parser@^9.0.2:
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-9.0.2.tgz#9ccf6a43460fe4ed40a9bb68f48d43b8a68cc077"
+  dependencies:
+    camelcase "^4.1.0"
+
 yargs@4.x.x:
   version "4.8.1"
   resolved "https://registry.yarnpkg.com/yargs/-/yargs-4.8.1.tgz#c0c42924ca4aaa6b0e6da1739dfb216439f9ddc0"
@@ -5190,7 +5223,7 @@ yargs@4.x.x:
     y18n "^3.2.1"
     yargs-parser "^2.4.1"
 
-yargs@^10.0.3, yargs@^10.1.1:
+yargs@^10.0.3:
   version "10.1.1"
   resolved "https://registry.yarnpkg.com/yargs/-/yargs-10.1.1.tgz#5fe1ea306985a099b33492001fa19a1e61efe285"
   dependencies:
@@ -5206,6 +5239,23 @@ yargs@^10.0.3, yargs@^10.1.1:
     which-module "^2.0.0"
     y18n "^3.2.1"
     yargs-parser "^8.1.0"
+
+yargs@^11.0.0:
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/yargs/-/yargs-11.0.0.tgz#c052931006c5eee74610e5fc0354bedfd08a201b"
+  dependencies:
+    cliui "^4.0.0"
+    decamelize "^1.1.1"
+    find-up "^2.1.0"
+    get-caller-file "^1.0.1"
+    os-locale "^2.0.0"
+    require-directory "^2.1.1"
+    require-main-filename "^1.0.1"
+    set-blocking "^2.0.0"
+    string-width "^2.0.0"
+    which-module "^2.0.0"
+    y18n "^3.2.1"
+    yargs-parser "^9.0.2"
 
 yargs@^3.19.0:
   version "3.32.0"

@@ -64,7 +64,7 @@ describe('#invite', function registerSuite() {
       .then(inspectPromise())
       .then((result) => {
         assert.ok(result.jwt);
-        assert.equal(result.user.username, email);
+        assert.ok(result.user.id);
         assert.ok(result.user.metadata['*.localhost'].created);
         assert.equal(result.user.metadata['*.localhost'].username, email);
         assert.equal(result.user.metadata['*.localhost'].plan, 'premium');

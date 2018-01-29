@@ -36,7 +36,7 @@ describe('#admins', function verifySuite() {
       .reflect()
       .then(inspectPromise())
       .then((result) => {
-        assert.equal(result.users[0].id, 'foobaz@bar.ru');
+        assert.equal(result.users[0].metadata['*.localhost'].username, 'foobaz@bar.ru');
       });
   });
 

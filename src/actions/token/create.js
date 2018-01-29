@@ -1,9 +1,33 @@
-const uuid = require('uuid');
-const md5 = require('md5');
+const uuid = require('uuid/v4');
+const Promise = require('bluebird');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
 const { sign } = require('../../utils/signatures');
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipelineError');
+const { getUserId } = require('../../utils/userData');
+
+function storeData(userId) {
+  const { redis, name } = this;
+  const tokenPart = uuid();
+
+  // transform input
+  const payload = `${userId}.${tokenPart}`;
+  const signature = sign.call(this, payload);
+  const token = `${payload}.${signature}`;
+
+  // stores all issued keys and it's date
+  const key = redisKey(USERS_API_TOKENS, payload);
+  const zset = redisKey(USERS_API_TOKENS_ZSET, userId);
+
+  // prepare to store
+  return redis
+    .pipeline()
+    .hmset(key, { userId, name, uuid: tokenPart })
+    .zadd(zset, Date.now(), payload)
+    .exec()
+    .then(handlePipelineError)
+    .return(token);
+}
 
 /**
  * @api {amqp} <prefix>.token.create Create Token
@@ -17,31 +41,18 @@ const handlePipelineError = require('../../utils/pipelineError');
  *
  * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {String} name - used to identify token
- *
  */
-module.exports = function createToken({ params }) {
+function createToken({ params }) {
   const { username, name } = params;
-  const tokenPart = uuid.v4();
-  const { redis } = this;
+  const { redis, config } = this;
+  const context = { name, redis, config };
 
-  // transform input
-  const hashedUsername = md5(username);
-  const payload = `${hashedUsername}.${tokenPart}`;
-  const signature = sign.call(this, payload);
-  const token = `${payload}.${signature}`;
+  return Promise
+    .bind(context, username)
+    .then(getUserId)
+    .then(storeData);
+}
 
-  // stores all issued keys and it's date
-  const key = redisKey(USERS_API_TOKENS, payload);
-  const zset = redisKey(USERS_API_TOKENS_ZSET, username);
+createToken.transports = [require('@microfleet/core').ActionTransport.amqp];
 
-  // prepare to store
-  return redis
-    .pipeline()
-    .hmset(key, { username, name, uuid: tokenPart })
-    .zadd(zset, Date.now(), payload)
-    .exec()
-    .then(handlePipelineError)
-    .return(token);
-};
-
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports = createToken;

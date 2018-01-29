@@ -77,7 +77,7 @@ describe('#referral', function registerSuite() {
       .reflect()
       .then(inspectPromise())
       .then((response) => {
-        assert.equal(response, 'v@makeomatic.ru');
+        assert.ok(/^\d+$/.test(response));
       });
   });
 });

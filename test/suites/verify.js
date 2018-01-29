@@ -1,3 +1,4 @@
+const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
@@ -48,11 +49,12 @@ describe('#verify', function verifySuite() {
         metadata: {
           fine: true,
         },
-      });
+      })
+      .then(({ user }) => (this.userId = user.id));
     });
 
     beforeEach(function pretest() {
-      return jwt.login.call(this.users, 'v@makeomatic.ru', 'test').then((data) => {
+      return jwt.login.call(this.users, this.userId, 'test').then((data) => {
         this.token = data.jwt;
       });
     });
@@ -62,7 +64,7 @@ describe('#verify', function verifySuite() {
         .reflect()
         .then(inspectPromise())
         .then((verify) => {
-          expect(verify.username).to.be.eq('v@makeomatic.ru');
+          assert.ok(verify.id);
           expect(verify.metadata['*.localhost'].username).to.be.eq('v@makeomatic.ru');
           expect(verify.metadata.test).to.be.deep.eq({
             fine: true,

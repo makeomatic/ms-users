@@ -1,3 +1,4 @@
+const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
@@ -11,7 +12,8 @@ describe('#updateMetadata', function getMetadataSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    return simpleDispatcher(this.users.router)('users.register', { username, password: '123', audience });
+    return simpleDispatcher(this.users.router)('users.register', { username, password: '123', audience })
+      .tap(({ user }) => (this.userId = user.id));
   });
 
   it('must reject updating metadata on a non-existing user', function test() {
@@ -93,8 +95,8 @@ describe('#updateMetadata', function getMetadataSuite() {
     .then(inspectPromise())
     .then((data) => {
       expect(data.balance).to.be.deep.eq([
-        `{ms-users}v@makeomatic.ru!metadata!${audience}`,
-        `{ms-users}v@makeomatic.ru!metadata!${extra}`,
+        `{ms-users}${this.userId}!metadata!${audience}`,
+        `{ms-users}${this.userId}!metadata!${extra}`,
         'nom-nom',
       ]);
     });

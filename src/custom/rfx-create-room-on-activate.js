@@ -7,7 +7,7 @@ const setMetadata = require('../utils/updateMetadata.js');
  * @param  {Object} params
  * @return {Promise}
  */
-function createRoom(username, params, metadata) {
+function createRoom(userId, params, metadata) {
   const { audience, inviteToken } = params;
 
   if (is.undefined(inviteToken)) {
@@ -18,7 +18,7 @@ function createRoom(username, params, metadata) {
   const { router } = config.chat;
   const route = `${router.prefix}.${router.routes['internal.rooms.create']}`;
   const roomParams = {
-    createdBy: username,
+    createdBy: userId,
     name: `${metadata[audience].stationName} | ${metadata[audience].stationSchool}`,
   };
 
@@ -26,7 +26,7 @@ function createRoom(username, params, metadata) {
     .bind(this)
     .then((room) => {
       const update = {
-        username,
+        userId,
         audience,
         metadata: {
           $set: {

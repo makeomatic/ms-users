@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const getInternalData = require('../utils/getInternalData.js');
+const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const key = require('../utils/key.js');
@@ -8,7 +8,8 @@ const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_DATA,
   USERS_METADATA,
-  USERS_ALIAS_TO_LOGIN,
+  USERS_ALIAS_TO_ID,
+  USERS_ID_FIELD,
   USERS_ALIAS_FIELD,
   USERS_PUBLIC_INDEX,
   lockAlias,
@@ -44,9 +45,11 @@ module.exports = function assignAlias(request) {
         throw new Errors.HttpStatusError(417, 'alias is already assigned');
       }
 
+      const userId = data[USERS_ID_FIELD];
+
       // perform set alias
       const setAlias = active => redis
-        .hsetnx(USERS_ALIAS_TO_LOGIN, alias, username)
+        .hsetnx(USERS_ALIAS_TO_ID, alias, userId)
         .then((assigned) => {
           if (assigned === 0) {
             const err = new Errors.HttpStatusError(409, `"${alias}" already exists`);
@@ -56,8 +59,8 @@ module.exports = function assignAlias(request) {
 
           const pipeline = redis
             .pipeline()
-            .hset(key(username, USERS_DATA), USERS_ALIAS_FIELD, alias)
-            .hset(key(username, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias));
+            .hset(key(userId, USERS_DATA), USERS_ALIAS_FIELD, alias)
+            .hset(key(userId, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias));
 
           if (active) {
             pipeline.sadd(USERS_PUBLIC_INDEX, username);

@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const getInternalData = require('../utils/getInternalData.js');
+const { getInternalData } = require('../utils/userData');
 const pick = require('lodash/pick');
 
 /**

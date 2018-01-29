@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const getMetadata = require('../utils/getMetadata.js');
-const userExists = require('../utils/userExists.js');
+const { getUserId } = require('../utils/userData');
 const noop = require('lodash/noop');
 const identity = require('lodash/identity');
 const get = require('lodash/get');
@@ -40,8 +40,8 @@ function isPublic(audiences) {
 function retrieveMetadata(username) {
   return Promise
     .bind(this.service, username)
-    .then(userExists)
-    .then(realUsername => [realUsername, this.audiences, this.fields])
+    .then(getUserId)
+    .then(userId => [userId, this.audiences, this.fields])
     .spread(getMetadata)
     .tap(metadata => this.filter(metadata, username));
 }

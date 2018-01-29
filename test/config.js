@@ -98,9 +98,9 @@ function getJWTToken(username, password = '123') {
   return function getJWT() {
     const dispatch = simpleDispatcher(this.users.router);
     return dispatch('users.login', { username, password, audience: '*.localhost' })
-      .get('jwt')
-      .then((token) => {
-        this.jwt = token;
+      .then(({ jwt, user: { id } }) => {
+        this.jwt = jwt;
+        this.userId = id;
       });
   };
 }

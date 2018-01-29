@@ -7,7 +7,7 @@ const setMetadata = require('../utils/updateMetadata.js');
  * @param  {String} username
  * @return {Promise}
  */
-module.exports = function mixPlan(username, params) {
+module.exports = function mixPlan(userId, params) {
   const { amqp, config } = this;
   const { audience } = params;
   const { payments } = config;
@@ -21,7 +21,7 @@ module.exports = function mixPlan(username, params) {
       const subscription = find(plan.subs, ['name', 'month']);
       const nextCycle = moment().add(1, 'month').valueOf();
       const update = {
-        username,
+        userId,
         audience,
         metadata: {
           $set: {

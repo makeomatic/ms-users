@@ -44,7 +44,8 @@ describe('#activate', function activateSuite() {
         metadata: {
           wolf: true,
         },
-      });
+      })
+      .then(({ user }) => (this.userId = user.id));
     });
 
     it('must reject activation when account is already activated', function test() {
@@ -54,7 +55,7 @@ describe('#activate', function activateSuite() {
         .then(inspectPromise(false))
         .then((activation) => {
           expect(activation.name).to.be.eq('HttpStatusError');
-          expect(activation.message).to.match(/Account v@aminev\.me was already activated/);
+          expect(activation.message).to.match(new RegExp(`Account ${this.userId} was already activated`));
           expect(activation.statusCode).to.be.eq(417);
         });
     });
@@ -119,6 +120,7 @@ describe('#activate', function activateSuite() {
       username: '79215555555',
     };
     const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
+    let userId;
 
     amqpStub.withArgs('phone.message.predefined')
       .returns(Promise.resolve({ queued: true }));
@@ -129,6 +131,7 @@ describe('#activate', function activateSuite() {
       .then((value) => {
         const message = amqpStub.args[0][1].message;
         const code = message.match(/^(\d{4}) is your activation code/)[1];
+        userId = value.id;
 
         amqpStub.restore();
 
@@ -140,7 +143,7 @@ describe('#activate', function activateSuite() {
       .then(inspectPromise())
       .then((response) => {
         assert.equal(is.string(response.jwt), true);
-        assert.equal(response.user.username, '79215555555');
+        assert.equal(response.user.id, userId);
       });
   });
 });

@@ -6,11 +6,11 @@ const partial = require('lodash/partial');
 const getUid = require('./utils/uid');
 const refresh = require('./utils/refresh');
 const extractJWT = require('./utils/extractJWT');
-const getInternalData = require('../../utils/getInternalData');
+const { getInternalData } = require('../../utils/userData');
 
 const { verifyToken, loginAttempt } = require('../../utils/amqp');
 const { Redirect } = require('./utils/errors');
-const { USERS_USERNAME_FIELD } = require('../../constants');
+const { USERS_ID_FIELD } = require('../../constants');
 
 // helpers
 const isRedirect = ({ statusCode }) => statusCode === 301 || statusCode === 302;
@@ -79,19 +79,20 @@ function mserviceVerification(credentials) {
   const checkAuth = jwt ? verifyToken.call(this.service, jwt) : Promise.resolve(false);
 
   // check if the profile is already attached to any existing credentials
-  const getUsername = getInternalData.call(this.service, credentials.uid)
-    .get(USERS_USERNAME_FIELD)
+  const getUserId = getInternalData
+    .call(this.service, credentials.uid)
+    .get(USERS_ID_FIELD)
     .catchReturn(is404, false);
 
-  return Promise.join(checkAuth, getUsername, (user, username) => {
+  return Promise.join(checkAuth, getUserId, (user, userId) => {
     // user is authenticated and profile is attached
-    if (user && username) {
+    if (user && userId) {
       throw new Errors.HttpStatusError(412, 'profile is linked');
     }
 
     // found a linked user, log in
-    if (username) {
-      return Promise.bind(this.service, username)
+    if (userId) {
+      return Promise.bind(this.service, userId)
         .then(loginAttempt)
         .tap(partial(refresh, credentials));
     }

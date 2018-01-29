@@ -3,7 +3,7 @@ const partial = require('lodash/partial');
 const { ActionTransport } = require('@microfleet/core');
 
 const detach = require('../../auth/oauth/utils/detach');
-const getInternalData = require('../../utils/getInternalData');
+const { getInternalData } = require('../../utils/userData');
 
 /**
  * @api {amqp} <prefix>.oauth.detach Detach SSO provider from profile
@@ -21,7 +21,7 @@ module.exports = function detachAction(request) {
 
   return Promise.bind(this, username)
     .then(getInternalData)
-    .then(partial(detach, username, provider))
+    .then(partial(detach, provider))
     .return({ success: true });
 };
 

@@ -26,8 +26,8 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         .reflect()
         .then(inspectPromise())
         .then((response) => {
+          assert.ok(response.id);
           assert.equal(response.requiresActivation, true);
-          assert.equal(response.id, '79215555555');
           assert.equal(is.string(response.uid), true);
 
           return this.dispatch('users.regenerate-token', {
@@ -65,10 +65,12 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
       };
       const requestPasswordParams = { username, challengeType: 'phone' };
 
-      amqpStub.withArgs('phone.message.predefined')
+      amqpStub
+        .withArgs('phone.message.predefined')
         .returns(Promise.resolve({ queued: true }));
 
-      return this.dispatch('users.register', registerParams)
+      return this
+        .dispatch('users.register', registerParams)
         .then(() => this.dispatch('users.requestPassword', requestPasswordParams))
         .reflect()
         .then(inspectPromise())

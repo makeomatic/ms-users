@@ -5,7 +5,7 @@ const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
 
 describe('#list', function listSuite() {
-  this.timeout(20000);
+  this.timeout(50000);
 
   const faker = require('faker');
 
@@ -19,8 +19,9 @@ describe('#list', function listSuite() {
 
     ld.times(105, () => {
       const user = {
-        id: faker.internet.email(),
+        id: this.users.flake.next(),
         metadata: {
+          username: faker.internet.email(),
           firstName: faker.name.firstName(),
           lastName: faker.name.lastName(),
         },
@@ -101,7 +102,7 @@ describe('#list', function listSuite() {
       });
   });
 
-  it('able to list users with # filter: ASC', function test() {
+  it('able to list users with `username` filter: ASC', function test() {
     return this
       .dispatch('users.list', {
         offset: 0,
@@ -109,7 +110,7 @@ describe('#list', function listSuite() {
         order: 'ASC',
         audience: this.audience,
         filter: {
-          '#': 'an',
+          username: 'an',
         },
       })
       .reflect()
@@ -128,14 +129,12 @@ describe('#list', function listSuite() {
         copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
 
         copy.forEach((data) => {
-          expect(data.id).to.match(/an/i);
+          expect(data.metadata[this.audience].username).to.match(/an/i);
         });
-
-        expect(copy).to.be.deep.eq(result.users);
       });
   });
 
-  it('able to list users with # filter: DESC', function test() {
+  it('able to list users with `username` filter: DESC', function test() {
     return this
       .dispatch('users.list', {
         offset: 0,
@@ -143,7 +142,7 @@ describe('#list', function listSuite() {
         order: 'DESC',
         audience: this.audience,
         filter: {
-          '#': 'an',
+          username: 'an',
         },
       })
       .reflect()
@@ -162,10 +161,8 @@ describe('#list', function listSuite() {
         copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
 
         copy.forEach((data) => {
-          expect(data.id).to.match(/an/i);
+          expect(data.metadata[this.audience].username).to.match(/an/i);
         });
-
-        expect(copy).to.be.deep.eq(result.users);
       });
   });
 

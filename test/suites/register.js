@@ -34,10 +34,11 @@ describe('#register', function registerSuite() {
       .then((registered) => {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
-        assert.equal(registered.user.username, opts.username);
+        assert.ok(registered.user.id);
         assert(registered.user.hasOwnProperty('metadata'));
         assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
         assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+        assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
         assert.ifError(registered.user.password);
         assert.ifError(registered.user.audience);
       });
@@ -59,10 +60,11 @@ describe('#register', function registerSuite() {
       .then((registered) => {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
-        assert.equal(registered.user.username, opts.username);
+        assert.ok(registered.user.id);
         assert(registered.user.hasOwnProperty('metadata'));
         assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
         assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+        assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
         assert.equal(registered.user.metadata['*.localhost'].alias, opts.alias);
         assert.ifError(registered.user.password);
         assert.ifError(registered.user.audience);
@@ -113,10 +115,11 @@ describe('#register', function registerSuite() {
       .then((registered) => {
         assert(registered.hasOwnProperty('jwt'));
         assert(registered.hasOwnProperty('user'));
-        assert.equal(registered.user.username, opts.username);
+        assert.ok(registered.user.id);
         assert(registered.user.hasOwnProperty('metadata'));
         assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
         assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+        assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
         assert.ifError(registered.user.password);
         assert.ifError(registered.user.audience);
       });
@@ -133,11 +136,13 @@ describe('#register', function registerSuite() {
       },
     };
 
-    return this.dispatch('users.register', opts)
+    return this
+      .dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
-      .then((value) => {
-        assert.deepEqual(value, { requiresActivation: true, id: 'v@makeomatic.ru' });
+      .then(({ requiresActivation, id }) => {
+        assert.ok(id);
+        assert.equal(requiresActivation, true);
       });
   });
 
@@ -154,8 +159,9 @@ describe('#register', function registerSuite() {
     return this.dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
-      .then((value) => {
-        assert.deepEqual(value, { requiresActivation: true, id: 'v@makeomatic.ru' });
+      .then(({ requiresActivation, id }) => {
+        assert.ok(id);
+        assert.equal(requiresActivation, true);
       });
   });
 

@@ -1,19 +1,19 @@
 const mapValues = require('lodash/mapValues');
 const pick = require('lodash/pick');
-const redisKey = require('../utils/key.js');
 const Promise = require('bluebird');
+const redisKey = require('../utils/key.js');
 const { USERS_METADATA } = require('../constants.js');
 
 const { isArray } = Array;
 const JSONParse = data => JSON.parse(data);
 
-module.exports = function getMetadata(username, _audiences, fields = {}) {
+function getMetadata(userId, _audiences, fields = {}) {
   const { redis } = this;
   const audiences = isArray(_audiences) ? _audiences : [_audiences];
 
   return Promise
     .map(audiences, audience => (
-      redis.hgetall(redisKey(username, USERS_METADATA, audience))
+      redis.hgetall(redisKey(userId, USERS_METADATA, audience))
     ))
     .then(function remapAudienceData(data) {
       const output = {};
@@ -33,4 +33,6 @@ module.exports = function getMetadata(username, _audiences, fields = {}) {
 
       return output;
     });
-};
+}
+
+module.exports = getMetadata;

@@ -14,7 +14,7 @@ const jwt = require('../utils/jwt');
 const isDisposable = require('../utils/isDisposable');
 const mxExists = require('../utils/mxExists');
 const makeCaptchaCheck = require('../utils/checkCaptcha');
-const userExists = require('../utils/userExists');
+const { getUserId } = require('../utils/userData');
 const aliasExists = require('../utils/aliasExists');
 const assignAlias = require('./alias');
 const checkLimits = require('../utils/checkIpLimits');
@@ -24,9 +24,11 @@ const hashPassword = require('../utils/register/password/hash');
 const {
   USERS_REF,
   USERS_INDEX,
-  USERS_SSO_TO_LOGIN,
+  USERS_SSO_TO_ID,
   USERS_DATA,
+  USERS_USERNAME_TO_ID,
   USERS_ACTIVE_FLAG,
+  USERS_ID_FIELD,
   USERS_CREATED_FIELD,
   USERS_USERNAME_FIELD,
   USERS_PASSWORD_FIELD,
@@ -74,7 +76,8 @@ function verifyRedisTokenResponse(token) {
  * @return {Promise}
  */
 function verifyToken() {
-  return this.tokenManager
+  return this
+    .tokenManager
     .verify(this.inviteToken, { erase: false, control: this.control })
     .then(verifyRedisTokenResponse)
     .get('metadata')
@@ -110,7 +113,7 @@ function verifySSO() {
 
   return Promise
     .bind(this, uid)
-    .then(userExists)
+    .then(getUserId)
     .throw(ErrorConflictUserExists)
     .catchReturn(ErrorMissing, true)
     .tap(() => set(metadata, [defaultAudience, provider], profile));
@@ -152,7 +155,9 @@ function lockDisposer(lock) {
  * @apiParam (Payload) {String} [referral] - pass id/fingerprint of the client to see if it was stored before and associate with this account
  */
 module.exports = function registerUser(request) {
-  const { redis, config, tokenManager } = this;
+  const {
+    redis, config, tokenManager, flake,
+  } = this;
   const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
   const { defaultAudience } = config.jwt;
   const { token: ssoTokenOptions } = config.oauth;
@@ -172,15 +177,14 @@ module.exports = function registerUser(request) {
     referral,
     sso,
   } = params;
-
+  const userId = flake.next();
   // note: this is to preserve back-compatibility before sso was introduced
   // if sso is undefined abd activate is undefined, then it defaults to true,
   // otherwise it's true/false/undefined based on what's passed
   let shouldActivate = activate === undefined && sso === undefined ? true : activate;
-
   const alias = params.alias && params.alias.toLowerCase();
   const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
-  const userDataKey = redisKey(username, USERS_DATA);
+  const userDataKey = redisKey(userId, USERS_DATA);
   const created = Date.now();
   const { [challengeType]: tokenOptions } = this.config.token;
 
@@ -243,7 +247,7 @@ module.exports = function registerUser(request) {
       .bind(this, username)
 
       // do verifications of DB state
-      .tap(userExists)
+      .tap(getUserId)
       .throw(ErrorConflictUserExists)
       .catchReturn(ErrorMissing, username)
       .tap(alias ? aliasExists(alias, true) : noop)
@@ -285,6 +289,7 @@ module.exports = function registerUser(request) {
         const pipeline = redis.pipeline();
         const basicInfo = {
           [USERS_CREATED_FIELD]: created,
+          [USERS_USERNAME_FIELD]: username,
         };
 
         if (sso) {
@@ -301,7 +306,7 @@ module.exports = function registerUser(request) {
           basicInfo[provider] = JSON.stringify(credentials.internals);
 
           // link uid to username
-          pipeline.hset(USERS_SSO_TO_LOGIN, uid, username);
+          pipeline.hset(USERS_SSO_TO_ID, uid, userId);
         }
 
         if (hash !== null) {
@@ -312,6 +317,8 @@ module.exports = function registerUser(request) {
         basicInfo[USERS_ACTIVE_FLAG] = shouldActivate;
         // set internal data
         pipeline.hmset(userDataKey, basicInfo);
+        // @TODO expire?
+        pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
 
         // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
         // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
@@ -323,10 +330,11 @@ module.exports = function registerUser(request) {
       })
       // passed metadata
       .return({
-        username,
+        userId,
         audience,
         metadata: audience.map(metaAudience => ({
           $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
+            [USERS_ID_FIELD]: userId,
             [USERS_USERNAME_FIELD]: username,
             [USERS_CREATED_FIELD]: created,
           }),
@@ -355,7 +363,7 @@ module.exports = function registerUser(request) {
             ])
             .spread(skipChallenge ? noop : challenge) // eslint-disable-line promise/always-return
             .then((challengeResponse) => {
-              const response = { requiresActivation: true, id: username };
+              const response = { requiresActivation: true, id: userId };
               const uid = challengeResponse ? challengeResponse.context.token.uid : null;
 
               if (uid) {
@@ -368,13 +376,13 @@ module.exports = function registerUser(request) {
 
         // perform instant activation
         // internal username index
-        const pipeline = redis.pipeline().sadd(USERS_INDEX, username);
+        const pipeline = redis.pipeline().sadd(USERS_INDEX, userId);
         const ref = metadata[params.audience][USERS_REFERRAL_FIELD];
 
         // add to referral index during registration
         // on instant activation
         if (ref) {
-          pipeline.sadd(`${USERS_REFERRAL_INDEX}:${ref}`, username);
+          pipeline.sadd(`${USERS_REFERRAL_INDEX}:${ref}`, userId);
         }
 
         return pipeline
@@ -382,10 +390,10 @@ module.exports = function registerUser(request) {
           .then(handlePipeline)
           // custom actions
           .bind(this)
-          .return(['users:activate', username, params, metadata])
+          .return(['users:activate', userId, params, metadata])
           .spread(this.hook)
           // login & return JWT
-          .return([username, params.audience])
+          .return([userId, params.audience])
           .spread(jwt.login);
       })
   )));

@@ -69,6 +69,7 @@ const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const moment = require('moment');
 const conf = require('../lib/config');
+const { USERS_USERNAME_FIELD } = require('../lib/constants');
 
 const config = conf.get('/', { env: process.env.NODE_ENV });
 const amqpConfig = omit(config.amqp.transport, ['queue', 'neck', 'listen', 'onComplete']);
@@ -96,7 +97,7 @@ const getTransport = () => AMQPTransport.connect(amqpConfig).disposer(amqp => am
  * Output stream
  */
 let output;
-const headers = ['id', ...argv.field];
+const headers = ['id', 'username', ...argv.field];
 switch (argv.output) {
   case 'console':
     // so it's somewhat easier to read
@@ -122,7 +123,8 @@ switch (argv.output) {
  */
 const writeUserToOutput = (user) => {
   const attributes = user.metadata[audience];
-  const id = (argv.username && attributes[argv.username]) || user.id;
+  const id = user.id;
+  const username = (argv.username && attributes[argv.username]) || attributes[USERS_USERNAME_FIELD];
 
   if (argv.toDate) {
     argv.toDate.forEach((fieldName) => {
@@ -133,7 +135,7 @@ const writeUserToOutput = (user) => {
     });
   }
 
-  output.write(Object.assign(pick(attributes, argv.field), { id }));
+  output.write(Object.assign(pick(attributes, argv.field), { id, username }));
 };
 
 /**

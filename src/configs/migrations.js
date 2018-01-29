@@ -2,6 +2,13 @@
  * Migration settings
  * @type {Object}
  */
-exports.migrations = {
-  enabled: true,
+module.exports = {
+  migrations: {
+    enabled: false,
+    meta: {
+      generateUsersIds: {
+        audiences: [],
+      },
+    },
+  },
 };

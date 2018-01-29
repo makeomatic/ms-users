@@ -1,8 +1,12 @@
 /* global globalRegisterUser, globalAuthUser */
 const Promise = require('bluebird');
 const assert = require('assert');
-const md5 = require('md5');
 const { inspectPromise } = require('@makeomatic/deploy');
+const uuid = require('uuid/v4');
+const { sign } = require('../../src/utils/signatures');
+const { USERS_API_TOKENS } = require('../../src/constants');
+const md5 = require('md5');
+const redisKey = require('../../src/utils/key');
 
 describe('#token.*', function activateSuite() {
   // actions supported by this
@@ -16,8 +20,8 @@ describe('#token.*', function activateSuite() {
   after(global.clearRedis);
 
   // registers user and pushes JWT to this.jwt
-  before(globalRegisterUser(username));
-  before(globalAuthUser(username));
+  before('register user', globalRegisterUser(username));
+  before('auth user', globalAuthUser(username));
 
   // simple iterator
   const iterator = Array.from({ length: 40 });
@@ -33,7 +37,7 @@ describe('#token.*', function activateSuite() {
         .then(inspectPromise())
         .then((token) => {
           assert.equal(token.split('.').length, 3, 'invalid token format');
-          assert.equal(token.split('.')[0], md5(username), 'invalid input hash');
+          assert.equal(token.split('.')[0], this.userId, 'invalid input hash');
 
           // creates tokens pool
           tokenHolder = [token];
@@ -67,7 +71,8 @@ describe('#token.*', function activateSuite() {
 
           // auto:39
           assert.ok(/^auto:\d+$/, token.name);
-          assert.equal(token.username, username);
+          assert(token.userId);
+          assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
           assert.equal(Object.keys(token).length, 4);
@@ -85,7 +90,8 @@ describe('#token.*', function activateSuite() {
 
           // check it's first token
           assert.equal(token.name, 'initial token');
-          assert.equal(token.username, username);
+          assert(token.userId);
+          assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
           assert.equal(Object.keys(token).length, 4);
@@ -114,7 +120,8 @@ describe('#token.*', function activateSuite() {
 
           // check it's first token
           assert.equal(token.name, 'initial token');
-          assert.equal(token.username, username);
+          assert(token.userId);
+          assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
           assert.equal(Object.keys(token).length, 4);
@@ -146,5 +153,43 @@ describe('#token.*', function activateSuite() {
         .then(inspectPromise(false))
       ));
     });
+  });
+});
+
+describe('legacy API tokens', function suit() {
+  const username = 'test@ms-users.com';
+
+  after('clean up redis', global.clearRedis);
+
+  before('start service', function startService() {
+    return global.startService.call(this, { registrationLimits: { checkMX: false } });
+  });
+
+  before('register user', globalRegisterUser(username));
+
+  before('create token', function createToken() {
+    const uniqId = uuid();
+    const hashedUsername = md5(username);
+    const payload = `${hashedUsername}.${uniqId}`;
+    const signature = sign.call(this.users, payload);
+    const key = redisKey(USERS_API_TOKENS, payload);
+
+    this.token = `${payload}.${signature}`;
+
+    return this.users.redis.hmset(key, { username, name: 'token for test', uuid: uniqId });
+  });
+
+  it('should be able to verify', function test() {
+    return this
+      .dispatch('users.verify', {
+        token: this.token,
+        accessToken: true,
+        audience: '*.localhost',
+      })
+      .reflect()
+      .then(inspectPromise())
+      .then((response) => {
+        assert.equal(username, response.metadata['*.localhost'].username);
+      });
   });
 });

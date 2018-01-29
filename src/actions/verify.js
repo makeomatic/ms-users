@@ -3,6 +3,7 @@ const { HttpStatusError } = require('common-errors');
 const { ActionTransport } = require('@microfleet/core');
 const jwt = require('../utils/jwt');
 const getMetadata = require('../utils/getMetadata');
+const { getUserId } = require('../utils/userData');
 
 /**
  * Internal functions
@@ -13,8 +14,8 @@ const toArray = maybeArray => (isArray(maybeArray) ? maybeArray : [maybeArray]);
 /**
  * Verifies decoded token
  */
-function decodedToken({ username }) {
-  if (!username) {
+function decodedToken({ username, userId }) {
+  if (!userId && !username) {
     throw new HttpStatusError(403, 'forged or expired token');
   }
 
@@ -25,11 +26,13 @@ function decodedToken({ username }) {
     audience.push(defaultAudience);
   }
 
-  // get metadata and return success
-  return Promise.props({
-    username,
-    metadata: getMetadata.call(service, username, audience),
-  });
+  return Promise
+    .resolve(userId || getUserId.call(service, username))
+    .then(resolveduserId =>
+      Promise.props({
+        id: resolveduserId,
+        metadata: getMetadata.call(service, resolveduserId, audience),
+      }));
 }
 
 /**

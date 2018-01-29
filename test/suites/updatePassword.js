@@ -15,7 +15,8 @@ describe('#updatePassword', function updatePasswordSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    return simpleDispatcher(this.users.router)('users.register', { username, password, audience });
+    return simpleDispatcher(this.users.router)('users.register', { username, password, audience })
+      .then(({ user }) => (this.userId = user.id));
   });
 
   it('must reject updating password for a non-existing user on username+password update', function test() {
@@ -32,7 +33,7 @@ describe('#updatePassword', function updatePasswordSuite() {
 
   describe('user: inactive', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
+      return this.users.redis.hset(redisKey(this.userId, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
     });
 
     it('must reject updating password for an inactive account on username+password update', function test() {
@@ -48,7 +49,7 @@ describe('#updatePassword', function updatePasswordSuite() {
 
   describe('user: banned', function suite() {
     beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true');
+      return this.users.redis.hset(redisKey(this.userId, USERS_DATA), USERS_BANNED_FLAG, 'true');
     });
 
     it('must reject updating password for an inactive account on username+password update', function test() {

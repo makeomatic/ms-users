@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
-const userExists = require('../utils/userExists.js');
+const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_DATA, USERS_METADATA,
@@ -12,7 +12,7 @@ const {
 const stringify = data => JSON.stringify(data);
 
 function lockUser({
-  username, reason, whom, remoteip,
+  id, reason, whom, remoteip,
 }) {
   const { redis, config } = this;
   const { jwt: { defaultAudience } } = config;
@@ -27,22 +27,22 @@ function lockUser({
 
   return redis
     .pipeline()
-    .hset(redisKey(username, USERS_DATA), USERS_BANNED_FLAG, 'true')
+    .hset(redisKey(id, USERS_DATA), USERS_BANNED_FLAG, 'true')
     // set .banned on metadata for filtering & sorting users by that field
-    .hmset(redisKey(username, USERS_METADATA, defaultAudience), mapValues(data, stringify))
-    .del(redisKey(username, USERS_TOKENS))
+    .hmset(redisKey(id, USERS_METADATA, defaultAudience), mapValues(data, stringify))
+    .del(redisKey(id, USERS_TOKENS))
     .exec();
 }
 
-function unlockUser({ username }) {
+function unlockUser({ id }) {
   const { redis, config } = this;
   const { jwt: { defaultAudience } } = config;
 
   return redis
     .pipeline()
-    .hdel(redisKey(username, USERS_DATA), USERS_BANNED_FLAG)
+    .hdel(redisKey(id, USERS_DATA), USERS_BANNED_FLAG)
     // remove .banned on metadata for filtering & sorting users by that field
-    .hdel(redisKey(username, USERS_METADATA, defaultAudience), 'banned', USERS_BANNED_DATA)
+    .hdel(redisKey(id, USERS_METADATA, defaultAudience), 'banned', USERS_BANNED_DATA)
     .exec();
 }
 
@@ -65,8 +65,8 @@ function unlockUser({ username }) {
 module.exports = function banUser(request) {
   return Promise
     .bind(this, request.params.username)
-    .then(userExists)
-    .then(username => ({ ...request.params, username }))
+    .then(getInternalData)
+    .then(({ id }) => ({ ...request.params, id }))
     .then(request.params.ban ? lockUser : unlockUser)
     .then(handlePipeline);
 };

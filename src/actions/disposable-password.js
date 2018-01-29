@@ -1,10 +1,10 @@
 const challenge = require('../utils/challenges/challenge');
-const getInternalData = require('../utils/getInternalData');
+const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const hasNotPassword = require('../utils/hasNotPassword');
 const Promise = require('bluebird');
-const { USERS_ACTION_DISPOSABLE_PASSWORD } = require('../constants');
+const { USERS_ACTION_DISPOSABLE_PASSWORD, USERS_USERNAME_FIELD } = require('../constants');
 
 /**
  * @api {amqp} <prefix>.disposable-password Request disposable password
@@ -27,7 +27,7 @@ module.exports = function disposablePassword(request) {
     .tap(isBanned)
     .tap(hasNotPassword)
     .then(data => ([challengeType, {
-      id: data.username,
+      id: data[USERS_USERNAME_FIELD],
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
       ...tokenOptions,
     }]))

@@ -1,22 +1,18 @@
 const Errors = require('common-errors');
 const Promise = require('bluebird');
-const FlakeId = require('flake-idgen');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 // internal modules
 const redisKey = require('./key.js');
-const { USERS_TOKENS, USERS_API_TOKENS } = require('../constants.js');
+const { USERS_TOKENS, USERS_API_TOKENS, USERS_ID_FIELD } = require('../constants.js');
 const getMetadata = require('../utils/getMetadata.js');
 const { verify: verifyHMAC } = require('./signatures');
-
-// id generator
-const flakeIdGen = new FlakeId();
 
 // cache this to not recreate all the time
 const mapJWT = props => ({
   jwt: props.jwt,
   user: {
-    username: props.username,
+    [USERS_ID_FIELD]: props.userId,
     metadata: props.metadata,
   },
 });
@@ -27,8 +23,8 @@ const mapJWT = props => ({
  * @param  {String}  _audience
  * @return {Promise}
  */
-exports.login = function login(username, _audience) {
-  const { redis, config } = this;
+exports.login = function login(userId, _audience) {
+  const { redis, config, flake } = this;
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, defaultAudience, secret } = jwtConfig;
   let audience = _audience || defaultAudience;
@@ -36,8 +32,8 @@ exports.login = function login(username, _audience) {
   // will have iat field, which is when this token was issued
   // we can check last access and verify the expiration date based on it
   const payload = {
-    username,
-    cs: flakeIdGen.next().toString('hex'),
+    username: userId,
+    cs: flake.next(),
   };
 
   const token = jwt.sign(payload, secret, { algorithm, audience, issuer: 'ms-users' });
@@ -50,10 +46,10 @@ exports.login = function login(username, _audience) {
 
   return Promise
     .props({
-      lastAccessUpdated: redis.zadd(redisKey(username, USERS_TOKENS), Date.now(), token),
+      lastAccessUpdated: redis.zadd(redisKey(userId, USERS_TOKENS), Date.now(), token),
       jwt: token,
-      username,
-      metadata: getMetadata.call(this, username, audience),
+      userId,
+      metadata: getMetadata.call(this, userId, audience),
     })
     .then(mapJWT);
 };
@@ -70,7 +66,7 @@ function remapInvalidTokenError(err) {
  * Erases the token
  */
 function eraseToken(decoded) {
-  return this.redis.zrem(redisKey(decoded.username, USERS_TOKENS), this.token);
+  return this.redis.zrem(redisKey(decoded.userId, USERS_TOKENS), this.token);
 }
 
 /**
@@ -97,8 +93,8 @@ exports.logout = function logout(token, audience) {
  * Removes all issued tokens for a given user
  * @param {String} username
  */
-exports.reset = function reset(username) {
-  return this.redis.del(redisKey(username, USERS_TOKENS));
+exports.reset = function reset(userId) {
+  return this.redis.del(redisKey(userId, USERS_TOKENS));
 };
 
 /**
@@ -184,15 +180,18 @@ exports.internal = function verifyInternalToken(token) {
     throw new Errors.HttpStatusError(403, 'malformed token');
   }
 
-  const [usernameHash, uuid, signature] = tokenParts;
+  const [userId, uuid, signature] = tokenParts;
 
   // token is malformed, must be username.uuid.signature
-  if (!usernameHash || !uuid || !signature) {
+  if (!userId || !uuid || !signature) {
     throw new Errors.HttpStatusError(403, 'malformed token');
   }
 
+  // md5 hash
+  const isLegacyToken = /^[a-f0-9]{32}$/i.test(userId);
+
   // this is needed to pass ctx of the
-  const payload = `${usernameHash}.${uuid}`;
+  const payload = `${userId}.${uuid}`;
   const isValid = verifyHMAC.call(this, payload, signature);
 
   if (!isValid) {
@@ -205,8 +204,8 @@ exports.internal = function verifyInternalToken(token) {
   const { redis } = this;
 
   return redis
-    .hget(key, 'username')
-    .then(username => ({ username }));
+    .hget(key, isLegacyToken ? 'username' : 'userId')
+    .then(id => ({ [isLegacyToken ? 'username' : 'userId']: id }));
 };
 
 

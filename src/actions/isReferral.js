@@ -1,15 +1,15 @@
 const Promise = require('bluebird');
-const userExists = require('../utils/userExists');
+const { getUserId } = require('../utils/userData');
 const { USERS_REFERRAL_INDEX } = require('../constants');
 
 /**
  * Verifies
  * @return {Boolean} [description]
  */
-function checkIndex(username) {
+function checkIndex(userId) {
   return this.redis
-    .sismember(`${USERS_REFERRAL_INDEX}:${this.referralCode}`, username)
-    .then(yes => (yes === 1 ? username : false));
+    .sismember(`${USERS_REFERRAL_INDEX}:${this.referralCode}`, userId)
+    .then(yes => (yes === 1 ? userId : false));
 }
 
 /**
@@ -30,7 +30,7 @@ module.exports = function isReferral({ params }) {
 
   return Promise
     .bind(this, username)
-    .then(userExists)
+    .then(getUserId)
     .bind({
       referralCode,
       redis,

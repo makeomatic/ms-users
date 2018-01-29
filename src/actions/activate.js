@@ -1,17 +1,17 @@
-const Promise = require('bluebird');
 const Errors = require('common-errors');
-const redisKey = require('../utils/key');
-const jwt = require('../utils/jwt');
-const getInternalData = require('../utils/getInternalData');
+const Promise = require('bluebird');
+const redisKey = require('../utils/key.js');
+const jwt = require('../utils/jwt.js');
+const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/getMetadata');
-const userExists = require('../utils/userExists');
-const handlePipeline = require('../utils/pipelineError');
+const handlePipeline = require('../utils/pipelineError.js');
 const {
   USERS_INDEX,
   USERS_DATA,
   USERS_REFERRAL_INDEX,
   USERS_PUBLIC_INDEX,
   USERS_ACTIVE_FLAG,
+  USERS_ID_FIELD,
   USERS_ALIAS_FIELD,
   USERS_REFERRAL_FIELD,
   USERS_USERNAME_FIELD,
@@ -37,69 +37,73 @@ function throwBasedOnStatus(status) {
 /**
  * Verifies that account is active
  */
-function isAccountActive(data) {
-  const username = data[USERS_USERNAME_FIELD];
-  const userKey = redisKey(username, USERS_DATA);
-  return this.redis
-    .hget(userKey, USERS_ACTIVE_FLAG)
+function isAccountActive(username) {
+  return getInternalData
+    .call(this, username)
+    .then(userData => userData[USERS_ACTIVE_FLAG])
     .then(throwBasedOnStatus);
 }
 
 /**
  * Modifies error from the token
  */
-function RethrowForbidden(e) {
-  this.log.warn({ token: this.token, username: this.username, args: e.args }, 'failed to activate', e.message);
+function RethrowForbidden(error) {
+  const { log, token, username } = this;
+  const { args, message } = error;
+
+  log.warn({ token, username, args }, 'failed to activate', message);
 
   // remap error message
   // and possibly status code
-  if (!e.args) {
+  if (!args) {
     throw Forbidden;
   }
 
   return Promise
-    .bind(this, e.args.id)
-    // if it can't get internal data - will throw 404
-    .then(getInternalData)
+    .bind(this, args.id)
     // if it's active will throw 409, otherwise 412
     .then(isAccountActive);
 }
 
-/**
- * Simple invocation for userExists
- */
-function doesUserExist() {
-  return userExists.call(this.service, this.username);
-}
+function verifyToken(args, opts) {
+  const { tokenManager } = this;
 
-/**
- * Verifies validity of token
- */
-function verifyToken() {
-  let args;
-  const { token, username, service } = this;
-  const action = USERS_ACTION_ACTIVATE;
-  const opts = { erase: this.erase };
-
-  if (username) {
-    args = {
-      action,
-      token,
-      id: username,
-    };
-  } else {
-    args = token;
-    opts.control = { action };
-  }
-
-  return this.service
-    .tokenManager
+  return tokenManager
     .verify(args, opts)
-    .bind({
-      log: service.log, redis: service.redis, token, username,
-    })
+    .bind(this)
     .catch(RethrowForbidden)
     .get('id');
+}
+
+function verifyRequest() {
+  const {
+    username, token, service: { tokenManager, redis, log }, erase,
+  } = this;
+  const action = USERS_ACTION_ACTIVATE;
+  const context = {
+    log, redis, token, username, tokenManager,
+  };
+
+  if (username && token) {
+    return getInternalData
+      .call(this.service, username)
+      .then(userData => [
+        { action, token, id: userData[USERS_USERNAME_FIELD] },
+        { erase },
+      ])
+      .bind(context)
+      .spread(verifyToken);
+  }
+
+  if (token) {
+    return verifyToken.call(context, token, { erase, control: { action } });
+  }
+
+  if (username) {
+    return Promise.resolve(username);
+  }
+
+  throw new Errors.HttpStatusError(400, 'invalid params');
 }
 
 /**
@@ -108,10 +112,10 @@ function verifyToken() {
  * @return {Promise}
  */
 function activateAccount(data, metadata) {
-  const user = data[USERS_USERNAME_FIELD];
+  const userId = data[USERS_ID_FIELD];
   const alias = data[USERS_ALIAS_FIELD];
   const referral = metadata[USERS_REFERRAL_FIELD];
-  const userKey = redisKey(user, USERS_DATA);
+  const userKey = redisKey(userId, USERS_DATA);
 
   // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
   // set to active & persist
@@ -120,33 +124,32 @@ function activateAccount(data, metadata) {
     .hget(userKey, USERS_ACTIVE_FLAG)
     .hset(userKey, USERS_ACTIVE_FLAG, 'true')
     .persist(userKey)
-    .sadd(USERS_INDEX, user);
+    .sadd(USERS_INDEX, userId);
 
   if (alias) {
-    pipeline.sadd(USERS_PUBLIC_INDEX, user);
+    pipeline.sadd(USERS_PUBLIC_INDEX, userId);
   }
 
   if (referral) {
-    pipeline.sadd(`${USERS_REFERRAL_INDEX}:${referral}`, user);
+    pipeline.sadd(`${USERS_REFERRAL_INDEX}:${referral}`, userId);
   }
 
   return pipeline
     .exec()
     .then(handlePipeline)
-    .spread(function pipeResponse(isActive) {
-      const status = isActive;
-      if (status === 'true') {
-        throw new Errors.HttpStatusError(417, `Account ${user} was already activated`);
+    .spread((isActive) => {
+      if (isActive === 'true') {
+        throw new Errors.HttpStatusError(417, `Account ${userId} was already activated`);
       }
     })
-    .return(user);
+    .return(userId);
 }
 
 /**
  * Invokes available hooks
  */
-function hook(user) {
-  return this.service.hook('users:activate', user, { audience: this.audience });
+function hook(userId) {
+  return this.service.hook('users:activate', userId, { audience: this.audience });
 }
 
 /**
@@ -170,7 +173,7 @@ function hook(user) {
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
  */
-module.exports = function verifyChallenge({ params }) {
+function activateAction({ params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
   const { token, username } = params;
@@ -180,28 +183,31 @@ module.exports = function verifyChallenge({ params }) {
   log.debug('incoming request params %j', params);
 
   // basic context
-  const ctx = {
-    username,
-    token,
+  const context = {
     audience,
+    token,
+    username,
     service: this,
     erase: config.token.erase,
   };
 
   return Promise
-    .bind(ctx)
-    .then(token ? verifyToken : doesUserExist)
+    .bind(context)
+    .then(verifyRequest)
     .bind(this)
-    .then(resolvedUsername => Promise.join(
-      getInternalData.call(this, resolvedUsername),
-      getMetadata.call(this, resolvedUsername, audience).get(audience)
+    .then(resolvedUsername => getInternalData.call(this, resolvedUsername))
+    .then(internalData => Promise.join(
+      internalData,
+      getMetadata.call(this, internalData[USERS_ID_FIELD], audience).get(audience)
     ))
     .spread(activateAccount)
-    .bind(ctx)
+    .bind(context)
     .tap(hook)
     .bind(this)
-    .then(user => [user, audience])
+    .then(userId => [userId, audience])
     .spread(jwt.login);
-};
+}
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+activateAction.transports = [require('@microfleet/core').ActionTransport.amqp];
+
+module.exports = activateAction;

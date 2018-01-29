@@ -18,10 +18,12 @@ describe('#register stubbed', function suite() {
       username: '79215555555',
     };
 
-    amqpStub.withArgs('phone.message.predefined')
+    amqpStub
+      .withArgs('phone.message.predefined')
       .returns(Promise.resolve({ queued: true }));
 
-    return this.dispatch('users.register', opts)
+    return this
+      .dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
       .then((value) => {
@@ -35,8 +37,9 @@ describe('#register stubbed', function suite() {
         assert.equal(message.account, 'twilio');
         assert.equal(/\d{4} is your activation code/.test(message.message), true);
         assert.equal(message.to, '+79215555555');
+
+        assert.ok(value.id);
         assert.equal(value.requiresActivation, true);
-        assert.equal(value.id, '79215555555');
         assert.equal(is.string(value.uid), true);
 
         amqpStub.restore();
@@ -52,10 +55,12 @@ describe('#register stubbed', function suite() {
       username: '79215555555',
     };
 
-    amqpStub.withArgs('phone.message.predefined')
+    amqpStub
+      .withArgs('phone.message.predefined')
       .returns(Promise.resolve({ queued: true }));
 
-    return this.dispatch('users.register', opts)
+    return this
+      .dispatch('users.register', opts)
       .reflect()
       .then(inspectPromise())
       .then((value) => {
@@ -69,7 +74,9 @@ describe('#register stubbed', function suite() {
         assert.equal(message.account, 'twilio');
         assert.equal(/^.{10} is your password/.test(message.message), true);
         assert.equal(message.to, '+79215555555');
-        assert.deepEqual(value.user.username, '79215555555');
+
+        assert.ok(value.user.id);
+        assert.deepEqual(value.user.metadata['*.localhost'].username, '79215555555');
 
         amqpStub.restore();
       });
@@ -103,7 +110,8 @@ describe('#register stubbed', function suite() {
       .then(inspectPromise())
       .then((response) => {
         assert.equal(is.string(response.jwt), true);
-        assert.equal(response.user.username, '79215555555');
+        assert.ok(response.user.id);
+        assert.deepEqual(response.user.metadata['*.localhost'].username, '79215555555');
 
         return this.dispatch('users.getInternalData', { username: '79215555555' });
       })

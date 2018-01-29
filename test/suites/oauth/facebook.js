@@ -342,7 +342,7 @@ describe('#facebook', function oauthFacebookSuite() {
         uid = `facebook:${registered.user.metadata[defaultAudience].facebook.id}`;
       })
       .tap((registered) => {
-        const { username } = registered.user;
+        const { username } = registered.user.metadata['*.localhost'];
         return this.dispatch('users.oauth.detach', { username, provider: 'facebook' })
           .reflect()
           .then(inspectPromise(true))
@@ -352,7 +352,8 @@ describe('#facebook', function oauthFacebookSuite() {
       })
       .tap((registered) => {
         /* verify that related account has been pruned from metadata */
-        const { username, metadata } = registered.user;
+        const { username } = registered.user.metadata['*.localhost'];
+        const { metadata } = registered.user;
         return this.dispatch('users.getMetadata', { username, audience: Object.keys(metadata) })
           .reflect()
           .then(inspectPromise(true))
@@ -364,7 +365,8 @@ describe('#facebook', function oauthFacebookSuite() {
       })
       .tap((registered) => {
         /* verify that related account has been pruned from internal data */
-        const { username } = registered.user;
+        const { username } = registered.user.metadata['*.localhost'];
+
         return this.dispatch('users.getInternalData', { username })
           .reflect()
           .then(inspectPromise(true))
@@ -479,11 +481,9 @@ describe('#facebook', function oauthFacebookSuite() {
         return [context.$ms_users_inj_post_message.payload.token, { username: 'unverified@makeomatic.ca' }];
       })
       .spread(createAccount)
-      .then((response) => {
-        assert.deepEqual(response, {
-          requiresActivation: true,
-          id: 'unverified@makeomatic.ca',
-        });
+      .then(({ requiresActivation, id }) => {
+        assert.equal(requiresActivation, true);
+        assert.ok(id);
       });
   });
 });

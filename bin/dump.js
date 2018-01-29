@@ -68,10 +68,10 @@ const csvWriter = require('csv-write-stream');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const moment = require('moment');
-const defaultOpts = require('../lib/config');
+const conf = require('../lib/config');
 const { USERS_USERNAME_FIELD } = require('../lib/constants');
 
-const config = defaultOpts.get('/', { env: process.env.NODE_ENV });
+const config = conf.get('/', { env: process.env.NODE_ENV });
 const amqpConfig = omit(config.amqp.transport, ['queue', 'neck', 'listen', 'onComplete']);
 const audience = argv.audience || config.jwt.defaultAudience;
 const prefix = argv.prefix || config.router.routes.prefix;

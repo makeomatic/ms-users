@@ -15,6 +15,7 @@ const {
   USERS_API_TOKENS_ZSET,
   // fields
   USERS_ID_FIELD,
+  USERS_USERNAME_FIELD,
 } = require('../../constants');
 const makeKey = require('../../utils/key');
 const safeParse = require('../../utils/safeParse');
@@ -56,6 +57,7 @@ function generateUsersIds({
 
       // user data
       pipeline.hset(oldUserDataKey, USERS_ID_FIELD, userId);
+      pipeline.hset(oldUserDataKey, USERS_USERNAME_FIELD, username);
       pipeline.rename(oldUserDataKey, newUserDataKey);
 
       // user metadata

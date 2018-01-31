@@ -1,5 +1,5 @@
 {
-  "id": "oauth.detach",
+  "$id": "oauth.detach",
   "type": "object",
   "required": ["username", "provider"],
   "properties": {

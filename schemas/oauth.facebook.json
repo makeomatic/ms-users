@@ -1,5 +1,5 @@
 {
-  "id": "oauth.facebook",
+  "$id": "oauth.facebook",
   "type": "object",
   "additionalProperties": true,
   "properties": {

@@ -6,6 +6,7 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![codecov.io](https://codecov.io/github/makeomatic/ms-users/coverage.svg?branch=master)](https://codecov.io/github/makeomatic/ms-users?branch=master)
 [![Code Climate](https://codeclimate.com/github/makeomatic/ms-users/badges/gpa.svg)](https://codeclimate.com/github/makeomatic/ms-users)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmakeomatic%2Fms-users.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmakeomatic%2Fms-users?ref=badge_shield)
 
 ## Installation
 
@@ -28,3 +29,7 @@ Currently available on github pages
 ## Docker images
 
 Built docker images are available: https://hub.docker.com/r/makeomatic/ms-users/
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmakeomatic%2Fms-users.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmakeomatic%2Fms-users?ref=badge_large)

@@ -189,9 +189,9 @@
   dependencies:
     find-up "^2.1.0"
 
-"@makeomatic/deploy@^6.0.1":
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-6.0.1.tgz#ad0ded324bce15e744880ad9e2945daffe8408fb"
+"@makeomatic/deploy@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@makeomatic/deploy/-/deploy-6.0.2.tgz#04fa963af1a6c22121391710aae72f06d63872f6"
   dependencies:
     "@commitlint/cli" "^6.1.3"
     bluebird "^3.5.1"
@@ -2609,9 +2609,9 @@ handlebars@^4.0.11, handlebars@^4.0.2, handlebars@^4.0.3:
   optionalDependencies:
     uglify-js "^2.6"
 
-hapi@^17.2.3:
-  version "17.2.3"
-  resolved "https://registry.yarnpkg.com/hapi/-/hapi-17.2.3.tgz#77939c7a01200cfdcf1ec06fbe7cc03d234db5f8"
+hapi@^17.3.0:
+  version "17.3.0"
+  resolved "https://registry.yarnpkg.com/hapi/-/hapi-17.3.0.tgz#5d69b99c5a158b7bb8571aca1ef4b94e8c54a283"
   dependencies:
     accept "3.x.x"
     ammo "3.x.x"
@@ -3968,9 +3968,9 @@ moment@^2.10.6:
   version "2.20.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.20.1.tgz#d6eb1a46cbcc14a2b2f9434112c1ff8907f313fd"
 
-moment@^2.21.0:
-  version "2.21.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.21.0.tgz#2a114b51d2a6ec9e6d83cf803f838a878d8a023a"
+moment@^2.22.0:
+  version "2.22.0"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.22.0.tgz#7921ade01017dd45186e7fee5f424f0b8663a730"
 
 ms-conf@^3.1.2, ms-conf@^3.2.0:
   version "3.2.0"

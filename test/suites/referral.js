@@ -14,11 +14,11 @@ describe('#referral', function registerSuite() {
       id: exampleHash,
       referral: referralId,
     })
-    .reflect()
-    .then(inspectPromise())
-    .then((result) => {
-      assert.equal(result, 'OK');
-    });
+      .reflect()
+      .then(inspectPromise())
+      .then((result) => {
+        assert.equal(result, 'OK');
+      });
   });
 
   it('does not capture referral if already present', function test() {
@@ -26,11 +26,11 @@ describe('#referral', function registerSuite() {
       id: exampleHash,
       referral: referralId,
     })
-    .reflect()
-    .then(inspectPromise())
-    .then((result) => {
-      assert.equal(result, null);
-    });
+      .reflect()
+      .then(inspectPromise())
+      .then((result) => {
+        assert.equal(result, null);
+      });
   });
 
   it('picks up referral if present during registration call', function test() {
@@ -45,7 +45,7 @@ describe('#referral', function registerSuite() {
       referral: exampleHash,
     };
 
-    return this.dispatch('users.register', opts)
+    return this.dispatch('users.register', { ...opts })
       .reflect()
       .then(inspectPromise())
       .then((registered) => {

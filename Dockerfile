@@ -13,7 +13,7 @@ RUN \
     git \
     curl \
     openssl \
-  && yarn --production \
+  && yarn --production --frozen-lockfile \
   && apk del \
     .buildDeps \
     wget \

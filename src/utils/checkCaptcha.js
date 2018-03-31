@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const Errors = require('common-errors');
 const request = require('request-promise');
 const defaults = require('lodash/defaults');
@@ -14,36 +13,33 @@ const handlePipeline = require('../utils/pipelineError.js');
  * @param  {Object} captchaConfig
  * @return {Function}
  */
-module.exports = function makeCaptchaCheck(redis, username, captcha, captchaConfig) {
+module.exports = async function checkCaptcha(redis, username, captcha, captchaConfig) {
   const { secret, ttl, uri } = captchaConfig;
-  return function checkCaptcha() {
-    const captchaCacheKey = captcha.response;
-    return redis
-      .pipeline()
-      .set(captchaCacheKey, username, 'EX', ttl, 'NX')
-      .get(captchaCacheKey)
-      .exec()
-      .then(handlePipeline)
-      .spread(function captchaCacheResponse(setResponse, getResponse) {
-        if (getResponse !== username) {
-          const msg = 'Captcha challenge you\'ve solved can not be used, please complete it again';
-          throw new Errors.HttpStatusError(412, msg);
-        }
-      })
-      .then(function verifyGoogleCaptcha() {
-        return request
-          .post({ uri, qs: defaults(captcha, { secret }), json: true })
-          .then(function captchaSuccess(body) {
-            if (!body.success) {
-              return Promise.reject(new Errors.HttpStatusError(200, body));
-            }
+  const { response: captchaCacheKey } = captcha;
 
-            return true;
-          })
-          .catch(function captchaError(err) {
-            const errData = JSON.stringify(pick(err, ['statusCode', 'error']));
-            throw new Errors.HttpStatusError(412, fmt('Captcha response: %s', errData));
-          });
-      });
-  };
+  await redis
+    .pipeline()
+    .set(captchaCacheKey, username, 'EX', ttl, 'NX')
+    .get(captchaCacheKey)
+    .exec()
+    .then(handlePipeline)
+    .spread(function captchaCacheResponse(setResponse, getResponse) {
+      if (getResponse !== username) {
+        const msg = 'Captcha challenge you\'ve solved can not be used, please complete it again';
+        throw new Errors.HttpStatusError(412, msg);
+      }
+    });
+
+  try {
+    const body = await request.post({ uri, qs: defaults(captcha, { secret }), json: true });
+
+    if (!body.success) {
+      throw new Errors.HttpStatusError(200, body);
+    }
+  } catch (err) {
+    const errData = JSON.stringify(pick(err, ['statusCode', 'error']));
+    throw new Errors.HttpStatusError(412, fmt('Captcha response: %s', errData));
+  }
+
+  return true;
 };

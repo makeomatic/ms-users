@@ -1,11 +1,11 @@
 const Promise = require('bluebird');
+const { LockAcquisitionError } = require('ioredis-lock');
 const { HttpStatusError } = require('common-errors');
 
 const set = require('lodash/set');
-const noop = require('lodash/noop');
 const merge = require('lodash/merge');
 const reduce = require('lodash/reduce');
-const constant = require('lodash/constant');
+const last = require('lodash/last');
 
 // internal deps
 const setMetadata = require('../utils/updateMetadata');
@@ -13,7 +13,7 @@ const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const isDisposable = require('../utils/isDisposable');
 const mxExists = require('../utils/mxExists');
-const makeCaptchaCheck = require('../utils/checkCaptcha');
+const checkCaptcha = require('../utils/checkCaptcha');
 const { getUserId } = require('../utils/userData');
 const aliasExists = require('../utils/aliasExists');
 const assignAlias = require('./alias');
@@ -44,11 +44,10 @@ const {
 } = require('../constants');
 
 // cached helpers
-const { hasOwnProperty } = Object.prototype;
-const retNull = constant(null);
 const ErrorMalformedAudience = new HttpStatusError(400, 'non-default audience must be accompanied by non-empty metadata or inviteToken');
 const ErrorMalformedInvite = new HttpStatusError(400, 'Account must be activated when using invite token');
 const ErrorInvitationExpiredOrUsed = new HttpStatusError(400, 'Invitation has expired or already been used');
+const ErrorRaceCondition = new HttpStatusError(429, 'multiple concurrent requests');
 const ErrorMissing = { statusCode: 404 };
 
 // metadata merger
@@ -75,48 +74,59 @@ function verifyRedisTokenResponse(token) {
  * Token verification function, on top of it returns extra metadata
  * @return {Promise}
  */
-function verifyToken() {
-  return this
-    .tokenManager
-    .verify(this.inviteToken, { erase: false, control: this.control })
+async function verifyToken(tokenManager, params) {
+  // we must ensure that token matches supplied ID
+  // it can be overwritten by sending `anyUsername: true`
+  const control = params.anyUsername
+    ? { action: USERS_ACTION_INVITE }
+    : { action: USERS_ACTION_INVITE, id: params.username };
+
+  const meta = await tokenManager
+    .verify(params.inviteToken, { erase: false, control })
     .then(verifyRedisTokenResponse)
     .get('metadata')
-    .get(TOKEN_METADATA_FIELD_METADATA)
-    .then(meta => reduce(meta, mergeMetadata, this.metadata));
+    .get(TOKEN_METADATA_FIELD_METADATA);
+
+  return reduce(meta, mergeMetadata, params.metadata);
 }
 
 /**
  * Verifies if there is a referal stored for this user
  * @return {Promise}
  */
-function verifyReferral() {
-  const key = redisKey(USERS_REF, this.referral);
-  return this.redis
-    .get(key)
-    .then((reference) => {
-      if (!reference) {
-        return null;
-      }
+async function verifyReferral(redis, params) {
+  const key = redisKey(USERS_REF, params.referral);
+  const reference = await redis.get(key);
 
-      this.metadata[this.audience][USERS_REFERRAL_FIELD] = reference;
-      return null;
-    });
+  if (!reference) {
+    return null;
+  }
+
+  const [creatorAudience] = params.audience;
+  params.metadata[creatorAudience][USERS_REFERRAL_FIELD] = reference;
+  return null;
 }
 
 /**
  * Verifies if SSO token provided, injects decoded SSO profile to metadata
  * @return {Promise}
  */
-function verifySSO() {
-  const { sso, metadata, defaultAudience } = this;
+async function verifySSO(service, params) {
+  const { sso, metadata, audience } = params;
   const { uid, provider, profile } = sso;
 
-  return Promise
-    .bind(this, uid)
+  const userId = await Promise
+    .bind(service, uid)
     .then(getUserId)
     .throw(ErrorConflictUserExists)
-    .catchReturn(ErrorMissing, true)
-    .tap(() => set(metadata, [defaultAudience, provider], profile));
+    .catchReturn(ErrorMissing, true);
+
+  // always last
+  const defaultAudience = last(audience);
+  // deep set
+  set(metadata, [defaultAudience, provider], profile);
+
+  return userId;
 }
 
 /**
@@ -126,6 +136,161 @@ function verifySSO() {
 function lockDisposer(lock) {
   lock.release().reflect();
   return null;
+}
+
+/**
+ * Performs user registration
+ */
+async function performRegistration({ service, params }) {
+  const {
+    username,
+    alias,
+    sso,
+    activate,
+    audience,
+    metadata,
+    challengeType,
+  } = params;
+
+  const {
+    config,
+    redis,
+  } = service;
+
+  // do verifications of DB state
+  await Promise.bind(service, username)
+    .tap(getUserId)
+    .throw(ErrorConflictUserExists)
+    .catchReturn(ErrorMissing, username);
+
+  if (alias) {
+    await aliasExists.call(service, alias);
+  }
+
+  if (params.inviteToken) {
+    await verifyToken(service.tokenManager, params);
+  }
+
+  if (params.referral) {
+    await verifyReferral(redis, params);
+  }
+
+  if (sso) {
+    await verifySSO(service, params);
+  }
+
+  const [creatorAudience] = audience;
+  const defaultAudience = last(audience);
+  const userId = service.flake.next();
+  const created = Date.now();
+  const pipeline = redis.pipeline();
+  const basicInfo = {
+    [USERS_CREATED_FIELD]: created,
+    [USERS_USERNAME_FIELD]: username,
+    [USERS_ACTIVE_FLAG]: activate,
+  };
+
+  if (params.skipPassword === false) {
+    // this will be passed as context if we need to send an email
+    // effectively allowing us to get some meta like firstName and lastName
+    // for personalized emails
+    const originalMeta = metadata[creatorAudience];
+    const { password } = params;
+
+    basicInfo[USERS_PASSWORD_FIELD] = await hashPassword.call(service, password, challengeType, username, originalMeta);
+  }
+
+  if (sso) {
+    const { provider, uid, credentials } = sso;
+
+    // inject sensitive provider info to internal data
+    basicInfo[provider] = JSON.stringify(credentials.internals);
+
+    // link uid to username
+    pipeline.hset(USERS_SSO_TO_ID, uid, userId);
+  }
+
+  const userDataKey = redisKey(userId, USERS_DATA);
+  pipeline.hmset(userDataKey, basicInfo);
+  pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
+
+  if (activate === false && config.deleteInactiveAccounts >= 0) {
+    pipeline.expire(userDataKey, config.deleteInactiveAccounts);
+  }
+
+  await pipeline.exec().then(handlePipeline);
+
+  await setMetadata.call(service, {
+    userId,
+    audience,
+    metadata: audience.map(metaAudience => ({
+      $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
+        [USERS_ID_FIELD]: userId,
+        [USERS_USERNAME_FIELD]: username,
+        [USERS_CREATED_FIELD]: created,
+      }),
+    })),
+  });
+
+  // assign alias
+  if (alias) {
+    await assignAlias.call(service, {
+      params: {
+        username,
+        alias,
+        internal: true,
+      },
+    });
+  }
+
+  if (activate === true) {
+    // perform instant activation
+    // internal username index
+    const regPipeline = redis.pipeline().sadd(USERS_INDEX, userId);
+    const ref = metadata[creatorAudience][USERS_REFERRAL_FIELD];
+
+    // add to referral index during registration
+    // on instant activation
+    if (ref) {
+      regPipeline.sadd(`${USERS_REFERRAL_INDEX}:${ref}`, userId);
+    }
+
+    return regPipeline
+      .exec()
+      .then(handlePipeline)
+      // custom actions
+      .bind(service)
+      .return(['users:activate', userId, params, metadata])
+      .spread(service.hook)
+      // login & return JWT
+      .return([userId, creatorAudience])
+      .spread(jwt.login);
+  }
+
+  const challengeOpts = {
+    id: username,
+    action: USERS_ACTION_ACTIVATE,
+    ...config.token[challengeType],
+  };
+
+  const metaCopy = {
+    ...metadata[creatorAudience],
+  };
+
+  const challengeResponse = params.skipChallenge
+    ? null
+    : await challenge.call(service, challengeType, challengeOpts, metaCopy);
+
+  return challengeResponse
+    ? {
+      id: userId,
+      requiresActivation: true,
+      uid: challengeResponse.context.token.uid,
+    }
+    : {
+      id: userId,
+      requiresActivation: true,
+    };
 }
 
 /**
@@ -154,281 +319,123 @@ function lockDisposer(lock) {
  * @apiParam (Payload) {String} [challengeType="email"] - challenge type
  * @apiParam (Payload) {String} [referral] - pass id/fingerprint of the client to see if it was stored before and associate with this account
  */
-module.exports = function registerUser(request) {
-  const {
-    redis, config, tokenManager, flake,
-  } = this;
-  const { deleteInactiveAccounts, captcha: captchaConfig, registrationLimits } = config;
-  const { defaultAudience } = config.jwt;
-  const { token: ssoTokenOptions } = config.oauth;
-
-  // request
-  const { params } = request;
-  const {
-    activate,
-    anyUsername,
-    challengeType,
-    inviteToken,
-    ipaddress,
-    password,
-    skipChallenge,
-    skipPassword,
-    username,
-    referral,
-    sso,
-  } = params;
-  const userId = flake.next();
-  // note: this is to preserve back-compatibility before sso was introduced
-  // if sso is undefined abd activate is undefined, then it defaults to true,
-  // otherwise it's true/false/undefined based on what's passed
-  let shouldActivate = activate === undefined && sso === undefined ? true : activate;
-  const alias = params.alias && params.alias.toLowerCase();
-  const captcha = hasOwnProperty.call(params, 'captcha') ? params.captcha : false;
-  const userDataKey = redisKey(userId, USERS_DATA);
-  const created = Date.now();
-  const { [challengeType]: tokenOptions } = this.config.token;
-
-  // inject default audience if it's not present
-  const audience = params.audience === defaultAudience
-    ? [params.audience]
-    : [params.audience, defaultAudience];
-
-  if (audience.length === 2 && !params.metadata && !inviteToken) {
-    throw ErrorMalformedAudience;
-  }
-
-  if (inviteToken && !shouldActivate) {
-    throw ErrorMalformedInvite;
-  }
-
-  // cache metadata
-  const metadata = {
-    [params.audience]: params.metadata || {},
-  };
+module.exports = async function registerUser({ params }) {
+  const service = this;
+  const { redis, config } = service;
+  const { username } = params;
 
   // 1. perform logic checks
   // 2. acquire registration lock
   // 3. create pipeline that adds all the user data into the system atomically to avoid failures
 
-  let promise = Promise.bind(this, username);
-
   // optional captcha verification
-  if (captcha) {
-    promise = promise.tap(makeCaptchaCheck(redis, username, captcha, captchaConfig));
+  if ('captcha' in params) {
+    await checkCaptcha(redis, username, params.captcha, config.captcha);
   }
 
-  if (registrationLimits) {
-    if (registrationLimits.noDisposable) {
-      promise = promise.tap(isDisposable(username));
+  const limits = config.registrationLimits;
+  if (limits) {
+    if (limits.noDisposable) {
+      // sync function, throws
+      isDisposable(username);
     }
 
-    if (challengeType === CHALLENGE_TYPE_EMAIL && registrationLimits.checkMX) {
-      promise = promise.tap(mxExists(username));
+    if (params.challengeType === CHALLENGE_TYPE_EMAIL && limits.checkMX) {
+      await mxExists(username);
     }
 
-    if (registrationLimits.ip && ipaddress) {
-      promise = promise.tap(checkLimits(redis, registrationLimits, ipaddress));
+    if (limits.ip && params.ipaddress) {
+      await checkLimits(redis, limits, params.ipaddress);
     }
   }
-
-  // we must ensure that token matches supplied ID
-  // it can be overwritten by sending `anyUsername: true`
-  const control = { action: USERS_ACTION_INVITE };
-  if (!anyUsername) control.id = username;
 
   // lock acquisition
   const acquireLock = this.dlock
-    .multi(lockRegister(username), alias && lockAlias(alias))
+    .multi(lockRegister(username), params.alias && lockAlias(params.alias))
     .disposer(lockDisposer);
 
-  // acquire lock now!
-  return promise.then(() => Promise.using(acquireLock, () => (
-    Promise
-      .bind(this, username)
-
-      // do verifications of DB state
-      .tap(getUserId)
-      .throw(ErrorConflictUserExists)
-      .catchReturn(ErrorMissing, username)
-      .tap(alias ? aliasExists(alias, true) : noop)
-
-      // generate password hash
-      .bind({
-        redis,
-        tokenManager,
-        control,
-        inviteToken,
-        metadata,
-        referral,
-        sso,
-        ssoTokenOptions,
-        defaultAudience,
-        audience: params.audience,
-      })
-      // verifies token and adds extra meta if this is present
-      .tap(inviteToken ? verifyToken : noop)
-      // if referral is set - verifies if it was previously saved
-      .tap(referral ? verifyReferral : noop)
-      // if sso is provided - decodes token and patches provided SSO object
-      .tap(sso ? verifySSO : noop)
-      // prepare next context
-      .return([
-        password,
-        challengeType,
-        username,
-        // this will be passed as context if we need to send an email
-        // effectively allowing us to get some meta like firstName and lastName
-        // for personalized emails
-        metadata[params.audience],
-      ])
-      .bind(this)
-      .spread(skipPassword === false ? hashPassword : retNull)
-
-      // create user
-      .then((hash) => {
-        const pipeline = redis.pipeline();
-        const basicInfo = {
-          [USERS_CREATED_FIELD]: created,
-          [USERS_USERNAME_FIELD]: username,
-        };
-
-        if (sso) {
-          const {
-            provider, email, uid, credentials,
-          } = sso;
-
-          // skip activation if email is given by sso provider and equals to registered email
-          if (shouldActivate === undefined) {
-            shouldActivate = email ? username === email : false;
-          }
-
-          // inject sensitive provider info to internal data
-          basicInfo[provider] = JSON.stringify(credentials.internals);
-
-          // link uid to username
-          pipeline.hset(USERS_SSO_TO_ID, uid, userId);
-        }
-
-        if (hash !== null) {
-          basicInfo[USERS_PASSWORD_FIELD] = hash;
-        }
-
-        // if user is active
-        basicInfo[USERS_ACTIVE_FLAG] = shouldActivate;
-        // set internal data
-        pipeline.hmset(userDataKey, basicInfo);
-        // @TODO expire?
-        pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
-
-        // WARNING: IF USER IS NOT VERIFIED WITHIN <deleteInactiveAccounts>
-        // [by default 30] DAYS - IT WILL BE REMOVED FROM DATABASE
-        if (!shouldActivate && deleteInactiveAccounts >= 0) {
-          pipeline.expire(userDataKey, deleteInactiveAccounts);
-        }
-
-        return pipeline.exec().then(handlePipeline);
-      })
-      // passed metadata
-      .return({
-        userId,
-        audience,
-        metadata: audience.map(metaAudience => ({
-          $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
-            [USERS_ID_FIELD]: userId,
-            [USERS_USERNAME_FIELD]: username,
-            [USERS_CREATED_FIELD]: created,
-          }),
-        })),
-      })
-      .then(setMetadata)
-      // NOTE: alias: if present, if account is not activated - it will lock that alias
-      // until it's manually cleaned from the DB somehow
-      .return({ params: { username, alias, internal: true } })
-      .then(alias ? assignAlias : noop)
-      // activate user or queue challenge
-      .then(() => {
-        // Option 1. Activation
-        if (!shouldActivate) {
-          return Promise
-            .bind(this, [
-              challengeType,
-              {
-                id: username,
-                action: USERS_ACTION_ACTIVATE,
-                ...tokenOptions,
-              },
-              {
-                ...metadata[params.audience],
-              },
-            ])
-            .spread(skipChallenge ? noop : challenge) // eslint-disable-line promise/always-return
-            .then((challengeResponse) => {
-              const response = { requiresActivation: true, id: userId };
-              const uid = challengeResponse ? challengeResponse.context.token.uid : null;
-
-              if (uid) {
-                response.uid = uid;
-              }
-
-              return response;
-            });
-        }
-
-        // perform instant activation
-        // internal username index
-        const pipeline = redis.pipeline().sadd(USERS_INDEX, userId);
-        const ref = metadata[params.audience][USERS_REFERRAL_FIELD];
-
-        // add to referral index during registration
-        // on instant activation
-        if (ref) {
-          pipeline.sadd(`${USERS_REFERRAL_INDEX}:${ref}`, userId);
-        }
-
-        return pipeline
-          .exec()
-          .then(handlePipeline)
-          // custom actions
-          .bind(this)
-          .return(['users:activate', userId, params, metadata])
-          .spread(this.hook)
-          // login & return JWT
-          .return([userId, params.audience])
-          .spread(jwt.login);
-      })
-  )));
+  return Promise
+    .using({ service, params }, acquireLock, performRegistration)
+    .catchThrow(LockAcquisitionError, ErrorRaceCondition);
 };
 
 // transform `sso` token if it's present
-module.exports.allowed = function transformSSO({ params }) {
-  const { sso } = params;
+module.exports.allowed = async function transformSSO({ params }) {
+  const {
+    sso,
+    activate,
+    inviteToken,
+    alias,
+    audience,
+    metadata,
+  } = params;
+
+  const { defaultAudience } = this.config.jwt;
+
+  // inject default audience if it's not present
+  params.audience = audience === defaultAudience
+    ? [audience]
+    : [audience, defaultAudience];
+
+  // in case we have 2 audiences, no invite token & no extra metadata
+  // -> throw malformed error
+  if (audience.length === 2 && metadata == null && inviteToken == null) {
+    throw ErrorMalformedAudience;
+  }
+
+  // ensure it's formatted and set to lowercase
+  if (alias) {
+    params.alias = alias.toLowerCase();
+  }
+
+  // normalize metadata
+  params.metadata = {
+    [audience]: params.metadata || {},
+  };
 
   // if there is no sso - don't do anything
   if (sso === undefined) {
+    // set defaults for required activation when SSO is undefined
+    // NOTE: this is to preserve back-compatibility before sso was introduced
+    // if sso is undefined abd activate is undefined, then it defaults to true,
+    // otherwise it's true/false/undefined based on what's passed
+    if (activate === undefined) {
+      params.activate = true;
+    } else if (inviteToken && activate === false) {
+      throw ErrorMalformedInvite;
+    }
+
     return null;
+  }
+
+  if (inviteToken && activate !== true) {
+    throw ErrorMalformedInvite;
   }
 
   // retrieve configuration options
   const ssoTokenOptions = this.config.oauth.token;
 
   // verify SSO token & rewrite params.sso
-  return jwt
-    .verifyData(sso, ssoTokenOptions)
-    .then((credentials) => {
-      const {
-        uid, provider, email, profile,
-      } = credentials;
+  const credentials = await jwt.verifyData(sso, ssoTokenOptions);
 
-      params.sso = {
-        uid,
-        provider,
-        credentials,
-        profile,
-        email,
-      };
+  const {
+    uid, provider, email, profile,
+  } = credentials;
 
-      return null;
-    });
+  params.sso = {
+    uid,
+    provider,
+    credentials,
+    profile,
+    email,
+  };
+
+  // skip activation if email is given by sso provider and equals to registered email
+  if (params.activate === undefined) {
+    params.activate = email ? params.username === email : false;
+  }
+
+  return null;
 };
 
 // init transport

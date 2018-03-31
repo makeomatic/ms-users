@@ -82,7 +82,7 @@ describe('#register', function registerSuite() {
     };
 
     beforeEach(function injectUser() {
-      return this.dispatch('users.register', opts);
+      return this.dispatch('users.register', { ...opts });
     });
 
     it('with an already existing alias', function test() {
@@ -177,7 +177,7 @@ describe('#register', function registerSuite() {
     };
 
     beforeEach(function pretest() {
-      return this.dispatch('users.register', opts);
+      return this.dispatch('users.register', { ...opts });
     });
 
     it('must reject registration for an already existing user', function test() {
@@ -205,9 +205,9 @@ describe('#register', function registerSuite() {
     };
 
     beforeEach(function pretest() {
-      return Promise.all(
-        times(3, n => this.dispatch('users.register', { ...opts, username: `${n + 1}${opts.username}` }))
-      );
+      return Promise.all(times(3, n => (
+        this.dispatch('users.register', { ...opts, username: `${n + 1}${opts.username}` })
+      )));
     });
 
     it('must reject more than 3 registration a day per ipaddress if it is specified', function test() {

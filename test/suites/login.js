@@ -2,14 +2,12 @@ const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
 const sinon = require('sinon');
 
 describe('#login', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
-  const { USERS_BANNED_FLAG, USERS_DATA } = require('../../src/constants.js');
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
@@ -115,26 +113,22 @@ describe('#login', function loginSuite() {
       const promises = [];
 
       ld.times(5, () => {
-        promises.push(
-          this.dispatch('users.login', userWithRemoteIP)
-            .reflect()
-            .then(inspectPromise(false))
-            .then((login) => {
-              expect(login.name).to.be.eq('HttpStatusError');
-              expect(login.statusCode).to.be.eq(403);
-            })
-        );
-      });
-
-      promises.push(
-        this.dispatch('users.login', userWithRemoteIP)
+        promises.push(this.dispatch('users.login', { ...userWithRemoteIP })
           .reflect()
           .then(inspectPromise(false))
           .then((login) => {
             expect(login.name).to.be.eq('HttpStatusError');
-            expect(login.statusCode).to.be.eq(429);
-          })
-      );
+            expect(login.statusCode).to.be.eq(403);
+          }));
+      });
+
+      promises.push(this.dispatch('users.login', { ...userWithRemoteIP })
+        .reflect()
+        .then(inspectPromise(false))
+        .then((login) => {
+          expect(login.name).to.be.eq('HttpStatusError');
+          expect(login.statusCode).to.be.eq(429);
+        }));
 
       return Promise.all(promises);
     });
@@ -180,7 +174,7 @@ describe('#login', function loginSuite() {
         .returns(Promise.resolve({ queued: true }));
 
       return this
-        .dispatch('users.register', opts)
+        .dispatch('users.register', { ...opts })
         .then(() => {
           const params = {
             challengeType: 'phone',

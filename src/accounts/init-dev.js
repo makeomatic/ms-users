@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const times = require('lodash/times');
-const register = require('../actions/register.js');
-const { CHALLENGE_TYPE_EMAIL } = require('../constants.js');
+const register = require('../actions/register');
+const { CHALLENGE_TYPE_EMAIL } = require('../constants');
 
 module.exports = function initFakeAccounts() {
   const faker = require('faker');
@@ -19,8 +19,8 @@ module.exports = function initFakeAccounts() {
   const audience = config.jwt.defaultAudience;
 
   return Promise
-    .map(accounts, account => register
-      .call(this, {
+    .map(accounts, (account) => {
+      const opts = {
         params: {
           username: account.id,
           password: (Math.random() * 20).toFixed(20),
@@ -33,8 +33,13 @@ module.exports = function initFakeAccounts() {
           challengeType: CHALLENGE_TYPE_EMAIL,
           skipPassword: false,
         },
-      })
-      .reflect())
+      };
+
+      return Promise
+        .bind(this, opts)
+        .then(register)
+        .reflect();
+    })
     .bind(this)
     .then(function reportStats(users) {
       const totalAccounts = users.length;

@@ -50,7 +50,7 @@ module.exports = function initAccounts() {
         })
         .return({ params: userData });
     })
-    .map(userData => register.call(this, userData).reflect())
+    .map(userData => Promise.bind(this, userData).then(register).reflect())
     .then((users) => {
       const totalAccounts = users.length;
       const errors = [];

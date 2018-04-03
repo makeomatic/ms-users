@@ -10,29 +10,26 @@ const handlePipeline = require('../utils/pipelineError.js');
  * @param  {String} ipaddress
  * @return {Function}
  */
-module.exports = function checkLimits(redis, registrationLimits, ipaddress) {
+module.exports = async function checkLimits(redis, registrationLimits, ipaddress) {
   const { ip: { time, times } } = registrationLimits;
   const ipaddressLimitKey = redisKey('reg-limit', ipaddress);
   const now = Date.now();
   const old = now - time;
 
-  return function iplimits() {
-    return redis
-      .pipeline()
-      .zadd(ipaddressLimitKey, now, uuid())
-      .pexpire(ipaddressLimitKey, time)
-      .zremrangebyscore(ipaddressLimitKey, '-inf', old)
-      .zcard(ipaddressLimitKey)
-      .exec()
-      .then(handlePipeline)
-      .then((props) => {
-        const cardinality = props[3];
-        if (cardinality > times) {
-          const msg = 'You can\'t register more users from your ipaddress now';
-          throw new HttpStatusError(429, msg);
-        }
+  const props = await redis
+    .pipeline()
+    .zadd(ipaddressLimitKey, now, uuid())
+    .pexpire(ipaddressLimitKey, time)
+    .zremrangebyscore(ipaddressLimitKey, '-inf', old)
+    .zcard(ipaddressLimitKey)
+    .exec()
+    .then(handlePipeline);
 
-        return props;
-      });
-  };
+  const cardinality = props[3];
+  if (cardinality > times) {
+    const msg = 'You can\'t register more users from your ipaddress now';
+    throw new HttpStatusError(429, msg);
+  }
+
+  return props;
 };

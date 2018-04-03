@@ -7,7 +7,7 @@ const dns = Promise.promisifyAll(require('dns'));
  * @param  {String} email
  * @return {Promise}
  */
-module.exports = function mxExists(email) {
+module.exports = async function mxExists(email) {
   const hostname = email
     .split('@')
     .pop();
@@ -17,17 +17,14 @@ module.exports = function mxExists(email) {
     .slice(-2)
     .join('.');
 
-  return function check() {
-    return dns
-      .resolveMxAsync(tld)
-      .catchReturn({ code: 'ENOTFOUND' }, [])
-      .catchReturn({ code: 'ENODATA' }, [])
-      .then((addresses) => {
-        if (addresses && addresses.length > 0) {
-          return null;
-        }
+  const addresses = await dns
+    .resolveMxAsync(tld)
+    .catchReturn({ code: 'ENOTFOUND' }, [])
+    .catchReturn({ code: 'ENODATA' }, []);
 
-        throw new Errors.HttpStatusError(400, `no MX record was found for hostname ${hostname}`);
-      });
-  };
+  if (addresses && addresses.length > 0) {
+    return null;
+  }
+
+  throw new Errors.HttpStatusError(400, `no MX record was found for hostname ${hostname}`);
 };

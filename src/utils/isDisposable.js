@@ -15,11 +15,9 @@ disposableDomains.reduce((acc, domain) => {
  */
 module.exports = function isDisposable(email) {
   const domain = email.split('@')[1];
-  return function testDisposable() {
-    if (disposablePointers[domain]) {
-      throw new Errors.HttpStatusError(400, 'you must use non-disposable email to register');
-    }
+  if (disposablePointers[domain]) {
+    throw new Errors.HttpStatusError(400, 'you must use non-disposable email to register');
+  }
 
-    return email;
-  };
+  return email;
 };

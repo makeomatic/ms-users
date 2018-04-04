@@ -148,6 +148,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
   async function signInAndNavigate() {
     await initiateAuth(cache.testUserInstalledPartial);
+    await Promise.delay(1000);
 
     await page.waitForSelector('#platformDialogForm a[id]');
     await page.click('#platformDialogForm a[id]');
@@ -323,6 +324,7 @@ describe('#facebook', function oauthFacebookSuite() {
     await globalRegisterUser(username).call(databag);
     await globalAuthUser(username).call(databag);
     await getFacebookToken();
+    await Promise.delay(1000);
 
     let response;
     let status;

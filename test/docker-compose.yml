@@ -12,6 +12,9 @@ services:
     hostname: rabbitmq
 
   tester:
+    hostname: ms-users.local
+    expose:
+      - "3000"
     container_name: tester
     image: makeomatic/node:9.10.0-chrome-tester
     links:
@@ -27,5 +30,5 @@ services:
       FACEBOOK_APP_TOKEN: ${FACEBOOK_APP_TOKEN}
       FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
       FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
-      CHROME_PATH: /usr/bin/chromium-browser
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
     command: tail -f /dev/null

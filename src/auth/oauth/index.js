@@ -16,6 +16,7 @@ const { USERS_ID_FIELD } = require('../../constants');
 const isRedirect = ({ statusCode }) => statusCode === 301 || statusCode === 302;
 const isError = ({ statusCode }) => statusCode >= 400;
 const is404 = ({ statusCode }) => statusCode === 404;
+const isHTMLRedirect = ({ statusCode, source }) => statusCode === 200 && source;
 
 /**
  * Authentication handler
@@ -24,15 +25,17 @@ const is404 = ({ statusCode }) => statusCode === 404;
  * @returns {Array<HttpClientResponse, Credentials>}
  */
 function oauthVerification(response, credentials) {
-  if (response) {
-    const shouldThrow = isError(response);
-    const shouldRedirect = isRedirect(response);
+  this.service.log.debug({
+    statusCode: response && response.statusCode,
+    credentials,
+  }, 'service oauth verification');
 
-    if (shouldThrow) {
+  if (response) {
+    if (isError(response) || isHTMLRedirect(response)) {
       return Promise.reject(response);
     }
 
-    if (shouldRedirect) {
+    if (isRedirect(response)) {
       // set redirect uri to rewrite the response in the hapi's preResponse hook
       const redirectUri = get(response, 'headers.location');
       return Promise.reject(new Redirect(redirectUri));
@@ -123,7 +126,8 @@ module.exports = async function authHandler({ action, transportRequest }) {
 
   let response;
   try {
-    response = [null, await http.auth.test(strategy, transportRequest)];
+    const credentials = await http.auth.test(strategy, transportRequest);
+    response = [null, credentials];
   } catch (err) {
     response = [err];
   }

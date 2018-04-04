@@ -22,6 +22,10 @@ module.exports = [{
       return Promise.reject(error);
     }
 
+    if (error && error.statusCode === 200 && error.source) {
+      return [null, error.source, request];
+    }
+
     // will be copied over from mail server configuration
     const { config: { server, oauth: { debug } } } = this;
 

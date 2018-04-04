@@ -105,8 +105,8 @@ describe('#token.*', function activateSuite() {
       return Promise.map(tokenHolder.slice(1), token => (
         this.dispatch(eraseRoute, { username, token: token.split('.')[1] })
       ))
-      .reflect()
-      .then(inspectPromise());
+        .reflect()
+        .then(inspectPromise());
     });
 
     it('returns first page, one token', function test() {
@@ -138,8 +138,8 @@ describe('#token.*', function activateSuite() {
         accessToken: true,
         audience: '*.localhost',
       })
-      .reflect()
-      .then(inspectPromise());
+        .reflect()
+        .then(inspectPromise());
     });
 
     it('verifies that all other tokens dont work', function test() {
@@ -149,8 +149,8 @@ describe('#token.*', function activateSuite() {
           accessToken: true,
           audience: '*.localhost',
         })
-        .reflect()
-        .then(inspectPromise(false))
+          .reflect()
+          .then(inspectPromise(false))
       ));
     });
   });

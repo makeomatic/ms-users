@@ -1,3 +1,4 @@
+const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const { getInternalData } = require('../utils/userData');
 const pick = require('lodash/pick');
@@ -27,4 +28,4 @@ module.exports = function internalData({ params }) {
     ));
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

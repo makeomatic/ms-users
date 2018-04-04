@@ -25,4 +25,4 @@ module.exports = function detachAction(request) {
     .return({ success: true });
 };
 
-module.exports.transports = [ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

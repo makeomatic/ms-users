@@ -1,3 +1,4 @@
+const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const passThrough = require('lodash/identity');
@@ -159,4 +160,4 @@ module.exports = function iterateOverActiveUsers({ params }) {
     .then(keyOnly ? passThrough : fetchUserData);
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

@@ -1,6 +1,5 @@
 const Promise = require('bluebird');
 const times = require('lodash/times');
-const register = require('../actions/register');
 const { CHALLENGE_TYPE_EMAIL } = require('../constants');
 
 module.exports = function initFakeAccounts() {
@@ -36,8 +35,8 @@ module.exports = function initFakeAccounts() {
       };
 
       return Promise
-        .bind(this, opts)
-        .then(register)
+        .bind(this, ['register', opts])
+        .spread(this.dispatch)
         .reflect();
     })
     .bind(this)

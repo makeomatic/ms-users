@@ -32,7 +32,7 @@ exports.router = {
   routes: {
     directory: path.resolve(__dirname, '../actions'),
     prefix: 'users',
-    transports: [ActionTransport.amqp, ActionTransport.http],
+    transports: [ActionTransport.amqp, ActionTransport.http, ActionTransport.internal],
   },
   extensions: {
     enabled: ['postRequest', 'preRequest', 'preResponse'],

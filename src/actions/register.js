@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const { ActionTransport } = require('@microfleet/core');
 const { LockAcquisitionError } = require('ioredis-lock');
 const { HttpStatusError } = require('common-errors');
 
@@ -439,4 +440,4 @@ module.exports.allowed = async function transformSSO({ params }) {
 };
 
 // init transport
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

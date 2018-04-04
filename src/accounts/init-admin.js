@@ -1,8 +1,6 @@
 const Promise = require('bluebird');
 const defaults = require('lodash/defaults');
-const register = require('../actions/register');
 const uuid = require('uuid');
-const saveReferral = require('../actions/referral');
 const { USERS_ADMIN_ROLE, CHALLENGE_TYPE_EMAIL } = require('../constants');
 
 module.exports = function initAccounts() {
@@ -41,16 +39,11 @@ module.exports = function initAccounts() {
 
       // this will be performed each time on startup, but shouldnt be a problem due to NX
       // and lack of side-effect
-      return saveReferral
-        .call(this, {
-          params: {
-            id: userData.referral,
-            referral: account.referral,
-          },
-        })
+      return this
+        .dispatch('referral', { params: { id: userData.referral, referral: account.referral } })
         .return({ params: userData });
     })
-    .map(userData => Promise.bind(this, userData).then(register).reflect())
+    .map(userData => Promise.bind(this, ['register', userData]).spread(this.dispatch).reflect())
     .then((users) => {
       const totalAccounts = users.length;
       const errors = [];

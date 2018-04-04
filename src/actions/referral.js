@@ -1,3 +1,4 @@
+const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../utils/key');
 const { USERS_REF } = require('../constants');
 
@@ -24,4 +25,4 @@ module.exports = function storeReferral({ params }) {
   return this.redis.set(key, referral, 'EX', expiration, 'NX');
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

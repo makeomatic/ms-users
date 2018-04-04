@@ -45,7 +45,7 @@ describe('#activate', function activateSuite() {
           wolf: true,
         },
       })
-      .then(({ user }) => (this.userId = user.id));
+        .then(({ user }) => (this.userId = user.id));
     });
 
     it('must reject activation when account is already activated', function test() {
@@ -84,7 +84,9 @@ describe('#activate', function activateSuite() {
 
   describe('activate inactive existing user', function suite() {
     beforeEach(function pretest() {
-      const params = { username: 'v@makeomatic.ru', password: '123', audience: 'ok', metadata: { wolf: true }, activate: false };
+      const params = {
+        username: 'v@makeomatic.ru', password: '123', audience: 'ok', metadata: { wolf: true }, activate: false,
+      };
       return this.dispatch('users.register', params);
     });
 
@@ -92,8 +94,8 @@ describe('#activate', function activateSuite() {
       return this.dispatch('users.activate', {
         username: 'v@makeomatic.ru',
       })
-      .reflect()
-      .then(inspectPromise());
+        .reflect()
+        .then(inspectPromise());
     });
   });
 

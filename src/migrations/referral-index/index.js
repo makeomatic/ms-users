@@ -1,7 +1,6 @@
 // This migrations adds created field for existing users
 //
 const fs = require('fs');
-const list = require('../../actions/list');
 
 const {
   USERS_INDEX,
@@ -27,20 +26,21 @@ exports.script = (service) => {
   const { config, redis } = service;
   const audience = config.jwt.defaultAudience;
   const prefix = config.redis.options.keyPrefix;
-
-  return list
-    .call(service, {
-      params: {
-        audience,
-        keyOnly: true,
-        public: false,
-        filter: {
-          [USERS_REFERRAL_FIELD]: {
-            exists: 1,
-          },
+  const request = {
+    params: {
+      audience,
+      keyOnly: true,
+      public: false,
+      filter: {
+        [USERS_REFERRAL_FIELD]: {
+          exists: 1,
         },
       },
-    })
+    },
+  };
+
+  return service
+    .dispatch('list', request)
     .then(key => key.slice(prefix.length))
     .then((userIdsKey) => {
       const keys = [

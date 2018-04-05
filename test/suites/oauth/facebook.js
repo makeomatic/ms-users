@@ -67,7 +67,7 @@ describe('#facebook', function oauthFacebookSuite() {
   let chrome;
   let page;
   let service;
-  let lastRequest;
+  let lastRequestResponse;
 
   function createAccount(token, overwrite = {}) {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
@@ -154,7 +154,7 @@ describe('#facebook', function oauthFacebookSuite() {
     // just to be sure
     await Promise.delay(1000);
     // maybe this is the actual request status code
-    const status = lastRequest.status();
+    const status = lastRequestResponse.status();
     const url = page.url();
     const body = await page.content();
 
@@ -199,7 +199,7 @@ describe('#facebook', function oauthFacebookSuite() {
     ));
 
     page.on('requestfinished', (req) => {
-      lastRequest = req;
+      lastRequestResponse = req.response();
     });
   });
 

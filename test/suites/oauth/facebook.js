@@ -153,20 +153,26 @@ describe('#facebook', function oauthFacebookSuite() {
     await initiateAuth(cache.testUserInstalledPartial);
     await Promise.delay(1000);
 
-    await page.waitForSelector('#platformDialogForm a[id]');
-    await page.click('#platformDialogForm a[id]');
+    try {
+      await page.waitForSelector('#platformDialogForm a[id]');
+      await page.click('#platformDialogForm a[id]');
+      console.info('#platformDialogForm a[id]');
+      await page.waitForSelector('#platformDialogForm label:nth-child(2) input[type=checkbox]');
+      await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]');
+      console.info('#platformDialogForm label:nth-child(2) input[type=checkbox]');
+      await page.waitForSelector('button[name=__CONFIRM__]');
+      await page.click('button[name=__CONFIRM__]');
+      console.info('button[name=__CONFIRM__]');
+      const response = await page.waitForNavigation({ waitUntil: 'networkidle2' });
+      console.info('response');
+      const status = response.status();
+      const url = response.url();
 
-    await page.waitForSelector('#platformDialogForm label:nth-child(2) input[type=checkbox]');
-    await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]');
-
-    await page.waitForSelector('button[name=__CONFIRM__]');
-    await page.click('button[name=__CONFIRM__]');
-
-    const response = await page.waitForNavigation({ waitUntil: 'networkidle2' });
-    const status = response.status();
-    const url = response.url();
-
-    return { response, status, url };
+      return { response, status, url };
+    } catch (e) {
+      await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });
+      throw e;
+    }
   }
 
   // need to relaunch each time for clean contexts

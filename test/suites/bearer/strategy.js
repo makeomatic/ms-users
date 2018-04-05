@@ -1,7 +1,7 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const request = require('request-promise').defaults({
-  uri: 'http://localhost:3000/users/_/me',
+  uri: 'http://ms-users.local:3000/users/_/me',
   json: true,
   gzip: true,
   simple: true,

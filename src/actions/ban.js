@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const { ActionTransport } = require('@microfleet/core');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
 const { getInternalData } = require('../utils/userData');
@@ -71,4 +72,4 @@ module.exports = function banUser(request) {
     .then(handlePipeline);
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

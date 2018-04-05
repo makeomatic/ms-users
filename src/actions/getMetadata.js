@@ -1,3 +1,4 @@
+const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const getMetadata = require('../utils/getMetadata.js');
@@ -100,4 +101,4 @@ module.exports = function getMetadataAction(request) {
     .then(unnest);
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

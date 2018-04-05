@@ -1,4 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
+/* eslint-disable no-prototype-builtins */
 /* global globalRegisterUser, globalAuthUser */
 
 const { inspectPromise } = require('@makeomatic/deploy');
@@ -9,17 +9,7 @@ const assert = require('assert');
 const forEach = require('lodash/forEach');
 const request = require('request-promise');
 const config = require('../../config');
-const _debug = require('debug')('facebook');
-const {
-  init,
-  type,
-  wait,
-  clean,
-  submit,
-  captureResponseBody,
-  captureScreenshot,
-  exec,
-} = require('@makeomatic/deploy/bin/chrome');
+const puppeteer = require('puppeteer');
 
 const graphApi = request.defaults({
   baseUrl: 'https://graph.facebook.com/v2.9',
@@ -62,7 +52,7 @@ function deleteTestUser(localCache = cache) {
 function hostUrl(cfg) {
   const { http } = cfg;
   const { server } = http;
-  return `http://localhost:${server.port}`;
+  return `http://ms-users.local:${server.port}`;
 }
 
 function parseHTML(body) {
@@ -73,417 +63,428 @@ function parseHTML(body) {
   return context;
 }
 
-function extractToken() {
-  return Promise
-    .bind(this, 'window.$ms_users_inj_post_message')
-    .then(exec)
-    .get('payload')
-    .get('token');
-}
-
-function createAccount(token, overwrite = {}) {
-  const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
-  const opts = {
-    username: payload.email,
-    password: 'mynicepassword',
-    audience: defaultAudience,
-    metadata: {
-      service: 'craft',
-    },
-    sso: token,
-    ...overwrite,
-  };
-
-  return this.dispatch('users.register', opts)
-    .reflect()
-    .then(inspectPromise(true));
-}
-
-function initiateAuth(_user) {
-  const user = _user || cache.testUser;
-  const { Page } = this.protocol;
-  const serviceLink = hostUrl(this.users.config);
-  const executeLink = `${serviceLink}/users/oauth/facebook`;
-
-  Page.navigate({ url: executeLink });
-  return Page.loadEventFired().then(() => (
-    Promise
-      .bind(this, 'input#email')
-      .then(wait)
-      .return(['input#email', user.email])
-      .spread(type)
-      .return(['input#pass', user.password])
-      .spread(type)
-      .return('button[name=login]')
-      .then(submit)
-      .catch(captureScreenshot)
-  ));
-}
-
-function authenticate() {
-  return Promise.bind(this)
-    .then(initiateAuth)
-    .delay(1000)
-    .return('button[name=__CONFIRM__]')
-    .tap(wait)
-    .then(submit)
-    .catch(captureScreenshot);
-}
-
-function getFacebookToken() {
-  return authenticate.call(this)
-    .return('.no-js > body > script')
-    .then(wait)
-    .then(extractToken)
-    .catch(captureScreenshot);
-}
-
 describe('#facebook', function oauthFacebookSuite() {
-  beforeEach('init Chrome', init);
-  beforeEach(global.startService);
-  beforeEach(createTestUser);
+  let chrome;
+  let page;
+  let service;
+  let lastRequestResponse;
+
+  function createAccount(token, overwrite = {}) {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
+    const opts = {
+      username: payload.email,
+      password: 'mynicepassword',
+      audience: defaultAudience,
+      metadata: {
+        service: 'craft',
+      },
+      sso: token,
+      ...overwrite,
+    };
+
+    return service.dispatch('register', { params: opts })
+      .reflect()
+      .then(inspectPromise(true));
+  }
+
+  async function initiateAuth(_user) {
+    const user = _user || cache.testUser;
+    const serviceLink = hostUrl(service.config);
+    const executeLink = `${serviceLink}/users/oauth/facebook`;
+
+    try {
+      await page.goto(executeLink, { waitUntil: 'networkidle2' });
+      await page.waitForSelector('input#email');
+      await page.type('input#email', user.email, { delay: 100 });
+      await page.waitForSelector('input#pass');
+      await page.type('input#pass', user.password, { delay: 100 });
+      const formSubmit = await page.$('button[name=login]');
+      await formSubmit.click();
+    } catch (e) {
+      console.error('failed to initiate auth', e);
+      await page.screenshot({ fullPage: true, path: `./ss/initiate-auth-${Date.now()}.png` });
+      throw e;
+    }
+  }
+
+  async function authenticate() {
+    await initiateAuth();
+    await Promise.delay(1000);
+
+    try {
+      await page.waitForSelector('button[name=__CONFIRM__]');
+      await page.click('button[name=__CONFIRM__]');
+    } catch (e) {
+      await page.screenshot({ fullPage: true, path: `./ss/authenticate-${Date.now()}.png` });
+      throw e;
+    }
+  }
+
+  async function extractBody() {
+    return page.evaluate('window.$ms_users_inj_post_message');
+  }
+
+  async function extractToken() {
+    const { payload: { token } } = await extractBody();
+    return token;
+  }
+
+  async function getFacebookToken() {
+    await authenticate();
+    await page.waitForSelector('.no-js > body > script');
+
+    let token;
+    try {
+      token = await extractToken();
+    } catch (e) {
+      await page.screenshot({ fullPage: true, path: `./ss/token-${Date.now()}.png` });
+      throw e;
+    }
+
+    return token;
+  }
+
+  async function navigate(href) {
+    if (href) {
+      await page.goto(href, { waitUntil: 'networkidle0' });
+    } else {
+      await page.waitForNavigation({ waitUntil: 'networkidle0' });
+    }
+
+    // just to be sure
+    await Promise.delay(1000);
+    // maybe this is the actual request status code
+    const status = lastRequestResponse.status();
+    const url = page.url();
+    const body = await page.content();
+
+    console.info('%s - %s - %s', status, url);
+
+    return { body, status, url };
+  }
+
+  async function signInAndNavigate() {
+    await initiateAuth(cache.testUserInstalledPartial);
+    await Promise.delay(1000);
+
+    let response;
+    try {
+      await page.waitForSelector('#platformDialogForm a[id]');
+      await page.click('#platformDialogForm a[id]');
+      await page.waitForSelector('#platformDialogForm label:nth-child(2) input[type=checkbox]');
+      await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]');
+      await page.waitForSelector('button[name=__CONFIRM__]');
+      await page.click('button[name=__CONFIRM__]');
+      response = await navigate();
+    } catch (e) {
+      console.error('failed to navigate', e);
+      await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });
+      throw e;
+    }
+
+    return response;
+  }
+
+  // need to relaunch each time for clean contexts
+  beforeEach('init Chrome', async () => {
+    chrome = await puppeteer.launch({
+      executablePath: '/usr/bin/chromium-browser',
+      args: ['--no-sandbox', '--headless', '--disable-gpu'],
+    });
+    page = await chrome.newPage();
+
+    // rewrite window.close()
+    await page.exposeFunction('close', () => (
+      console.info('triggered window.close()')
+    ));
+
+    page.on('requestfinished', (req) => {
+      lastRequestResponse = req.response();
+    });
+  });
+
+  afterEach('close chrome', async () => {
+    if (page) await page.close();
+    if (chrome) await chrome.close();
+  });
+
+  beforeEach('start', global.startService);
+  beforeEach('create user', createTestUser);
+  beforeEach('save ref', function saveServiceRef() {
+    service = this.users;
+  });
 
   afterEach(deleteTestUser);
   afterEach(global.clearRedis);
-  afterEach('clean Chrome', clean);
 
-  it('should able to retrieve faceboook profile', function test() {
-    return getFacebookToken.call(this)
-      .tap(_debug)
-      .tap(assert);
+  it('should able to retrieve faceboook profile', async () => {
+    const token = await getFacebookToken();
+    console.assert(token, 'did not get token -', token);
   });
 
-  it('should able to handle declined authentication', function test() {
-    return Promise.bind(this)
-      .then(initiateAuth)
-      .return('button[name=__CANCEL__]')
-      .tap(wait)
-      .then(submit)
-      .tap(() => _debug('submitted'))
-      .return([/oauth\/facebook/, 401])
-      .spread(captureResponseBody)
-      .catch(captureScreenshot);
+  it('should able to handle declined authentication', async () => {
+    await initiateAuth();
+
+    await page.waitForSelector('button[name=__CANCEL__]');
+    await page.click('button[name=__CANCEL__]');
+
+    const { status, url } = await navigate();
+
+    console.assert(status === 401, 'statusCode is %s, url is %s', status, url);
   });
 
-  it('should be able to register via facebook', function test() {
-    return getFacebookToken.call(this)
-      .then(createAccount)
-      .then((registered) => {
-        assert(registered.hasOwnProperty('jwt'));
-        assert(registered.hasOwnProperty('user'));
-        assert(registered.user.hasOwnProperty('metadata'));
-        assert(registered.user.metadata.hasOwnProperty(defaultAudience));
-        assert(registered.user.metadata[defaultAudience].hasOwnProperty('facebook'));
-        assert.ifError(registered.user.password);
-        assert.ifError(registered.user.audience);
-      });
+  it('should be able to register via facebook', async () => {
+    const token = await getFacebookToken();
+    const registered = await createAccount(token);
+
+    assert(registered.hasOwnProperty('jwt'));
+    assert(registered.hasOwnProperty('user'));
+    assert(registered.user.hasOwnProperty('metadata'));
+    assert(registered.user.metadata.hasOwnProperty(defaultAudience));
+    assert(registered.user.metadata[defaultAudience].hasOwnProperty('facebook'));
+    assert.ifError(registered.user.password);
+    assert.ifError(registered.user.audience);
   });
 
-  it('can get info about registered fb account through getInternalData & getMetadata', function test() {
-    return getFacebookToken
-      .call(this)
-      .then(createAccount)
-      .get('user')
-      .then(user => Promise.all([
-        this.users.amqp.publishAndWait('users.getInternalData', {
+  it('can get info about registered fb account through getInternalData & getMetadata', async () => {
+    const token = await getFacebookToken();
+    const { user } = await createAccount(token);
+    const [internalData, metadata] = await Promise
+      .all([
+        service.amqp.publishAndWait('users.getInternalData', {
           username: user.metadata[defaultAudience].facebook.uid,
         }),
-        this.users.amqp.publishAndWait('users.getMetadata', {
+        service.amqp.publishAndWait('users.getMetadata', {
           username: user.metadata[defaultAudience].facebook.uid,
           audience: defaultAudience,
         }),
-      ]))
+      ])
       .reflect()
-      .then(inspectPromise())
-      .spread((internalData, metadata) => {
-        // verify internal data
-        assert.ok(internalData.facebook, 'facebook data not present');
-        assert.ok(internalData.facebook.id, 'fb id is not present');
-        assert.ok(internalData.facebook.email, 'fb email is not present');
-        assert.ok(internalData.facebook.token, 'fb token is not present');
-        assert.ifError(internalData.facebook.username, 'fb returned real username');
-        assert.ifError(internalData.facebook.refreshToken, 'fb returned refresh token');
+      .then(inspectPromise());
 
-        // verify metadata
-        assert.ok(metadata[defaultAudience].facebook, 'facebook profile not present');
-        assert.ok(metadata[defaultAudience].facebook.id, 'facebook scoped is not present');
-        assert.ok(metadata[defaultAudience].facebook.displayName, 'fb display name not present');
-        assert.ok(metadata[defaultAudience].facebook.gender, 'fb gender not present');
-        assert.ok(metadata[defaultAudience].facebook.name, 'fb name not present');
-        assert.ok(metadata[defaultAudience].facebook.uid, 'internal fb uid not present');
-      });
+    // verify internal data
+    assert.ok(internalData.facebook, 'facebook data not present');
+    assert.ok(internalData.facebook.id, 'fb id is not present');
+    assert.ok(internalData.facebook.email, 'fb email is not present');
+    assert.ok(internalData.facebook.token, 'fb token is not present');
+    assert.ifError(internalData.facebook.username, 'fb returned real username');
+    assert.ifError(internalData.facebook.refreshToken, 'fb returned refresh token');
+
+    // verify metadata
+    assert.ok(metadata[defaultAudience].facebook, 'facebook profile not present');
+    assert.ok(metadata[defaultAudience].facebook.id, 'facebook scoped is not present');
+    assert.ok(metadata[defaultAudience].facebook.displayName, 'fb display name not present');
+    assert.ok(metadata[defaultAudience].facebook.gender, 'fb gender not present');
+    assert.ok(metadata[defaultAudience].facebook.name, 'fb name not present');
+    assert.ok(metadata[defaultAudience].facebook.uid, 'internal fb uid not present');
   });
 
-  it('should attach facebook profile to existing user', function test() {
-    const { Page } = this.protocol;
-    const serviceLink = hostUrl(this.users.config);
+  it('should attach facebook profile to existing user', async () => {
+    const serviceLink = hostUrl(service.config);
     const username = 'facebookuser@me.com';
+    const databag = { service };
 
-    return Promise
-      .bind(this)
-      .tap(globalRegisterUser(username))
-      .tap(globalAuthUser(username))
-      .then(getFacebookToken)
-      // .then(assert.ifError)
-      // .catchReturn(TypeError)
-      .catch(captureScreenshot)
-      .tap(() => _debug('loggin in via facebook'))
-      .then(() => {
-        const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
+    await globalRegisterUser(username).call(databag);
+    await globalAuthUser(username).call(databag);
 
-        Page.navigate({ url: executeLink });
-        return Promise.bind(this, [/oauth\/facebook/, 200])
-          .spread(captureResponseBody)
-          .tap((body) => {
-            const context = parseHTML(body);
+    // pre-auth user
+    await getFacebookToken();
+    await Promise.delay(1000);
 
-            assert.ok(context.$ms_users_inj_post_message);
-            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+    const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${databag.jwt}`;
+    console.info('opening %s', executeLink);
 
-            assert(Object.keys(context.$ms_users_inj_post_message.payload).length);
-          });
-      });
+    const { status, url, body } = await navigate(executeLink);
+
+    console.assert(status === 200, 'Page is %s and status is %s', url, status);
+
+    const context = parseHTML(body);
+
+    console.assert(context.$ms_users_inj_post_message, 'post message not present:', body);
+    console.assert(context.$ms_users_inj_post_message.type === 'ms-users:attached', 'type wrong', body);
+    console.assert(Object.keys(context.$ms_users_inj_post_message.payload).length);
   });
 
-  it('should reject attaching already attached profile to a new user', function test() {
-    const { Page } = this.protocol;
-    const serviceLink = hostUrl(this.users.config);
+  it('should reject attaching already attached profile to a new user', async () => {
+    const serviceLink = hostUrl(service.config);
     const username = 'facebookuser@me.com';
+    const databag = { service };
 
-    return Promise
-      .bind(this)
-      .then(getFacebookToken)
-      .then(createAccount)
-      .tap(globalRegisterUser(username))
-      .tap(globalAuthUser(username))
-      .then(() => {
-        const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
+    await createAccount(await getFacebookToken());
+    await globalRegisterUser(username).call(databag);
+    await globalAuthUser(username).call(databag);
+    await Promise.delay(1000);
 
-        Page.navigate({ url: executeLink });
-        return Promise
-          .bind(this, [/oauth\/facebook/, 412])
-          .spread(captureResponseBody)
-          .tap((body) => {
-            const context = parseHTML(body);
+    const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${databag.jwt}`;
+    console.info('opening %s', executeLink);
+    const { status, url, body } = await navigate(executeLink);
 
-            assert.ok(context.$ms_users_inj_post_message);
+    console.assert(status === 412, 'Page is %s and status is %s', url, status);
 
-            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
-            assert.equal(context.$ms_users_inj_post_message.error, true);
-            assert.deepEqual(context.$ms_users_inj_post_message.payload, {
-              status: 412,
-              statusCode: 412,
-              status_code: 412,
-              name: 'HttpStatusError',
-              message: 'profile is linked',
-            });
-          });
-      });
+    const context = parseHTML(body);
+
+    assert.ok(context.$ms_users_inj_post_message);
+    assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+    assert.equal(context.$ms_users_inj_post_message.error, true);
+    assert.deepEqual(context.$ms_users_inj_post_message.payload, {
+      status: 412,
+      statusCode: 412,
+      status_code: 412,
+      name: 'HttpStatusError',
+      message: 'profile is linked',
+    });
   });
 
-  it('should be able to sign in with facebook account', function test() {
-    const { Page } = this.protocol;
-    const serviceLink = hostUrl(this.users.config);
+  it('should be able to sign in with facebook account', async function test() {
+    const serviceLink = hostUrl(service.config);
     const username = 'facebookuser@me.com';
+    const databag = { service };
 
-    return Promise
-      .bind(this)
-      .tap(globalRegisterUser(username))
-      .tap(globalAuthUser(username))
-      .then(getFacebookToken)
-      .catch(captureScreenshot)
-      .tap(() => _debug('loggin in via facebook'))
-      .then(() => {
-        const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${this.jwt}`;
+    await globalRegisterUser(username).call(databag);
+    await globalAuthUser(username).call(databag);
+    await getFacebookToken();
+    await Promise.delay(1000);
 
-        Page.navigate({ url: executeLink });
-        return Promise
-          .bind(this, [/oauth\/facebook/, 200])
-          .spread(captureResponseBody);
-      })
-      .then(() => {
-        const executeLink = `${serviceLink}/users/oauth/facebook`;
+    const executeLink = `${serviceLink}/users/oauth/facebook`;
 
-        Page.navigate({ url: executeLink });
-        return Promise
-          .bind(this, [/oauth\/facebook/, 200])
-          .spread(captureResponseBody)
-          .tap((body) => {
-            const context = parseHTML(body);
+    /* initial request for attaching account */
+    const preRequest = await navigate(`${executeLink}?jwt=${databag.jwt}`);
+    console.assert(preRequest.status === 200, 'attaching account failed - %s - %s', preRequest.status, preRequest.url);
 
-            assert.ok(context.$ms_users_inj_post_message);
-            assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:logged-in');
+    const { status, url, body } = await navigate(executeLink);
+    console.assert(status === 200, 'signing in failed - %s - %s', status, url);
 
-            const { payload } = context.$ms_users_inj_post_message;
-            assert(payload.hasOwnProperty('jwt'));
-            assert(payload.hasOwnProperty('user'));
-            assert(payload.user.hasOwnProperty('metadata'));
-            assert(payload.user.metadata.hasOwnProperty(defaultAudience));
-            assert(payload.user.metadata[defaultAudience].hasOwnProperty('facebook'));
-            assert.ifError(payload.user.password);
-            assert.ifError(payload.user.audience);
-          });
-      });
+    const context = parseHTML(body);
+
+    assert.ok(context.$ms_users_inj_post_message);
+    assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:logged-in');
+
+    const { payload } = context.$ms_users_inj_post_message;
+    assert(payload.hasOwnProperty('jwt'));
+    assert(payload.hasOwnProperty('user'));
+    assert(payload.user.hasOwnProperty('metadata'));
+    assert(payload.user.metadata.hasOwnProperty(defaultAudience));
+    assert(payload.user.metadata[defaultAudience].hasOwnProperty('facebook'));
+    assert.ifError(payload.user.password);
+    assert.ifError(payload.user.audience);
   });
 
-  it('should detach facebook profile', function test() {
-    let uid = false;
-    return getFacebookToken.call(this)
-      .then(createAccount)
-      .tap((registered) => {
-        assert(registered.hasOwnProperty('jwt'));
-        assert(registered.hasOwnProperty('user'));
-        assert(registered.user.hasOwnProperty('metadata'));
-        assert(registered.user.metadata.hasOwnProperty(defaultAudience));
-        assert(registered.user.metadata[defaultAudience].hasOwnProperty('facebook'));
-        assert.ifError(registered.user.password);
-        assert.ifError(registered.user.audience);
+  it('should detach facebook profile', async () => {
+    const registered = await createAccount(await getFacebookToken());
 
-        uid = `facebook:${registered.user.metadata[defaultAudience].facebook.id}`;
-      })
-      .tap((registered) => {
-        const { username } = registered.user.metadata['*.localhost'];
-        return this.dispatch('users.oauth.detach', { username, provider: 'facebook' })
-          .reflect()
-          .then(inspectPromise(true))
-          .tap((response) => {
-            assert(response.success);
-          });
-      })
-      .tap((registered) => {
-        /* verify that related account has been pruned from metadata */
-        const { username } = registered.user.metadata['*.localhost'];
-        const { metadata } = registered.user;
-        return this.dispatch('users.getMetadata', { username, audience: Object.keys(metadata) })
-          .reflect()
-          .then(inspectPromise(true))
-          .tap((response) => {
-            forEach(response.metadata, (audience) => {
-              assert.ifError(audience.facebook);
-            });
-          });
-      })
-      .tap((registered) => {
-        /* verify that related account has been pruned from internal data */
-        const { username } = registered.user.metadata['*.localhost'];
+    assert(registered.hasOwnProperty('jwt'));
+    assert(registered.hasOwnProperty('user'));
+    assert(registered.user.hasOwnProperty('metadata'));
+    assert(registered.user.metadata.hasOwnProperty(defaultAudience));
+    assert(registered.user.metadata[defaultAudience].hasOwnProperty('facebook'));
+    assert.ifError(registered.user.password);
+    assert.ifError(registered.user.audience);
 
-        return this.dispatch('users.getInternalData', { username })
-          .reflect()
-          .then(inspectPromise(true))
-          .tap((response) => {
-            assert.ifError(response.facebook);
-          });
+    const uid = `facebook:${registered.user.metadata[defaultAudience].facebook.id}`;
+    const { username } = registered.user.metadata['*.localhost'];
+    let response;
+
+    response = await service
+      .dispatch('oauth.detach', { params: { username, provider: 'facebook' } })
+      .reflect()
+      .then(inspectPromise(true));
+
+    assert(response.success, 'werent able to detach');
+
+    /* verify that related account has been pruned from metadata */
+    response = await service
+      .dispatch('getMetadata', {
+        params: { username, audience: Object.keys(registered.user.metadata) },
       })
-      .tap(() => {
-        /* verify that related account has been dereferenced */
-        return this.dispatch('users.getInternalData', { username: uid })
-          .reflect()
-          .then(inspectPromise(false))
-          .then((error) => {
-            assert.equal(error.statusCode, 404);
-          });
-      });
+      .reflect()
+      .then(inspectPromise(true));
+
+    forEach(response.metadata, (audience) => {
+      assert.ifError(audience.facebook);
+    });
+
+    /* verify that related account has been pruned from internal data */
+    response = await service
+      .dispatch('getInternalData', { params: { username } })
+      .reflect()
+      .then(inspectPromise(true));
+
+    assert.ifError(response.facebook, 'did not detach fb');
+
+    /* verify that related account has been dereferenced */
+    const error = await service
+      .dispatch('getInternalData', { params: { username: uid } })
+      .reflect()
+      .then(inspectPromise(false));
+
+    assert.equal(error.statusCode, 404);
   });
 
-  it('should reject when signing in with partially returned scope and report it', function test() {
-    return Promise
-      .bind(this, cache.testUserInstalledPartial)
-      .then(initiateAuth)
-      .return('#platformDialogForm a[id]')
-      .then(submit)
-      .return('#platformDialogForm label:nth-child(2) input[type=checkbox]')
-      .then(submit)
-      .return('button[name=__CONFIRM__]')
-      .then(submit)
-      .return([/oauth\/facebook/, 401])
-      .spread(captureResponseBody)
-      .tap((body) => {
-        const context = parseHTML(body);
+  it('should reject when signing in with partially returned scope and report it', async () => {
+    const { status, url, body } = await signInAndNavigate();
 
-        assert.ok(context.$ms_users_inj_post_message);
-        assert.deepEqual(context.$ms_users_inj_post_message.payload, {
-          args: { 0: 'missing permissions - email' },
-          message: 'An attempt was made to perform an operation without authentication: missing permissions - email',
-          name: 'AuthenticationRequiredError',
-          missingPermissions: ['email'],
-        });
-      });
+    console.assert(status === 401, 'did not reject partial sign in - %s - %s', status, url, body);
+
+    const context = parseHTML(body);
+    assert.ok(context.$ms_users_inj_post_message);
+    assert.deepEqual(context.$ms_users_inj_post_message.payload, {
+      args: { 0: 'missing permissions - email' },
+      message: 'An attempt was made to perform an operation without authentication: missing permissions - email',
+      name: 'AuthenticationRequiredError',
+      missingPermissions: ['email'],
+    });
   });
 
-  it('apply config: retryOnMissingPermissions=true', function test() {
+  it('apply config: retryOnMissingPermissions=true', () => {
     config.oauth.providers.facebook.retryOnMissingPermissions = true;
   });
 
-  it('should re-request partially returned scope endlessly', function test() {
-    return Promise
-      .bind(this, cache.testUserInstalledPartial)
-      .then(initiateAuth)
-      .return('#platformDialogForm a[id]')
-      .then(submit)
-      .return('#platformDialogForm label:nth-child(2) input[type=checkbox]')
-      .then(submit)
-      .return('button[name=__CONFIRM__]')
-      .then(submit)
-      .return([/dialog\/oauth\?auth_type=rerequest/, 200])
-      .spread(captureResponseBody);
+  it('should re-request partially returned scope endlessly', async () => {
+    const { status, url } = await signInAndNavigate();
+
+    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url);
+    console.assert(/dialog\/oauth\?auth_type=rerequest/.test(url), 'failed to redirect back - %s - %s', status, url);
   });
 
   it('apply config: retryOnMissingPermissions=false', function test() {
     config.oauth.providers.facebook.retryOnMissingPermissions = false;
   });
 
-  it('should login with partially returned scope and report it', function test() {
-    return Promise
-      .bind(this, cache.testUserInstalledPartial)
-      .then(initiateAuth)
-      .return('#platformDialogForm a[id]')
-      .then(submit)
-      .return('#platformDialogForm label:nth-child(2) input[type=checkbox]')
-      .then(submit)
-      .return('button[name=__CONFIRM__]')
-      .then(submit)
-      .return([/oauth\/facebook/, 200])
-      .spread(captureResponseBody)
-      .tap((body) => {
-        const context = parseHTML(body);
+  it('should login with partially returned scope and report it', async () => {
+    const { status, url, body } = await signInAndNavigate();
 
-        assert.ok(context.$ms_users_inj_post_message);
-        assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
-        assert.equal(context.$ms_users_inj_post_message.error, false);
-        assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
-        assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
-        assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
-      });
+    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url, body);
+
+    const context = parseHTML(body);
+
+    assert.ok(context.$ms_users_inj_post_message);
+    assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+    assert.equal(context.$ms_users_inj_post_message.error, false);
+    assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
+    assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
+    assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
   });
 
-  it('should register with partially returned scope and require email verification', function test() {
-    return Promise
-      .bind(this, cache.testUserInstalledPartial)
-      .then(initiateAuth)
-      .return('#platformDialogForm a[id]')
-      .then(submit)
-      .return('#platformDialogForm label:nth-child(2) input[type=checkbox]')
-      .then(submit)
-      .return('button[name=__CONFIRM__]')
-      .then(submit)
-      .return([/oauth\/facebook/, 200])
-      .spread(captureResponseBody)
-      .then((body) => {
-        const context = parseHTML(body);
+  it('should register with partially returned scope and require email verification', async () => {
+    const { status, url, body } = await signInAndNavigate();
 
-        assert.ok(context.$ms_users_inj_post_message);
-        assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
-        assert.equal(context.$ms_users_inj_post_message.error, false);
-        assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
-        assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
-        assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
+    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url, body);
 
-        return [context.$ms_users_inj_post_message.payload.token, { username: 'unverified@makeomatic.ca' }];
-      })
-      .spread(createAccount)
-      .then(({ requiresActivation, id }) => {
-        assert.equal(requiresActivation, true);
-        assert.ok(id);
-      });
+    const context = parseHTML(body);
+
+    assert.ok(context.$ms_users_inj_post_message);
+    assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+    assert.equal(context.$ms_users_inj_post_message.error, false);
+    assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
+    assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
+    assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
+
+    const { requiresActivation, id } = await createAccount(
+      context.$ms_users_inj_post_message.payload.token,
+      { username: 'unverified@makeomatic.ca' }
+    );
+
+    assert.equal(requiresActivation, true);
+    assert.ok(id);
   });
 });

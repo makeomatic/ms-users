@@ -1,3 +1,4 @@
+const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const scrypt = require('../utils/scrypt.js');
@@ -182,4 +183,4 @@ module.exports = function login({ params }) {
     .catch(enrichError);
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

@@ -482,6 +482,10 @@
                 "type": "string",
                 "minLength": 1
               },
+              "domain": {
+                "type": "string",
+                "minLength": 1
+              },
               "scope": {
                 "anyOf": [{
                   "type": "array",

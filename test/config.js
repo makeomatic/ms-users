@@ -55,7 +55,7 @@ const config = {
         enabled: true,
         clientId: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-        location: 'http://localhost:3000',
+        location: 'http://ms-users.local:3000',
         password: 'lB4wlZByzpp2R9mGefiLeaZUwVooUuX7G7uctaoeNgxvUs3W',
         apiVersion: 'v2.9',
       },
@@ -64,9 +64,6 @@ const config = {
   jwt: {
     cookies: {
       enabled: true,
-      settings: {
-        domain: 'localhost',
-      },
     },
   },
 };
@@ -74,49 +71,54 @@ const config = {
 module.exports = config;
 
 function registerUser(username, opts = {}) {
-  return function register() {
-    const dispatch = simpleDispatcher(this.users.router);
-
-    return dispatch('users.register', {
-      username,
-      password: '123',
-      audience: '*.localhost',
-      activate: !opts.inactive,
-      skipChallenge: true,
-      metadata: opts.metadata || undefined,
-    }).then(() => {
-      if (opts.locked) {
-        return dispatch('users.ban', { username, ban: true });
-      }
-
-      return null;
+  return async function register() {
+    await (this.service || this.users).dispatch('register', {
+      params: {
+        username,
+        password: '123',
+        audience: '*.localhost',
+        activate: !opts.inactive,
+        skipChallenge: true,
+        metadata: opts.metadata || undefined,
+      },
     });
+
+    if (opts.locked) {
+      return (this.service || this.users).dispatch('ban', { params: { username, ban: true } });
+    }
+
+    return null;
   };
 }
 
 function getJWTToken(username, password = '123') {
-  return function getJWT() {
-    const dispatch = simpleDispatcher(this.users.router);
-    return dispatch('users.login', { username, password, audience: '*.localhost' })
-      .then(({ jwt, user: { id } }) => {
-        this.jwt = jwt;
-        this.userId = id;
-      });
+  return async function getJWT() {
+    const { jwt, user } = await (this.service || this.users).dispatch('login', {
+      params: { username, password, audience: '*.localhost' },
+    });
+
+    this.jwt = jwt;
+    this.userId = user.id;
   };
 }
 
-function startService(testConfig = {}) {
-  const Users = require('../src');
+async function startService(testConfig = {}) {
+  try {
+    const Users = require('../src');
 
-  this.users = new Users(merge({}, config, testConfig));
-  this.users.on('plugin:connect:amqp', () => {
-    this.users._mailer = { send: () => Promise.resolve() };
-  });
-
-  return this.users.connect()
-    .tap(() => {
-      this.dispatch = simpleDispatcher(this.users.router);
+    this.users = new Users(merge({}, config, testConfig));
+    this.users.on('plugin:connect:amqp', () => {
+      this.users._mailer = { send: () => Promise.resolve() };
     });
+
+    const service = await this.users.connect();
+    this.dispatch = simpleDispatcher(this.users.router);
+    return service;
+  } catch (e) {
+    console.error('failed to start', e);
+  }
+
+  return null;
 }
 
 function initFakeAccounts() {

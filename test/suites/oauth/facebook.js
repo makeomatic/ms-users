@@ -68,6 +68,9 @@ describe('#facebook', function oauthFacebookSuite() {
   let page;
   let service;
 
+  // retries tests several times in case of failure
+  this.retries(3);
+
   function createAccount(token, overwrite = {}) {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
     const opts = {

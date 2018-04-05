@@ -107,6 +107,7 @@
     "bin/",
     "lib/",
     "src/",
+    "schemas/",
     "yarn.lock"
   ]
 }

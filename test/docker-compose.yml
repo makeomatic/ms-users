@@ -26,7 +26,7 @@ services:
       - ${PWD}:/src
     environment:
       NODE_ENV: "test"
-      DEBUG: "puppeteer:session,puppeteer:request"
+      DEBUG: "puppeteer:request"
       NCONF_NAMESPACE: MS_USERS
       FACEBOOK_APP_TOKEN: ${FACEBOOK_APP_TOKEN}
       FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}

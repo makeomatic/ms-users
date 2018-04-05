@@ -153,6 +153,9 @@ describe('#facebook', function oauthFacebookSuite() {
 
     const status = response.status();
     const url = response.url();
+
+    console.info('%s - %s', status, url);
+
     const body = String(await response.buffer());
 
     return { body, status, url };

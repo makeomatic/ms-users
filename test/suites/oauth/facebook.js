@@ -69,6 +69,9 @@ describe('#facebook', function oauthFacebookSuite() {
   let service;
   let lastRequestResponse;
 
+  // just in-case of flaky errors
+  this.retries(3);
+
   function createAccount(token, overwrite = {}) {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
     const opts = {

@@ -68,9 +68,6 @@ describe('#facebook', function oauthFacebookSuite() {
   let page;
   let service;
 
-  // retries tests several times in case of failure
-  this.retries(3);
-
   function createAccount(token, overwrite = {}) {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
     const opts = {
@@ -149,6 +146,18 @@ describe('#facebook', function oauthFacebookSuite() {
     return token;
   }
 
+  async function navigate(href) {
+    const response = href
+      ? await page.goto(href, { waitUntil: 'networkidle2' })
+      : await page.waitForNavigation({ waitUntil: 'networkidle2' });
+
+    const status = response.status();
+    const url = response.url();
+    const body = String(await response.buffer());
+
+    return { body, status, url };
+  }
+
   async function signInAndNavigate() {
     await initiateAuth(cache.testUserInstalledPartial);
     await Promise.delay(1000);
@@ -156,19 +165,12 @@ describe('#facebook', function oauthFacebookSuite() {
     try {
       await page.waitForSelector('#platformDialogForm a[id]');
       await page.click('#platformDialogForm a[id]');
-      console.info('#platformDialogForm a[id]');
       await page.waitForSelector('#platformDialogForm label:nth-child(2) input[type=checkbox]');
       await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]');
-      console.info('#platformDialogForm label:nth-child(2) input[type=checkbox]');
       await page.waitForSelector('button[name=__CONFIRM__]');
       await page.click('button[name=__CONFIRM__]');
-      console.info('button[name=__CONFIRM__]');
-      const response = await page.waitForNavigation({ waitUntil: 'networkidle2' });
-      console.info('response');
-      const status = response.status();
-      const url = response.url();
 
-      return { response, status, url };
+      return navigate();
     } catch (e) {
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });
       throw e;
@@ -211,9 +213,7 @@ describe('#facebook', function oauthFacebookSuite() {
     await formSubmit.click();
     await formSubmit.dispose();
 
-    const response = await page.waitForNavigation({ waitUntil: 'networkidle2' });
-    const status = response.status();
-    const url = response.url();
+    const { status, url } = await navigate();
 
     console.assert(status === 401, 'statusCode is %s, url is %s', status, url);
   });
@@ -279,13 +279,10 @@ describe('#facebook', function oauthFacebookSuite() {
     const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${databag.jwt}`;
     console.info('opening %s', executeLink);
 
-    const response = await page.goto(executeLink, { waitUntil: 'networkidle2' });
-    const status = response.status();
-    const url = response.url();
+    const { status, url, body } = await navigate(executeLink);
 
     console.assert(status === 200, 'Page is %s and status is %s', url, status);
 
-    const body = await page.content();
     const context = parseHTML(body);
 
     console.assert(context.$ms_users_inj_post_message, 'post message not present:', body);
@@ -301,16 +298,14 @@ describe('#facebook', function oauthFacebookSuite() {
     await createAccount(await getFacebookToken());
     await globalRegisterUser(username).call(databag);
     await globalAuthUser(username).call(databag);
+    await Promise.delay(1000);
 
     const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${databag.jwt}`;
     console.info('opening %s', executeLink);
-    const response = await page.goto(executeLink, { waitUntil: 'networkidle2' });
-    const status = response.status();
-    const url = response.url();
+    const { status, url, body } = await navigate(executeLink);
 
     console.assert(status === 412, 'Page is %s and status is %s', url, status);
 
-    const body = await page.content();
     const context = parseHTML(body);
 
     assert.ok(context.$ms_users_inj_post_message);
@@ -335,26 +330,15 @@ describe('#facebook', function oauthFacebookSuite() {
     await getFacebookToken();
     await Promise.delay(1000);
 
-    let response;
-    let status;
-    let url;
-
     const executeLink = `${serviceLink}/users/oauth/facebook`;
 
     /* initial request for attaching account */
-    response = await page.goto(`${executeLink}?jwt=${databag.jwt}`, { waitUntil: 'networkidle2' });
-    status = response.status();
-    url = response.url();
+    const preRequest = await navigate(`${executeLink}?jwt=${databag.jwt}`);
+    console.assert(preRequest.status === 200, 'attaching account failed - %s - %s', preRequest.status, preRequest.url);
 
-    console.assert(status === 200, 'attaching account failed - %s - %s', status, url);
-
-    response = await page.goto(executeLink, { waitUntil: 'networkidle2' });
-    status = response.status();
-    url = response.url();
-
+    const { status, url, body } = await navigate(executeLink);
     console.assert(status === 200, 'signing in failed - %s - %s', status, url);
 
-    const body = await page.content();
     const context = parseHTML(body);
 
     assert.ok(context.$ms_users_inj_post_message);
@@ -422,9 +406,8 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should reject when signing in with partially returned scope and report it', async () => {
-    const { status, url } = await signInAndNavigate();
+    const { status, url, body } = await signInAndNavigate();
 
-    const body = await page.content();
     const context = parseHTML(body);
 
     console.assert(status === 401, 'did not reject partial sign in - %s - %s', status, url);
@@ -454,11 +437,10 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should login with partially returned scope and report it', async () => {
-    const { status, url } = await signInAndNavigate();
+    const { status, url, body } = await signInAndNavigate();
 
     console.assert(status === 200, 'failed to redirect back - %s - %s', status, url);
 
-    const body = await page.content();
     const context = parseHTML(body);
 
     assert.ok(context.$ms_users_inj_post_message);
@@ -470,11 +452,10 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should register with partially returned scope and require email verification', async () => {
-    const { status, url } = await signInAndNavigate();
+    const { status, url, body } = await signInAndNavigate();
 
     console.assert(status === 200, 'failed to redirect back - %s - %s', status, url);
 
-    const body = await page.content();
     const context = parseHTML(body);
 
     assert.ok(context.$ms_users_inj_post_message);

@@ -153,10 +153,9 @@ describe('#facebook', function oauthFacebookSuite() {
 
     const status = response.status();
     const url = response.url();
+    const body = await response.text();
 
     console.info('%s - %s', status, url);
-
-    const body = String(await response.buffer());
 
     return { body, status, url };
   }
@@ -187,6 +186,11 @@ describe('#facebook', function oauthFacebookSuite() {
       args: ['--no-sandbox', '--headless', '--disable-gpu'],
     });
     page = await chrome.newPage();
+
+    // rewrite window.close()
+    await page.exposeFunction('close', () => (
+      console.info('triggered window.close()')
+    ));
   });
 
   afterEach('close chrome', async () => {

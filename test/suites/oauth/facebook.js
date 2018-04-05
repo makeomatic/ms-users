@@ -148,12 +148,14 @@ describe('#facebook', function oauthFacebookSuite() {
 
   async function navigate(href) {
     const response = href
-      ? await page.goto(href, { waitUntil: 'networkidle2' })
-      : await page.waitForNavigation({ waitUntil: 'networkidle2' });
+      ? await page.goto(href, { waitUntil: 'networkidle0' })
+      : await page.waitForNavigation({ waitUntil: 'networkidle0' });
 
     const status = response.status();
     const url = response.url();
-    const body = await response.text();
+
+    await Promise.delay(500);
+    const body = await page.content();
 
     console.info('%s - %s', status, url);
 

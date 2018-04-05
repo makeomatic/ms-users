@@ -99,7 +99,6 @@ describe('#facebook', function oauthFacebookSuite() {
       await page.type('input#pass', user.password, { delay: 100 });
       const formSubmit = await page.$('button[name=login]');
       await formSubmit.click();
-      await formSubmit.dispose();
     } catch (e) {
       console.error('failed to initiate auth', e);
       await page.screenshot({ fullPage: true, path: `./ss/initiate-auth-${Date.now()}.png` });
@@ -113,9 +112,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
     try {
       await page.waitForSelector('button[name=__CONFIRM__]');
-      const formSubmit = await page.$('button[name=__CONFIRM__]');
-      await formSubmit.click();
-      await formSubmit.dispose();
+      await page.click('button[name=__CONFIRM__]');
     } catch (e) {
       await page.screenshot({ fullPage: true, path: `./ss/authenticate-${Date.now()}.png` });
       throw e;
@@ -147,14 +144,16 @@ describe('#facebook', function oauthFacebookSuite() {
   }
 
   async function navigate(href) {
-    const response = href
-      ? await page.goto(href, { waitUntil: 'networkidle2' })
-      : await page.waitForNavigation({ waitUntil: 'networkidle2' });
+    let response;
+    if (href) {
+      response = await page.goto(href, { waitUntil: 'networkidle2' });
+    } else {
+      response = await page.waitForNavigation({ waitUntil: 'networkidle2' });
+    }
 
     const status = response.status();
-    const url = response.url();
-
     await Promise.delay(500);
+    const url = page.url();
     const body = await page.content();
 
     console.info('%s - %s', status, url);
@@ -221,9 +220,7 @@ describe('#facebook', function oauthFacebookSuite() {
     await initiateAuth();
 
     await page.waitForSelector('button[name=__CANCEL__]');
-    const formSubmit = await page.$('button[name=__CANCEL__]');
-    await formSubmit.click();
-    await formSubmit.dispose();
+    await page.click('button[name=__CANCEL__]');
 
     const { status, url } = await navigate();
 
@@ -420,7 +417,7 @@ describe('#facebook', function oauthFacebookSuite() {
   it('should reject when signing in with partially returned scope and report it', async () => {
     const { status, url, body } = await signInAndNavigate();
 
-    console.assert(status === 401, 'did not reject partial sign in - %s - %s', status, url);
+    console.assert(status === 401, 'did not reject partial sign in - %s - %s', status, url, body);
 
     const context = parseHTML(body);
     assert.ok(context.$ms_users_inj_post_message);
@@ -450,7 +447,7 @@ describe('#facebook', function oauthFacebookSuite() {
   it('should login with partially returned scope and report it', async () => {
     const { status, url, body } = await signInAndNavigate();
 
-    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url);
+    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url, body);
 
     const context = parseHTML(body);
 
@@ -465,7 +462,7 @@ describe('#facebook', function oauthFacebookSuite() {
   it('should register with partially returned scope and require email verification', async () => {
     const { status, url, body } = await signInAndNavigate();
 
-    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url);
+    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url, body);
 
     const context = parseHTML(body);
 

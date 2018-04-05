@@ -164,6 +164,7 @@ describe('#facebook', function oauthFacebookSuite() {
     await initiateAuth(cache.testUserInstalledPartial);
     await Promise.delay(1000);
 
+    let response;
     try {
       await page.waitForSelector('#platformDialogForm a[id]');
       await page.click('#platformDialogForm a[id]');
@@ -171,12 +172,14 @@ describe('#facebook', function oauthFacebookSuite() {
       await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]');
       await page.waitForSelector('button[name=__CONFIRM__]');
       await page.click('button[name=__CONFIRM__]');
-
-      return navigate();
+      response = await navigate();
     } catch (e) {
+      console.error('failed to navigate', e);
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });
       throw e;
     }
+
+    return response;
   }
 
   // need to relaunch each time for clean contexts
@@ -415,10 +418,9 @@ describe('#facebook', function oauthFacebookSuite() {
   it('should reject when signing in with partially returned scope and report it', async () => {
     const { status, url, body } = await signInAndNavigate();
 
-    const context = parseHTML(body);
-
     console.assert(status === 401, 'did not reject partial sign in - %s - %s', status, url);
 
+    const context = parseHTML(body);
     assert.ok(context.$ms_users_inj_post_message);
     assert.deepEqual(context.$ms_users_inj_post_message.payload, {
       args: { 0: 'missing permissions - email' },

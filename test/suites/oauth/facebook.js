@@ -67,6 +67,7 @@ describe('#facebook', function oauthFacebookSuite() {
   let chrome;
   let page;
   let service;
+  let lastRequest;
 
   function createAccount(token, overwrite = {}) {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
@@ -144,19 +145,20 @@ describe('#facebook', function oauthFacebookSuite() {
   }
 
   async function navigate(href) {
-    let response;
     if (href) {
-      response = await page.goto(href, { waitUntil: 'networkidle2' });
+      await page.goto(href, { waitUntil: 'networkidle0' });
     } else {
-      response = await page.waitForNavigation({ waitUntil: 'networkidle2' });
+      await page.waitForNavigation({ waitUntil: 'networkidle0' });
     }
 
-    const status = response.status();
-    await Promise.delay(500);
+    // just to be sure
+    await Promise.delay(1000);
+    // maybe this is the actual request status code
+    const status = lastRequest.status();
     const url = page.url();
     const body = await page.content();
 
-    console.info('%s - %s', status, url);
+    console.info('%s - %s - %s', status, url);
 
     return { body, status, url };
   }
@@ -195,6 +197,10 @@ describe('#facebook', function oauthFacebookSuite() {
     await page.exposeFunction('close', () => (
       console.info('triggered window.close()')
     ));
+
+    page.on('requestfinished', (req) => {
+      lastRequest = req;
+    });
   });
 
   afterEach('close chrome', async () => {

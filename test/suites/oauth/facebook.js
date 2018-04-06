@@ -143,11 +143,11 @@ describe('#facebook', function oauthFacebookSuite() {
     return token;
   }
 
-  async function navigate(href) {
+  async function navigate({ href, waitUntil = 'networkidle0' } = {}) {
     if (href) {
-      await page.goto(href, { waitUntil: 'networkidle2', timeout: 10000 });
+      await page.goto(href, { waitUntil, timeout: 10000 });
     } else {
-      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 10000 });
+      await page.waitForNavigation({ waitUntil, timeout: 10000 });
     }
 
     // just to be sure
@@ -162,7 +162,7 @@ describe('#facebook', function oauthFacebookSuite() {
     return { body, status, url };
   }
 
-  async function signInAndNavigate() {
+  async function signInAndNavigate(waitUntil) {
     await initiateAuth(cache.testUserInstalledPartial);
 
     let response;
@@ -173,7 +173,7 @@ describe('#facebook', function oauthFacebookSuite() {
       await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]', { delay: 100 });
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
       [response] = await Promise.all([
-        navigate(),
+        navigate({ waitUntil }),
         page.click('button[name=__CONFIRM__]', { delay: 100 }),
       ]);
     } catch (e) {
@@ -440,7 +440,7 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should re-request partially returned scope endlessly', async () => {
-    const { status, url, body } = await signInAndNavigate();
+    const { status, url, body } = await signInAndNavigate('networkidle2');
 
     console.assert(status === 200, 'failed to redirect back - %s - %s', status, url, body);
     console.assert(/dialog\/oauth\?auth_type=rerequest/.test(url), 'failed to redirect back - %s - %s', status, url, body);

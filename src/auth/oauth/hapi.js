@@ -74,9 +74,11 @@ module.exports = function OauthHandler(server, config) {
     // init strategy
     server.auth.strategy(name, 'bell', { provider, ...rest });
 
-    // NOTE: this overwrites the default from bell
-    // must be specified, defaults to mf_bfb
-    server.states.cookies[rest.cookie].isSameSite = 'Lax';
+    if (rest.isSameSite || rest.isSameSite === false) {
+      // NOTE: this overwrites the default from bell
+      // must be specified, defaults to mf_bfb
+      server.states.cookies[rest.cookie].isSameSite = rest.isSameSite;
+    }
   });
 
   return server;

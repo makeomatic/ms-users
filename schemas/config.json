@@ -515,6 +515,15 @@
                 "type": "boolean",
                 "default": false
               },
+              "isSameSite": {
+                "oneOf": [{
+                  "type": "string",
+                  "enum": ["Lax", "Strict"]
+                }, {
+                  "type": "boolean",
+                  "const": false
+                }]
+              },
               "apiVersion": {
                 "type": "string"
               },

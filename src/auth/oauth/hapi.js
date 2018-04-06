@@ -43,7 +43,15 @@ module.exports = function OauthHandler(server, config) {
     let provider;
     const defaultOptions = strategy.options;
     const {
-      scope, fields, profileHandler, scopeSeparator, apiVersion, enabled, retryOnMissingPermissions, ...rest
+      scope,
+      fields,
+      profileHandler,
+      scopeSeparator,
+      apiVersion,
+      enabled,
+      retryOnMissingPermissions,
+      isSameSite,
+      ...rest
     } = options;
 
     // make sure runtime params are allowed in we want to retry as we need to defined dynamic
@@ -74,7 +82,7 @@ module.exports = function OauthHandler(server, config) {
     // init strategy
     server.auth.strategy(name, 'bell', { provider, ...rest });
 
-    if (rest.isSameSite || rest.isSameSite === false) {
+    if (isSameSite || isSameSite === false) {
       // NOTE: this overwrites the default from bell
       // must be specified, defaults to mf_bfb
       server.states.cookies[rest.cookie].isSameSite = rest.isSameSite;

@@ -69,9 +69,6 @@ describe('#facebook', function oauthFacebookSuite() {
   let service;
   let lastRequestResponse;
 
-  // just in-case of flaky errors
-  this.retries(3);
-
   function createAccount(token, overwrite = {}) {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
     const opts = {
@@ -101,8 +98,7 @@ describe('#facebook', function oauthFacebookSuite() {
       await page.type('input#email', user.email, { delay: 100 });
       await page.waitForSelector('input#pass');
       await page.type('input#pass', user.password, { delay: 100 });
-      const formSubmit = await page.$('button[name=login]');
-      await formSubmit.click();
+      await page.click('button[name=login]');
     } catch (e) {
       console.error('failed to initiate auth', e);
       await page.screenshot({ fullPage: true, path: `./ss/initiate-auth-${Date.now()}.png` });
@@ -149,9 +145,9 @@ describe('#facebook', function oauthFacebookSuite() {
 
   async function navigate(href) {
     if (href) {
-      await page.goto(href, { waitUntil: 'networkidle0' });
+      await page.goto(href, { waitUntil: 'networkidle2', timeout: 10000 });
     } else {
-      await page.waitForNavigation({ waitUntil: 'networkidle0' });
+      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 10000 });
     }
 
     // just to be sure
@@ -168,17 +164,18 @@ describe('#facebook', function oauthFacebookSuite() {
 
   async function signInAndNavigate() {
     await initiateAuth(cache.testUserInstalledPartial);
-    await Promise.delay(1000);
 
     let response;
     try {
       await page.waitForSelector('#platformDialogForm a[id]');
-      await page.click('#platformDialogForm a[id]');
+      await page.click('#platformDialogForm a[id]', { delay: 100 });
       await page.waitForSelector('#platformDialogForm label:nth-child(2) input[type=checkbox]');
-      await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]');
-      await page.waitForSelector('button[name=__CONFIRM__]');
-      await page.click('button[name=__CONFIRM__]');
-      response = await navigate();
+      await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]', { delay: 100 });
+      await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
+      [response] = await Promise.all([
+        navigate(),
+        page.click('button[name=__CONFIRM__]'),
+      ]);
     } catch (e) {
       console.error('failed to navigate', e);
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });

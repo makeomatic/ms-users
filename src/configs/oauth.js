@@ -26,7 +26,7 @@ exports.oauth = {
       clientId: 'fb-client-id',
       location: 'location',
       clientSecret: 'fb-client-secret',
-      cookie: 'bfb',
+      cookie: 'mf_bfb',
       isSecure: {
         $filter: 'env',
         $default: false,

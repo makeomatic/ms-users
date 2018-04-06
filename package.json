@@ -45,7 +45,7 @@
     "hapi": "^17.3.1",
     "ioredis": "^3.2.2",
     "is": "^3.2.1",
-    "jsonwebtoken": "^8.2.0",
+    "jsonwebtoken": "^8.2.1",
     "jwa": "^1.1.5",
     "lodash": "^4.17.5",
     "moment": "^2.22.0",

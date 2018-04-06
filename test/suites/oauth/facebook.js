@@ -112,7 +112,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
     try {
       await page.waitForSelector('button[name=__CONFIRM__]');
-      await page.click('button[name=__CONFIRM__]');
+      await page.click('button[name=__CONFIRM__]', { delay: 100 });
     } catch (e) {
       await page.screenshot({ fullPage: true, path: `./ss/authenticate-${Date.now()}.png` });
       throw e;
@@ -121,26 +121,6 @@ describe('#facebook', function oauthFacebookSuite() {
 
   async function extractBody() {
     return page.evaluate('window.$ms_users_inj_post_message');
-  }
-
-  async function extractToken() {
-    const { payload: { token } } = await extractBody();
-    return token;
-  }
-
-  async function getFacebookToken() {
-    await authenticate();
-    await page.waitForSelector('.no-js > body > script');
-
-    let token;
-    try {
-      token = await extractToken();
-    } catch (e) {
-      await page.screenshot({ fullPage: true, path: `./ss/token-${Date.now()}.png` });
-      throw e;
-    }
-
-    return token;
   }
 
   async function navigate({ href, waitUntil = 'networkidle0' } = {}) {
@@ -160,6 +140,25 @@ describe('#facebook', function oauthFacebookSuite() {
     console.info('%s - %s - %s', status, url);
 
     return { body, status, url };
+  }
+
+  async function getFacebookToken() {
+    await authenticate();
+    await Promise.all([
+      navigate(), // so that refresh works, etc
+      page.waitForSelector('.no-js > body > script'),
+    ]);
+
+    try {
+      const body = await extractBody();
+      return {
+        body,
+        token: body.payload.token,
+      };
+    } catch (e) {
+      await page.screenshot({ fullPage: true, path: `./ss/token-${Date.now()}.png` });
+      throw e;
+    }
   }
 
   async function signInAndNavigate(waitUntil) {
@@ -218,8 +217,8 @@ describe('#facebook', function oauthFacebookSuite() {
   afterEach(global.clearRedis);
 
   it('should able to retrieve faceboook profile', async () => {
-    const token = await getFacebookToken();
-    console.assert(token, 'did not get token -', token);
+    const { token, body } = await getFacebookToken();
+    console.assert(token, 'did not get token -', token, body);
   });
 
   it('should able to handle declined authentication', async () => {
@@ -234,7 +233,7 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should be able to register via facebook', async () => {
-    const token = await getFacebookToken();
+    const { token } = await getFacebookToken();
     const registered = await createAccount(token);
 
     assert(registered.hasOwnProperty('jwt'));
@@ -247,7 +246,7 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('can get info about registered fb account through getInternalData & getMetadata', async () => {
-    const token = await getFacebookToken();
+    const { token } = await getFacebookToken();
     const { user } = await createAccount(token);
     const [internalData, metadata] = await Promise
       .all([
@@ -310,7 +309,8 @@ describe('#facebook', function oauthFacebookSuite() {
     const username = 'facebookuser@me.com';
     const databag = { service };
 
-    await createAccount(await getFacebookToken());
+    const { token } = await getFacebookToken();
+    await createAccount(token);
     await globalRegisterUser(username).call(databag);
     await globalAuthUser(username).call(databag);
     await Promise.delay(1000);
@@ -370,7 +370,8 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should detach facebook profile', async () => {
-    const registered = await createAccount(await getFacebookToken());
+    const { token } = await getFacebookToken();
+    const registered = await createAccount(token);
 
     assert(registered.hasOwnProperty('jwt'));
     assert(registered.hasOwnProperty('user'));

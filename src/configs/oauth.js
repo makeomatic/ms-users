@@ -27,6 +27,7 @@ exports.oauth = {
       location: 'location',
       clientSecret: 'fb-client-secret',
       cookie: 'mf_bfb',
+      isSameSite: 'Lax',
       isSecure: {
         $filter: 'env',
         $default: false,

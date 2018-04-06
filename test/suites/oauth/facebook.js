@@ -294,7 +294,7 @@ describe('#facebook', function oauthFacebookSuite() {
     const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${databag.jwt}`;
     console.info('opening %s', executeLink);
 
-    const { status, url, body } = await navigate(executeLink);
+    const { status, url, body } = await navigate({ href: executeLink });
 
     console.assert(status === 200, 'Page is %s and status is %s', url, status);
 
@@ -317,7 +317,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
     const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${databag.jwt}`;
     console.info('opening %s', executeLink);
-    const { status, url, body } = await navigate(executeLink);
+    const { status, url, body } = await navigate({ href: executeLink });
 
     console.assert(status === 412, 'Page is %s and status is %s', url, status);
 
@@ -348,10 +348,10 @@ describe('#facebook', function oauthFacebookSuite() {
     const executeLink = `${serviceLink}/users/oauth/facebook`;
 
     /* initial request for attaching account */
-    const preRequest = await navigate(`${executeLink}?jwt=${databag.jwt}`);
+    const preRequest = await navigate({ href: `${executeLink}?jwt=${databag.jwt}` });
     console.assert(preRequest.status === 200, 'attaching account failed - %s - %s', preRequest.status, preRequest.url);
 
-    const { status, url, body } = await navigate(executeLink);
+    const { status, url, body } = await navigate({ href: executeLink });
     console.assert(status === 200, 'signing in failed - %s - %s', status, url);
 
     const context = parseHTML(body);

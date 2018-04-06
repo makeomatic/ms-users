@@ -137,7 +137,7 @@ describe('#facebook', function oauthFacebookSuite() {
     const url = page.url();
     const body = await page.content();
 
-    console.info('%s - %s - %s', status, url);
+    console.info('%s - %s', status, url);
 
     return { body, status, url };
   }
@@ -168,8 +168,10 @@ describe('#facebook', function oauthFacebookSuite() {
     try {
       await page.waitForSelector('#platformDialogForm a[id]', { visible: true });
       await page.click('#platformDialogForm a[id]', { delay: 100 });
+      await Promise.delay(300);
       await page.waitForSelector('#platformDialogForm label:nth-child(2) input[type=checkbox]', { visible: true });
       await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]', { delay: 100 });
+      await Promise.delay(300);
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
       [response] = await Promise.all([
         navigate({ waitUntil }),
@@ -188,7 +190,7 @@ describe('#facebook', function oauthFacebookSuite() {
   beforeEach('init Chrome', async () => {
     chrome = await puppeteer.launch({
       executablePath: '/usr/bin/chromium-browser',
-      args: ['--no-sandbox', '--headless', '--disable-gpu'],
+      args: ['--no-sandbox'],
     });
     page = await chrome.newPage();
 

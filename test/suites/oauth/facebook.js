@@ -167,14 +167,14 @@ describe('#facebook', function oauthFacebookSuite() {
 
     let response;
     try {
-      await page.waitForSelector('#platformDialogForm a[id]');
+      await page.waitForSelector('#platformDialogForm a[id]', { visible: true });
       await page.click('#platformDialogForm a[id]', { delay: 100 });
-      await page.waitForSelector('#platformDialogForm label:nth-child(2) input[type=checkbox]');
+      await page.waitForSelector('#platformDialogForm label:nth-child(2) input[type=checkbox]', { visible: true });
       await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]', { delay: 100 });
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
       [response] = await Promise.all([
         navigate(),
-        page.click('button[name=__CONFIRM__]'),
+        page.click('button[name=__CONFIRM__]', { delay: 100 }),
       ]);
     } catch (e) {
       console.error('failed to navigate', e);
@@ -440,10 +440,10 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should re-request partially returned scope endlessly', async () => {
-    const { status, url } = await signInAndNavigate();
+    const { status, url, body } = await signInAndNavigate();
 
-    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url);
-    console.assert(/dialog\/oauth\?auth_type=rerequest/.test(url), 'failed to redirect back - %s - %s', status, url);
+    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url, body);
+    console.assert(/dialog\/oauth\?auth_type=rerequest/.test(url), 'failed to redirect back - %s - %s', status, url, body);
   });
 
   it('apply config: retryOnMissingPermissions=false', function test() {

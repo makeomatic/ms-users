@@ -13,7 +13,7 @@ secret key and recovery code to the user's account.
 Recovery code may be used in the future to recover an access to an account in case
 user can't provide a valid TOTP (e.g. user lost an access to authenticator app).
 
-### Basic user flow
+### Basic user flows
 
 If the user enabled 2FA the flow of authentication or performing some privileged
 action (e. g. payment transaction) would be like this:
@@ -30,14 +30,13 @@ action (e. g. payment transaction) would be like this:
     * **valid TOTP**: return `JWT`
     * **invalid TOTP**: reject request
 
-**Payment transaction**
+**Password update**
 
-1. User performs request to make a payment transaction
-2. Service checks that 2FA is enabled:
-    * **enabled:** ask user for TOTP
-    * **not enabled**: proceed
-3. User gets TOTP from mobile phone and passes it to the service:
-    * **valid TOTP**: proceed request
+1. On this step we already know if 2FA is enabled:
+    * **not enabled**: ask user for the old password and for the new one
+    * **enabled:** ask user for the old password, for the new one and for TOTP
+2. User gets TOTP from mobile phone and passes it to the service (along with credentials):
+    * **valid TOTP**: proceed request (in case credentials are also valid)
     * **invalid TOTP**: reject request
 
 ### Disabling 2FA

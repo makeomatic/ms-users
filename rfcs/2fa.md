@@ -55,8 +55,8 @@ And the opposite one. User enabled 2FA from second device:
 1. The first device still thinks that 2FA is disabled and allows to perform an action.
 2. User performs an action without TOTP.
 2. Service checks if 2FA is enabled and detects that it is.
-3. Service doesn’t perform an action, returns an error and asks user to perform
-an action one more time with TOTP provided.
+3. Service doesn’t perform an action, returns `403 Forbidden` error and asks user
+to perform an action one more time with TOTP provided.
 
 ### Disabling 2FA
 

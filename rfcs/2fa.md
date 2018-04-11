@@ -39,6 +39,25 @@ action (e. g. payment transaction) would be like this:
     * **valid TOTP**: proceed request (in case credentials are also valid)
     * **invalid TOTP**: reject request
 
+**Several devices**
+
+Imagine case when user enabled 2FA from one device/browser, disabled from
+the other one and now try to perform some privileged action from the first device.
+The flow would be like this:
+
+1. Here we still think that 2FA is enabled and asks user for TOTP.
+2. User gets TOTP from mobile phone and passes it to the service.
+3. Service checks if 2FA is actually enabled and detects that it's disabled now.
+4. Service allows to perform an action without verifying TOTP.
+
+And the opposite one. User enabled 2FA from second device:
+
+1. The first device still thinks that 2FA is disabled and allows to perform an action.
+2. User performs an action without TOTP.
+2. Service checks if 2FA is enabled and detects that it is.
+3. Service doesn’t perform an action, returns an error and asks user to perform
+an action one more time with TOTP provided.
+
 ### Disabling 2FA
 
 To disable 2FA user must provides a valid TOTP. In this case service detaches

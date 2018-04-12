@@ -1,0 +1,13 @@
+{
+    "$id": "2fa.generate-key",
+    "type": "object",
+    "required": [
+        "username"
+    ],
+    "properties": {
+        "username": {
+            "type": "string",
+            "minLength": 1
+        }
+    }
+}

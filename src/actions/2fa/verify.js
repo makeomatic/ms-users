@@ -8,6 +8,10 @@ const { ActionTransport } = require('@microfleet/core');
  *
  * @apiDescription Allows to verify if TOTP provided by the user is valid.
  *
+ * @apiHeader (Authorization) {String} Authorization JWT :accessToken
+ * @apiHeaderExample Authorization-Example:
+ *     "Authorization: JWT my.reallyniceandvalid.jsonwebtoken"
+ *
  * @apiParam (Payload) {Number} [totp] - time-based one time password
  * @apiParam (Payload) {String} [recoveryCode] - crypto secure 8 characters hex key
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
@@ -15,6 +19,12 @@ const { ActionTransport } = require('@microfleet/core');
  */
 module.exports = function verify() {
   // pass
+};
+
+module.exports.auth = {
+  name: 'bearer',
+  strategy: 'required',
+  passError: true,
 };
 
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

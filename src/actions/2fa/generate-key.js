@@ -1,3 +1,5 @@
+const { ActionTransport } = require('@microfleet/core');
+
 /**
  * @api {amqp} <prefix>.generate-key Generates secret key
  * @apiVersion 1.0.0
@@ -13,4 +15,4 @@ module.exports = function generateKey() {
   // pass
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

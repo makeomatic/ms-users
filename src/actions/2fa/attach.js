@@ -1,3 +1,5 @@
+const { ActionTransport } = require('@microfleet/core');
+
 /**
  * @api {amqp} <prefix>.attach Attach
  * @apiVersion 1.0.0
@@ -17,4 +19,4 @@ module.exports = function attach() {
   // pass
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

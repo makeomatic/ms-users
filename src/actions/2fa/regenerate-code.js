@@ -1,3 +1,5 @@
+const { ActionTransport } = require('@microfleet/core');
+
 /**
  * @api {amqp} <prefix>.regenerate-code Regenerate recovery code
  * @apiVersion 1.0.0
@@ -14,4 +16,4 @@ module.exports = function regenerateCode() {
   // pass
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

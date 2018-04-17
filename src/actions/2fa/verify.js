@@ -1,3 +1,5 @@
+const { ActionTransport } = require('@microfleet/core');
+
 /**
  * @api {amqp} <prefix>.verify Verify TOTP
  * @apiVersion 1.0.0
@@ -15,4 +17,4 @@ module.exports = function verify() {
   // pass
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

@@ -19,10 +19,5 @@ module.exports = function generateKey() {
   // pass
 };
 
-module.exports.auth = {
-  name: 'bearer',
-  strategy: 'required',
-  passError: true,
-};
-
+module.exports.auth = 'bearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

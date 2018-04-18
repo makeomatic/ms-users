@@ -21,5 +21,5 @@ module.exports = function verify() {
   // pass
 };
 
-module.exports.auth = 'bearer';
+module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

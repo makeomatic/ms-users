@@ -23,5 +23,5 @@ module.exports = function attach() {
   // pass
 };
 
-module.exports.auth = 'bearer';
+module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

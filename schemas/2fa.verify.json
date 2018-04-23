@@ -1,28 +1,11 @@
 {
     "$id": "2fa.verify",
     "type": "object",
-    "oneOf": [
-        {
-            "required": [
-                "totp"
-            ]
-        },
-        {
-            "required": [
-                "recoveryCode"
-            ]
-        }
-    ],
     "properties": {
         "totp": {
             "type": "string",
             "minLength": 6,
             "maxLength": 6
-        },
-        "recoveryCode": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 8
         },
         "remoteip": {
             "type": "string",

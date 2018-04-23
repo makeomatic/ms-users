@@ -1,19 +1,8 @@
 {
     "$id": "2fa.detach",
     "type": "object",
-    "oneOf": [
-        {
-            "required": [
-                "username",
-                "totp"
-            ]
-        },
-        {
-            "required": [
-                "username",
-                "recoveryCode"
-            ]
-        }
+    "required": [
+        "username"
     ],
     "properties": {
         "username": {

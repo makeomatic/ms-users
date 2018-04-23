@@ -1,9 +1,6 @@
 {
     "$id": "2fa.regenerate-code",
     "type": "object",
-    "required": [
-        "totp"
-    ],
     "properties": {
         "totp": {
             "type": "string",

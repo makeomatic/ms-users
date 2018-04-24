@@ -1,5 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
-const Errors = require('common-errors');
+const hasTotp = require('../../utils/hasTotp.js');
 
 /**
  * @api {amqp} <prefix>.attach Attach
@@ -27,13 +27,6 @@ module.exports = function attach() {
   // pass
 };
 
-module.exports.allowed = function isAllowed({ params, headers }) {
-  if (params.totp || headers['X-Auth-TOTP']) {
-    return null;
-  }
-
-  throw new Errors.HttpStatusError(403, 'TOTP required');
-};
-
+module.exports.allowed = hasTotp;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

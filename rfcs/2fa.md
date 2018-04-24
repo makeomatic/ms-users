@@ -71,3 +71,31 @@ no longer be asked for TOTP during authentication process.
 * `detach` - detaches secret key and recovery code from user's account (basically disables 2FA)
 * `verify` - verifies unless TOTP provided by the user is valid
 * `regenerateRecoveryCode` - regenerates recovery code (if the user did provide valid TOTP)
+
+### Errors
+
+`attach`, `detach`, `verify` and `regenerateRecoveryCode` actions require TOTP or
+recovery code to be present in either request body or request headers (depends
+on transport amqp/http). If TOTP or recovery code are not present the service
+returns `403 Forbidden` error with `totp required` message:
+
+```
+{
+    "error": "Forbidden",
+    "message": "totp required",
+    "name": "HttpStatusError",
+    "statusCode": 403
+}
+```
+
+In case provided TOTP or recovery code didn't pass verification `verify` action
+returns `403 Forbidden` error with `invalid totp` message:
+
+```
+{
+    "error": "Forbidden",
+    "message": "invalid totp",
+    "name": "HttpStatusError",
+    "statusCode": 403
+}
+```

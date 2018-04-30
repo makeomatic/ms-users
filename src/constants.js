@@ -19,6 +19,8 @@ module.exports = exports = {
   USERS_TOKENS: 'tokens',
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
+  USERS_2FA_SECRET: '2fa-secret',
+  USERS_2FA_RECOVERY: '2fa-recovery',
 
   USERS_ID_FIELD: 'id',
   USERS_ALIAS_FIELD: 'alias',
@@ -41,6 +43,8 @@ module.exports = exports = {
   USERS_INCORRECT_PASSWORD: new HttpStatusError(403, 'incorrect password'),
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
+  ErrorTotpRequired: new HttpStatusError(403, 'TOTP required'),
+  ErrorTotpInvalid: new HttpStatusError(403, 'TOTP invalid'),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
@@ -69,6 +73,8 @@ module.exports = exports = {
 
 // embed error codes
 exports.ErrorConflictUserExists.code = 'E_USERNAME_CONFLICT';
+exports.ErrorTotpRequired.code = 'E_TOTP_REQUIRED';
+exports.ErrorTotpInvalid.code = 'E_TOTP_INVALID';
 
 exports.SSO_PROVIDERS = [
   exports.USERS_SSO_FACEBOOK_FIELD,

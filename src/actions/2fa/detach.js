@@ -1,5 +1,36 @@
 const { ActionTransport } = require('@microfleet/core');
+const Promise = require('bluebird');
+const redisKey = require('../../utils/key');
+const handlePipeline = require('../../utils/pipelineError');
 const hasTotp = require('../../utils/hasTotp.js');
+const { verifyTotp } = require('../../utils/2fa.js');
+const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
+
+function getSecretAndRecovery(userId) {
+  return this.redis
+    .pipeline()
+    .get(redisKey(USERS_2FA_SECRET, userId))
+    .get(redisKey(USERS_2FA_RECOVERY, userId))
+    .exec()
+    .then(handlePipeline);
+}
+
+function removeData(userId) {
+  const { redis } = this;
+
+  // stores secret and recoveryCode
+  const redisKeySecret = redisKey(USERS_2FA_SECRET, userId);
+  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, userId);
+
+  // remove keys
+  return redis
+    .pipeline()
+    .del(redisKeySecret)
+    .del(redisKeyRecovery)
+    .exec()
+    .then(handlePipeline)
+    .return({ enabled: false });
+}
 
 /**
  * @api {amqp} <prefix>.detach Detach
@@ -18,13 +49,20 @@ const hasTotp = require('../../utils/hasTotp.js');
  *     "X-Auth-TOTP: 123456"
  *
  * @apiParam (Payload) {String} username - id of the user
- * @apiParam (Payload) {Number} [totp] - 6 chars time-based one time password or
+ * @apiParam (Payload) {Number} totp - 6 chars time-based one time password or
  * 8 characters hex recovery code
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function detach() {
-  // pass
+module.exports = function detach({ params }) {
+  const { username, totp } = params;
+  const { redis } = this;
+
+  return Promise
+    .bind({ redis }, username)
+    .then(getSecretAndRecovery)
+    .spread((secret, recovery) => verifyTotp(secret, totp, recovery))
+    .then(() => removeData(username));
 };
 
 module.exports.allowed = hasTotp;

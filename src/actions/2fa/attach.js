@@ -1,5 +1,28 @@
 const { ActionTransport } = require('@microfleet/core');
+const Promise = require('bluebird');
+const generateRecovery = Promise.promisify(require('2fa').generateBackupCode);
+const redisKey = require('../../utils/key');
+const handlePipeline = require('../../utils/pipelineError');
 const hasTotp = require('../../utils/hasTotp.js');
+const { verifyTotp } = require('../../utils/2fa.js');
+const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
+
+function storeData(userId, secret, recovery) {
+  const { redis } = this;
+
+  // stores secret and recoveryCode
+  const redisKeySecret = redisKey(USERS_2FA_SECRET, userId);
+  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, userId);
+
+  // prepare to store
+  return redis
+    .pipeline()
+    .set(redisKeySecret, secret)
+    .set(redisKeyRecovery, recovery)
+    .exec()
+    .then(handlePipeline)
+    .return({ recovery, enabled: true });
+}
 
 /**
  * @api {amqp} <prefix>.attach Attach
@@ -23,8 +46,15 @@ const hasTotp = require('../../utils/hasTotp.js');
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function attach() {
-  // pass
+module.exports = function attach({ params }) {
+  const { username, secret, totp } = params;
+  const { redis } = this;
+
+  return Promise
+    .bind({ redis }, [secret, totp])
+    .spread(verifyTotp)
+    .then(generateRecovery)
+    .then(recovery => storeData(username, secret, recovery));
 };
 
 module.exports.allowed = hasTotp;

@@ -1,4 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
+const Promise = require('bluebird');
+const generateSecret = Promise.promisify(require('2fa').generateKey);
 
 /**
  * @api {amqp} <prefix>.generate-key Generates secret key
@@ -12,11 +14,10 @@ const { ActionTransport } = require('@microfleet/core');
  * @apiHeaderExample Authorization-Example:
  *     "Authorization: JWT my.reallyniceandvalid.jsonwebtoken"
  *
- * @apiParam (Payload) {String} username - id of the user
- *
  */
 module.exports = function generateKey() {
-  // pass
+  return generateSecret()
+    .then(secret => ({ secret }));
 };
 
 module.exports.auth = 'httpBearer';

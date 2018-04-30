@@ -1,5 +1,25 @@
 const { ActionTransport } = require('@microfleet/core');
+const Promise = require('bluebird');
+const generateRecovery = Promise.promisify(require('2fa').generateBackupCode);
+const redisKey = require('../../utils/key');
+const handlePipeline = require('../../utils/pipelineError');
 const hasTotp = require('../../utils/hasTotp.js');
+const { verifyTotp } = require('../../utils/2fa.js');
+const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
+
+function getSecret(userId) {
+  return this.redis
+    .get(redisKey(USERS_2FA_SECRET, userId));
+}
+
+function storeData(userId, recovery) {
+  return this.redis
+    .pipeline()
+    .set(redisKey(USERS_2FA_RECOVERY, userId), recovery)
+    .exec()
+    .then(handlePipeline)
+    .return({ recovery, regenerated: true });
+}
 
 /**
  * @api {amqp} <prefix>.regenerate-code Regenerate recovery code
@@ -20,8 +40,17 @@ const hasTotp = require('../../utils/hasTotp.js');
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function regenerateCode() {
-  // pass
+module.exports = function regenerateCode({ params, auth }) {
+  const { totp } = params;
+  const { id } = auth.credentials;
+  const { redis } = this;
+
+  return Promise
+    .bind({ redis }, id)
+    .then(getSecret)
+    .then(secret => verifyTotp(secret, totp))
+    .then(generateRecovery)
+    .then(recovery => storeData(id, recovery));
 };
 
 module.exports.allowed = hasTotp;

@@ -2,7 +2,8 @@
     "$id": "2fa.detach",
     "type": "object",
     "required": [
-        "username"
+        "username",
+        "totp"
     ],
     "properties": {
         "username": {

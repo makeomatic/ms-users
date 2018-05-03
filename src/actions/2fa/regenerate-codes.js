@@ -1,9 +1,9 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const generateRecovery = Promise.promisify(require('2fa').generateBackupCode);
 const redisKey = require('../../utils/key');
+const handlePipeline = require('../../utils/pipelineError');
 const hasTotp = require('../../utils/hasTotp.js');
-const { verifyTotp } = require('../../utils/2fa.js');
+const { verifyTotp, generateRecoveryCodes } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
 function getSecret(userId) {
@@ -11,19 +11,25 @@ function getSecret(userId) {
     .get(redisKey(USERS_2FA_SECRET, userId));
 }
 
-function storeData(userId, recovery) {
+function storeData(userId, recoveryCodes) {
+  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, userId);
+
   return this.redis
-    .set(redisKey(USERS_2FA_RECOVERY, userId), recovery)
-    .return({ recovery, regenerated: true });
+    .pipeline()
+    .del(redisKeyRecovery)
+    .sadd(redisKeyRecovery, recoveryCodes)
+    .exec()
+    .then(handlePipeline)
+    .return({ recoveryCodes, regenerated: true });
 }
 
 /**
- * @api {amqp} <prefix>.regenerate-code Regenerate recovery code
+ * @api {amqp} <prefix>.regenerate-codes Regenerate recovery codes
  * @apiVersion 1.0.0
- * @apiName RegenerateCode
+ * @apiName RegenerateCodes
  * @apiGroup Users
  *
- * @apiDescription Allows regenerate recovery code.
+ * @apiDescription Allows regenerate recovery codes.
  *
  * @apiHeader (Authorization) {String} Authorization JWT :accessToken
  * @apiHeaderExample Authorization-Example:
@@ -32,11 +38,11 @@ function storeData(userId, recovery) {
  * @apiHeaderExample X-Auth-TOTP-Example:
  *     "X-Auth-TOTP: 123456"
  *
- * @apiParam (Payload) {Number} [totp] - time-based one time password
+ * @apiParam (Payload) {Number} [totp] - time-based one time password or recoveryCode
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function regenerateCode({ params, auth }) {
+module.exports = function regenerateCodes({ params, auth }) {
   const { totp } = params;
   const { id } = auth.credentials;
   const { redis } = this;
@@ -44,9 +50,9 @@ module.exports = function regenerateCode({ params, auth }) {
   return Promise
     .bind({ redis }, id)
     .then(getSecret)
-    .then(secret => verifyTotp(secret, totp))
-    .then(generateRecovery)
-    .then(recovery => storeData(id, recovery));
+    .then(secret => verifyTotp(secret, totp, id))
+    .then(generateRecoveryCodes)
+    .then(recoveryCodes => storeData(id, recoveryCodes));
 };
 
 module.exports.allowed = hasTotp;

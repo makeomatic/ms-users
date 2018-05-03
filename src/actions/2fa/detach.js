@@ -6,13 +6,8 @@ const hasTotp = require('../../utils/hasTotp.js');
 const { verifyTotp } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
-function getSecretAndRecovery(userId) {
-  return this.redis
-    .pipeline()
-    .get(redisKey(USERS_2FA_SECRET, userId))
-    .get(redisKey(USERS_2FA_RECOVERY, userId))
-    .exec()
-    .then(handlePipeline);
+function getSecret(userId) {
+  return this.redis.get(redisKey(USERS_2FA_SECRET, userId));
 }
 
 function removeData(userId) {
@@ -60,8 +55,8 @@ module.exports = function detach({ params }) {
 
   return Promise
     .bind({ redis }, username)
-    .then(getSecretAndRecovery)
-    .spread((secret, recovery) => verifyTotp(secret, totp, recovery))
+    .then(getSecret)
+    .spread(secret => verifyTotp(secret, totp, username))
     .then(() => removeData(username));
 };
 

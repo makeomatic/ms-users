@@ -1,13 +1,12 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const generateRecovery = Promise.promisify(require('2fa').generateBackupCode);
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const hasTotp = require('../../utils/hasTotp.js');
-const { verifyTotp } = require('../../utils/2fa.js');
+const { verifyTotp, generateRecoveryCodes } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
-function storeData(userId, secret, recovery) {
+function storeData(userId, secret, recoveryCodes) {
   const { redis } = this;
 
   // stores secret and recoveryCode
@@ -18,10 +17,10 @@ function storeData(userId, secret, recovery) {
   return redis
     .pipeline()
     .set(redisKeySecret, secret)
-    .set(redisKeyRecovery, recovery)
+    .sadd(redisKeyRecovery, recoveryCodes)
     .exec()
     .then(handlePipeline)
-    .return({ recovery, enabled: true });
+    .return({ recoveryCodes, enabled: true });
 }
 
 /**
@@ -51,10 +50,10 @@ module.exports = function attach({ params }) {
   const { redis } = this;
 
   return Promise
-    .bind({ redis }, [secret, totp])
+    .bind({ redis }, [secret, totp, username])
     .spread(verifyTotp)
-    .then(generateRecovery)
-    .then(recovery => storeData(username, secret, recovery));
+    .then(generateRecoveryCodes)
+    .then(recoveryCodes => storeData(username, secret, recoveryCodes));
 };
 
 module.exports.allowed = hasTotp;

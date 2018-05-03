@@ -1,18 +1,12 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const handlePipeline = require('../../utils/pipelineError');
 const redisKey = require('../../utils/key');
-const verifyTotp = Promise.promisifyAll(require('2fa').verifyTOTP);
 const hasTotp = require('../../utils/hasTotp.js');
-const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
+const { verifyTotp } = require('../../utils/2fa.js');
+const { USERS_2FA_SECRET } = require('../../constants');
 
-function getSecretAndRecovery(userId) {
-  return this.redis
-    .pipeline()
-    .get(redisKey(USERS_2FA_SECRET, userId))
-    .get(redisKey(USERS_2FA_RECOVERY, userId))
-    .exec()
-    .then(handlePipeline);
+function getSecret(userId) {
+  return this.redis.get(redisKey(USERS_2FA_SECRET, userId));
 }
 
 /**
@@ -39,8 +33,8 @@ module.exports = function verify({ params }) {
 
   return Promise
     .bind({ redis }, username)
-    .then(getSecretAndRecovery)
-    .spread((secret, recovery) => verifyTotp(secret, totp, recovery));
+    .then(getSecret)
+    .spread(secret => verifyTotp(secret, totp, username));
 };
 
 module.exports.allowed = hasTotp;

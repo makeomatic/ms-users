@@ -7,17 +7,11 @@ const { verifyTotp, generateRecoveryCodes } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
 function storeData(userId, secret, recoveryCodes) {
-  const { redis } = this;
-
-  // stores secret and recoveryCode
-  const redisKeySecret = redisKey(USERS_2FA_SECRET, userId);
-  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, userId);
-
-  // prepare to store
-  return redis
+  // store secret key and recovery codes
+  return this.redis
     .pipeline()
-    .set(redisKeySecret, secret)
-    .sadd(redisKeyRecovery, recoveryCodes)
+    .set(redisKey(USERS_2FA_SECRET, userId), secret)
+    .sadd(redisKey(USERS_2FA_RECOVERY, userId), recoveryCodes)
     .exec()
     .then(handlePipeline)
     .return({ recoveryCodes, enabled: true });

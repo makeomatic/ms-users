@@ -7,8 +7,7 @@ const { verifyTotp, generateRecoveryCodes } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
 function getSecret(userId) {
-  return this.redis
-    .get(redisKey(USERS_2FA_SECRET, userId));
+  return this.redis.get(redisKey(USERS_2FA_SECRET, userId));
 }
 
 function storeData(userId, recoveryCodes) {

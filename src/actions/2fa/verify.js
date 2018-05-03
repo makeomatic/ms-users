@@ -34,7 +34,7 @@ module.exports = function verify({ params }) {
   return Promise
     .bind({ redis }, username)
     .then(getSecret)
-    .spread(secret => verifyTotp(secret, totp, username));
+    .then(secret => verifyTotp(secret, totp, username));
 };
 
 module.exports.allowed = hasTotp;

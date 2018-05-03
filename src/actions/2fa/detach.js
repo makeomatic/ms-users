@@ -11,17 +11,11 @@ function getSecret(userId) {
 }
 
 function removeData(userId) {
-  const { redis } = this;
-
-  // stores secret and recoveryCode
-  const redisKeySecret = redisKey(USERS_2FA_SECRET, userId);
-  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, userId);
-
   // remove keys
-  return redis
+  return this.redis
     .pipeline()
-    .del(redisKeySecret)
-    .del(redisKeyRecovery)
+    .del(redisKey(USERS_2FA_SECRET, userId))
+    .del(redisKey(USERS_2FA_RECOVERY, userId))
     .exec()
     .then(handlePipeline)
     .return({ enabled: false });
@@ -56,7 +50,7 @@ module.exports = function detach({ params }) {
   return Promise
     .bind({ redis }, username)
     .then(getSecret)
-    .spread(secret => verifyTotp(secret, totp, username))
+    .then(secret => verifyTotp(secret, totp, username))
     .then(() => removeData(username));
 };
 

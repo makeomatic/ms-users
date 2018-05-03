@@ -2,7 +2,6 @@ const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const generateRecovery = Promise.promisify(require('2fa').generateBackupCode);
 const redisKey = require('../../utils/key');
-const handlePipeline = require('../../utils/pipelineError');
 const hasTotp = require('../../utils/hasTotp.js');
 const { verifyTotp } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
@@ -14,10 +13,7 @@ function getSecret(userId) {
 
 function storeData(userId, recovery) {
   return this.redis
-    .pipeline()
     .set(redisKey(USERS_2FA_RECOVERY, userId), recovery)
-    .exec()
-    .then(handlePipeline)
     .return({ recovery, regenerated: true });
 }
 

@@ -15,5 +15,5 @@ module.exports.verifyTotp = function verifyTotp(secret, totp, recovery) {
     return Promise.reject(ErrorTotpInvalid);
   }
 
-  return Promise.resolve();
+  return null;
 };

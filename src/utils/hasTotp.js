@@ -1,11 +1,11 @@
-const Errors = require('common-errors');
+const { ErrorTotpRequired } = require('../constants');
 
 function hasTotp({ params, headers }) {
   if (params.totp || headers['X-Auth-TOTP']) {
     return null;
   }
 
-  throw new Errors.HttpStatusError(403, 'TOTP required');
+  throw ErrorTotpRequired;
 }
 
 module.exports = hasTotp;

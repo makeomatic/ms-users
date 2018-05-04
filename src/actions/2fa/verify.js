@@ -5,8 +5,8 @@ const hasTotp = require('../../utils/hasTotp.js');
 const { verifyTotp } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET } = require('../../constants');
 
-function getSecret(userId) {
-  return this.redis.get(redisKey(USERS_2FA_SECRET, userId));
+function getSecret() {
+  return this.redis.get(redisKey(USERS_2FA_SECRET, this.username));
 }
 
 /**
@@ -30,11 +30,12 @@ function getSecret(userId) {
 module.exports = function verify({ params }) {
   const { username, totp } = params;
   const { redis } = this;
+  const ctx = { redis, username, totp };
 
   return Promise
-    .bind({ redis }, username)
+    .bind(ctx)
     .then(getSecret)
-    .then(secret => verifyTotp(secret, totp, username));
+    .then(verifyTotp);
 };
 
 module.exports.allowed = hasTotp;

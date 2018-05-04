@@ -6,25 +6,21 @@ const { USERS_2FA_RECOVERY, ErrorTotpInvalid } = require('../constants');
 /**
  * Performs TOTP verification
  * @param  {string}  secret
- * @param  {string}  totp
- * @param  {string}  userId
  * @returns {Promise}
  */
-module.exports.verifyTotp = function verifyTotp(secret, totp, userId) {
+module.exports.verifyTotp = function verifyTotp(secret) {
+  const { redis, username, totp } = this;
+
   // checks if totp is valid
   if (totp.length === 6 && !tfa.verifyTOTP(secret, totp)) {
     return Promise.reject(ErrorTotpInvalid);
   }
 
-  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, userId);
+  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, username);
 
-  // checks if user provided recovery code instead of totp
-  return this.redis
-    .sismember(redisKeyRecovery, totp)
-    .then((yes) => {
-      if (yes === 0) return Promise.reject(ErrorTotpInvalid);
-
-      return this.redis.srem(redisKeyRecovery, totp);
+  return redis.srem(redisKeyRecovery, totp)
+    .catch({ message: 404 }, () => {
+      return Promise.reject(ErrorTotpInvalid);
     });
 };
 

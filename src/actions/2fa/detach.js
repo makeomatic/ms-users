@@ -1,23 +1,19 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
-const handlePipeline = require('../../utils/pipelineError');
 const hasTotp = require('../../utils/hasTotp.js');
 const { verifyTotp } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
-function getSecret(userId) {
-  return this.redis.get(redisKey(USERS_2FA_SECRET, userId));
+function getSecret() {
+  return this.redis.get(redisKey(USERS_2FA_SECRET, this.username));
 }
 
-function removeData(userId) {
-  // remove keys
+function removeData() {
+  const { username } = this;
+
   return this.redis
-    .pipeline()
-    .del(redisKey(USERS_2FA_SECRET, userId))
-    .del(redisKey(USERS_2FA_RECOVERY, userId))
-    .exec()
-    .then(handlePipeline)
+    .del(redisKey(USERS_2FA_SECRET, username), redisKey(USERS_2FA_RECOVERY, username))
     .return({ enabled: false });
 }
 
@@ -46,12 +42,13 @@ function removeData(userId) {
 module.exports = function detach({ params }) {
   const { username, totp } = params;
   const { redis } = this;
+  const ctx = { redis, username, totp };
 
   return Promise
-    .bind({ redis }, username)
+    .bind(ctx)
     .then(getSecret)
     .then(secret => verifyTotp(secret, totp, username))
-    .then(() => removeData(username));
+    .then(removeData);
 };
 
 module.exports.allowed = hasTotp;

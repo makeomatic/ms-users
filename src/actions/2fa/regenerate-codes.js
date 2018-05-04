@@ -6,12 +6,12 @@ const hasTotp = require('../../utils/hasTotp.js');
 const { verifyTotp, generateRecoveryCodes } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
-function getSecret(userId) {
-  return this.redis.get(redisKey(USERS_2FA_SECRET, userId));
+function getSecret() {
+  return this.redis.get(redisKey(USERS_2FA_SECRET, this.username));
 }
 
-function storeData(userId, recoveryCodes) {
-  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, userId);
+function storeData(recoveryCodes) {
+  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, this.username);
 
   return this.redis
     .pipeline()
@@ -45,13 +45,14 @@ module.exports = function regenerateCodes({ params, auth }) {
   const { totp } = params;
   const { id } = auth.credentials;
   const { redis } = this;
+  const ctx = { redis, username: id, totp };
 
   return Promise
-    .bind({ redis }, id)
+    .bind(ctx)
     .then(getSecret)
     .then(secret => verifyTotp(secret, totp, id))
     .then(generateRecoveryCodes)
-    .then(recoveryCodes => storeData(id, recoveryCodes));
+    .then(storeData);
 };
 
 module.exports.allowed = hasTotp;

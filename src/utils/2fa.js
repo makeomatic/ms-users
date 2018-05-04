@@ -33,11 +33,5 @@ module.exports.verifyTotp = function verifyTotp(secret) {
  * @returns {Promise}
  */
 module.exports.generateRecoveryCodes = function generateRecoveryCodes(count = 10) {
-  const codes = new Array(count);
-
-  for (let i = 0; i < count; i += 1) {
-    codes[i] = uuid();
-  }
-
-  return codes;
+  return Array.from({ length: count }, () => uuid());
 };

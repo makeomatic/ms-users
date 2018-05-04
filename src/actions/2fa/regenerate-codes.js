@@ -1,5 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
+const { hash } = require('../../utils/scrypt');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const hasTotp = require('../../utils/hasTotp.js');
@@ -13,13 +14,15 @@ function getSecret() {
 function storeData(recoveryCodes) {
   const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, this.username);
 
-  return this.redis
-    .pipeline()
-    .del(redisKeyRecovery)
-    .sadd(redisKeyRecovery, recoveryCodes)
-    .exec()
-    .then(handlePipeline)
-    .return({ recoveryCodes, regenerated: true });
+  return Promise.all(recoveryCodes.map(hash))
+    .then(hashes =>
+      this.redis
+        .pipeline()
+        .del(redisKeyRecovery)
+        .sadd(redisKeyRecovery, hashes)
+        .exec()
+        .then(handlePipeline)
+        .return({ recoveryCodes, regenerated: true }));
 }
 
 /**
@@ -50,7 +53,8 @@ module.exports = function regenerateCodes({ params, auth }) {
   return Promise
     .bind(ctx)
     .then(getSecret)
-    .then(secret => verifyTotp(secret, totp, id))
+    .then(verifyTotp)
+    .bind(ctx)
     .then(generateRecoveryCodes)
     .then(storeData);
 };

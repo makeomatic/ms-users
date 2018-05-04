@@ -1,6 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
-const Promise = require('bluebird');
-const generateSecret = Promise.promisify(require('2fa').generateKey);
+const authenticator = require('otplib/authenticator');
 
 /**
  * @api {amqp} <prefix>.generate-key Generates secret key
@@ -16,8 +15,7 @@ const generateSecret = Promise.promisify(require('2fa').generateKey);
  *
  */
 module.exports = function generateKey() {
-  return generateSecret()
-    .then(secret => ({ secret }));
+  return { secret: authenticator.generateSecret() };
 };
 
 module.exports.auth = 'httpBearer';

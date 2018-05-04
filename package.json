@@ -28,7 +28,6 @@
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
-    "2fa": "^0.1.2",
     "@microfleet/core": "^10.3.0",
     "@microfleet/transport-amqp": "^13.0.1",
     "babel-runtime": "^6.25.0",
@@ -56,6 +55,7 @@
     "ms-mailer-templates": "^1.7.4",
     "ms-token": "^2.0.0",
     "ms-validation": "^7.0.0",
+    "otplib": "^9.0.0",
     "password-generator": "^2.2.0",
     "redis-filtered-sort": "^2.3.0",
     "request": "^2.85.0",

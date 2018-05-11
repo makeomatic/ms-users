@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
-const hasTotp = require('../../utils/hasTotp.js');
+const { hasTotp } = require('../../utils/totp.js');
 const { verifyTotp } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET } = require('../../constants');
 

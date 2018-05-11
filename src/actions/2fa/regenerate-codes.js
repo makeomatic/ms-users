@@ -3,7 +3,7 @@ const Promise = require('bluebird');
 const { hash } = require('../../utils/scrypt');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const hasTotp = require('../../utils/hasTotp.js');
+const { hasTotp } = require('../../utils/totp.js');
 const { verifyTotp, generateRecoveryCodes } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 

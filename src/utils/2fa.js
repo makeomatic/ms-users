@@ -1,37 +1,58 @@
-const Promise = require('bluebird');
-const authenticator = require('otplib/authenticator');
 const uuid = require('uuid/v4');
+const { check } = require('otplib/authenticator');
 const redisKey = require('./key');
 const { hash } = require('./scrypt');
-const { USERS_2FA_RECOVERY, ErrorTotpInvalid } = require('../constants');
-
-/**
- * Performs TOTP verification
- * @param  {string}  secret
- * @returns {Promise}
- */
-module.exports.verifyTotp = function verifyTotp(secret) {
-  const { redis, username, totp } = this;
-
-  // checks if totp is valid
-  if (totp.length === 6 && !authenticator.check(totp, secret)) {
-    return Promise.reject(ErrorTotpInvalid);
-  }
-
-  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, username);
-
-  return hash(totp)
-    .then(recoveryHash => redis.srem(redisKeyRecovery, recoveryHash))
-    .catch({ message: 404 }, () => {
-      return Promise.reject(ErrorTotpInvalid);
-    });
-};
+const {
+  ErrorTotpRequired,
+  ErrorTotpInvalid,
+  USERS_2FA_SECRET,
+  USERS_2FA_RECOVERY,
+} = require('../constants');
 
 /**
  * Generates recovery codes
  * @param  {number}  count
- * @returns {Promise}
+ * @returns {Array}
  */
 module.exports.generateRecoveryCodes = function generateRecoveryCodes(count = 10) {
   return Array.from({ length: count }, () => uuid());
+};
+
+/**
+ * Performs 2fa check and TOTP verification
+ * @param  {Object}  request
+ * @returns {null}
+ */
+module.exports.checkTotp = async function checkTotp({ action, params, headers }) {
+  if (!action.tfa) {
+    return null;
+  }
+
+  const { username } = params;
+  const { redis } = this;
+  const secret = await redis.get(redisKey(USERS_2FA_SECRET, username));
+
+  if (!secret) {
+    return null;
+  }
+
+  const totp = params.totp || headers['X-Auth-TOTP'];
+
+  if (!totp) {
+    throw ErrorTotpRequired;
+  }
+
+  if (totp.length === 6 && !check(totp, secret)) {
+    throw ErrorTotpInvalid;
+  }
+
+  const recoveryHash = await hash(totp);
+
+  await redis
+    .srem(redisKey(USERS_2FA_RECOVERY, username), recoveryHash)
+    .catch({ message: 404 }, () => {
+      throw ErrorTotpInvalid;
+    });
+
+  return null;
 };

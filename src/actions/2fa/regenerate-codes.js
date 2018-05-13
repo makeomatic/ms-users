@@ -3,13 +3,8 @@ const Promise = require('bluebird');
 const { hash } = require('../../utils/scrypt');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const { hasTotp } = require('../../utils/totp.js');
-const { verifyTotp, generateRecoveryCodes } = require('../../utils/2fa.js');
-const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
-
-function getSecret() {
-  return this.redis.get(redisKey(USERS_2FA_SECRET, this.username));
-}
+const { checkTotp, generateRecoveryCodes } = require('../../utils/2fa.js');
+const { USERS_2FA_RECOVERY } = require('../../constants');
 
 function storeData(recoveryCodes) {
   const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, this.username);
@@ -44,21 +39,18 @@ function storeData(recoveryCodes) {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function regenerateCodes({ params, auth }) {
-  const { totp } = params;
+module.exports = function regenerateCodes({ auth }) {
   const { id } = auth.credentials;
   const { redis } = this;
-  const ctx = { redis, username: id, totp };
+  const ctx = { redis, username: id };
 
   return Promise
-    .bind(ctx)
-    .then(getSecret)
-    .then(verifyTotp)
     .bind(ctx)
     .then(generateRecoveryCodes)
     .then(storeData);
 };
 
-module.exports.allowed = hasTotp;
+module.exports.tfa = true;
+module.exports.allowed = checkTotp;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

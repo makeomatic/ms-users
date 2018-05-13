@@ -1,13 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const redisKey = require('../../utils/key');
-const { hasTotp } = require('../../utils/totp.js');
-const { verifyTotp } = require('../../utils/2fa.js');
-const { USERS_2FA_SECRET } = require('../../constants');
-
-function getSecret() {
-  return this.redis.get(redisKey(USERS_2FA_SECRET, this.username));
-}
+const { checkTotp } = require('../../utils/2fa.js');
 
 /**
  * @api {amqp} <prefix>.verify Verify TOTP
@@ -27,16 +20,10 @@ function getSecret() {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function verify({ params }) {
-  const { username, totp } = params;
-  const { redis } = this;
-  const ctx = { redis, username, totp };
-
-  return Promise
-    .bind(ctx)
-    .then(getSecret)
-    .then(verifyTotp);
+module.exports = function verify() {
+  return Promise.resolve({ valid: true });
 };
 
-module.exports.allowed = hasTotp;
+module.exports.tfa = true;
+module.exports.allowed = checkTotp;
 module.exports.transports = [ActionTransport.amqp];

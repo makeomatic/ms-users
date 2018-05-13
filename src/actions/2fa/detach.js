@@ -1,18 +1,13 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
-const { hasTotp } = require('../../utils/totp.js');
-const { verifyTotp } = require('../../utils/2fa.js');
+const { checkTotp } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
-function getSecret() {
-  return this.redis.get(redisKey(USERS_2FA_SECRET, this.username));
-}
-
 function removeData() {
-  const { username } = this;
+  const { username, redis } = this;
 
-  return this.redis
+  return redis
     .del(redisKey(USERS_2FA_SECRET, username), redisKey(USERS_2FA_RECOVERY, username))
     .return({ enabled: false });
 }
@@ -40,17 +35,16 @@ function removeData() {
  *
  */
 module.exports = function detach({ params }) {
-  const { username, totp } = params;
+  const { username } = params;
   const { redis } = this;
-  const ctx = { redis, username, totp };
+  const ctx = { redis, username };
 
   return Promise
     .bind(ctx)
-    .then(getSecret)
-    .then(secret => verifyTotp(secret, totp, username))
     .then(removeData);
 };
 
-module.exports.allowed = hasTotp;
+module.exports.tfa = true;
+module.exports.allowed = checkTotp;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

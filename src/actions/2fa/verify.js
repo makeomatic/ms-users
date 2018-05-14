@@ -1,6 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
-const Promise = require('bluebird');
-const { checkTotp } = require('../../utils/2fa.js');
+const { check2FA } = require('../../utils/2fa.js');
 
 /**
  * @api {amqp} <prefix>.verify Verify TOTP
@@ -21,9 +20,9 @@ const { checkTotp } = require('../../utils/2fa.js');
  *
  */
 module.exports = function verify() {
-  return Promise.resolve({ valid: true });
+  return { valid: true };
 };
 
 module.exports.tfa = true;
-module.exports.allowed = checkTotp;
+module.exports.allowed = check2FA;
 module.exports.transports = [ActionTransport.amqp];

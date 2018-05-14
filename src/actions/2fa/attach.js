@@ -3,7 +3,7 @@ const Promise = require('bluebird');
 const { hash } = require('../../utils/scrypt');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const { checkTotp, generateRecoveryCodes } = require('../../utils/2fa.js');
+const { check2FA, generateRecoveryCodes } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
 function storeData(recoveryCodes) {
@@ -54,6 +54,6 @@ module.exports = function attach({ params }) {
 };
 
 module.exports.tfa = true;
-module.exports.allowed = checkTotp;
+module.exports.allowed = check2FA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

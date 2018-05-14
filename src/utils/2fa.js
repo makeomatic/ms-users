@@ -7,6 +7,8 @@ const {
   ErrorTotpInvalid,
   USERS_2FA_SECRET,
   USERS_2FA_RECOVERY,
+  ErrorAlreadyEnabled,
+  Error2FADisabled,
 } = require('../constants');
 
 /**
@@ -14,16 +16,59 @@ const {
  * @param  {number}  length
  * @returns {Array}
  */
-module.exports.generateRecoveryCodes = function generateRecoveryCodes(length = 10) {
+function generateRecoveryCodes(length = 10) {
   return Array.from({ length }, () => uuid());
-};
+}
+
+/**
+ * Checks if 2FA is enabled
+ * @returns {Boolean}
+ */
+async function is2FAEnabled() {
+  const { redis, username } = this;
+  const secret = await redis.get(redisKey(USERS_2FA_SECRET, username));
+
+  if (secret) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Throws error if 2FA is enabled
+ * @returns {null}
+ */
+async function throwIfEnabled() {
+  const enabled = await is2FAEnabled.call(this);
+
+  if (enabled) {
+    throw ErrorAlreadyEnabled;
+  }
+
+  return null;
+}
+
+/**
+ * Throws error if 2FA is disabled
+ * @returns {null}
+ */
+async function throwIfDisabled() {
+  const enabled = await is2FAEnabled.call(this);
+
+  if (!enabled) {
+    throw Error2FADisabled;
+  }
+
+  return null;
+}
 
 /**
  * Performs 2fa check and TOTP verification
  * @param  {Object}  request
  * @returns {null}
  */
-module.exports.check2FA = async function check2FA({ action, params, headers }) {
+async function check2FA({ action, params, headers }) {
   if (!action.tfa) {
     return null;
   }
@@ -65,4 +110,10 @@ module.exports.check2FA = async function check2FA({ action, params, headers }) {
   }
 
   return null;
-};
+}
+
+module.exports.generateRecoveryCodes = generateRecoveryCodes;
+module.exports.is2FAEnabled = is2FAEnabled;
+module.exports.throwIfEnabled = throwIfEnabled;
+module.exports.throwIfDisabled = throwIfDisabled;
+module.exports.check2FA = check2FA;

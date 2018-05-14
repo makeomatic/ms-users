@@ -1,5 +1,6 @@
+const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
-const { check2FA } = require('../../utils/2fa.js');
+const { throwIfDisabled, check2FA } = require('../../utils/2fa.js');
 
 /**
  * @api {amqp} <prefix>.verify Verify TOTP
@@ -19,8 +20,15 @@ const { check2FA } = require('../../utils/2fa.js');
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function verify() {
-  return { valid: true };
+module.exports = function verify({ params }) {
+  const { redis } = this;
+  const { username } = params;
+  const ctx = { redis, username };
+
+  return Promise
+    .bind(ctx)
+    .then(throwIfDisabled)
+    .then(() => ({ valid: true }));
 };
 
 module.exports.tfa = true;

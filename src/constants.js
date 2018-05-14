@@ -45,6 +45,8 @@ module.exports = exports = {
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
   ErrorTotpRequired: new HttpStatusError(403, 'TOTP required'),
   ErrorTotpInvalid: new HttpStatusError(403, 'TOTP invalid'),
+  ErrorAlreadyEnabled: new HttpStatusError(409, '2FA already enabled'),
+  Error2FADisabled: new HttpStatusError(412, '2FA dsiabled'),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
@@ -75,6 +77,8 @@ module.exports = exports = {
 exports.ErrorConflictUserExists.code = 'E_USERNAME_CONFLICT';
 exports.ErrorTotpRequired.code = 'E_TOTP_REQUIRED';
 exports.ErrorTotpInvalid.code = 'E_TOTP_INVALID';
+exports.ErrorAlreadyEnabled.code = 'E_2FA_ENABLED';
+exports.Error2FADisabled.code = 'E_2FA_DISABLED';
 
 exports.SSO_PROVIDERS = [
   exports.USERS_SSO_FACEBOOK_FIELD,

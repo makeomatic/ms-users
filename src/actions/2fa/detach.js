@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
-const { check2FA } = require('../../utils/2fa.js');
+const { throwIfDisabled, check2FA } = require('../../utils/2fa.js');
 const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
 
 function removeData() {
@@ -41,6 +41,7 @@ module.exports = function detach({ params }) {
 
   return Promise
     .bind(ctx)
+    .then(throwIfDisabled)
     .then(removeData);
 };
 

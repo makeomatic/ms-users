@@ -66,6 +66,11 @@ module.exports = exports = {
   CHALLENGE_TYPE_EMAIL: 'email',
   CHALLENGE_TYPE_PHONE: 'phone',
 
+  // 2FA action types
+  TFA_TYPE_REQUIRED: Symbol('required'),
+  TFA_TYPE_OPTIONAL: Symbol('optional'),
+  TFA_TYPE_DISABLED: Symbol('disabled'),
+
   // lock names
   lockAlias: alias => `users:alias:${alias}`,
   lockRegister: username => `users:register:${username}`,

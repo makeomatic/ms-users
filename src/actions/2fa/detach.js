@@ -2,7 +2,11 @@ const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
 const { check2FA } = require('../../utils/2fa.js');
-const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
+const {
+  USERS_2FA_SECRET,
+  USERS_2FA_RECOVERY,
+  TFA_TYPE_REQUIRED,
+} = require('../../constants');
 
 function removeData() {
   const { username, redis } = this;
@@ -44,7 +48,7 @@ module.exports = function detach({ params }) {
     .then(removeData);
 };
 
-module.exports.tfa = 'required';
+module.exports.tfa = TFA_TYPE_REQUIRED;
 module.exports.allowed = check2FA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

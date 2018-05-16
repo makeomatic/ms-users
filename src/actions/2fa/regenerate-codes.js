@@ -4,7 +4,7 @@ const { hash } = require('../../utils/scrypt');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const { check2FA, generateRecoveryCodes } = require('../../utils/2fa.js');
-const { USERS_2FA_RECOVERY } = require('../../constants');
+const { USERS_2FA_RECOVERY, TFA_TYPE_REQUIRED } = require('../../constants');
 
 function storeData(recoveryCodes) {
   const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, this.username);
@@ -50,7 +50,7 @@ module.exports = function regenerateCodes({ auth }) {
     .then(storeData);
 };
 
-module.exports.tfa = 'required';
+module.exports.tfa = TFA_TYPE_REQUIRED;
 module.exports.allowed = check2FA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

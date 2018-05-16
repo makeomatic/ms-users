@@ -8,6 +8,9 @@ const {
   ErrorTotpInvalid,
   USERS_2FA_SECRET,
   USERS_2FA_RECOVERY,
+  TFA_TYPE_REQUIRED,
+  TFA_TYPE_OPTIONAL,
+  TFA_TYPE_DISABLED,
 } = require('../constants');
 
 /**
@@ -52,12 +55,12 @@ async function check2FA({ action, params, headers }) {
 
   if (!secret) {
     // 2FA is not enabled but is optional, pass through
-    if (action.tfa === 'optional') {
+    if (action.tfa === TFA_TYPE_OPTIONAL) {
       return null;
     }
 
     // 2FA is not enabled but is required, throw
-    if (action.tfa === 'required') {
+    if (action.tfa === TFA_TYPE_REQUIRED) {
       throw new HttpStatusError(412, '2FA disabled');
     }
 
@@ -65,7 +68,7 @@ async function check2FA({ action, params, headers }) {
     // and action.2fa === 'disabled'
     // so user must provide secret in request
     secret = params.secret;
-  } else if (action.tfa === 'disabled') {
+  } else if (action.tfa === TFA_TYPE_DISABLED) {
     // 2FA is enabled but should be disabled, throw
     throw new HttpStatusError(409, '2FA already enabled');
   }

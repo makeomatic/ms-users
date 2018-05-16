@@ -4,7 +4,11 @@ const { hash } = require('../../utils/scrypt');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const { check2FA, generateRecoveryCodes } = require('../../utils/2fa.js');
-const { USERS_2FA_SECRET, USERS_2FA_RECOVERY } = require('../../constants');
+const {
+  USERS_2FA_SECRET,
+  USERS_2FA_RECOVERY,
+  TFA_TYPE_DISABLED,
+} = require('../../constants');
 
 function storeData(recoveryCodes) {
   const { redis, username, secret } = this;
@@ -53,7 +57,7 @@ module.exports = function attach({ params }) {
     .then(storeData);
 };
 
-module.exports.tfa = 'disabled';
+module.exports.tfa = TFA_TYPE_DISABLED;
 module.exports.allowed = check2FA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];

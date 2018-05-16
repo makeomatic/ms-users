@@ -1,5 +1,6 @@
 const uuid = require('uuid/v4');
 const { check } = require('otplib/authenticator');
+const { HttpStatusError } = require('common-errors');
 const redisKey = require('./key');
 const { hash } = require('./scrypt');
 const {
@@ -7,8 +8,6 @@ const {
   ErrorTotpInvalid,
   USERS_2FA_SECRET,
   USERS_2FA_RECOVERY,
-  ErrorAlreadyEnabled,
-  Error2FADisabled,
 } = require('../constants');
 
 /**
@@ -29,38 +28,10 @@ async function is2FAEnabled() {
   const secret = await redis.get(redisKey(USERS_2FA_SECRET, username));
 
   if (secret) {
-    return true;
+    return secret;
   }
 
   return false;
-}
-
-/**
- * Throws error if 2FA is enabled
- * @returns {null}
- */
-async function throwIfEnabled() {
-  const enabled = await is2FAEnabled.call(this);
-
-  if (enabled) {
-    throw ErrorAlreadyEnabled;
-  }
-
-  return null;
-}
-
-/**
- * Throws error if 2FA is disabled
- * @returns {null}
- */
-async function throwIfDisabled() {
-  const enabled = await is2FAEnabled.call(this);
-
-  if (!enabled) {
-    throw Error2FADisabled;
-  }
-
-  return null;
 }
 
 /**
@@ -76,13 +47,32 @@ async function check2FA({ action, params, headers }) {
   const { username } = params;
   const { redis } = this;
 
-  // if user performs attach action we don't store secret yet
-  // but user should provide it in params
-  const secret = await redis.get(redisKey(USERS_2FA_SECRET, username)) || params.secret;
+  // checks if 2FA is already enabled
+  let secret = await is2FAEnabled.call(this);
 
-  // pass through if we don't have secret (2fa disabled)
   if (!secret) {
-    return null;
+    // 2FA is not enabled but is optional, pass through
+    if (action.tfa === 'optional') {
+      return null;
+    }
+
+    // 2FA is not enabled but is required, throw
+    if (action.tfa === 'required') {
+      throw new HttpStatusError(412, '2FA disabled');
+    }
+
+    // if we reached this point 2FA is disabled
+    // and action.2fa === 'disabled'
+    // so user must provide secret in request
+    secret = params.secret;
+  } else if (action.tfa === 'disabled') {
+    // 2FA is enabled but should be disabled, throw
+    throw new HttpStatusError(409, '2FA already enabled');
+  }
+
+  // if still no secret we can't perform futher checks
+  if (!secret) {
+    throw new HttpStatusError(403, 'Secret required');
   }
 
   const totp = params.totp || headers['X-Auth-TOTP'];
@@ -114,6 +104,4 @@ async function check2FA({ action, params, headers }) {
 
 module.exports.generateRecoveryCodes = generateRecoveryCodes;
 module.exports.is2FAEnabled = is2FAEnabled;
-module.exports.throwIfEnabled = throwIfEnabled;
-module.exports.throwIfDisabled = throwIfDisabled;
 module.exports.check2FA = check2FA;

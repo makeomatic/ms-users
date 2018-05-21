@@ -1,5 +1,6 @@
 const uuid = require('uuid/v4');
-const { check } = require('otplib/authenticator');
+const authenticator = require('otplib/authenticator');
+const crypto = require('crypto');
 const { HttpStatusError } = require('common-errors');
 const redisKey = require('./key');
 const { hash } = require('./scrypt');
@@ -12,6 +13,8 @@ const {
   TFA_TYPE_OPTIONAL,
   TFA_TYPE_DISABLED,
 } = require('../constants');
+
+authenticator.options = { crypto };
 
 /**
  * Generates recovery codes
@@ -26,8 +29,9 @@ function generateRecoveryCodes(length = 10) {
  * Checks if 2FA is enabled
  * @returns {Boolean}
  */
-async function is2FAEnabled() {
-  const { redis, username } = this;
+async function is2FAEnabled(username) {
+  const { redis } = this;
+
   const secret = await redis.get(redisKey(USERS_2FA_SECRET, username));
 
   if (secret) {
@@ -51,7 +55,7 @@ async function check2FA({ action, params, headers }) {
   const { redis } = this;
 
   // checks if 2FA is already enabled
-  let secret = await is2FAEnabled.call(this);
+  let secret = await is2FAEnabled.call(this, username);
 
   if (!secret) {
     // 2FA is not enabled but is optional, pass through
@@ -84,8 +88,15 @@ async function check2FA({ action, params, headers }) {
     throw ErrorTotpRequired;
   }
 
-  // if totp value is 6-digits and invalid throw error
-  if (totp.length === 6 && !check(totp, secret)) {
+  // totp value is 6-digits means user
+  // provided totp (not recovery code)
+  if (totp.length === 6) {
+    // valid, pass through
+    if (authenticator.check(totp, secret)) {
+      return null;
+    }
+
+    // invalid, throw
     throw ErrorTotpInvalid;
   }
 
@@ -95,7 +106,7 @@ async function check2FA({ action, params, headers }) {
 
   // and try to remove it from array of hashed codes
   const deleted = await redis
-    .srem(redisKey(USERS_2FA_RECOVERY, username), recoveryHash);
+    .srem(redisKey(USERS_2FA_RECOVERY, username), recoveryHash.toString());
 
   // if nothing has been removed means code is invalid, throw error
   if (deleted === 0) {

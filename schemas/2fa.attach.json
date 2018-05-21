@@ -18,7 +18,7 @@
         "totp": {
             "type": "string",
             "minLength": 6,
-            "maxLength": 6
+            "maxLength": 36
         },
         "remoteip": {
             "type": "string",

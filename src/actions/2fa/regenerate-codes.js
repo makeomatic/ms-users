@@ -35,14 +35,15 @@ function storeData(recoveryCodes) {
  * @apiHeaderExample X-Auth-TOTP-Example:
  *     "X-Auth-TOTP: 123456"
  *
+ * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {Number} [totp] - time-based one time password or recoveryCode
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function regenerateCodes({ auth }) {
-  const { id } = auth.credentials;
+module.exports = function regenerateCodes({ params }) {
+  const { username } = params;
   const { redis } = this;
-  const ctx = { redis, username: id };
+  const ctx = { redis, username };
 
   return Promise
     .bind(ctx)

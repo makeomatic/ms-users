@@ -1,11 +1,18 @@
 {
-    "$id": "2fa.regenerate-code",
+    "$id": "2fa.regenerate-codes",
     "type": "object",
+    "required": [
+        "username"
+    ],
     "properties": {
+      "username": {
+          "type": "string",
+          "minLength": 1
+      },
         "totp": {
             "type": "string",
             "minLength": 6,
-            "maxLength": 6
+            "maxLength": 36
         },
         "remoteip": {
             "type": "string",

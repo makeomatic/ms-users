@@ -9,7 +9,7 @@ module.exports = [{
     const params = request.params ? request.params : request.query;
 
     // in case of http transport inject username inside params
-    if (isTfaRoute(request.route) || request.transport === ActionTransport.http) {
+    if (isTfaRoute(request.route) && request.transport === ActionTransport.http) {
       params.username = request.auth.credentials.id;
     }
 

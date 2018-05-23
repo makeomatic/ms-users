@@ -1,6 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const { hashString } = require('../../utils/scrypt');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const { check2FA, generateRecoveryCodes } = require('../../utils/2fa.js');
@@ -13,15 +12,13 @@ const {
 function storeData(recoveryCodes) {
   const { redis, username, secret } = this;
 
-  return Promise.all(recoveryCodes.map(code => hashString(code, 'hex')))
-    .then(hashes =>
-      redis
-        .pipeline()
-        .set(redisKey(USERS_2FA_SECRET, username), secret)
-        .sadd(redisKey(USERS_2FA_RECOVERY, username), hashes)
-        .exec()
-        .then(handlePipeline)
-        .return({ recoveryCodes, enabled: true }));
+  return redis
+    .pipeline()
+    .set(redisKey(USERS_2FA_SECRET, username), secret)
+    .sadd(redisKey(USERS_2FA_RECOVERY, username), recoveryCodes)
+    .exec()
+    .then(handlePipeline)
+    .return({ recoveryCodes, enabled: true });
 }
 
 /**

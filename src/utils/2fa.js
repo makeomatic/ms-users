@@ -1,10 +1,8 @@
-const Promise = require('bluebird');
 const uuid = require('uuid/v4');
 const authenticator = require('otplib/authenticator');
 const crypto = require('crypto');
 const { HttpStatusError } = require('common-errors');
 const redisKey = require('./key');
-const { verify } = require('./scrypt');
 const {
   ErrorTotpRequired,
   ErrorTotpInvalid,
@@ -16,10 +14,6 @@ const {
 } = require('../constants');
 
 authenticator.options = { crypto };
-
-const verifyToken = totp => token =>
-  verify(Buffer.from(token, 'hex'), totp)
-    .return(token);
 
 /**
  * Generates recovery codes
@@ -105,21 +99,16 @@ async function check2FA({ action, params, headers }) {
     throw ErrorTotpInvalid;
   }
 
-  // get all recovery codes hashes
-  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, username);
-  const hashes = await redis.smembers(redisKeyRecovery);
+  // non 6-digits totp value means user
+  // may be provided recovery key in place of totp
 
-  // check if one of them is valid
-  const validHash = await Promise
-    .any(hashes.map(verifyToken(totp)))
-    .catch(() => {
-      throw ErrorTotpInvalid;
-    });
 
-  // and try to remove valid hash from array of hashes
-  const deleted = await redis.srem(redisKeyRecovery, validHash);
+  // user may provide recovery key instead of totp
+  // check it by trying to remove from set of codes
+  const deleted = await redis.srem(redisKey(USERS_2FA_RECOVERY, username), totp);
 
-  // if nothing has been removed means code is invalid, throw error
+  // if nothing has been removed means code
+  // is invalid, throw error
   if (deleted === 0) {
     throw ErrorTotpInvalid;
   }

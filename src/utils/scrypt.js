@@ -8,17 +8,12 @@ const { USERS_INCORRECT_PASSWORD } = require('../constants');
 // setup scrypt
 const scryptParams = scrypt.paramsSync(0.1, bytes('32mb'));
 
-function hashPassword(password) {
+exports.hash = function hashPassword(password) {
   if (!password) {
     throw new Errors.HttpStatusError(500, 'invalid password passed');
   }
 
   return scrypt.kdfAsync(Buffer.from(password), scryptParams);
-}
-
-exports.hashString = function hashStringPassword(password, encoding) {
-  return hashPassword(password)
-    .then(res => res.toString(encoding));
 };
 
 exports.verify = function verifyPassword(hash, password) {
@@ -41,5 +36,4 @@ exports.verify = function verifyPassword(hash, password) {
     });
 };
 
-exports.hash = hashPassword;
 exports.scrypt = scrypt;

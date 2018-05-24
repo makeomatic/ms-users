@@ -6,6 +6,10 @@ const isTfaRoute = route => /2fa/.test(route);
 module.exports = [{
   point: 'postAuth',
   handler: function postAuthHandler(error, request) {
+    if (!request) {
+      return Promise.reject(error);
+    }
+
     const params = request.params ? request.params : request.query;
 
     // in case of http transport inject username inside params

@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
 
 const isTfaRoute = route => /2fa/.test(route);
@@ -6,8 +5,10 @@ const isTfaRoute = route => /2fa/.test(route);
 module.exports = [{
   point: 'postAuth',
   handler: function postAuthHandler(error, request) {
-    if (!request) {
-      return Promise.reject(error);
+    const result = [error, request];
+
+    if (error) {
+      return result;
     }
 
     const params = request.params ? request.params : request.query;
@@ -17,6 +18,6 @@ module.exports = [{
       params.username = request.auth.credentials.id;
     }
 
-    return Promise.resolve([error, request]);
+    return result;
   },
 }];

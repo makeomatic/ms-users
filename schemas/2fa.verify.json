@@ -1,0 +1,23 @@
+{
+    "$id": "2fa.verify",
+    "type": "object",
+    "required": [
+        "username",
+        "totp"
+    ],
+    "properties": {
+        "username": {
+            "type": "string",
+            "minLength": 1
+        },
+        "totp": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 36
+        },
+        "remoteip": {
+            "type": "string",
+            "format": "ipv4"
+        }
+    }
+}

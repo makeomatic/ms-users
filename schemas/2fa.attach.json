@@ -1,0 +1,28 @@
+{
+    "$id": "2fa.attach",
+    "type": "object",
+    "required": [
+        "username",
+        "secret"
+    ],
+    "properties": {
+        "username": {
+            "type": "string",
+            "minLength": 1
+        },
+        "secret": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 32
+        },
+        "totp": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 36
+        },
+        "remoteip": {
+            "type": "string",
+            "format": "ipv4"
+        }
+    }
+}

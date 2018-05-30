@@ -1,0 +1,28 @@
+{
+    "$id": "2fa.detach",
+    "type": "object",
+    "required": [
+        "username",
+        "totp"
+    ],
+    "properties": {
+        "username": {
+            "type": "string",
+            "minLength": 1
+        },
+        "totp": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 36
+        },
+        "recoveryCode": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 8
+        },
+        "remoteip": {
+            "type": "string",
+            "format": "ipv4"
+        }
+    }
+}

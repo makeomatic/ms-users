@@ -25,6 +25,12 @@ const auditLog = routerExtension('audit/log');
 const preResponse = require('../auth/oauth/preResponse');
 
 /**
+ * Performs
+ * @type {Function}
+ */
+const postAuth = require('../auth/postAuth');
+
+/**
  * Specifies configuration for the router of the microservice
  * @type {Object}
  */
@@ -35,8 +41,8 @@ exports.router = {
     transports: [ActionTransport.amqp, ActionTransport.http, ActionTransport.internal],
   },
   extensions: {
-    enabled: ['postRequest', 'preRequest', 'preResponse'],
-    register: [autoSchema, preResponse, auditLog],
+    enabled: ['preRequest', 'postRequest', 'postAuth', 'preResponse'],
+    register: [autoSchema, preResponse, auditLog, postAuth],
   },
   auth: {
     strategies: {

@@ -1,10 +1,11 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../utils/userData');
-const isActive = require('../utils/isActive.js');
-const isBanned = require('../utils/isBanned.js');
-const key = require('../utils/key.js');
-const handlePipeline = require('../utils/pipelineError.js');
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
+const key = require('../utils/key');
+const handlePipeline = require('../utils/pipelineError');
 const {
   USERS_DATA,
   USERS_METADATA,
@@ -13,7 +14,7 @@ const {
   USERS_ALIAS_FIELD,
   USERS_PUBLIC_INDEX,
   lockAlias,
-} = require('../constants.js');
+} = require('../constants');
 
 /**
  * @api {amqp} <prefix>.alias Add alias to user
@@ -29,66 +30,61 @@ const {
  * @apiParam (Payload) {String{3..15}} alias - chosen alias
  *
  */
-module.exports = function assignAlias(request) {
+async function assignAlias({ params }) {
   const { redis, config: { jwt: { defaultAudience } } } = this;
-  const { username, internal } = request.params;
+  const { username, internal } = params;
 
   // lowercase alias
-  const alias = request.params.alias.toLowerCase();
+  const alias = params.alias.toLowerCase();
 
-  return Promise
+  const data = await Promise
     .bind(this, username)
     .then(getInternalData)
-    .tap(isBanned)
-    .then((data) => {
-      if (data[USERS_ALIAS_FIELD]) {
-        throw new Errors.HttpStatusError(417, 'alias is already assigned');
-      }
+    .tap(isBanned);
 
-      const userId = data[USERS_ID_FIELD];
+  if (data[USERS_ALIAS_FIELD]) {
+    return Promise.reject(new Errors.HttpStatusError(417, 'alias is already assigned'));
+  }
 
-      // perform set alias
-      const setAlias = active => redis
-        .hsetnx(USERS_ALIAS_TO_ID, alias, userId)
-        .then((assigned) => {
-          if (assigned === 0) {
-            const err = new Errors.HttpStatusError(409, `"${alias}" already exists`);
-            err.code = 'E_ALIAS_CONFLICT';
-            return Promise.reject(err);
-          }
+  // determine if user is active
+  const userId = data[USERS_ID_FIELD];
+  const activeUser = isActive(data, true);
 
-          const pipeline = redis
-            .pipeline()
-            .hset(key(userId, USERS_DATA), USERS_ALIAS_FIELD, alias)
-            .hset(key(userId, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias));
+  if (!activeUser && !internal) {
+    return Promise.reject(new Errors.HttpStatusError(412, 'Account hasn\'t been activated'));
+  }
 
-          if (active) {
-            pipeline.sadd(USERS_PUBLIC_INDEX, username);
-          }
+  let lock;
+  if (!internal) {
+    // if we can't claim lock - must fail
+    lock = await this.dlock.once(lockAlias(alias));
+  }
 
-          return pipeline
-            .exec()
-            .then(handlePipeline);
-        });
+  try {
+    const assigned = await redis.hsetnx(USERS_ALIAS_TO_ID, alias, userId);
 
-      // determine if user is active
-      const activeUser = isActive(data, true);
+    if (assigned === 0) {
+      const err = new Errors.HttpStatusError(409, `"${alias}" already exists`);
+      err.code = 'E_ALIAS_CONFLICT';
+      return Promise.reject(err);
+    }
 
-      // if we access assign alias from register user
-      // we do not need the lock
-      if (internal) {
-        return setAlias(activeUser);
-      } else if (!activeUser) {
-        throw new Errors.HttpStatusError(412, 'Account hasn\'t been activated');
-      }
+    const pipeline = redis.pipeline([
+      ['hset', key(userId, USERS_DATA), USERS_ALIAS_FIELD, alias],
+      ['hset', key(userId, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias)],
+    ]);
 
-      return this.dlock
-        .once(lockAlias(alias))
-        .then(lock => setAlias(activeUser).finally(() => {
-          lock.release().reflect();
-          return null;
-        }));
-    });
-};
+    if (activeUser) {
+      pipeline.sadd(USERS_PUBLIC_INDEX, username);
+    }
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+    return pipeline.exec().then(handlePipeline);
+  } finally {
+    // release lock, but do not wait for it to return result
+    if (lock !== undefined) lock.release().reflect();
+  }
+}
+
+assignAlias.transports = [ActionTransport.amqp, ActionTransport.internal];
+
+module.exports = assignAlias;

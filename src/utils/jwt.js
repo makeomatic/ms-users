@@ -16,7 +16,7 @@ const {
   USERS_MALFORMED_TOKEN,
   BEARER_USERNAME_FIELD,
   BEARER_LEGACY_USERNAME_FIELD,
-} = require('../constants.js');
+} = require('../constants');
 
 // cache this to not recreate all the time
 const mapJWT = props => ({

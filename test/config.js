@@ -124,11 +124,10 @@ function initFakeAccounts() {
   return this.users.initFakeAccounts();
 }
 
-function clearRedis() {
+async function clearRedis() {
   const nodes = this.users.redis.nodes('master');
   return Promise
-    .map(nodes, node => node.flushdb())
-    .reflect()
+    .map(nodes, node => node.flushdb().reflect())
     .finally(() => this.users.close().reflect())
     .finally(() => {
       this.users = null;

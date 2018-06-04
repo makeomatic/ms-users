@@ -1,9 +1,10 @@
+const Promise = require('bluebird');
+const { ActionTransport } = require('@microfleet/core');
 const challenge = require('../utils/challenges/challenge');
 const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const hasNotPassword = require('../utils/hasNotPassword');
-const Promise = require('bluebird');
 const { USERS_ACTION_DISPOSABLE_PASSWORD, USERS_USERNAME_FIELD } = require('../constants');
 
 /**
@@ -42,4 +43,4 @@ module.exports = function disposablePassword(request) {
     });
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

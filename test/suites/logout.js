@@ -45,8 +45,6 @@ describe('#logout', function logoutSuite() {
       .reflect()
       .then(inspectPromise(false));
 
-    console.log(login);
-
     assert.equal(login.name, 'HttpStatusError');
     assert.equal(login.statusCode, 403);
     assert.ok(/token has expired or was forged/.test(login.message));

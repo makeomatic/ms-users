@@ -8,11 +8,13 @@
     "properties": {
         "jwt": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 256
         },
         "audience": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 128
         }
     }
 }

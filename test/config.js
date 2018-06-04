@@ -72,7 +72,8 @@ module.exports = config;
 
 function registerUser(username, opts = {}) {
   return async function register() {
-    await (this.service || this.users).dispatch('register', {
+    const srv = this.service || this.users;
+    await srv.dispatch('register', {
       params: {
         username,
         password: '123',
@@ -84,7 +85,7 @@ function registerUser(username, opts = {}) {
     });
 
     if (opts.locked) {
-      return (this.service || this.users).dispatch('ban', { params: { username, ban: true } });
+      return srv.dispatch('ban', { params: { username, ban: true } });
     }
 
     return null;
@@ -116,20 +117,18 @@ async function startService(testConfig = {}) {
     return service;
   } catch (e) {
     console.error('failed to start', e);
+    throw e;
   }
-
-  return null;
 }
 
 function initFakeAccounts() {
   return this.users.initFakeAccounts();
 }
 
-function clearRedis() {
+async function clearRedis() {
   const nodes = this.users.redis.nodes('master');
   return Promise
-    .map(nodes, node => node.flushdb())
-    .reflect()
+    .map(nodes, node => node.flushdb().reflect())
     .finally(() => this.users.close().reflect())
     .finally(() => {
       this.users = null;

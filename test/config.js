@@ -72,7 +72,8 @@ module.exports = config;
 
 function registerUser(username, opts = {}) {
   return async function register() {
-    await (this.service || this.users).dispatch('register', {
+    const srv = this.service || this.users;
+    await srv.dispatch('register', {
       params: {
         username,
         password: '123',
@@ -84,7 +85,7 @@ function registerUser(username, opts = {}) {
     });
 
     if (opts.locked) {
-      return (this.service || this.users).dispatch('ban', { params: { username, ban: true } });
+      return srv.dispatch('ban', { params: { username, ban: true } });
     }
 
     return null;

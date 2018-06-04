@@ -2,15 +2,18 @@ const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 
 describe('#logout', function logoutSuite() {
+  const username = 'logout@me.com';
+
   before(global.startService);
-  before(global.globalRegisterUser);
-  before(global.globalAuthUser);
+  before('register user', global.globalRegisterUser(username));
+  before('auth user', global.globalAuthUser(username));
   after(global.clearRedis);
 
   it('must reject logout on an invalid JWT token', async function test() {
-    const { defaultAudience: audience } = this.users._config.jwt;
+    const { defaultAudience: audience } = this.users.config.jwt;
 
-    const logout = await this.dispatch('users.logout', { jwt: 'tests', audience })
+    const logout = await this.users
+      .dispatch('logout', { params: { jwt: 'tests', audience } })
       .reflect()
       .then(inspectPromise(false));
 
@@ -23,24 +26,29 @@ describe('#logout', function logoutSuite() {
     const token = this.jwt;
 
     // verify that no error is thrown
-    await this.dispatch('users.verify', { token, audience })
+    await this.users
+      .dispatch('verify', { params: { token, audience } })
       .reflect()
       .then(inspectPromise());
 
     // verify we can "invalidate" the token
-    const logout = await this.dispatch('users.logout', { jwt: token, audience })
+    const logout = await this.users
+      .dispatch('logout', { params: { jwt: token, audience } })
       .reflect()
       .then(inspectPromise());
 
     assert.deepStrictEqual(logout, { success: true });
 
     // verify we can't login again using same token
-    const login = await this.dispatch('users.verify', { token, audience })
+    const login = await this.users
+      .dispatch('verify', { params: { token, audience } })
       .reflect()
       .then(inspectPromise(false));
 
+    console.log(login);
+
     assert.equal(login.name, 'HttpStatusError');
     assert.equal(login.statusCode, 403);
-    assert.ok(/invalud token/.test(login.message));
+    assert.ok(/token has expired or was forged/.test(login.message));
   });
 });

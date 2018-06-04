@@ -16,10 +16,10 @@ const jwt = require('../utils/jwt');
  */
 function logout({ params }) {
   return Promise
-    .bind(this, [params.token, params.audience])
+    .bind(this, [params.jwt, params.audience])
     .spread(jwt.logout);
 }
 
-logout.transports = [ActionTransport.amqp];
+logout.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = logout;

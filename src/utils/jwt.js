@@ -3,10 +3,20 @@ const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 // internal modules
-const redisKey = require('./key.js');
-const { USERS_TOKENS, USERS_API_TOKENS, USERS_ID_FIELD } = require('../constants.js');
-const getMetadata = require('../utils/getMetadata.js');
+const redisKey = require('./key');
+const getMetadata = require('../utils/getMetadata');
 const { verify: verifyHMAC } = require('./signatures');
+const {
+  USERS_TOKENS,
+  USERS_API_TOKENS,
+  USERS_ID_FIELD,
+  USERS_INVALID_TOKEN,
+  USERS_USERNAME_FIELD,
+  USERS_AUDIENCE_MISMATCH,
+  USERS_MALFORMED_TOKEN,
+  BEARER_USERNAME_FIELD,
+  BEARER_LEGACY_USERNAME_FIELD,
+} = require('../constants.js');
 
 // cache this to not recreate all the time
 const mapJWT = props => ({
@@ -16,6 +26,11 @@ const mapJWT = props => ({
     metadata: props.metadata,
   },
 });
+
+function verifyData(token, tokenOptions, extraOpts = {}) {
+  const { hashingFunction: algorithm, secret, issuer } = tokenOptions;
+  return jwt.verifyAsync(token, secret, { ...extraOpts, issuer, algorithms: [algorithm] });
+}
 
 /**
  * Logs user in and returns JWT and User Object
@@ -32,7 +47,7 @@ exports.login = function login(userId, _audience) {
   // will have iat field, which is when this token was issued
   // we can check last access and verify the expiration date based on it
   const payload = {
-    username: userId,
+    [USERS_USERNAME_FIELD]: userId,
     cs: flake.next(),
   };
 
@@ -59,14 +74,14 @@ exports.login = function login(userId, _audience) {
  */
 function remapInvalidTokenError(err) {
   this.log.debug('error decoding token', err);
-  throw new Errors.HttpStatusError(403, 'invalid token');
+  return Promise.reject(USERS_INVALID_TOKEN);
 }
 
 /**
  * Erases the token
  */
 function eraseToken(decoded) {
-  return this.redis.zrem(redisKey(decoded.userId, USERS_TOKENS), this.token);
+  return this.redis.zrem(redisKey(decoded[USERS_USERNAME_FIELD], USERS_TOKENS), this.token);
 }
 
 /**
@@ -77,11 +92,8 @@ function eraseToken(decoded) {
  */
 exports.logout = function logout(token, audience) {
   const { redis, config } = this;
-  const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
-  return jwt
-    .verifyAsync(token, secret, { issuer, audience, algorithms: [algorithm] })
+  return verifyData(token, config.jwt, { audience })
     .bind(this)
     .catch(remapInvalidTokenError)
     .bind({ redis, token })
@@ -122,24 +134,22 @@ function refreshLastAccess() {
 /**
  * Verify decoded token
  */
-function verifyDecodedToken(decoded) {
+async function verifyDecodedToken(decoded) {
   if (this.audience.indexOf(decoded.aud) === -1) {
-    throw new Errors.HttpStatusError(403, 'audience mismatch');
+    return Promise.reject(USERS_AUDIENCE_MISMATCH);
   }
 
-  const { username } = decoded;
+  const username = decoded[USERS_USERNAME_FIELD];
   const tokensHolder = this.tokensHolder = redisKey(username, USERS_TOKENS);
 
-  let lastAccess = this.redis
-    .zscore(tokensHolder, this.token)
-    .bind(this)
-    .then(getLastAccess);
+  const score = await this.redis.zscore(tokensHolder, this.token);
+  const lastAccess = await getLastAccess.call(this, score);
 
   if (!this.peek) {
-    lastAccess = lastAccess.then(refreshLastAccess);
+    await refreshLastAccess.call(this, lastAccess);
   }
 
-  return lastAccess.return(decoded);
+  return decoded;
 }
 
 /**
@@ -151,17 +161,18 @@ function verifyDecodedToken(decoded) {
  * @return {Promise}
  */
 exports.verify = function verifyToken(token, audience, peek) {
-  const { redis, config, log } = this;
-  const { jwt: jwtConfig } = config;
-  const {
-    hashingFunction: algorithm, secret, ttl, issuer,
-  } = jwtConfig;
+  const jwtConfig = this.config.jwt;
+  const ctx = {
+    audience,
+    token,
+    peek,
+    redis: this.redis,
+    log: this.log,
+    ttl: jwtConfig.ttl,
+  };
 
-  return jwt
-    .verifyAsync(token, secret, { issuer, algorithms: [algorithm] })
-    .bind({
-      redis, log, ttl, audience, token, peek,
-    })
+  return verifyData(token, jwtConfig)
+    .bind(ctx)
     .catch(remapInvalidTokenError)
     .then(verifyDecodedToken);
 };
@@ -173,39 +184,40 @@ exports.verify = function verifyToken(token, audience, peek) {
  * @param {Boolean} peek
  * @return {Promise}
  */
-exports.internal = function verifyInternalToken(token) {
+exports.internal = async function verifyInternalToken(token) {
   const tokenParts = token.split('.');
 
   if (tokenParts.length !== 3) {
-    throw new Errors.HttpStatusError(403, 'malformed token');
+    return Promise.reject(USERS_MALFORMED_TOKEN);
   }
 
   const [userId, uuid, signature] = tokenParts;
 
   // token is malformed, must be username.uuid.signature
   if (!userId || !uuid || !signature) {
-    throw new Errors.HttpStatusError(403, 'malformed token');
+    return Promise.reject(USERS_MALFORMED_TOKEN);
   }
 
   // md5 hash
-  const isLegacyToken = /^[a-f0-9]{32}$/i.test(userId);
+  const isLegacyToken = userId.length === 32 && /^[a-fA-F0-9]{32}$/.test(userId);
 
   // this is needed to pass ctx of the
   const payload = `${userId}.${uuid}`;
   const isValid = verifyHMAC.call(this, payload, signature);
 
   if (!isValid) {
-    throw new Errors.HttpStatusError(403, 'malformed token');
+    return Promise.reject(USERS_MALFORMED_TOKEN);
   }
 
   // at this point signature is valid and we need to verify that it was not
   // erase or expired
   const key = redisKey(USERS_API_TOKENS, payload);
-  const { redis } = this;
+  const tokenField = isLegacyToken ? BEARER_LEGACY_USERNAME_FIELD : BEARER_USERNAME_FIELD;
+  const id = await this.redis.hget(key, tokenField);
 
-  return redis
-    .hget(key, isLegacyToken ? 'username' : 'userId')
-    .then(id => ({ [isLegacyToken ? 'username' : 'userId']: id }));
+  return {
+    [tokenField]: id,
+  };
 };
 
 
@@ -228,7 +240,4 @@ exports.signData = function signData(payload, tokenOptions) {
  * @param  {Object} tokenOptions
  * @return {Promise}
  */
-exports.verifyData = function verifyData(token, tokenOptions) {
-  const { hashingFunction: algorithm, secret, issuer } = tokenOptions;
-  return jwt.verifyAsync(token, secret, { issuer, algorithms: [algorithm] });
-};
+exports.verifyData = verifyData;

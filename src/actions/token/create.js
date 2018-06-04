@@ -1,10 +1,11 @@
 const uuid = require('uuid/v4');
 const Promise = require('bluebird');
-const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
+const { ActionTransport } = require('@microfleet/core');
 const { sign } = require('../../utils/signatures');
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipelineError');
 const { getUserId } = require('../../utils/userData');
+const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, BEARER_USERNAME_FIELD } = require('../../constants');
 
 function storeData(userId) {
   const { redis, name } = this;
@@ -22,7 +23,11 @@ function storeData(userId) {
   // prepare to store
   return redis
     .pipeline()
-    .hmset(key, { userId, name, uuid: tokenPart })
+    .hmset(key, {
+      [BEARER_USERNAME_FIELD]: userId,
+      name,
+      uuid: tokenPart,
+    })
     .zadd(zset, Date.now(), payload)
     .exec()
     .then(handlePipelineError)
@@ -53,6 +58,6 @@ function createToken({ params }) {
     .then(storeData);
 }
 
-createToken.transports = [require('@microfleet/core').ActionTransport.amqp];
+createToken.transports = [ActionTransport.amqp];
 
 module.exports = createToken;

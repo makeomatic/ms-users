@@ -41,16 +41,17 @@ describe('#verify', function verifySuite() {
   describe('valid token', function suite() {
     const jwt = require('../../src/utils/jwt.js');
 
-    beforeEach(function pretest() {
-      return simpleDispatcher(this.users.router)('users.register', {
+    beforeEach(async function pretest() {
+      const { user } = await this.dispatch('users.register', {
         username: 'v@makeomatic.ru',
         password: '123',
         audience: 'test',
         metadata: {
           fine: true,
         },
-      })
-      .then(({ user }) => (this.userId = user.id));
+      });
+
+      this.userId = user.id;
     });
 
     beforeEach(function pretest() {

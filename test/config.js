@@ -116,9 +116,8 @@ async function startService(testConfig = {}) {
     return service;
   } catch (e) {
     console.error('failed to start', e);
+    throw e;
   }
-
-  return null;
 }
 
 function initFakeAccounts() {

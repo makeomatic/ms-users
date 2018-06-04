@@ -22,6 +22,7 @@ module.exports = exports = {
   USERS_2FA_SECRET: '2fa-secret',
   USERS_2FA_RECOVERY: '2fa-recovery',
 
+  // standard JWT with TTL
   USERS_ID_FIELD: 'id',
   USERS_ALIAS_FIELD: 'alias',
   USERS_BANNED_FLAG: 'ban',
@@ -38,9 +39,16 @@ module.exports = exports = {
   USERS_REFERRAL_FIELD: 'referral',
   USERS_SSO_FACEBOOK_FIELD: 'facebook',
 
+  // bearer tokens
+  BEARER_USERNAME_FIELD: 'userId',
+  BEARER_LEGACY_USERNAME_FIELD: 'username',
+
   // pre-generated errors
   USERS_DISPOSABLE_PASSWORD_MIA: new HttpStatusError(403, 'Invalid or Expired Password'),
   USERS_INCORRECT_PASSWORD: new HttpStatusError(403, 'incorrect password'),
+  USERS_AUDIENCE_MISMATCH: new HttpStatusError(403, 'audience mismatch'),
+  USERS_INVALID_TOKEN: new HttpStatusError(403, 'invalid token'),
+  USERS_MALFORMED_TOKEN: new HttpStatusError(403, 'malformed token'),
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
   ErrorTotpRequired: new HttpStatusError(403, 'TOTP required'),

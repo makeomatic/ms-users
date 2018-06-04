@@ -1,4 +1,6 @@
-const jwt = require('../utils/jwt.js');
+const { ActionTransport } = require('@microfleet/core');
+const Promise = require('bluebird');
+const jwt = require('../utils/jwt');
 
 /**
  * @api {amqp} <prefix>.logout Logout
@@ -12,9 +14,12 @@ const jwt = require('../utils/jwt.js');
  * @apiParam (Payload) {String} audience - verifies that JWT is for this audience
  *
  */
-module.exports = function logout(request) {
-  const { jwt: token, audience } = request.params;
-  return jwt.logout.call(this, token, audience);
-};
+function logout({ params }) {
+  return Promise
+    .bind(this, [params.token, params.audience])
+    .spread(jwt.logout);
+}
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+logout.transports = [ActionTransport.amqp];
+
+module.exports = logout;

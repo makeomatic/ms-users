@@ -58,6 +58,6 @@ function createToken({ params }) {
     .then(storeData);
 }
 
-createToken.transports = [ActionTransport.amqp];
+createToken.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = createToken;

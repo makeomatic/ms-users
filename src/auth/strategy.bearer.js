@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const is = require('is');
-const { AuthenticationRequiredError, HttpStatusError } = require('common-errors');
+const { AuthenticationRequiredError } = require('common-errors');
+const { USERS_CREDENTIALS_REQUIRED_ERROR } = require('../constants');
 
 function getAuthToken(authHeader) {
   const [auth, token] = authHeader.trim().split(/\s+/, 2).map(str => str.trim());
@@ -9,15 +10,20 @@ function getAuthToken(authHeader) {
     throw new AuthenticationRequiredError('Auth type must be present');
   }
 
-  if (auth !== 'JWT') {
-    throw new AuthenticationRequiredError(`Invalid auth type ${auth}`);
-  }
-
   if (token == null) {
     throw new AuthenticationRequiredError('Token must be present');
   }
 
-  return token;
+  switch (auth) {
+    case 'JWT':
+      return { accessToken: false, token };
+
+    case 'Bearer':
+      return { accessToken: true, token };
+
+    default:
+      throw new AuthenticationRequiredError(`Invalid auth type ${auth}`);
+  }
 }
 
 function tokenAuth(request) {
@@ -31,16 +37,16 @@ function tokenAuth(request) {
   const authHeader = headers.authorization;
 
   if (authHeader) {
-    const token = getAuthToken(authHeader);
     const params = method === 'get' ? request.query : request.params;
+    const { accessToken, token } = getAuthToken(authHeader);
     const { amqp, config } = this;
     const { users: { audience: defaultAudience, verify, timeouts } } = config;
     const timeout = timeouts.verify;
     const audience = (is.object(params) && params.audience) || defaultAudience;
 
-    return amqp.publishAndWait(verify, { token, audience }, { timeout });
+    return amqp.publishAndWait(verify, { token, audience, accessToken }, { timeout });
   } else if (strategy === 'required') {
-    return Promise.reject(new HttpStatusError(401, 'Credentials Required'));
+    return Promise.reject(USERS_CREDENTIALS_REQUIRED_ERROR);
   }
 
   return null;

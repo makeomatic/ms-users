@@ -1,7 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
 
 const isTfaRoute = route => /2fa/.test(route);
-
 module.exports = [{
   point: 'postAuth',
   handler: function postAuthHandler(error, request) {
@@ -11,11 +10,10 @@ module.exports = [{
       return result;
     }
 
-    const params = request.params ? request.params : request.query;
-
     // in case of http transport inject username inside params
-    if (isTfaRoute(request.route) && request.transport === ActionTransport.http) {
-      params.username = request.auth.credentials.id;
+    if (request.transport === ActionTransport.http && isTfaRoute(request.route)) {
+      const property = request.method === 'get' ? 'query' : 'params';
+      request[property].username = request.auth.credentials.id;
     }
 
     return result;

@@ -28,8 +28,8 @@
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
   "dependencies": {
-    "@microfleet/core": "^10.3.2",
-    "@microfleet/transport-amqp": "^13.0.1",
+    "@microfleet/core": "^10.4.0",
+    "@microfleet/transport-amqp": "^13.1.0",
     "babel-runtime": "^6.25.0",
     "bell": "^9.3.1",
     "bluebird": "^3.5.1",
@@ -64,7 +64,7 @@
     "serialize-error": "^2.1.0",
     "serialize-javascript": "^1.5.0",
     "stdout-stream": "^1.4.0",
-    "tough-cookie": "^2.3.4",
+    "tough-cookie": "^2.4.2",
     "uuid": "^3.2.1",
     "vision": "^5.3.2",
     "yargs": "^11.0.0"

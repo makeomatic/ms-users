@@ -307,49 +307,50 @@
     rimraf "^2.5.2"
 
 "@microfleet/amqp-coffee@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@microfleet/amqp-coffee/-/amqp-coffee-1.1.0.tgz#ed43ba09a0a771810ca87a2f3ca7c0d24d1f3c1a"
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@microfleet/amqp-coffee/-/amqp-coffee-1.2.0.tgz#49ed9d6582825545a9d13dc4e6ab7613e1dc2e99"
   dependencies:
-    async "^2.5.0"
-    bson "^1.0.4"
-    debug "^2.6.8"
-    lodash "^4.17.4"
+    async "^2.6.1"
+    bson "^2.0.7"
+    debug "^3.1.0"
+    lodash "^4.17.10"
 
-"@microfleet/core@^10.3.2":
-  version "10.3.2"
-  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-10.3.2.tgz#8b0e12866c99659d9ed3acd7413c24bfafc61c3f"
+"@microfleet/core@^10.4.0":
+  version "10.4.0"
+  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-10.4.0.tgz#f0975977088f4935726ae3938f21f6196fd06e50"
   dependencies:
     bluebird "^3.5.1"
     callsite "^1.0.0"
-    chalk "^2.3.2"
+    chalk "^2.4.1"
     death "^1.1.0"
     debug "^3.1.0"
-    eventemitter3 "^3.0.1"
+    eventemitter3 "^3.1.0"
     glob "^7.1.1"
     is "^3.2.1"
-    lodash "^4.17.5"
-    opentracing "^0.14.2"
+    lodash "^4.17.10"
+    opentracing "^0.14.3"
     semver "^5.5.0"
     sort-by "^1.1.1"
     stdout-stream "^1.4.0"
 
-"@microfleet/transport-amqp@^13.0.1":
-  version "13.0.1"
-  resolved "https://registry.yarnpkg.com/@microfleet/transport-amqp/-/transport-amqp-13.0.1.tgz#17b39ab5fca64b48f149c327d998a26c3d83cb20"
+"@microfleet/transport-amqp@^13.1.0":
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/@microfleet/transport-amqp/-/transport-amqp-13.1.0.tgz#07e9c79b4fbbf18f1d87a3a4c58375e0eff9d9b4"
   dependencies:
     "@microfleet/amqp-coffee" "^1.1.0"
     bluebird "^3.5.1"
     common-errors "^1.0.5"
     debug "^3.0.1"
-    eventemitter3 "^3.0.0"
-    hashlru "^2.2.0"
+    eventemitter3 "^3.1.0"
+    flatstr "^1.0.8"
+    hashlru "^2.2.1"
     is "^3.2.1"
-    joi "^13.1.0"
+    joi "^13.3.0"
     json-stringify-safe "^5.0.1"
-    lodash "^4.17.2"
-    object-hash "^1.2.0"
-    opentracing "^0.14.1"
-    pino "^4.10.3"
+    lodash "^4.17.10"
+    object-hash "^1.3.0"
+    opentracing "^0.14.3"
+    pino "^4.17.3"
     uuid "^3.2.1"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
@@ -469,8 +470,8 @@
   resolved "https://registry.yarnpkg.com/@types/mkdirp/-/mkdirp-0.3.29.tgz#7f2ad7ec55f914482fc9b1ec4bb1ae6028d46066"
 
 "@types/node@*":
-  version "10.3.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.3.0.tgz#078516315a84d56216b5d4fed8f75d59d3b16cac"
+  version "10.3.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.3.1.tgz#51092fbacaed768a122a293814474fbf6e5e8b6d"
 
 "@types/node@^9.3.0":
   version "9.6.20"
@@ -509,8 +510,8 @@ acorn@^3.0.4:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-3.3.0.tgz#45e37fb39e8da3f25baee3ff5369e2bb5f22017a"
 
 acorn@^5.5.0:
-  version "5.6.1"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.6.1.tgz#c9e50c3e3717cf897f1b071ceadbb543bbc0a8d4"
+  version "5.6.2"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.6.2.tgz#b1da1d7be2ac1b4a327fb9eab851702c5045b4e7"
 
 agent-base@4, agent-base@^4.1.0:
   version "4.2.0"
@@ -754,7 +755,7 @@ async@^1.4.0:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
 
-async@^2.5.0:
+async@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/async/-/async-2.6.1.tgz#b245a23ca71930044ec53fa46aa00a3e87c6a610"
   dependencies:
@@ -1121,9 +1122,9 @@ browser-stdout@1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/browser-stdout/-/browser-stdout-1.3.1.tgz#baa559ee14ced73452229bad7326467c61fabd60"
 
-bson@^1.0.4:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/bson/-/bson-1.0.6.tgz#444db59ddd4c24f0cb063aabdc5c8c7b0ceca912"
+bson@^2.0.7:
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/bson/-/bson-2.0.7.tgz#4eff5829837ab79940f203a25cd94c3036a42c8f"
 
 btoa-lite@^1.0.0:
   version "1.0.0"
@@ -1307,7 +1308,7 @@ chalk@^1.1.3:
     strip-ansi "^3.0.0"
     supports-color "^2.0.0"
 
-chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.3.0, chalk@^2.3.2, chalk@^2.4.1:
+chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.3.0, chalk@^2.4.1:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.1.tgz#18c49ab16a037b6eb0152cc83e3471338215b66e"
   dependencies:
@@ -2171,7 +2172,7 @@ esutils@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.2.tgz#0abf4f1caa5bcb1f7a9d8acc6dea4faaa04bac9b"
 
-eventemitter3@^3.0.0, eventemitter3@^3.0.1:
+eventemitter3@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-3.1.0.tgz#090b4d6cdbd645ed10bf750d4b5407942d7ba163"
 
@@ -2403,7 +2404,7 @@ flat-cache@^1.2.1:
     graceful-fs "^4.1.2"
     write "^0.2.1"
 
-flatstr@^1.0.5:
+flatstr@^1.0.5, flatstr@^1.0.8:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/flatstr/-/flatstr-1.0.8.tgz#0e849229751f2b9f6a0919f8e81e1229e84ba901"
 
@@ -2813,12 +2814,12 @@ has-values@^1.0.0:
     kind-of "^4.0.0"
 
 has@^1.0.1:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/has/-/has-1.0.2.tgz#1a64bfe4b52e67fb87b9822503d97c019fb6ba42"
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/has/-/has-1.0.3.tgz#722d7cbfc1f6aa8241f16dd814e011e1f41e8796"
   dependencies:
     function-bind "^1.1.1"
 
-hashlru@^2.2.0:
+hashlru@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/hashlru/-/hashlru-2.2.1.tgz#10f2099a0d7c05a40f2beaf5c1d39cf2f7dabf36"
 
@@ -3400,7 +3401,7 @@ java-properties@^0.2.9:
   version "0.2.10"
   resolved "https://registry.yarnpkg.com/java-properties/-/java-properties-0.2.10.tgz#2551560c25fa1ad94d998218178f233ad9b18f60"
 
-joi@13.x.x, joi@^13.1.0:
+joi@13.x.x, joi@^13.3.0:
   version "13.3.0"
   resolved "https://registry.yarnpkg.com/joi/-/joi-13.3.0.tgz#4defd4333b539c5d10e444ab44f5a5583480f17c"
   dependencies:
@@ -4426,7 +4427,7 @@ object-copy@^0.1.0:
     define-property "^0.2.5"
     kind-of "^3.0.3"
 
-object-hash@^1.2.0:
+object-hash@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/object-hash/-/object-hash-1.3.0.tgz#76d9ba6ff113cf8efc0d996102851fe6723963e2"
 
@@ -4471,7 +4472,7 @@ ono@^4.0.3:
   dependencies:
     format-util "^1.0.3"
 
-opentracing@^0.14.1, opentracing@^0.14.2:
+opentracing@^0.14.3:
   version "0.14.3"
   resolved "https://registry.yarnpkg.com/opentracing/-/opentracing-0.14.3.tgz#23e3ad029fa66a653926adbe57e834469f8550aa"
 
@@ -4749,7 +4750,7 @@ pino-std-serializers@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/pino-std-serializers/-/pino-std-serializers-2.1.0.tgz#01953dcaecd5f43b331ecf2e312a49c9fd64851c"
 
-pino@^4.10.3, pino@^4.16.1:
+pino@^4.16.1, pino@^4.17.3:
   version "4.17.3"
   resolved "https://registry.yarnpkg.com/pino/-/pino-4.17.3.tgz#3536ea36f6258356ba8891d18dbf1afed41fcf09"
   dependencies:
@@ -4818,6 +4819,10 @@ proxy-from-env@^1.0.0:
 pseudomap@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/pseudomap/-/pseudomap-1.0.2.tgz#f052a28da70e618917ef0a8ac34c1ae5a68286b3"
+
+psl@^1.1.24:
+  version "1.1.27"
+  resolved "https://registry.yarnpkg.com/psl/-/psl-1.1.27.tgz#2b2c77019db86855170d903532400bf71ee085b6"
 
 pump@^3.0.0:
   version "3.0.0"
@@ -5203,7 +5208,7 @@ safe-regex@^1.1.0:
   dependencies:
     ret "~0.1.10"
 
-"safer-buffer@>= 2.1.2 < 3":
+"safer-buffer@>= 2.1.2 < 3", safer-buffer@^2.0.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
 
@@ -5491,13 +5496,14 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
 
 sshpk@^1.7.0:
-  version "1.14.1"
-  resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.14.1.tgz#130f5975eddad963f1d56f92b9ac6c51fa9f83eb"
+  version "1.14.2"
+  resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.14.2.tgz#c6fc61648a3d9c4e764fd3fcdf4ea105e492ba98"
   dependencies:
     asn1 "~0.2.3"
     assert-plus "^1.0.0"
     dashdash "^1.12.0"
     getpass "^0.1.1"
+    safer-buffer "^2.0.2"
   optionalDependencies:
     bcrypt-pbkdf "^1.0.0"
     ecc-jsbn "~0.1.1"
@@ -5754,7 +5760,14 @@ topo@3.x.x:
   dependencies:
     hoek "5.x.x"
 
-tough-cookie@>=2.3.3, tough-cookie@^2.3.4, tough-cookie@~2.3.3:
+tough-cookie@>=2.3.3, tough-cookie@^2.4.2:
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.4.2.tgz#aa9133154518b494efab98a58247bfc38818c00c"
+  dependencies:
+    psl "^1.1.24"
+    punycode "^1.4.1"
+
+tough-cookie@~2.3.3:
   version "2.3.4"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.3.4.tgz#ec60cee38ac675063ffc97a5c18970578ee83655"
   dependencies:

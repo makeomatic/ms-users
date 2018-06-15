@@ -19,8 +19,9 @@ module.exports = exports = {
   USERS_TOKENS: 'tokens',
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
-  USERS_2FA_SECRET: '2fa-secret',
-  USERS_2FA_RECOVERY: '2fa-recovery',
+  USERS_2FA_FLAG: 'tfa',
+  USERS_2FA_SECRET: 'tfa-secret',
+  USERS_2FA_RECOVERY: 'tfa-recovery',
 
   // standard JWT with TTL
   USERS_ID_FIELD: 'id',

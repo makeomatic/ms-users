@@ -1,18 +1,26 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
+const handlePipeline = require('../../utils/pipelineError');
 const { check2FA } = require('../../utils/2fa.js');
 const {
+  USERS_METADATA,
+  USERS_2FA_FLAG,
   USERS_2FA_SECRET,
   USERS_2FA_RECOVERY,
   TFA_TYPE_REQUIRED,
 } = require('../../constants');
 
 function removeData() {
-  const { username, redis } = this;
+  const { username, redis, config } = this;
+  const { jwt: { defaultAudience } } = config;
 
   return redis
+    .pipeline()
     .del(redisKey(USERS_2FA_SECRET, username), redisKey(USERS_2FA_RECOVERY, username))
+    .hdel(redisKey(username, USERS_METADATA, defaultAudience), USERS_2FA_FLAG)
+    .then(handlePipeline)
+    .exec()
     .return({ enabled: false });
 }
 
@@ -40,8 +48,8 @@ function removeData() {
  */
 module.exports = function detach({ params }) {
   const { username } = params;
-  const { redis } = this;
-  const ctx = { redis, username };
+  const { redis, config } = this;
+  const ctx = { redis, config, username };
 
   return Promise
     .bind(ctx)

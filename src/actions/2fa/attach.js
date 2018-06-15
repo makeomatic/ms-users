@@ -4,18 +4,24 @@ const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const { check2FA, generateRecoveryCodes } = require('../../utils/2fa.js');
 const {
+  USERS_METADATA,
+  USERS_2FA_FLAG,
   USERS_2FA_SECRET,
   USERS_2FA_RECOVERY,
   TFA_TYPE_DISABLED,
 } = require('../../constants');
 
 function storeData(recoveryCodes) {
-  const { redis, username, secret } = this;
+  const {
+    redis, username, secret, config,
+  } = this;
+  const { jwt: { defaultAudience } } = config;
 
   return redis
     .pipeline()
     .set(redisKey(USERS_2FA_SECRET, username), secret)
     .sadd(redisKey(USERS_2FA_RECOVERY, username), recoveryCodes)
+    .hset(redisKey(username, USERS_METADATA, defaultAudience), USERS_2FA_FLAG, 'true')
     .exec()
     .then(handlePipeline)
     .return({ recoveryCodes, enabled: true });
@@ -45,8 +51,10 @@ function storeData(recoveryCodes) {
  */
 module.exports = function attach({ params }) {
   const { username, secret } = params;
-  const { redis } = this;
-  const ctx = { redis, username, secret };
+  const { redis, config } = this;
+  const ctx = {
+    redis, config, username, secret,
+  };
 
   return Promise
     .bind(ctx)

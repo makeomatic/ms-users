@@ -14,17 +14,14 @@ const {
 } = require('../../constants');
 
 async function storeData(userId) {
-  const {
-    redis, secret, config,
-  } = this;
-  const { jwt: { defaultAudience } } = config;
+  const { redis, secret } = this;
   const recoveryCodes = generateRecoveryCodes();
 
   return redis
     .pipeline()
     .set(redisKey(USERS_2FA_SECRET, userId), secret)
     .sadd(redisKey(USERS_2FA_RECOVERY, userId), recoveryCodes)
-    .hset(redisKey(userId, USERS_DATA, defaultAudience), USERS_2FA_FLAG, 'true')
+    .hset(redisKey(userId, USERS_DATA), USERS_2FA_FLAG, 'true')
     .exec()
     .then(handlePipeline)
     .return({ recoveryCodes, enabled: true });
@@ -54,10 +51,8 @@ async function storeData(userId) {
  */
 module.exports = function attach({ params }) {
   const { username, secret } = params;
-  const { redis, config } = this;
-  const ctx = {
-    redis, config, secret,
-  };
+  const { redis } = this;
+  const ctx = { redis, secret };
 
   return Promise
     .bind(ctx, username)

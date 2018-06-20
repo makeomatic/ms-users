@@ -9,12 +9,11 @@ const request = require('request-promise').defaults({
   gzip: true,
   simple: true,
 });
+const { USERS_2FA_FLAG } = require('../../src/constants');
 
 authenticator.options = { crypto };
 
 describe('#2fa.*', function activateSuite() {
-  const defaultAudience = '*.localhost';
-
   // actions supported by this
   const username = '2fa@me.com';
   const generateRoute = 'users.2fa.generate-key';
@@ -96,7 +95,7 @@ describe('#2fa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise())
         .then((res) => {
-          assert.ok(res.metadata[defaultAudience].tfa);
+          assert.ok(res[USERS_2FA_FLAG]);
         });
     });
   });
@@ -238,7 +237,7 @@ describe('#2fa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise())
         .then((res) => {
-          assert.equal(res.metadata[defaultAudience].tfa, undefined);
+          assert.equal(res[USERS_2FA_FLAG], undefined);
         });
     });
   });

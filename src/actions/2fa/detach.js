@@ -13,13 +13,10 @@ const {
 } = require('../../constants');
 
 async function removeData(userId) {
-  const { redis, config } = this;
-  const { jwt: { defaultAudience } } = config;
-
-  return redis
+  return this.redis
     .pipeline()
     .del(redisKey(USERS_2FA_SECRET, userId), redisKey(USERS_2FA_RECOVERY, userId))
-    .hdel(redisKey(userId, USERS_DATA, defaultAudience), USERS_2FA_FLAG)
+    .hdel(redisKey(userId, USERS_DATA), USERS_2FA_FLAG)
     .exec()
     .then(handlePipeline)
     .return({ enabled: false });
@@ -49,11 +46,10 @@ async function removeData(userId) {
  */
 module.exports = function detach({ params }) {
   const { username } = params;
-  const { redis, config } = this;
-  const ctx = { redis, config };
+  const { redis } = this;
 
   return Promise
-    .bind(ctx, username)
+    .bind({ redis }, username)
     .then(getUserId)
     .then(removeData);
 };

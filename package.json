@@ -7,7 +7,7 @@
     "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
     "pretest": "yarn compile",
     "test": "yarn lint && yarn test:e2e -r ms-flakeless -r scrypt",
-    "test:e2e": "mkdir -p ./ss && mdep test run",
+    "test:e2e": "mkdir -p ./ss && mdep test run -t ./test/suites/2fa.js",
     "lint": "eslint ./src",
     "prepublishOnly": "yarn compile",
     "semantic-release": "semantic-release",

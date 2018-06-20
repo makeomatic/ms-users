@@ -1,31 +1,30 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const { getInternalData } = require('../../utils/userData');
+const { getUserId } = require('../../utils/userData');
+
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const { check2FA, generateRecoveryCodes } = require('../../utils/2fa.js');
 const {
-  USERS_METADATA,
-  USERS_ID_FIELD,
+  USERS_DATA,
   USERS_2FA_FLAG,
   USERS_2FA_SECRET,
   USERS_2FA_RECOVERY,
   TFA_TYPE_DISABLED,
 } = require('../../constants');
 
-async function storeData(recoveryCodes) {
+async function storeData(userId) {
   const {
-    redis, username, secret, config,
+    redis, secret, config,
   } = this;
   const { jwt: { defaultAudience } } = config;
-  const data = await Promise.bind(this, username).then(getInternalData);
-  const userId = data[USERS_ID_FIELD];
+  const recoveryCodes = generateRecoveryCodes();
 
   return redis
     .pipeline()
-    .set(redisKey(USERS_2FA_SECRET, username), secret)
-    .sadd(redisKey(USERS_2FA_RECOVERY, username), recoveryCodes)
-    .hset(redisKey(userId, USERS_METADATA, defaultAudience), USERS_2FA_FLAG, 'true')
+    .set(redisKey(USERS_2FA_SECRET, userId), secret)
+    .sadd(redisKey(USERS_2FA_RECOVERY, userId), recoveryCodes)
+    .hset(redisKey(userId, USERS_DATA, defaultAudience), USERS_2FA_FLAG, 'true')
     .exec()
     .then(handlePipeline)
     .return({ recoveryCodes, enabled: true });
@@ -57,12 +56,12 @@ module.exports = function attach({ params }) {
   const { username, secret } = params;
   const { redis, config } = this;
   const ctx = {
-    redis, config, username, secret,
+    redis, config, secret,
   };
 
   return Promise
-    .bind(ctx)
-    .then(generateRecoveryCodes)
+    .bind(ctx, username)
+    .then(getUserId)
     .then(storeData);
 };
 

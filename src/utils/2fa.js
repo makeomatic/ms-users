@@ -2,6 +2,7 @@ const uuid = require('uuid/v4');
 const authenticator = require('otplib/authenticator');
 const crypto = require('crypto');
 const { HttpStatusError } = require('common-errors');
+const { getUserId } = require('./userData');
 const redisKey = require('./key');
 const {
   ErrorTotpRequired,
@@ -28,10 +29,10 @@ function generateRecoveryCodes(length = 10) {
  * Checks if 2FA is enabled
  * @returns {Boolean}
  */
-async function is2FAEnabled(username) {
+async function is2FAEnabled(userId) {
   const { redis } = this;
 
-  const secret = await redis.get(redisKey(USERS_2FA_SECRET, username));
+  const secret = await redis.get(redisKey(USERS_2FA_SECRET, userId));
 
   if (secret) {
     return secret;
@@ -50,11 +51,12 @@ async function check2FA({ action, params, headers }) {
     return null;
   }
 
-  const { username } = params;
   const { redis } = this;
+  const { username } = params;
+  const userId = await getUserId.call({ redis }, username);
 
   // checks if 2FA is already enabled
-  let secret = await is2FAEnabled.call(this, username);
+  let secret = await is2FAEnabled.call(this, userId);
 
   if (!secret) {
     // 2FA is not enabled but is optional, pass through
@@ -105,7 +107,7 @@ async function check2FA({ action, params, headers }) {
 
   // user may provide recovery key instead of totp
   // check it by trying to remove from set of codes
-  const deleted = await redis.srem(redisKey(USERS_2FA_RECOVERY, username), totp);
+  const deleted = await redis.srem(redisKey(USERS_2FA_RECOVERY, userId), totp);
 
   // if nothing has been removed means code
   // is invalid, throw error

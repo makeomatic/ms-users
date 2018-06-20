@@ -1,28 +1,25 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const { getInternalData } = require('../../utils/userData');
+const { getUserId } = require('../../utils/userData');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const { check2FA } = require('../../utils/2fa.js');
 const {
-  USERS_METADATA,
-  USERS_ID_FIELD,
+  USERS_DATA,
   USERS_2FA_FLAG,
   USERS_2FA_SECRET,
   USERS_2FA_RECOVERY,
   TFA_TYPE_REQUIRED,
 } = require('../../constants');
 
-async function removeData() {
-  const { username, redis, config } = this;
+async function removeData(userId) {
+  const { redis, config } = this;
   const { jwt: { defaultAudience } } = config;
-  const data = await Promise.bind(this, username).then(getInternalData);
-  const userId = data[USERS_ID_FIELD];
 
   return redis
     .pipeline()
-    .del(redisKey(USERS_2FA_SECRET, username), redisKey(USERS_2FA_RECOVERY, username))
-    .hdel(redisKey(userId, USERS_METADATA, defaultAudience), USERS_2FA_FLAG)
+    .del(redisKey(USERS_2FA_SECRET, userId), redisKey(USERS_2FA_RECOVERY, userId))
+    .hdel(redisKey(userId, USERS_DATA, defaultAudience), USERS_2FA_FLAG)
     .exec()
     .then(handlePipeline)
     .return({ enabled: false });
@@ -53,10 +50,11 @@ async function removeData() {
 module.exports = function detach({ params }) {
   const { username } = params;
   const { redis, config } = this;
-  const ctx = { redis, config, username };
+  const ctx = { redis, config };
 
   return Promise
-    .bind(ctx)
+    .bind(ctx, username)
+    .then(getUserId)
     .then(removeData);
 };
 

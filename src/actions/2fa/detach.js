@@ -1,6 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const { getUserId } = require('../../utils/userData');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const { check2FA } = require('../../utils/2fa.js');
@@ -50,7 +49,6 @@ module.exports = function detach({ params }) {
 
   return Promise
     .bind({ redis }, username)
-    .then(getUserId)
     .then(removeData);
 };
 
@@ -58,3 +56,11 @@ module.exports.tfa = TFA_TYPE_REQUIRED;
 module.exports.allowed = check2FA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
+module.exports.transportOptions = {
+  [ActionTransport.http]: {
+    methods: ['post'],
+  },
+  [ActionTransport.amqp]: {
+    methods: [ActionTransport.amqp],
+  },
+};

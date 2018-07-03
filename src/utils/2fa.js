@@ -46,13 +46,15 @@ async function is2FAEnabled(userId) {
  * @param  {Object}  request
  * @returns {null}
  */
-async function check2FA({ action, params, headers }) {
+async function check2FA({
+  action, params, locals, headers,
+}) {
   if (!action.tfa) {
     return null;
   }
 
   const { redis } = this;
-  const { username } = params;
+  const { username } = locals;
   const userId = await getUserId.call({ redis }, username);
 
   // checks if 2FA is already enabled

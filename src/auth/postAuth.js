@@ -13,15 +13,16 @@ module.exports = [{
 
     // TODO: refactor after implementation of route specific hooks in core
     if (isTfaRoute(request.route)) {
+      request.locals = {};
+
       if (request.transport === ActionTransport.http) {
-        const property = request.method === 'get' ? 'query' : 'params';
-        request[property].username = request.auth.credentials.id;
+        request.locals.username = request.auth.credentials.id;
         return result;
       }
 
       const { username } = request.params;
       if (username) {
-        request.params.username = await getUserId.call(this, username);
+        request.locals.username = await getUserId.call(this, username);
       }
     }
 

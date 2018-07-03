@@ -48,8 +48,9 @@ async function storeData(userId) {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function attach({ params }) {
-  const { username, secret } = params;
+module.exports = function attach({ params, locals }) {
+  const { secret } = params;
+  const { username } = locals;
   const { redis } = this;
   const ctx = { redis, secret };
 

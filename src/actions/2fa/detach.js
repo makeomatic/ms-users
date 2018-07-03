@@ -43,8 +43,8 @@ async function removeData(userId) {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function detach({ params }) {
-  const { username } = params;
+module.exports = function detach({ locals }) {
+  const { username } = locals;
   const { redis } = this;
 
   return Promise

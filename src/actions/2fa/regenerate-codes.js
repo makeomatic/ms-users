@@ -38,8 +38,8 @@ function storeData(userId) {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function regenerateCodes({ params }) {
-  const { username } = params;
+module.exports = function regenerateCodes({ locals }) {
+  const { username } = locals;
   const { redis } = this;
 
   return Promise

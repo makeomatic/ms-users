@@ -26,7 +26,6 @@ module.exports = function verify() {
 
 module.exports.tfa = TFA_TYPE_REQUIRED;
 module.exports.allowed = check2FA;
-module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.amqp];
 module.exports.transportOptions = {
   [ActionTransport.amqp]: {

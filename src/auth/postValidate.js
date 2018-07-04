@@ -3,8 +3,8 @@ const { getUserId } = require('../utils/userData');
 
 const isTfaRoute = route => /2fa/.test(route);
 module.exports = [{
-  point: 'postAuth',
-  handler: async function postAuthHandler(error, request) {
+  point: 'postValidate',
+  handler: async function postValidateHandler(error, request) {
     const result = [error, request];
 
     if (error) {

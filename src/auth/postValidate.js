@@ -13,7 +13,9 @@ module.exports = [{
 
     // TODO: refactor after implementation of route specific hooks in core
     if (isTfaRoute(request.route)) {
-      request.locals = {};
+      if (!request.locals) {
+        request.locals = Object.create(null);
+      }
 
       if (request.transport === ActionTransport.http) {
         request.locals.username = request.auth.credentials.id;

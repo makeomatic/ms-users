@@ -315,9 +315,9 @@
     debug "^3.1.0"
     lodash "^4.17.10"
 
-"@microfleet/core@^10.4.0":
-  version "10.4.0"
-  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-10.4.0.tgz#f0975977088f4935726ae3938f21f6196fd06e50"
+"@microfleet/core@^10.6.1":
+  version "10.6.1"
+  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-10.6.1.tgz#9010981179c2084707cc056b7e01fdf2a964756e"
   dependencies:
     bluebird "^3.5.1"
     callsite "^1.0.0"
@@ -4562,9 +4562,9 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-otplib@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/otplib/-/otplib-9.0.0.tgz#d61b095f933c0938c3b515d3ee5c201641680977"
+otplib@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/otplib/-/otplib-10.0.0.tgz#bf7f85a7552fa0440ada189f6d85f32850260120"
   dependencies:
     thirty-two "1.0.2"
 

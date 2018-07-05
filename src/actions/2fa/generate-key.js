@@ -23,3 +23,11 @@ module.exports = function generateKey() {
 
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
+module.exports.transportOptions = {
+  [ActionTransport.http]: {
+    methods: ['get'],
+  },
+  [ActionTransport.amqp]: {
+    methods: [ActionTransport.amqp],
+  },
+};

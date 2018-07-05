@@ -1,18 +1,23 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
+const handlePipeline = require('../../utils/pipelineError');
 const { check2FA } = require('../../utils/2fa.js');
 const {
+  USERS_DATA,
+  USERS_2FA_FLAG,
   USERS_2FA_SECRET,
   USERS_2FA_RECOVERY,
   TFA_TYPE_REQUIRED,
 } = require('../../constants');
 
-function removeData() {
-  const { username, redis } = this;
-
-  return redis
-    .del(redisKey(USERS_2FA_SECRET, username), redisKey(USERS_2FA_RECOVERY, username))
+async function removeData(userId) {
+  return this.redis
+    .pipeline()
+    .del(redisKey(USERS_2FA_SECRET, userId), redisKey(USERS_2FA_RECOVERY, userId))
+    .hdel(redisKey(userId, USERS_DATA), USERS_2FA_FLAG)
+    .exec()
+    .then(handlePipeline)
     .return({ enabled: false });
 }
 
@@ -38,13 +43,12 @@ function removeData() {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function detach({ params }) {
-  const { username } = params;
+module.exports = function detach({ locals }) {
+  const { username } = locals;
   const { redis } = this;
-  const ctx = { redis, username };
 
   return Promise
-    .bind(ctx)
+    .bind({ redis }, username)
     .then(removeData);
 };
 
@@ -52,3 +56,11 @@ module.exports.tfa = TFA_TYPE_REQUIRED;
 module.exports.allowed = check2FA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
+module.exports.transportOptions = {
+  [ActionTransport.http]: {
+    methods: ['post'],
+  },
+  [ActionTransport.amqp]: {
+    methods: [ActionTransport.amqp],
+  },
+};

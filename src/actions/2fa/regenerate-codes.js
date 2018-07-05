@@ -5,8 +5,9 @@ const handlePipeline = require('../../utils/pipelineError');
 const { check2FA, generateRecoveryCodes } = require('../../utils/2fa.js');
 const { USERS_2FA_RECOVERY, TFA_TYPE_REQUIRED } = require('../../constants');
 
-function storeData(recoveryCodes) {
-  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, this.username);
+function storeData(userId) {
+  const redisKeyRecovery = redisKey(USERS_2FA_RECOVERY, userId);
+  const recoveryCodes = generateRecoveryCodes();
 
   return this.redis
     .pipeline()
@@ -37,14 +38,12 @@ function storeData(recoveryCodes) {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function regenerateCodes({ params }) {
-  const { username } = params;
+module.exports = function regenerateCodes({ locals }) {
+  const { username } = locals;
   const { redis } = this;
-  const ctx = { redis, username };
 
   return Promise
-    .bind(ctx)
-    .then(generateRecoveryCodes)
+    .bind({ redis }, username)
     .then(storeData);
 };
 
@@ -52,3 +51,11 @@ module.exports.tfa = TFA_TYPE_REQUIRED;
 module.exports.allowed = check2FA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
+module.exports.transportOptions = {
+  [ActionTransport.http]: {
+    methods: ['post'],
+  },
+  [ActionTransport.amqp]: {
+    methods: [ActionTransport.amqp],
+  },
+};

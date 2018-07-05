@@ -1,21 +1,26 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
+
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const { check2FA, generateRecoveryCodes } = require('../../utils/2fa.js');
 const {
+  USERS_DATA,
+  USERS_2FA_FLAG,
   USERS_2FA_SECRET,
   USERS_2FA_RECOVERY,
   TFA_TYPE_DISABLED,
 } = require('../../constants');
 
-function storeData(recoveryCodes) {
-  const { redis, username, secret } = this;
+async function storeData(userId) {
+  const { redis, secret } = this;
+  const recoveryCodes = generateRecoveryCodes();
 
   return redis
     .pipeline()
-    .set(redisKey(USERS_2FA_SECRET, username), secret)
-    .sadd(redisKey(USERS_2FA_RECOVERY, username), recoveryCodes)
+    .set(redisKey(USERS_2FA_SECRET, userId), secret)
+    .sadd(redisKey(USERS_2FA_RECOVERY, userId), recoveryCodes)
+    .hset(redisKey(userId, USERS_DATA), USERS_2FA_FLAG, 'true')
     .exec()
     .then(handlePipeline)
     .return({ recoveryCodes, enabled: true });
@@ -43,14 +48,14 @@ function storeData(recoveryCodes) {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function attach({ params }) {
-  const { username, secret } = params;
+module.exports = function attach({ params, locals }) {
+  const { secret } = params;
+  const { username } = locals;
   const { redis } = this;
-  const ctx = { redis, username, secret };
+  const ctx = { redis, secret };
 
   return Promise
-    .bind(ctx)
-    .then(generateRecoveryCodes)
+    .bind(ctx, username)
     .then(storeData);
 };
 
@@ -58,3 +63,11 @@ module.exports.tfa = TFA_TYPE_DISABLED;
 module.exports.allowed = check2FA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
+module.exports.transportOptions = {
+  [ActionTransport.http]: {
+    methods: ['post'],
+  },
+  [ActionTransport.amqp]: {
+    methods: [ActionTransport.amqp],
+  },
+};

@@ -28,7 +28,7 @@ const preResponse = require('../auth/oauth/preResponse');
  * Performs
  * @type {Function}
  */
-const postAuth = require('../auth/postAuth');
+const postValidate = require('../auth/postValidate');
 
 /**
  * Specifies configuration for the router of the microservice
@@ -41,8 +41,8 @@ exports.router = {
     transports: [ActionTransport.amqp, ActionTransport.http, ActionTransport.internal],
   },
   extensions: {
-    enabled: ['preRequest', 'postRequest', 'postAuth', 'preResponse'],
-    register: [autoSchema, preResponse, auditLog, postAuth],
+    enabled: ['preRequest', 'postRequest', 'postValidate', 'preResponse'],
+    register: [autoSchema, preResponse, auditLog, postValidate],
   },
   auth: {
     strategies: {

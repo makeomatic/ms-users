@@ -3,6 +3,13 @@ const crypto = require('crypto');
 const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
 const authenticator = require('otplib/authenticator');
+const request = require('request-promise').defaults({
+  uri: 'http://ms-users.local:3000/users/_/me',
+  json: true,
+  gzip: true,
+  simple: true,
+});
+const { USERS_2FA_FLAG } = require('../../src/constants');
 
 authenticator.options = { crypto };
 
@@ -74,6 +81,21 @@ describe('#2fa.*', function activateSuite() {
           assert.equal(res.name, 'NotPermittedError');
           assert.equal(res.args[0].name, 'HttpStatusError');
           assert.equal(res.args[0].statusCode, 409);
+        });
+    });
+
+    it('returns 2fa info inside user\'s metadata', function test() {
+      return request
+        .get({
+          headers: {
+            authorization: `JWT ${this.jwt}`,
+          },
+        })
+        .promise()
+        .reflect()
+        .then(inspectPromise())
+        .then((res) => {
+          assert.ok(res[USERS_2FA_FLAG]);
         });
     });
   });
@@ -201,6 +223,21 @@ describe('#2fa.*', function activateSuite() {
           assert.equal(res.name, 'NotPermittedError');
           assert.equal(res.args[0].name, 'HttpStatusError');
           assert.equal(res.args[0].statusCode, 412);
+        });
+    });
+
+    it('removes 2fa flag from metadata after detaching', function test() {
+      return request
+        .get({
+          headers: {
+            authorization: `JWT ${this.jwt}`,
+          },
+        })
+        .promise()
+        .reflect()
+        .then(inspectPromise())
+        .then((res) => {
+          assert.equal(res[USERS_2FA_FLAG], undefined);
         });
     });
   });

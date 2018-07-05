@@ -8,7 +8,12 @@ describe('configuration suite', function ConfigurationSuite() {
 
   it('must throw on invalid configuration', function test() {
     expect(function throwOnInvalidConfiguration() {
-      return new Users();
+      try {
+        return new Users();
+      } catch (e) {
+        // assert.ifError now wraps the original error into an AttributeError
+        throw e.actual;
+      }
     }).to.throw(Errors.ValidationError);
   });
 });

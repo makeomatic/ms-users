@@ -10,10 +10,7 @@
       "$ref": "common.json#/definitions/userId"
     },
     "alias": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 20,
-      "pattern": "^[a-zA-Z0-9\\-\\.\\_]+$"
+      "$ref": "common.json#/definitions/alias"
     },
     "password": {
       "type": "string"

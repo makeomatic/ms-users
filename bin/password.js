@@ -7,7 +7,7 @@ const conf = require('../lib/config');
 
 const config = conf.get('/', { env: process.env.NODE_ENV });
 const redisConfig = config.redis;
-const updatePassword = require('../lib/actions/updatePassword').updatePassword;
+const { updatePassword } = require('../lib/actions/updatePassword');
 
 const username = process.argv[2];
 const password = process.argv[3];

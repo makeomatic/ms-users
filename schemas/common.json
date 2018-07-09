@@ -71,6 +71,10 @@
         { "pattern": "^\\d+$" },
         { "pattern": "^(fb|sso)/[\\d_]+$" }
       ]
+    },
+    "alias": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9\\-\\.\\_]{3,20}$"
     }
   }
 }

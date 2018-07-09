@@ -8,13 +8,11 @@
     "properties": {
         "username": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 64
         },
         "alias": {
-            "type": "string",
-            "minLength": 3,
-            "maxLength": 15,
-            "pattern": "^[a-zA-Z.0-9]+$"
+            "$ref": "common.json#/definitions/alias"
         }
     }
 }

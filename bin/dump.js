@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // quickly dump specific fields for users
-const argv = require('yargs')
+const { argv } = require('yargs')
   .option('field', {
     alias: 'f',
     describe: 'fields to dump',
@@ -57,8 +57,7 @@ const argv = require('yargs')
     filter: JSON.parse,
   })
   .demandOption(['field'], 'Please provide at least 1 field to dump')
-  .help('h')
-  .argv;
+  .help('h');
 
 // deps
 const fs = require('fs');
@@ -123,7 +122,7 @@ switch (argv.output) {
  */
 const writeUserToOutput = (user) => {
   const attributes = user.metadata[audience];
-  const id = user.id;
+  const { id } = user;
   const username = (argv.username && attributes[argv.username]) || attributes[USERS_USERNAME_FIELD];
 
   if (argv.toDate) {

@@ -9,7 +9,7 @@ const assert = require('assert');
 
 const config = conf.get('/', { env: process.env.NODE_ENV });
 const amqpConfig = config.amqp.transport;
-const prefix = config.router.routes.prefix;
+const { prefix } = config.router.routes;
 
 const username = process.argv[2];
 const name = process.argv[3];

@@ -1,7 +1,7 @@
 const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
-const exec = require('child_process').exec;
+const { exec } = require('child_process');
 
 describe('binary: dump', function suite() {
   const binaryPath = path.resolve(__dirname, '../../bin/dump.js');
@@ -60,7 +60,7 @@ describe('binary: dump', function suite() {
 
   it('is able to use filter, users generated are random, so cant know for sure whats returned', function test(next) {
     exec(`${binaryPath} -f firstName lastName -o csv --filter '${JSON.stringify({
-      'username': '@yahoo.com',
+      username: '@yahoo.com',
     })}'`, { env }, (err, stdout, stderr) => {
       if (err) return next(err);
       if (stderr) return next(new Error(stderr));

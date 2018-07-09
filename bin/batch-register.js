@@ -17,7 +17,7 @@ const { CHALLENGE_TYPE_EMAIL } = require('../lib/constants');
 const config = conf.get('/', { env: process.env.NODE_ENV });
 const amqpConfig = omit(config.amqp.transport, ['queue', 'neck', 'listen', 'onComplete']);
 const audience = config.jwt.defaultAudience;
-const prefix = config.router.routes.prefix;
+const { prefix } = config.router.routes;
 
 /**
  * Registers batch users from stdin

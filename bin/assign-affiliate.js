@@ -42,13 +42,11 @@ const { argv } = require('yargs')
     // ensure that this user exists
     assert.equal(await redis.exists(metaKey), 1, 'user does not exist');
 
+    const currentReferral = await redis.hget(metaKey, USERS_REFERRAL_FIELD);
+
     // ensure that referral was not already set
     if (argv.overwrite !== true) {
-      assert.equal(
-        await redis.hexists(metaKey, USERS_REFERRAL_FIELD),
-        0,
-        'referral was already set, pass --overwrite to args to force it'
-      );
+      assert.equal(currentReferral, null, 'referral was already set, pass --overwrite to args to force it');
     }
 
     // verify that referral code is valid, which is basically
@@ -60,9 +58,13 @@ const { argv } = require('yargs')
     );
 
     const commands = [
-      ['hset', audience, `"${argv.code}"`],
+      ['hset', metaKey, audience, `"${argv.code}"`],
       ['sadd', `${USERS_REFERRAL_INDEX}:${argv.code}`, argv.id],
     ];
+
+    if (currentReferral) {
+      commands.push(['srem', `${USERS_REFERRAL_INDEX}:${JSON.parse(currentReferral)}`, argv.id]);
+    }
 
     await redis.pipeline(commands).exec().then(handleRedisPipelineError);
   } catch (e) {

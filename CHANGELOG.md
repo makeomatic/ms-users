@@ -1,3 +1,10 @@
+## [9.4.1](https://github.com/makeomatic/ms-users/compare/v9.4.0...v9.4.1) (2018-07-10)
+
+
+### Bug Fixes
+
+* **assign-affiliate:** metaKey & rem from old index during overwrite ([38bc125](https://github.com/makeomatic/ms-users/commit/38bc125))
+
 # [9.4.0](https://github.com/makeomatic/ms-users/compare/v9.3.2...v9.4.0) (2018-07-09)
 
 

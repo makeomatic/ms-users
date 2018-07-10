@@ -58,7 +58,7 @@ const { argv } = require('yargs')
     );
 
     const commands = [
-      ['hset', metaKey, audience, `"${argv.code}"`],
+      ['hset', metaKey, USERS_REFERRAL_FIELD, `"${argv.code}"`],
       ['sadd', `${USERS_REFERRAL_INDEX}:${argv.code}`, argv.id],
     ];
 

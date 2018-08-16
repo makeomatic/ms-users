@@ -40,6 +40,8 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise())
         .then(({ secret: secretKey }) => {
+          // check if valid secret is returned
+
           // save secret for attaching
           secret = secretKey;
         });
@@ -52,8 +54,9 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then((res) => {
-          assert.equal(res.name, 'HttpStatusError');
-          assert.equal(res.statusCode, 403);
+          assert.equal(res.name, 'NotPermittedError');
+          assert.equal(res.args[0].name, 'HttpStatusError');
+          assert.equal(res.args[0].statusCode, 403);
         });
     });
 
@@ -75,8 +78,9 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then((res) => {
-          assert.equal(res.name, 'HttpStatusError');
-          assert.equal(res.statusCode, 409);
+          assert.equal(res.name, 'NotPermittedError');
+          assert.equal(res.args[0].name, 'HttpStatusError');
+          assert.equal(res.args[0].statusCode, 409);
         });
     });
 
@@ -102,8 +106,9 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then((res) => {
-          assert.equal(res.name, 'HttpStatusError');
-          assert.equal(res.statusCode, 403);
+          assert.equal(res.name, 'NotPermittedError');
+          assert.equal(res.args[0].name, 'HttpStatusError');
+          assert.equal(res.args[0].statusCode, 403);
         });
     });
 
@@ -130,8 +135,9 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then((res) => {
-          assert.equal(res.name, 'HttpStatusError');
-          assert.equal(res.statusCode, 403);
+          assert.equal(res.name, 'NotPermittedError');
+          assert.equal(res.args[0].name, 'HttpStatusError');
+          assert.equal(res.args[0].statusCode, 403);
 
           // finally remove used code
           recoveryCodes = recoveryCodes.slice(1);
@@ -145,8 +151,9 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then((res) => {
-          assert.equal(res.name, 'HttpStatusError');
-          assert.equal(res.statusCode, 403);
+          assert.equal(res.name, 'NotPermittedError');
+          assert.equal(res.args[0].name, 'HttpStatusError');
+          assert.equal(res.args[0].statusCode, 403);
         });
     });
 
@@ -168,8 +175,9 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then((res) => {
-          assert.equal(res.name, 'HttpStatusError');
-          assert.equal(res.statusCode, 403);
+          assert.equal(res.name, 'NotPermittedError');
+          assert.equal(res.args[0].name, 'HttpStatusError');
+          assert.equal(res.args[0].statusCode, 403);
         });
     });
 
@@ -192,8 +200,9 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then((res) => {
-          assert.equal(res.name, 'HttpStatusError');
-          assert.equal(res.statusCode, 403);
+          assert.equal(res.name, 'NotPermittedError');
+          assert.equal(res.args[0].name, 'HttpStatusError');
+          assert.equal(res.args[0].statusCode, 403);
         });
     });
 
@@ -211,8 +220,9 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then((res) => {
-          assert.equal(res.name, 'HttpStatusError');
-          assert.equal(res.statusCode, 412);
+          assert.equal(res.name, 'NotPermittedError');
+          assert.equal(res.args[0].name, 'HttpStatusError');
+          assert.equal(res.args[0].statusCode, 412);
         });
     });
 

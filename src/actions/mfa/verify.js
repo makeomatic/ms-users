@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
-const { check2FA } = require('../../utils/2fa.js');
-const { TFA_TYPE_REQUIRED } = require('../../constants');
+const { checkMFA } = require('../../utils/mfa.js');
+const { MFA_TYPE_REQUIRED } = require('../../constants');
 
 /**
  * @api {amqp} <prefix>.verify Verify TOTP
@@ -24,8 +24,8 @@ module.exports = function verify() {
   return { valid: true };
 };
 
-module.exports.tfa = TFA_TYPE_REQUIRED;
-module.exports.allowed = check2FA;
+module.exports.mfa = MFA_TYPE_REQUIRED;
+module.exports.allowed = checkMFA;
 module.exports.transports = [ActionTransport.amqp];
 module.exports.transportOptions = {
   [ActionTransport.amqp]: {

@@ -1,39 +1,30 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const { check2FA, generateRecoveryCodes } = require('../../utils/2fa.js');
-const {
-  USERS_DATA,
-  USERS_2FA_FLAG,
-  USERS_2FA_SECRET,
-  USERS_2FA_RECOVERY,
-  TFA_TYPE_DISABLED,
-} = require('../../constants');
+const { checkMFA, generateRecoveryCodes } = require('../../utils/mfa.js');
+const { USERS_MFA_RECOVERY, MFA_TYPE_REQUIRED } = require('../../constants');
 
-async function storeData(userId) {
-  const { redis, secret } = this;
+function storeData(userId) {
+  const redisKeyRecovery = redisKey(USERS_MFA_RECOVERY, userId);
   const recoveryCodes = generateRecoveryCodes();
 
-  return redis
+  return this.redis
     .pipeline()
-    .set(redisKey(USERS_2FA_SECRET, userId), secret)
-    .sadd(redisKey(USERS_2FA_RECOVERY, userId), recoveryCodes)
-    .hset(redisKey(userId, USERS_DATA), USERS_2FA_FLAG, 'true')
+    .del(redisKeyRecovery)
+    .sadd(redisKeyRecovery, recoveryCodes)
     .exec()
     .then(handlePipeline)
-    .return({ recoveryCodes, enabled: true });
+    .return({ recoveryCodes, regenerated: true });
 }
 
 /**
- * @api {amqp} <prefix>.attach Attach
+ * @api {amqp} <prefix>.regenerate-codes Regenerate recovery codes
  * @apiVersion 1.0.0
- * @apiName Attach
+ * @apiName RegenerateCodes
  * @apiGroup Users
  *
- * @apiDescription Allows to attach secret key and recovery code to user's account,
- * generate and returns initial recovery code.
+ * @apiDescription Allows regenerate recovery codes.
  *
  * @apiHeader (Authorization) {String} Authorization JWT :accessToken
  * @apiHeaderExample Authorization-Example:
@@ -43,24 +34,21 @@ async function storeData(userId) {
  *     "X-Auth-TOTP: 123456"
  *
  * @apiParam (Payload) {String} username - id of the user
- * @apiParam (Payload) {String} secret - crypto secure 32 characters hex key
- * @apiParam (Payload) {Number} [totp] - time-based one time password
+ * @apiParam (Payload) {Number} [totp] - time-based one time password or recoveryCode
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function attach({ params, locals }) {
-  const { secret } = params;
+module.exports = function regenerateCodes({ locals }) {
   const { username } = locals;
   const { redis } = this;
-  const ctx = { redis, secret };
 
   return Promise
-    .bind(ctx, username)
+    .bind({ redis }, username)
     .then(storeData);
 };
 
-module.exports.tfa = TFA_TYPE_DISABLED;
-module.exports.allowed = check2FA;
+module.exports.mfa = MFA_TYPE_REQUIRED;
+module.exports.allowed = checkMFA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
 module.exports.transportOptions = {

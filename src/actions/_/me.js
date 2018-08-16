@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../../utils/userData');
-const { USERS_2FA_FLAG } = require('../../constants');
+const { USERS_MFA_FLAG } = require('../../constants');
 
 /**
  * @api {http.get|amqp} <prefix>/_/me Return decoded data from JWT
@@ -18,9 +18,9 @@ const { USERS_2FA_FLAG } = require('../../constants');
  */
 async function Me({ auth }) {
   const { id, metadata } = auth.credentials;
-  const tfa = await getInternalData.call(this, id).get(USERS_2FA_FLAG);
+  const mfa = await getInternalData.call(this, id).get(USERS_MFA_FLAG);
 
-  return { id, tfa, metadata };
+  return { id, mfa, metadata };
 }
 
 Me.auth = {

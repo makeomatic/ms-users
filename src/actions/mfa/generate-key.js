@@ -10,7 +10,7 @@ authenticator.options = { crypto };
  * @apiName GenerateKey
  * @apiGroup Users
  *
- * @apiDescription Generates secret key for 2FA.
+ * @apiDescription Generates secret key for MFA.
  *
  * @apiHeader (Authorization) {String} Authorization JWT :accessToken
  * @apiHeaderExample Authorization-Example:

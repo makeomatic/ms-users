@@ -1,5 +1,5 @@
 {
-    "$id": "2fa.verify",
+    "$id": "mfa.detach",
     "type": "object",
     "required": [
         "username",
@@ -14,6 +14,11 @@
             "type": "string",
             "minLength": 6,
             "maxLength": 36
+        },
+        "recoveryCode": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 8
         },
         "remoteip": {
             "type": "string",

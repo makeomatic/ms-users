@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const { getUserId } = require('../utils/userData');
 
-const isTfaRoute = route => /2fa/.test(route);
+const isMfaRoute = route => /mfa/.test(route);
 module.exports = [{
   point: 'postValidate',
   handler: async function postValidateHandler(error, request) {
@@ -12,7 +12,7 @@ module.exports = [{
     }
 
     // TODO: refactor after implementation of route specific hooks in core
-    if (isTfaRoute(request.route)) {
+    if (isMfaRoute(request.route)) {
       if (!request.locals) {
         request.locals = Object.create(null);
       }

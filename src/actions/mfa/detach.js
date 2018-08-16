@@ -2,20 +2,20 @@ const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const { check2FA } = require('../../utils/2fa.js');
+const { checkMFA } = require('../../utils/mfa.js');
 const {
   USERS_DATA,
-  USERS_2FA_FLAG,
-  USERS_2FA_SECRET,
-  USERS_2FA_RECOVERY,
-  TFA_TYPE_REQUIRED,
+  USERS_MFA_FLAG,
+  USERS_MFA_SECRET,
+  USERS_MFA_RECOVERY,
+  MFA_TYPE_REQUIRED,
 } = require('../../constants');
 
 async function removeData(userId) {
   return this.redis
     .pipeline()
-    .del(redisKey(USERS_2FA_SECRET, userId), redisKey(USERS_2FA_RECOVERY, userId))
-    .hdel(redisKey(userId, USERS_DATA), USERS_2FA_FLAG)
+    .del(redisKey(USERS_MFA_SECRET, userId), redisKey(USERS_MFA_RECOVERY, userId))
+    .hdel(redisKey(userId, USERS_DATA), USERS_MFA_FLAG)
     .exec()
     .then(handlePipeline)
     .return({ enabled: false });
@@ -28,7 +28,7 @@ async function removeData(userId) {
  * @apiGroup Users
  *
  * @apiDescription Allows to detach secret key and recovery code from user's account,
- * basically disables 2FA.
+ * basically disables MFA.
  *
  * @apiHeader (Authorization) {String} Authorization JWT :accessToken
  * @apiHeaderExample Authorization-Example:
@@ -52,8 +52,8 @@ module.exports = function detach({ locals }) {
     .then(removeData);
 };
 
-module.exports.tfa = TFA_TYPE_REQUIRED;
-module.exports.allowed = check2FA;
+module.exports.mfa = MFA_TYPE_REQUIRED;
+module.exports.allowed = checkMFA;
 module.exports.auth = 'httpBearer';
 module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
 module.exports.transportOptions = {

@@ -19,9 +19,9 @@ module.exports = exports = {
   USERS_TOKENS: 'tokens',
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
-  USERS_2FA_FLAG: 'tfa',
-  USERS_2FA_SECRET: 'tfa-secret',
-  USERS_2FA_RECOVERY: 'tfa-recovery',
+  USERS_MFA_FLAG: 'mfa',
+  USERS_MFA_SECRET: 'mfa-secret',
+  USERS_MFA_RECOVERY: 'mfa-recovery',
 
   // standard JWT with TTL
   USERS_ID_FIELD: 'id',
@@ -76,10 +76,10 @@ module.exports = exports = {
   CHALLENGE_TYPE_EMAIL: 'email',
   CHALLENGE_TYPE_PHONE: 'phone',
 
-  // 2FA action types
-  TFA_TYPE_REQUIRED: Symbol('required'),
-  TFA_TYPE_OPTIONAL: Symbol('optional'),
-  TFA_TYPE_DISABLED: Symbol('disabled'),
+  // MFA action types
+  MFA_TYPE_REQUIRED: Symbol('required'),
+  MFA_TYPE_OPTIONAL: Symbol('optional'),
+  MFA_TYPE_DISABLED: Symbol('disabled'),
 
   // lock names
   lockAlias: alias => `users:alias:${alias}`,

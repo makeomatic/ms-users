@@ -1,20 +1,14 @@
 {
-    "$id": "2fa.attach",
+    "$id": "mfa.regenerate-codes",
     "type": "object",
     "required": [
-        "username",
-        "secret"
+        "username"
     ],
     "properties": {
-        "username": {
-            "type": "string",
-            "minLength": 1
-        },
-        "secret": {
-            "type": "string",
-            "minLength": 32,
-            "maxLength": 32
-        },
+      "username": {
+          "type": "string",
+          "minLength": 1
+      },
         "totp": {
             "type": "string",
             "minLength": 6,

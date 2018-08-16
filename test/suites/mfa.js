@@ -9,18 +9,18 @@ const request = require('request-promise').defaults({
   gzip: true,
   simple: true,
 });
-const { USERS_2FA_FLAG } = require('../../src/constants');
+const { USERS_MFA_FLAG } = require('../../src/constants');
 
 authenticator.options = { crypto };
 
-describe('#2fa.*', function activateSuite() {
+describe('#mfa.*', function activateSuite() {
   // actions supported by this
-  const username = '2fa@me.com';
-  const generateRoute = 'users.2fa.generate-key';
-  const attachRoute = 'users.2fa.attach';
-  const verifyRoute = 'users.2fa.verify';
-  const regenerateRoute = 'users.2fa.regenerate-codes';
-  const detachRoute = 'users.2fa.detach';
+  const username = 'mfa@me.com';
+  const generateRoute = 'users.mfa.generate-key';
+  const attachRoute = 'users.mfa.attach';
+  const verifyRoute = 'users.mfa.verify';
+  const regenerateRoute = 'users.mfa.regenerate-codes';
+  const detachRoute = 'users.mfa.detach';
 
   before(global.startService);
   after(global.clearRedis);
@@ -33,7 +33,7 @@ describe('#2fa.*', function activateSuite() {
   let recoveryCodes;
   let regeneratedCodes;
 
-  describe('#2fa.generate-key', function generateKeySuite() {
+  describe('#mfa.generate-key', function generateKeySuite() {
     it('generates key', function test() {
       return this
         .dispatch(generateRoute, { username })
@@ -48,7 +48,7 @@ describe('#2fa.*', function activateSuite() {
     });
   });
 
-  describe('#2fa.attach', function attachSuite() {
+  describe('#mfa.attach', function attachSuite() {
     it('doesn\'t allow to attach if provided totp is invalid', function test() {
       return this.dispatch(attachRoute, { username, secret, totp: '123456' })
         .reflect()
@@ -84,7 +84,7 @@ describe('#2fa.*', function activateSuite() {
         });
     });
 
-    it('returns 2fa info inside user\'s metadata', function test() {
+    it('returns mfa info inside user\'s metadata', function test() {
       return request
         .get({
           headers: {
@@ -95,12 +95,12 @@ describe('#2fa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise())
         .then((res) => {
-          assert.ok(res[USERS_2FA_FLAG]);
+          assert.ok(res[USERS_MFA_FLAG]);
         });
     });
   });
 
-  describe('#2fa.verify', function verifySuite() {
+  describe('#mfa.verify', function verifySuite() {
     it('throws if invalid totp is provided', function test() {
       return this.dispatch(verifyRoute, { username, totp: '123456' })
         .reflect()
@@ -145,7 +145,7 @@ describe('#2fa.*', function activateSuite() {
     });
   });
 
-  describe('#2fa.regenerate-codes', function regenerateSuite() {
+  describe('#mfa.regenerate-codes', function regenerateSuite() {
     it('doesn\'t allow to regenerate codes if invalid totp is provided', function test() {
       return this.dispatch(regenerateRoute, { username, totp: '123456' })
         .reflect()
@@ -194,7 +194,7 @@ describe('#2fa.*', function activateSuite() {
     });
   });
 
-  describe('#2fa.detach', function detachSuite() {
+  describe('#mfa.detach', function detachSuite() {
     it('doesn\'t allow to detach if invalid totp is provided', function test() {
       return this.dispatch(detachRoute, { username, totp: '123456' })
         .reflect()
@@ -226,7 +226,7 @@ describe('#2fa.*', function activateSuite() {
         });
     });
 
-    it('removes 2fa flag from metadata after detaching', function test() {
+    it('removes mfa flag from metadata after detaching', function test() {
       return request
         .get({
           headers: {
@@ -237,7 +237,7 @@ describe('#2fa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise())
         .then((res) => {
-          assert.equal(res[USERS_2FA_FLAG], undefined);
+          assert.equal(res[USERS_MFA_FLAG], undefined);
         });
     });
   });

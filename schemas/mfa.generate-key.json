@@ -1,5 +1,5 @@
 {
-    "$id": "2fa.generate-key",
+    "$id": "mfa.generate-key",
     "type": "object",
     "required": [
         "username"

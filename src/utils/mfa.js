@@ -7,11 +7,11 @@ const redisKey = require('./key');
 const {
   ErrorTotpRequired,
   ErrorTotpInvalid,
-  USERS_2FA_SECRET,
-  USERS_2FA_RECOVERY,
-  TFA_TYPE_REQUIRED,
-  TFA_TYPE_OPTIONAL,
-  TFA_TYPE_DISABLED,
+  USERS_MFA_SECRET,
+  USERS_MFA_RECOVERY,
+  MFA_TYPE_REQUIRED,
+  MFA_TYPE_OPTIONAL,
+  MFA_TYPE_DISABLED,
 } = require('../constants');
 
 authenticator.options = { crypto };
@@ -26,13 +26,13 @@ function generateRecoveryCodes(length = 10) {
 }
 
 /**
- * Checks if 2FA is enabled
+ * Checks if MFA is enabled
  * @returns {Boolean}
  */
-async function is2FAEnabled(userId) {
+async function isMFAEnabled(userId) {
   const { redis } = this;
 
-  const secret = await redis.get(redisKey(USERS_2FA_SECRET, userId));
+  const secret = await redis.get(redisKey(USERS_MFA_SECRET, userId));
 
   if (secret) {
     return secret;
@@ -42,14 +42,14 @@ async function is2FAEnabled(userId) {
 }
 
 /**
- * Performs 2fa check and TOTP verification
+ * Performs MFA check and TOTP verification
  * @param  {Object}  request
  * @returns {null}
  */
-async function check2FA({
+async function checkMFA({
   action, params, locals, headers,
 }) {
-  if (!action.tfa) {
+  if (!action.mfa) {
     return null;
   }
 
@@ -57,27 +57,27 @@ async function check2FA({
   const { username } = locals;
   const userId = await getUserId.call({ redis }, username);
 
-  // checks if 2FA is already enabled
-  let secret = await is2FAEnabled.call(this, userId);
+  // checks if MFA is already enabled
+  let secret = await isMFAEnabled.call(this, userId);
 
   if (!secret) {
-    // 2FA is not enabled but is optional, pass through
-    if (action.tfa === TFA_TYPE_OPTIONAL) {
+    // MFA is not enabled but is optional, pass through
+    if (action.mfa === MFA_TYPE_OPTIONAL) {
       return null;
     }
 
-    // 2FA is not enabled but is required, throw
-    if (action.tfa === TFA_TYPE_REQUIRED) {
-      throw new HttpStatusError(412, '2FA disabled');
+    // MFA is not enabled but is required, throw
+    if (action.mfa === MFA_TYPE_REQUIRED) {
+      throw new HttpStatusError(412, 'MFA disabled');
     }
 
-    // if we reached this point 2FA is disabled
-    // and action.2fa === 'disabled'
+    // if we reached this point MFA is disabled
+    // and action.mfa === 'disabled'
     // so user must provide secret in request
     secret = params.secret;
-  } else if (action.tfa === TFA_TYPE_DISABLED) {
-    // 2FA is enabled but should be disabled, throw
-    throw new HttpStatusError(409, '2FA already enabled');
+  } else if (action.mfa === MFA_TYPE_DISABLED) {
+    // MFA is enabled but should be disabled, throw
+    throw new HttpStatusError(409, 'MFA already enabled');
   }
 
   // if still no secret we can't perform futher checks
@@ -109,7 +109,7 @@ async function check2FA({
 
   // user may provide recovery key instead of totp
   // check it by trying to remove from set of codes
-  const deleted = await redis.srem(redisKey(USERS_2FA_RECOVERY, userId), totp);
+  const deleted = await redis.srem(redisKey(USERS_MFA_RECOVERY, userId), totp);
 
   // if nothing has been removed means code
   // is invalid, throw error
@@ -121,5 +121,5 @@ async function check2FA({
 }
 
 module.exports.generateRecoveryCodes = generateRecoveryCodes;
-module.exports.is2FAEnabled = is2FAEnabled;
-module.exports.check2FA = check2FA;
+module.exports.isMFAEnabled = isMFAEnabled;
+module.exports.checkMFA = checkMFA;

@@ -1,3 +1,10 @@
+## [9.4.3](https://github.com/makeomatic/ms-users/compare/v9.4.2...v9.4.3) (2018-08-16)
+
+
+### Bug Fixes
+
+* TFA -> MFA ([#380](https://github.com/makeomatic/ms-users/issues/380)) ([96fdad5](https://github.com/makeomatic/ms-users/commit/96fdad5))
+
 ## [9.4.2](https://github.com/makeomatic/ms-users/compare/v9.4.1...v9.4.2) (2018-07-10)
 
 

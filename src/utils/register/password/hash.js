@@ -1,6 +1,6 @@
-const generatePassword = require('./generate');
 const is = require('is');
 const Promise = require('bluebird');
+const generatePassword = require('./generate');
 const scrypt = require('../../scrypt');
 
 /*

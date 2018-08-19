@@ -53,7 +53,7 @@ function oauthVerification(response, credentials) {
 
     if (retryOnMissingPermissions === true) {
       return Promise.reject(new Redirect(`${location}${this.transportRequest.path}?auth_type=rerequest&scope=${missingPermissions.join(',')}`));
-    } else if (retryOnMissingPermissions !== false) {
+    } if (retryOnMissingPermissions !== false) {
       const error = new Errors.AuthenticationRequiredError(`missing permissions - ${missingPermissions.join(',')}`);
       error.missingPermissions = missingPermissions;
       return Promise.reject(error);

@@ -1,12 +1,12 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const getMetadata = require('../utils/getMetadata.js');
-const { getUserId } = require('../utils/userData');
 const noop = require('lodash/noop');
 const identity = require('lodash/identity');
 const get = require('lodash/get');
-const { USERS_ALIAS_FIELD } = require('../constants.js');
+const getMetadata = require('../utils/getMetadata');
+const { getUserId } = require('../utils/userData');
+const { USERS_ALIAS_FIELD } = require('../constants');
 
 const { isArray } = Array;
 

@@ -28,11 +28,10 @@ function decodedToken({ username, userId }) {
 
   return Promise
     .resolve(userId || getUserId.call(service, username))
-    .then(resolveduserId =>
-      Promise.props({
-        id: resolveduserId,
-        metadata: getMetadata.call(service, resolveduserId, audience),
-      }));
+    .then(resolveduserId => Promise.props({
+      id: resolveduserId,
+      metadata: getMetadata.call(service, resolveduserId, audience),
+    }));
 }
 
 /**

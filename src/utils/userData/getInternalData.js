@@ -1,10 +1,10 @@
 const { HttpStatusError } = require('common-errors');
 const reduce = require('lodash/reduce');
 const Promise = require('bluebird');
+const zipObject = require('lodash/zipObject');
 const resolveUserId = require('./resolveUserId');
 const { USERS_PASSWORD_FIELD, FIELDS_TO_STRINGIFY } = require('../../constants');
 const safeParse = require('../safeParse');
-const zipObject = require('lodash/zipObject');
 
 const { hasOwnProperty } = Object.prototype;
 const STRINGIFY_FIELDS = zipObject(FIELDS_TO_STRINGIFY);

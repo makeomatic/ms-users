@@ -4,8 +4,8 @@ const is = require('is');
 const serializeError = require('serialize-error');
 const serialize = require('serialize-javascript');
 const { ActionTransport } = require('@microfleet/core');
-const { Redirect } = require('./utils/errors');
 const { AuthenticationRequiredError } = require('common-errors');
+const { Redirect } = require('./utils/errors');
 
 const isOauthAttachRoute = route => /oauth\.facebook$/.test(route);
 

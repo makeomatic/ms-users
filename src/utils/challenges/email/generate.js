@@ -1,11 +1,11 @@
 const Promise = require('bluebird');
 const render = require('ms-mailer-templates');
-const generateLink = require('../../generateBacklink');
 const generatePassword = require('password-generator');
 const partial = require('lodash/partial');
 const identity = require('lodash/identity');
-const sendEmail = require('./send');
 const { InvalidOperationError } = require('common-errors');
+const sendEmail = require('./send');
+const generateLink = require('../../generateBacklink');
 const { updatePassword } = require('../../../actions/updatePassword');
 const {
   USERS_ACTION_ACTIVATE,

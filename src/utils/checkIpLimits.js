@@ -1,6 +1,6 @@
 const { HttpStatusError } = require('common-errors');
-const redisKey = require('./key');
 const uuid = require('uuid/v4');
+const redisKey = require('./key');
 const handlePipeline = require('../utils/pipelineError.js');
 
 /**

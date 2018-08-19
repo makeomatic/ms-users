@@ -1,6 +1,8 @@
 module.exports = class Urls {
   static DEFAULT_API_VERSION = 'v2.9';
+
   static self = null;
+
   static instance(version = Urls.DEFAULT_API_VERSION) {
     let { self } = this;
 

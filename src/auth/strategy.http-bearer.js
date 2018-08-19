@@ -2,11 +2,13 @@ const { ActionTransport } = require('@microfleet/core');
 const bearer = require('./strategy.bearer');
 
 function tokenAuth(request) {
-  if (request.transport === ActionTransport.http) {
-    return bearer.call(this, request);
-  }
+  switch (request.transport) {
+    case ActionTransport.http:
+      return bearer.call(this, request);
 
-  return null;
+    default:
+      return null;
+  }
 }
 
 module.exports = tokenAuth;

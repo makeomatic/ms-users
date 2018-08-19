@@ -48,7 +48,7 @@ async function storeData(userId) {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function attach({ params, locals }) {
+function attach({ params, locals }) {
   const { secret } = params;
   const { username } = locals;
   const { redis } = this;
@@ -57,17 +57,16 @@ module.exports = function attach({ params, locals }) {
   return Promise
     .bind(ctx, username)
     .then(storeData);
-};
+}
 
-module.exports.mfa = MFA_TYPE_DISABLED;
-module.exports.allowed = checkMFA;
-module.exports.auth = 'httpBearer';
-module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
-module.exports.transportOptions = {
+attach.mfa = MFA_TYPE_DISABLED;
+attach.allowed = checkMFA;
+attach.auth = 'httpBearer';
+attach.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
+attach.transportOptions = {
   [ActionTransport.http]: {
     methods: ['post'],
   },
-  [ActionTransport.amqp]: {
-    methods: [ActionTransport.amqp],
-  },
 };
+
+module.exports = attach;

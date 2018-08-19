@@ -38,24 +38,23 @@ function storeData(userId) {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function regenerateCodes({ locals }) {
+function regenerateCodes({ locals }) {
   const { username } = locals;
   const { redis } = this;
 
   return Promise
     .bind({ redis }, username)
     .then(storeData);
-};
+}
 
-module.exports.mfa = MFA_TYPE_REQUIRED;
-module.exports.allowed = checkMFA;
-module.exports.auth = 'httpBearer';
-module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
-module.exports.transportOptions = {
+regenerateCodes.mfa = MFA_TYPE_REQUIRED;
+regenerateCodes.allowed = checkMFA;
+regenerateCodes.auth = 'httpBearer';
+regenerateCodes.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
+regenerateCodes.transportOptions = {
   [ActionTransport.http]: {
     methods: ['post'],
   },
-  [ActionTransport.amqp]: {
-    methods: [ActionTransport.amqp],
-  },
 };
+
+module.exports = regenerateCodes;

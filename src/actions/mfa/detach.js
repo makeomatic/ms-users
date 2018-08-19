@@ -43,24 +43,23 @@ async function removeData(userId) {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function detach({ locals }) {
+function detach({ locals }) {
   const { username } = locals;
   const { redis } = this;
 
   return Promise
     .bind({ redis }, username)
     .then(removeData);
-};
+}
 
-module.exports.mfa = MFA_TYPE_REQUIRED;
-module.exports.allowed = checkMFA;
-module.exports.auth = 'httpBearer';
-module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
-module.exports.transportOptions = {
+detach.mfa = MFA_TYPE_REQUIRED;
+detach.allowed = checkMFA;
+detach.auth = 'httpBearer';
+detach.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
+detach.transportOptions = {
   [ActionTransport.http]: {
     methods: ['post'],
   },
-  [ActionTransport.amqp]: {
-    methods: [ActionTransport.amqp],
-  },
 };
+
+module.exports = detach;

@@ -16,11 +16,18 @@ authenticator.options = { crypto };
 describe('#mfa.*', function activateSuite() {
   // actions supported by this
   const username = 'mfa@me.com';
-  const generateRoute = 'users.mfa.generate-key';
-  const attachRoute = 'users.mfa.attach';
-  const verifyRoute = 'users.mfa.verify';
-  const regenerateRoute = 'users.mfa.regenerate-codes';
-  const detachRoute = 'users.mfa.detach';
+  const generateRoute = 'mfa.generate-key';
+  const attachRoute = 'mfa.attach';
+  const verifyRoute = 'mfa.verify';
+  const regenerateRoute = 'mfa.regenerate-codes';
+  const detachRoute = 'mfa.detach';
+
+  function topIsInvalid(error) {
+    assert.equal(error.name, 'HttpStatusError');
+    assert.equal(error.statusCode, 403);
+    assert.equal(error.code, 'E_TOTP_INVALID');
+    assert.ok(/TOTP invalid/.test(error.message), error.message);
+  }
 
   before(global.startService);
   after(global.clearRedis);
@@ -34,211 +41,166 @@ describe('#mfa.*', function activateSuite() {
   let regeneratedCodes;
 
   describe('#mfa.generate-key', function generateKeySuite() {
-    it('generates key', function test() {
-      return this
-        .dispatch(generateRoute, { username })
-        .reflect()
-        .then(inspectPromise())
-        .then(({ secret: secretKey }) => {
-          // check if valid secret is returned
+    it('generates key', async function test() {
+      const data = await this.users
+        .dispatch(generateRoute, { params: { username } });
 
-          // save secret for attaching
-          secret = secretKey;
-        });
+      secret = data.secret;
     });
   });
 
   describe('#mfa.attach', function attachSuite() {
-    it('doesn\'t allow to attach if provided totp is invalid', function test() {
-      return this.dispatch(attachRoute, { username, secret, totp: '123456' })
+    it('doesn\'t allow to attach if provided totp is invalid', async function test() {
+      const error = await this.users
+        .dispatch(attachRoute, { params: { username, secret, totp: '123456' } })
         .reflect()
-        .then(inspectPromise(false))
-        .then((res) => {
-          assert.equal(res.name, 'NotPermittedError');
-          assert.equal(res.args[0].name, 'HttpStatusError');
-          assert.equal(res.args[0].statusCode, 403);
-        });
+        .then(inspectPromise(false));
+
+      topIsInvalid(error);
     });
 
-    it('attaches secret to user account if provided totp is valid', function test() {
-      return this.dispatch(attachRoute, { username, secret, totp: authenticator.generate(secret) })
-        .reflect()
-        .then(inspectPromise())
-        .then(({ enabled, recoveryCodes: codes }) => {
-          assert.ok(enabled);
-          assert.equal(codes.length, 10);
+    it('attaches secret to user account if provided totp is valid', async function test() {
+      const { enabled, recoveryCodes: codes } = await this.users
+        .dispatch(attachRoute, { params: { username, secret, totp: authenticator.generate(secret) } });
 
-          // store for future use
-          recoveryCodes = codes;
-        });
+      assert.ok(enabled);
+      assert.equal(codes.length, 10);
+
+      // store for future use
+      recoveryCodes = codes;
     });
 
-    it('doesn\'t allow to attach if already attached', function test() {
-      return this.dispatch(attachRoute, { username, secret, totp: authenticator.generate(secret) })
+    it('doesn\'t allow to attach if already attached', async function test() {
+      const error = await this.users
+        .dispatch(attachRoute, { params: { username, secret, totp: authenticator.generate(secret) } })
         .reflect()
-        .then(inspectPromise(false))
-        .then((res) => {
-          assert.equal(res.name, 'NotPermittedError');
-          assert.equal(res.args[0].name, 'HttpStatusError');
-          assert.equal(res.args[0].statusCode, 409);
-        });
+        .then(inspectPromise(false));
+
+      assert.equal(error.name, 'HttpStatusError');
+      assert.equal(error.statusCode, 409);
+      assert.ok(/MFA already enabled/.test(error.message), error.message);
     });
 
-    it('returns mfa info inside user\'s metadata', function test() {
-      return request
-        .get({
-          headers: {
-            authorization: `JWT ${this.jwt}`,
-          },
-        })
-        .promise()
-        .reflect()
-        .then(inspectPromise())
-        .then((res) => {
-          assert.ok(res[USERS_MFA_FLAG]);
-        });
+    it('returns mfa info inside user\'s metadata', async function test() {
+      const res = await request.get({
+        headers: { authorization: `JWT ${this.jwt}` },
+      });
+
+      assert.ok(res[USERS_MFA_FLAG]);
     });
   });
 
   describe('#mfa.verify', function verifySuite() {
-    it('throws if invalid totp is provided', function test() {
-      return this.dispatch(verifyRoute, { username, totp: '123456' })
+    it('throws if invalid totp is provided', async function test() {
+      const error = await this.users
+        .dispatch(verifyRoute, { params: { username, totp: '123456' } })
         .reflect()
-        .then(inspectPromise(false))
-        .then((res) => {
-          assert.equal(res.name, 'NotPermittedError');
-          assert.equal(res.args[0].name, 'HttpStatusError');
-          assert.equal(res.args[0].statusCode, 403);
-        });
+        .then(inspectPromise(false));
+
+      topIsInvalid(error);
     });
 
-    it('doesn\'t throw if valid totp is provided', function test() {
-      return this.dispatch(verifyRoute, { username, totp: authenticator.generate(secret) })
-        .reflect()
-        .then(inspectPromise())
-        .then(({ valid }) => {
-          assert.ok(valid);
-        });
+    it('doesn\'t throw if valid totp is provided', async function test() {
+      const { valid } = await this.users
+        .dispatch(verifyRoute, { params: { username, totp: authenticator.generate(secret) } });
+
+      assert.ok(valid);
     });
 
-    it('doesn\'t throw if valid recovery code is provided', function test() {
-      return this.dispatch(verifyRoute, { username, totp: recoveryCodes[0] })
-        .reflect()
-        .then(inspectPromise())
-        .then(({ valid }) => {
-          assert.ok(valid);
-        });
+    it('doesn\'t throw if valid recovery code is provided', async function test() {
+      const { valid } = await this.users
+        .dispatch(verifyRoute, { params: { username, totp: recoveryCodes[0] } });
+
+      assert.ok(valid);
     });
 
-    it('throws if same recovery code provided one more time', function test() {
-      return this.dispatch(verifyRoute, { username, totp: recoveryCodes[0] })
+    it('throws if same recovery code provided one more time', async function test() {
+      const error = await this.users
+        .dispatch(verifyRoute, { params: { username, totp: recoveryCodes[0] } })
         .reflect()
-        .then(inspectPromise(false))
-        .then((res) => {
-          assert.equal(res.name, 'NotPermittedError');
-          assert.equal(res.args[0].name, 'HttpStatusError');
-          assert.equal(res.args[0].statusCode, 403);
+        .then(inspectPromise(false));
 
-          // finally remove used code
-          recoveryCodes = recoveryCodes.slice(1);
-        });
+      topIsInvalid(error);
+
+      // finally remove used code
+      recoveryCodes = recoveryCodes.slice(1);
     });
   });
 
   describe('#mfa.regenerate-codes', function regenerateSuite() {
-    it('doesn\'t allow to regenerate codes if invalid totp is provided', function test() {
-      return this.dispatch(regenerateRoute, { username, totp: '123456' })
+    it('doesn\'t allow to regenerate codes if invalid totp is provided', async function test() {
+      const error = await this.users
+        .dispatch(regenerateRoute, { params: { username, totp: '123456' } })
         .reflect()
-        .then(inspectPromise(false))
-        .then((res) => {
-          assert.equal(res.name, 'NotPermittedError');
-          assert.equal(res.args[0].name, 'HttpStatusError');
-          assert.equal(res.args[0].statusCode, 403);
-        });
+        .then(inspectPromise(false));
+
+      topIsInvalid(error);
     });
 
-    it('allows to regenerate codes if valid totp is provided', function test() {
-      return this.dispatch(regenerateRoute, { username, totp: authenticator.generate(secret) })
-        .reflect()
-        .then(inspectPromise())
-        .then(({ regenerated, recoveryCodes: codes }) => {
-          assert.ok(regenerated);
-          assert.equal(codes.length, 10);
+    it('allows to regenerate codes if valid totp is provided', async function test() {
+      const { regenerated, recoveryCodes: codes } = await this.users
+        .dispatch(regenerateRoute, { params: { username, totp: authenticator.generate(secret) } });
 
-          // store new codes
-          regeneratedCodes = codes;
-        });
+      assert.ok(regenerated);
+      assert.equal(codes.length, 10);
+
+      // store new codes
+      regeneratedCodes = codes;
     });
 
-    it('throws if some old recovery code is provided', function test() {
-      return this.dispatch(verifyRoute, { username, totp: recoveryCodes[0] })
+    it('throws if some old recovery code is provided', async function test() {
+      const error = await this.users
+        .dispatch(verifyRoute, { params: { username, totp: recoveryCodes[0] } })
         .reflect()
-        .then(inspectPromise(false))
-        .then((res) => {
-          assert.equal(res.name, 'NotPermittedError');
-          assert.equal(res.args[0].name, 'HttpStatusError');
-          assert.equal(res.args[0].statusCode, 403);
-        });
+        .then(inspectPromise(false));
+
+      topIsInvalid(error);
     });
 
-    it('doesn\'t throw if new valid recovery is provided', function test() {
-      return this.dispatch(verifyRoute, { username, totp: regeneratedCodes[0] })
-        .reflect()
-        .then(inspectPromise())
-        .then(({ valid }) => {
-          assert.ok(valid);
+    it('doesn\'t throw if new valid recovery is provided', async function test() {
+      const { valid } = await this.users
+        .dispatch(verifyRoute, { params: { username, totp: regeneratedCodes[0] } });
 
-          // remove used code
-          regeneratedCodes = regeneratedCodes.slice(1);
-        });
+      assert.ok(valid);
+      // remove used code
+      regeneratedCodes = regeneratedCodes.slice(1);
     });
   });
 
   describe('#mfa.detach', function detachSuite() {
-    it('doesn\'t allow to detach if invalid totp is provided', function test() {
-      return this.dispatch(detachRoute, { username, totp: '123456' })
+    it('doesn\'t allow to detach if invalid totp is provided', async function test() {
+      const error = await this.users
+        .dispatch(detachRoute, { params: { username, totp: '123456' } })
         .reflect()
-        .then(inspectPromise(false))
-        .then((res) => {
-          assert.equal(res.name, 'NotPermittedError');
-          assert.equal(res.args[0].name, 'HttpStatusError');
-          assert.equal(res.args[0].statusCode, 403);
-        });
+        .then(inspectPromise(false));
+
+      topIsInvalid(error);
     });
 
-    it('allows to detach if valid totp is provided', function test() {
-      return this.dispatch(detachRoute, { username, totp: authenticator.generate(secret) })
-        .reflect()
-        .then(inspectPromise())
-        .then(({ enabled }) => {
-          assert.equal(enabled, false);
-        });
+    it('allows to detach if valid totp is provided', async function test() {
+      const { enabled } = await this.users
+        .dispatch(detachRoute, { params: { username, totp: authenticator.generate(secret) } });
+
+      assert.equal(enabled, false);
     });
 
-    it('doesn\'t allow to detach if not attached', function test() {
-      return this.dispatch(detachRoute, { username, totp: authenticator.generate(secret) })
+    it('doesn\'t allow to detach if not attached', async function test() {
+      const error = await this.users
+        .dispatch(detachRoute, { params: { username, totp: authenticator.generate(secret) } })
         .reflect()
-        .then(inspectPromise(false))
-        .then((res) => {
-          assert.equal(res.name, 'NotPermittedError');
-          assert.equal(res.args[0].name, 'HttpStatusError');
-          assert.equal(res.args[0].statusCode, 412);
-        });
+        .then(inspectPromise(false));
+
+      assert.equal(error.name, 'HttpStatusError');
+      assert.equal(error.statusCode, 412);
+      assert.ok(/MFA disabled/.test(error.message), error.message);
     });
 
-    it('removes mfa flag from metadata after detaching', function test() {
-      return request
-        .get({
-          headers: {
-            authorization: `JWT ${this.jwt}`,
-          },
-        })
-        .promise()
-        .reflect()
-        .then(inspectPromise())
-        .then((res) => {
-          assert.equal(res[USERS_MFA_FLAG], undefined);
-        });
+    it('removes mfa flag from metadata after detaching', async function test() {
+      const res = await request.get({
+        headers: { authorization: `JWT ${this.jwt}` },
+      });
+
+      assert.equal(res[USERS_MFA_FLAG], undefined);
     });
   });
 });

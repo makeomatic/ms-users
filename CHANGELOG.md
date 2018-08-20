@@ -1,3 +1,10 @@
+## [9.4.4](https://github.com/makeomatic/ms-users/compare/v9.4.3...v9.4.4) (2018-08-20)
+
+
+### Bug Fixes
+
+* removes username to user id reference ([#382](https://github.com/makeomatic/ms-users/issues/382)) ([e066994](https://github.com/makeomatic/ms-users/commit/e066994))
+
 ## [9.4.3](https://github.com/makeomatic/ms-users/compare/v9.4.2...v9.4.3) (2018-08-16)
 
 

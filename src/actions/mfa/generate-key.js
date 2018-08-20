@@ -17,17 +17,16 @@ authenticator.options = { crypto };
  *     "Authorization: JWT my.reallyniceandvalid.jsonwebtoken"
  *
  */
-module.exports = function generateKey() {
+function generateKey() {
   return { secret: authenticator.generateSecret() };
-};
+}
 
-module.exports.auth = 'httpBearer';
-module.exports.transports = [ActionTransport.http, ActionTransport.amqp];
-module.exports.transportOptions = {
+generateKey.auth = 'httpBearer';
+generateKey.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
+generateKey.transportOptions = {
   [ActionTransport.http]: {
     methods: ['get'],
   },
-  [ActionTransport.amqp]: {
-    methods: [ActionTransport.amqp],
-  },
 };
+
+module.exports = generateKey;

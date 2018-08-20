@@ -45,7 +45,9 @@ function tokenAuth(request) {
     const audience = (is.object(params) && params.audience) || defaultAudience;
 
     return amqp.publishAndWait(verify, { token, audience, accessToken }, { timeout });
-  } else if (strategy === 'required') {
+  }
+
+  if (strategy === 'required') {
     return Promise.reject(USERS_CREDENTIALS_REQUIRED_ERROR);
   }
 

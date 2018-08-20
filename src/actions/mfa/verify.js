@@ -20,15 +20,12 @@ const { MFA_TYPE_REQUIRED } = require('../../constants');
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  *
  */
-module.exports = function verify() {
+function verify() {
   return { valid: true };
-};
+}
 
-module.exports.mfa = MFA_TYPE_REQUIRED;
-module.exports.allowed = checkMFA;
-module.exports.transports = [ActionTransport.amqp];
-module.exports.transportOptions = {
-  [ActionTransport.amqp]: {
-    methods: [ActionTransport.amqp],
-  },
-};
+verify.mfa = MFA_TYPE_REQUIRED;
+verify.allowed = checkMFA;
+verify.transports = [ActionTransport.amqp, ActionTransport.internal];
+
+module.exports = verify;

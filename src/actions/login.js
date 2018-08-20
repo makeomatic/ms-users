@@ -1,16 +1,16 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const moment = require('moment');
+const noop = require('lodash/noop');
+const is = require('is');
 const scrypt = require('../utils/scrypt.js');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
-const moment = require('moment');
 const isActive = require('../utils/isActive.js');
 const isBanned = require('../utils/isBanned.js');
 const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipelineError.js');
-const noop = require('lodash/noop');
-const is = require('is');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,

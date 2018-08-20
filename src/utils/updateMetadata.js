@@ -1,9 +1,9 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
-const redisKey = require('../utils/key.js');
 const is = require('is');
 const { ValidationError } = require('common-errors');
+const redisKey = require('../utils/key.js');
 const sha256 = require('./sha256.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const { USERS_METADATA } = require('../constants.js');

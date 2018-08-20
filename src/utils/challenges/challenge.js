@@ -1,6 +1,6 @@
 const partial = require('lodash/partial');
-const generateEmail = require('./email/generate.js');
 const { HttpStatusError } = require('common-errors');
+const generateEmail = require('./email/generate.js');
 const {
   CHALLENGE_TYPE_EMAIL,
   CHALLENGE_TYPE_PHONE,
@@ -13,11 +13,9 @@ const isThrottled = new HttpStatusError(429, 'We\'ve already sent you an email, 
 // contains challenges
 const CHALLENGES = {
 
-  [CHALLENGE_TYPE_EMAIL]: (action, ctx, wait = false) =>
-    partial(generateEmail, partial.placeholder, action, ctx, { wait, send: true }),
+  [CHALLENGE_TYPE_EMAIL]: (action, ctx, wait = false) => partial(generateEmail, partial.placeholder, action, ctx, { wait, send: true }),
 
-  [CHALLENGE_TYPE_PHONE]: (action, ctx) =>
-    partial(sendSms, partial.placeholder, action, ctx),
+  [CHALLENGE_TYPE_PHONE]: (action, ctx) => partial(sendSms, partial.placeholder, action, ctx),
 };
 
 // select challenge helper

@@ -79,8 +79,7 @@ function generateUsersIds({
 
       return [username, userId];
     })
-    .map(([username, userId]) =>
-      Promise.join(username, userId, redis.sismember(USERS_PUBLIC_INDEX, username)))
+    .map(([username, userId]) => Promise.join(username, userId, redis.sismember(USERS_PUBLIC_INDEX, username)))
     .each(([username, userId, needUpdate]) => {
       // users index
       pipeline.sadd(USERS_INDEX, userId);

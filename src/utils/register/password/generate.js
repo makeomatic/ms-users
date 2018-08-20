@@ -1,8 +1,8 @@
-const { CHALLENGE_TYPE_EMAIL, CHALLENGE_TYPE_PHONE } = require('../../../constants');
 const Errors = require('common-errors');
+const Promise = require('bluebird');
+const { CHALLENGE_TYPE_EMAIL, CHALLENGE_TYPE_PHONE } = require('../../../constants');
 const passwordByEmail = require('../../challenges/email/generate').register;
 const passwordByPhone = require('../../challenges/phone/send').register;
-const Promise = require('bluebird');
 
 function factory(challengeType) {
   switch (challengeType) {

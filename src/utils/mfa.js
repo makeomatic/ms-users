@@ -1,3 +1,5 @@
+const Promise = require('bluebird');
+const assert = require('assert');
 const uuid = require('uuid/v4');
 const authenticator = require('otplib/authenticator');
 const crypto = require('crypto');
@@ -7,6 +9,7 @@ const redisKey = require('./key');
 const {
   ErrorTotpRequired,
   ErrorTotpInvalid,
+  ErrorSecretRequired,
   USERS_MFA_SECRET,
   USERS_MFA_RECOVERY,
   MFA_TYPE_REQUIRED,
@@ -55,10 +58,11 @@ async function checkMFA({
 
   const { redis } = this;
   const { username } = locals;
-  const userId = await getUserId.call({ redis }, username);
+  const totp = params.totp || headers['X-Auth-TOTP'];
+  const userId = await Promise.bind({ redis }, username).then(getUserId);
 
   // checks if MFA is already enabled
-  let secret = await isMFAEnabled.call(this, userId);
+  let secret = await Promise.bind(this, userId).then(isMFAEnabled);
 
   if (!secret) {
     // MFA is not enabled but is optional, pass through
@@ -81,45 +85,30 @@ async function checkMFA({
   }
 
   // if still no secret we can't perform futher checks
-  if (!secret) {
-    throw new HttpStatusError(403, 'Secret required');
-  }
-
-  const totp = params.totp || headers['X-Auth-TOTP'];
-
-  if (!totp) {
-    throw ErrorTotpRequired;
-  }
+  assert(secret, ErrorSecretRequired);
+  assert(totp, ErrorTotpRequired);
 
   // totp value is 6-digits means user
   // provided totp (not recovery code)
   if (totp.length === 6) {
     // valid, pass through
-    if (authenticator.check(totp, secret)) {
-      return null;
-    }
-
-    // invalid, throw
-    throw ErrorTotpInvalid;
+    assert(authenticator.check(totp, secret), ErrorTotpInvalid);
+    return null;
   }
 
   // non 6-digits totp value means user
   // may be provided recovery key in place of totp
-
-
   // user may provide recovery key instead of totp
   // check it by trying to remove from set of codes
   const deleted = await redis.srem(redisKey(USERS_MFA_RECOVERY, userId), totp);
 
   // if nothing has been removed means code
   // is invalid, throw error
-  if (deleted === 0) {
-    throw ErrorTotpInvalid;
-  }
+  assert(deleted === 1, ErrorTotpInvalid);
 
   return null;
 }
 
-module.exports.generateRecoveryCodes = generateRecoveryCodes;
-module.exports.isMFAEnabled = isMFAEnabled;
-module.exports.checkMFA = checkMFA;
+exports.generateRecoveryCodes = generateRecoveryCodes;
+exports.isMFAEnabled = isMFAEnabled;
+exports.checkMFA = checkMFA;

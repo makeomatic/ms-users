@@ -1,20 +1,20 @@
 const Promise = require('bluebird');
-const scrypt = require('../utils/scrypt.js');
 const Errors = require('common-errors');
-const redisKey = require('../utils/key.js');
-const jwt = require('../utils/jwt.js');
-const { getInternalData } = require('../utils/userData');
-const isActive = require('../utils/isActive.js');
-const isBanned = require('../utils/isBanned.js');
-const hasPassword = require('../utils/hasPassword.js');
-const { getUserId } = require('../utils/userData');
 const partialRight = require('lodash/partialRight');
+const scrypt = require('../utils/scrypt');
+const redisKey = require('../utils/key');
+const jwt = require('../utils/jwt');
+const { getInternalData } = require('../utils/userData');
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
+const hasPassword = require('../utils/hasPassword');
+const { getUserId } = require('../utils/userData');
 const {
   USERS_DATA,
   USERS_ACTION_RESET,
   USERS_PASSWORD_FIELD,
   USERS_ID_FIELD,
-} = require('../constants.js');
+} = require('../constants');
 
 // cache error
 const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
@@ -50,10 +50,9 @@ function setPassword(_username, password) {
       userId,
       hash: scrypt.hash(password),
     }))
-    .then(({ userId, hash }) =>
-      redis
-        .hset(redisKey(userId, USERS_DATA), USERS_PASSWORD_FIELD, hash)
-        .return(userId));
+    .then(({ userId, hash }) => redis
+      .hset(redisKey(userId, USERS_DATA), USERS_PASSWORD_FIELD, hash)
+      .return(userId));
 }
 
 /**

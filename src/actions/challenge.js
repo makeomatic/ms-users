@@ -1,9 +1,9 @@
 const Promise = require('bluebird');
+const passThrough = require('lodash/identity');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/getMetadata.js');
 const isActive = require('../utils/isActive.js');
 const challenge = require('../utils/challenges/challenge.js');
-const passThrough = require('lodash/identity');
 const {
   USERS_ACTION_ACTIVATE,
   CHALLENGE_TYPE_EMAIL,

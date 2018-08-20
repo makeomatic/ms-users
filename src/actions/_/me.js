@@ -1,3 +1,4 @@
+const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../../utils/userData');
 const { USERS_MFA_FLAG } = require('../../constants');
@@ -18,7 +19,9 @@ const { USERS_MFA_FLAG } = require('../../constants');
  */
 async function Me({ auth }) {
   const { id, metadata } = auth.credentials;
-  const mfa = await getInternalData.call(this, id).get(USERS_MFA_FLAG);
+  const mfa = await Promise.bind(this, id)
+    .then(getInternalData)
+    .get(USERS_MFA_FLAG);
 
   return { id, mfa, metadata };
 }

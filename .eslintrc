@@ -1,5 +1,6 @@
 {
   "extends": "makeomatic",
+  "parser": "babel-eslint",
   "rules": {
     "prefer-destructuring": ["error", {
       "VariableDeclarator": {

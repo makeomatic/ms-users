@@ -17,7 +17,7 @@ services:
     expose:
       - "3000"
     container_name: tester
-    image: makeomatic/node:10.6.0-chrome-tester
+    image: makeomatic/node:10.9.0-chrome-tester
     links:
       - redis
       - rabbitmq

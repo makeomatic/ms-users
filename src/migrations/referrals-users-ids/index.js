@@ -33,26 +33,25 @@ function referralsUsersIds({ redis, config, log }) {
 
       return Promise.join(referral, redis.smembers(`${USERS_REFERRAL_INDEX}:${referral}`));
     })
-    .map(([referral, usernames]) =>
-      Promise
-        // resolve user id for username
-        .map(
-          usernames,
-          (username) => {
-            log.info('Resolve user id for:', username);
+    .map(([referral, usernames]) => Promise
+    // resolve user id for username
+      .map(
+        usernames,
+        (username) => {
+          log.info('Resolve user id for:', username);
 
-            return Promise.join(username, getUserId.call({ redis }, username));
-          }
-        )
-        // swap username to user id
-        .map(([username, userId]) => {
-          log.info('Resolved', username, 'is', userId);
+          return Promise.join(username, getUserId.call({ redis }, username));
+        }
+      )
+    // swap username to user id
+      .map(([username, userId]) => {
+        log.info('Resolved', username, 'is', userId);
 
-          pipeline.sadd(`${USERS_REFERRAL_INDEX}:${referral}`, userId);
-          pipeline.srem(`${USERS_REFERRAL_INDEX}:${referral}`, username);
+        pipeline.sadd(`${USERS_REFERRAL_INDEX}:${referral}`, userId);
+        pipeline.srem(`${USERS_REFERRAL_INDEX}:${referral}`, username);
 
-          return null;
-        }))
+        return null;
+      }))
     .then(() => pipeline.exec());
 }
 

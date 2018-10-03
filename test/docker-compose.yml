@@ -14,6 +14,8 @@ services:
   tester:
     hostname: ms-users.local
     shm_size: 1g
+    ports:
+      - "3000:3000"
     expose:
       - "3000"
     container_name: tester

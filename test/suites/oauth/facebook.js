@@ -8,8 +8,8 @@ const cheerio = require('cheerio');
 const assert = require('assert');
 const forEach = require('lodash/forEach');
 const request = require('request-promise');
-const config = require('../../config');
 const puppeteer = require('puppeteer');
+const config = require('../../config');
 
 const graphApi = request.defaults({
   baseUrl: 'https://graph.facebook.com/v2.9',
@@ -94,10 +94,13 @@ describe('#facebook', function oauthFacebookSuite() {
 
     try {
       await page.goto(executeLink, { waitUntil: 'networkidle2' });
+      // await page.screenshot({ fullPage: true, path: './ss/1.png' });
       await page.waitForSelector('input#email');
       await page.type('input#email', user.email, { delay: 100 });
+      // await page.screenshot({ fullPage: true, path: './ss/2.png' });
       await page.waitForSelector('input#pass');
       await page.type('input#pass', user.password, { delay: 100 });
+      // await page.screenshot({ fullPage: true, path: './ss/3.png' });
       await page.click('button[name=login]');
     } catch (e) {
       console.error('failed to initiate auth', e);
@@ -226,12 +229,16 @@ describe('#facebook', function oauthFacebookSuite() {
   it('should able to handle declined authentication', async () => {
     await initiateAuth();
 
-    await page.waitForSelector('button[name=__CANCEL__]');
-    await page.click('button[name=__CANCEL__]');
+    try {
+      await page.waitForSelector('button[name=__CANCEL__]');
+      await page.click('button[name=__CANCEL__]');
 
-    const { status, url } = await navigate();
-
-    console.assert(status === 401, 'statusCode is %s, url is %s', status, url);
+      const { status, url } = await navigate();
+      console.assert(status === 401, 'statusCode is %s, url is %s', status, url);
+    } catch (e) {
+      await page.screenshot({ fullPage: true, path: `./ss/declined-${Date.now()}.png` });
+      throw e;
+    }
   });
 
   it('should be able to register via facebook', async () => {

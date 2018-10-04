@@ -2,7 +2,7 @@ const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
 const request = require('request-promise').defaults({
-  uri: 'http://ms-users.local:3000/users/_/me',
+  uri: 'http://ms-users.local/users/_/me',
   json: true,
   gzip: true,
   simple: true,

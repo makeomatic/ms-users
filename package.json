@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
     "pretest": "yarn compile",
-    "test": "yarn lint && yarn test:e2e -r ms-flakeless -r scrypt",
+    "test": "yarn lint && yarn test:e2e",
     "test:e2e": "mkdir -p ./ss && mdep test run",
     "lint": "eslint ./src",
     "prepublishOnly": "yarn compile",

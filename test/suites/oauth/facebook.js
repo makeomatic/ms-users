@@ -11,6 +11,7 @@ const request = require('request-promise');
 const puppeteer = require('puppeteer');
 const config = require('../../config');
 
+const serviceLink = 'https://ms-users.local';
 const graphApi = request.defaults({
   baseUrl: 'https://graph.facebook.com/v2.9',
   headers: {
@@ -39,21 +40,6 @@ const createTestUser = (localCache = cache) => Promise.props({
   Object.assign(localCache, data);
 });
 
-function deleteTestUserAPI(id) {
-  return graphApi({ uri: `/${id}`, method: 'DELETE' }).promise();
-}
-
-function deleteTestUser(localCache = cache) {
-  return Promise.map(Object.keys(localCache), testUserType => (
-    deleteTestUserAPI(localCache[testUserType].id)
-  ));
-}
-
-function hostUrl(cfg) {
-  const { http } = cfg;
-  const { server } = http;
-  return `http://ms-users.local:${server.port}`;
-}
 
 function parseHTML(body) {
   const $ = cheerio.load(body);
@@ -89,19 +75,18 @@ describe('#facebook', function oauthFacebookSuite() {
 
   async function initiateAuth(_user) {
     const user = _user || cache.testUser;
-    const serviceLink = hostUrl(service.config);
     const executeLink = `${serviceLink}/users/oauth/facebook`;
 
     try {
       await page.goto(executeLink, { waitUntil: 'networkidle2' });
-      // await page.screenshot({ fullPage: true, path: './ss/1.png' });
+      await page.screenshot({ fullPage: true, path: './ss/1.png' });
       await page.waitForSelector('input#email');
       await page.type('input#email', user.email, { delay: 100 });
-      // await page.screenshot({ fullPage: true, path: './ss/2.png' });
+      await page.screenshot({ fullPage: true, path: './ss/2.png' });
       await page.waitForSelector('input#pass');
       await page.type('input#pass', user.password, { delay: 100 });
-      // await page.screenshot({ fullPage: true, path: './ss/3.png' });
-      await page.click('button[name=login]');
+      await page.screenshot({ fullPage: true, path: './ss/3.png' });
+      await page.click('button[name=login]', { delay: 100 });
     } catch (e) {
       console.error('failed to initiate auth', e);
       await page.screenshot({ fullPage: true, path: `./ss/initiate-auth-${Date.now()}.png` });
@@ -154,6 +139,9 @@ describe('#facebook', function oauthFacebookSuite() {
 
     try {
       const body = await extractBody();
+
+      assert(body.payload.token, JSON.stringify(body));
+
       return {
         body,
         token: body.payload.token,
@@ -172,8 +160,8 @@ describe('#facebook', function oauthFacebookSuite() {
       await page.waitForSelector('#platformDialogForm a[id]', { visible: true });
       await page.click('#platformDialogForm a[id]', { delay: 100 });
       await Promise.delay(300);
-      await page.waitForSelector('#platformDialogForm label:nth-child(2) input[type=checkbox]', { visible: true });
-      await page.click('#platformDialogForm label:nth-child(2) input[type=checkbox]', { delay: 100 });
+      await page.waitForSelector('#platformDialogForm label:nth-child(2)', { visible: true });
+      await page.click('#platformDialogForm label:nth-child(2)', { delay: 100 });
       await Promise.delay(300);
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
       [response] = await Promise.all([
@@ -193,6 +181,7 @@ describe('#facebook', function oauthFacebookSuite() {
   beforeEach('init Chrome', async () => {
     chrome = await puppeteer.launch({
       executablePath: '/usr/bin/chromium-browser',
+      ignoreHTTPSErrors: true,
       args: ['--no-sandbox'],
     });
     page = await chrome.newPage();
@@ -218,7 +207,6 @@ describe('#facebook', function oauthFacebookSuite() {
     service = this.users;
   });
 
-  afterEach(deleteTestUser);
   afterEach(global.clearRedis);
 
   it('should able to retrieve faceboook profile', async () => {
@@ -288,7 +276,6 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should attach facebook profile to existing user', async () => {
-    const serviceLink = hostUrl(service.config);
     const username = 'facebookuser@me.com';
     const databag = { service };
 
@@ -314,7 +301,6 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should reject attaching already attached profile to a new user', async () => {
-    const serviceLink = hostUrl(service.config);
     const username = 'facebookuser@me.com';
     const databag = { service };
 
@@ -345,7 +331,6 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should be able to sign in with facebook account', async function test() {
-    const serviceLink = hostUrl(service.config);
     const username = 'facebookuser@me.com';
     const databag = { service };
 

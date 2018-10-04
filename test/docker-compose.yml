@@ -1,21 +1,65 @@
 version: '2'
 
+volumes:
+  certs:
+  vhost:
+  html:
+
+networks:
+  static:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.16.238.0/24
+
 services:
   redis:
     hostname: redis
     container_name: redis
     image: makeomatic/redis-cluster:3.2.9
+    networks:
+      static:
+        ipv4_address: 172.16.238.10
 
   rabbitmq:
     image: makeomatic/rabbitmq:3.6.12
     container_name: rabbitmq
     hostname: rabbitmq
+    networks:
+      static:
+        ipv4_address: 172.16.238.11
+
+  nginx-proxy:
+    hostname: ms-users.local
+    image: jwilder/nginx-proxy
+    expose:
+      - "80"
+      - "443"
+    volumes:
+      - certs:/etc/nginx/certs:ro
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
+    networks:
+      static:
+        ipv4_address: 172.16.238.12
+
+  proxy-companion:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      static:
+        ipv4_address: 172.16.238.13
 
   tester:
-    hostname: ms-users.local
-    shm_size: 1g
-    ports:
-      - "3000:3000"
+    shm_size: 512m
     expose:
       - "3000"
     container_name: tester
@@ -26,6 +70,8 @@ services:
     working_dir: /src
     volumes:
       - ${PWD}:/src
+    extra_hosts:
+      - "ms-users.local:172.16.238.12"
     environment:
       NODE_ENV: "test"
       DEBUG: ${DEBUG}
@@ -34,4 +80,10 @@ services:
       FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
       FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
+      VIRTUAL_HOST: ms-users.local
+      VIRTUAL_PORT: 3000
+      CERT_NAME: default
     command: tail -f /dev/null
+    networks:
+      static:
+        ipv4_address: 172.16.238.14

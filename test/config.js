@@ -55,7 +55,7 @@ const config = {
         enabled: true,
         clientId: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-        location: 'http://ms-users.local:3000',
+        location: 'https://ms-users.local',
         password: 'lB4wlZByzpp2R9mGefiLeaZUwVooUuX7G7uctaoeNgxvUs3W',
         apiVersion: 'v2.9',
       },

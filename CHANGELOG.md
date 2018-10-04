@@ -1,3 +1,10 @@
+# [9.5.0](https://github.com/makeomatic/ms-users/compare/v9.4.4...v9.5.0) (2018-10-04)
+
+
+### Features
+
+* updated deps ([f65a5a7](https://github.com/makeomatic/ms-users/commit/f65a5a7))
+
 ## [9.4.4](https://github.com/makeomatic/ms-users/compare/v9.4.3...v9.4.4) (2018-08-20)
 
 

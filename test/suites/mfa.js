@@ -4,10 +4,11 @@ const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
 const authenticator = require('otplib/authenticator');
 const request = require('request-promise').defaults({
-  uri: 'http://ms-users.local/users/_/me',
+  uri: 'https://ms-users.local/users/_/me',
   json: true,
   gzip: true,
   simple: true,
+  strictSSL: false,
 });
 const { USERS_MFA_FLAG } = require('../../src/constants');
 

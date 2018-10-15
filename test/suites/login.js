@@ -3,7 +3,7 @@ const Promise = require('bluebird');
 const assert = require('assert');
 const { expect } = require('chai');
 const { omit, times } = require('lodash');
-const sinon = require('sinon');
+const sinon = require('sinon').usingPromise(Promise);
 
 describe('#login', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
@@ -171,9 +171,9 @@ describe('#login', function loginSuite() {
     it('should be able to login by disposable password', async function test() {
       let params;
       let response;
+
       const amqpStub = sinon
-        .stub(this.users.amqp, 'publishAndWait')
-        .usingPromise(Promise);
+        .stub(this.users.amqp, 'publishAndWait');
 
       const opts = {
         activate: true,

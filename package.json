@@ -49,7 +49,7 @@
     "moment": "^2.22.2",
     "ms-conf": "^3.3.0",
     "ms-flakeless": "^4.1.0",
-    "ms-mailer-client": "^8.0.0",
+    "ms-mailer-client": "^8.0.1",
     "ms-mailer-templates": "^1.10.0",
     "ms-token": "^2.0.0",
     "otplib": "^10.0.1",

@@ -5374,10 +5374,10 @@ ms-flakeless@^4.1.0:
   dependencies:
     nan "^2.8.0"
 
-ms-mailer-client@^8.0.0:
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/ms-mailer-client/-/ms-mailer-client-8.0.0.tgz#7f33a69e35f9b74b254802c8a8ca50a708bc0a60"
-  integrity sha512-1Hdf1xOfq8gylLyQ6VtLFepL1lNgs8q59Uk6FWwBuLNZ1omyX8Ekr1rSmH2IZC8E9b9zEc53WvpKR36uTeU0ug==
+ms-mailer-client@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/ms-mailer-client/-/ms-mailer-client-8.0.1.tgz#e775897718d8a381d1e804a20b21bc4be5f53331"
+  integrity sha512-GPPm65PXt1WKxjfpQ2FYT4U5FxVtEPLCLYToJ1dNYI7nDvoQpZsIK0cptJZyxV97yIq/gq08VgUQj628RmyAGg==
   dependencies:
     lodash.merge "^4.6.1"
 

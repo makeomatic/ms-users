@@ -18,7 +18,7 @@ exports.hash = function hashPassword(password) {
 };
 
 exports.verify = function verifyPassword(hash, password) {
-  if (Buffer.isBuffer(hash)) {
+  if (Buffer.isBuffer(hash) === false) {
     return Promise.reject(kUnacceptableVerificationMethod);
   }
 

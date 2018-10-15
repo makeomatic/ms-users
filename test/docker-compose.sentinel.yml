@@ -15,11 +15,27 @@ networks:
 
 services:
   redis:
+    image: redis:4.0.11-alpine
     hostname: redis
-    image: makeomatic/redis-cluster:3.2.9
+    expose:
+      - "6379"
     networks:
       static:
         ipv4_address: 172.16.238.10
+
+  redis-sentinel:
+    depends_on:
+      - redis
+    volumes:
+      - ./helpers/redis-sentinel:/etc/redis-sentinel
+    image: redis:4.0.11-alpine
+    hostname: redis-sentinel
+    expose:
+      - "26379"
+    command: redis-server /etc/redis-sentinel/redis-sentinel.conf --sentinel
+    networks:
+      static:
+        ipv4_address: 172.16.238.15
 
   rabbitmq:
     image: makeomatic/rabbitmq:3.6.12
@@ -72,7 +88,7 @@ services:
       - "ms-users.local:172.16.238.12"
     environment:
       NODE_ENV: "test"
-      NCONF_FILE_PATH: '["/configs/amqp.js", "/configs/core.js","/configs/redis.cluster.js"]'
+      NCONF_FILE_PATH: '["/configs/amqp.js", "/configs/core.js","/configs/redis.sentinel.js"]'
       DEBUG: ${DEBUG}
       NCONF_NAMESPACE: MS_USERS
       FACEBOOK_APP_TOKEN: ${FACEBOOK_APP_TOKEN}

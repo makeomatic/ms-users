@@ -7,6 +7,7 @@ const { USERS_INCORRECT_PASSWORD } = require('../constants');
 
 // setup scrypt
 const scryptParams = scrypt.paramsSync(0.1, bytes('32mb'));
+const kUnacceptableVerificationMethod = new Errors.HttpStatusError(423, 'unacceptable verification method');
 
 exports.hash = function hashPassword(password) {
   if (!password) {
@@ -17,9 +18,12 @@ exports.hash = function hashPassword(password) {
 };
 
 exports.verify = function verifyPassword(hash, password) {
+  if (Buffer.isBuffer(hash)) {
+    return Promise.reject(kUnacceptableVerificationMethod);
+  }
+
   return Promise
     .try(() => {
-      assert.ok(Buffer.isBuffer(hash), '`hash` must be a buffer');
       assert.ok(password, 'password arg must be present');
       return [hash, Buffer.from(password)];
     })

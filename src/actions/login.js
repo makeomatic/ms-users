@@ -82,7 +82,7 @@ function getVerifyStrategy(data) {
   }
 
   if (is.string(this.password) !== true || this.password.length < 1) {
-    throw new Errors.ValidationError('should supply password');
+    throw new Errors.HttpStatusError(400, 'should supply password');
   }
 
   if (this.isDisposablePassword === true) {

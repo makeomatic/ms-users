@@ -2,7 +2,7 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const is = require('is');
-const { ValidationError } = require('common-errors');
+const { HttpStatusError } = require('common-errors');
 const redisKey = require('../utils/key.js');
 const sha256 = require('./sha256.js');
 const handlePipeline = require('../utils/pipelineError.js');
@@ -116,7 +116,7 @@ function updateMetadata(opts) {
     const metaOps = is.array(metadata) ? metadata : [metadata];
 
     if (metaOps.length !== audiences.length) {
-      return Promise.reject(new ValidationError('audiences must match metadata entries', 400));
+      return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
     }
 
     const operations = metaOps.map((meta, idx) => handleAudience(pipe, keys[idx], meta));

@@ -14,6 +14,6 @@ describe('configuration suite', function ConfigurationSuite() {
         // assert.ifError now wraps the original error into an AttributeError
         throw e.actual;
       }
-    }).to.throw(Errors.ValidationError);
+    }).to.throw(Errors.HttpStatusError);
   });
 });

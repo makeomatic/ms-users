@@ -13,7 +13,7 @@ describe('#register', function registerSuite() {
       .reflect()
       .then(inspectPromise(false))
       .then((registered) => {
-        assert.equal(registered.name, 'ValidationError');
+        assert.equal(registered.name, 'HttpStatusError');
         assert.equal(registered.errors.length, 2);
       });
   });

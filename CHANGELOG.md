@@ -1,3 +1,15 @@
+# [10.0.0](https://github.com/makeomatic/ms-users/compare/v9.5.0...v10.0.0) (2018-10-16)
+
+
+### Features
+
+* use [@microfleet](https://github.com/microfleet)/validation ([#383](https://github.com/makeomatic/ms-users/issues/383)) ([311334d](https://github.com/makeomatic/ms-users/commit/311334d))
+
+
+### BREAKING CHANGES
+
+* uses new @microfleet/validation, potentially changing returned error types. Adds new global remote ip login tracker
+
 # [9.5.0](https://github.com/makeomatic/ms-users/compare/v9.4.4...v9.5.0) (2018-10-04)
 
 

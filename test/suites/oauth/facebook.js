@@ -112,9 +112,9 @@ describe('#facebook', function oauthFacebookSuite() {
 
   async function navigate({ href, waitUntil = 'networkidle0' } = {}) {
     if (href) {
-      await page.goto(href, { waitUntil, timeout: 10000 });
+      await page.goto(href, { waitUntil, timeout: 30000 });
     } else {
-      await page.waitForNavigation({ waitUntil, timeout: 10000 });
+      await page.waitForNavigation({ waitUntil, timeout: 30000 });
     }
 
     // just to be sure

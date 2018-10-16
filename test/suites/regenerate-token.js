@@ -4,8 +4,8 @@ const is = require('is');
 const sinon = require('sinon').usingPromise(Promise);
 
 describe('`regenerate-token` action', function regenerateTokenSuite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(global.startService.bind(this));
+  afterEach(global.clearRedis.bind(this));
 
   describe('with challenge type equals `phone`', () => {
     it('should be able to regenerate activation token from uid', async () => {

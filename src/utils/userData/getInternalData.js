@@ -36,6 +36,12 @@ function hasAnyData(data) {
   return false;
 }
 
+function verifyIdOnly(data) {
+  if (data === null) {
+    throw new HttpStatusError(404, `"${this.userKey}" does not exists`);
+  }
+}
+
 function handleNotFound(data) {
   if (data === null || hasAnyData(data) === false) {
     throw new HttpStatusError(404, `"${this.userKey}" does not exists`);
@@ -53,7 +59,7 @@ function getInternalData(userKey, fetchData = true) {
   return Promise
     .bind(context, [userKey, fetchData])
     .spread(resolveUserId)
-    .tap(handleNotFound)
+    .tap(fetchData ? handleNotFound : verifyIdOnly)
     .then(reduceData);
 }
 

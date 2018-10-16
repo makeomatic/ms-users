@@ -3,7 +3,7 @@ const reduce = require('lodash/reduce');
 const Promise = require('bluebird');
 const zipObject = require('lodash/zipObject');
 const resolveUserId = require('./resolveUserId');
-const { USERS_PASSWORD_FIELD, FIELDS_TO_STRINGIFY } = require('../../constants');
+const { USERS_PASSWORD_FIELD, USERS_ID_FIELD, FIELDS_TO_STRINGIFY } = require('../../constants');
 const safeParse = require('../safeParse');
 
 const { hasOwnProperty } = Object.prototype;
@@ -25,8 +25,19 @@ const reducer = (accumulator, value, prop) => {
   return accumulator;
 };
 
+function hasAnyData(data) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in data) {
+    if (key !== USERS_ID_FIELD && hasOwnProperty.call(data, key) === true) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function handleNotFound(data) {
-  if (data === null) {
+  if (data === null || hasAnyData(data) === false) {
     throw new HttpStatusError(404, `"${this.userKey}" does not exists`);
   }
 }

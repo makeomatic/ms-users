@@ -22,16 +22,36 @@ const {
  * Internal functions
  */
 const is404 = e => parseInt(e.message, 10) === 404;
+const isHttp404 = e => e.statusCode === 404;
 
-/**
- * Checks if login attempts from remote ip have exceeded allowed
- * limits
- */
-function checkLoginAttempts(data) {
-  const { config } = this;
-  const pipeline = this.redis.pipeline();
+const globalLoginAttempts = async (ctx) => {
+  const { config } = ctx;
+  const pipeline = ctx.redis.pipeline();
+  const globalRemoteIpKey = ctx.globalRemoteIpKey = redisKey('gl!ip!ctr', ctx.remoteip);
+
+  pipeline.incrby(globalRemoteIpKey, 1);
+
+  if (config.keepGlobalLoginAttempts > 0) {
+    pipeline.expire(globalRemoteIpKey, config.keepGlobalLoginAttempts);
+  }
+
+  const [globalAttempts] = await pipeline.exec().then(handlePipeline);
+
+  ctx.globalLoginAttempts = globalAttempts;
+
+  // globally scoped go next
+  if (globalAttempts > ctx.globalLockAfterAttempts) {
+    const duration = moment().add(config.keepGlobalLoginAttempts, 'seconds').toNow(true);
+    const msg = `You are locked from making login attempts for the next ${duration}`;
+    throw new Errors.HttpStatusError(429, msg);
+  }
+};
+
+const localLoginAttempts = async (ctx, data) => {
+  const { config } = ctx;
+  const pipeline = ctx.redis.pipeline();
   const userId = data[USERS_ID_FIELD];
-  const remoteipKey = this.remoteipKey = redisKey(userId, 'ip', this.remoteip);
+  const remoteipKey = ctx.remoteipKey = redisKey(userId, 'ip', ctx.remoteip);
 
   pipeline.incrby(remoteipKey, 1);
 
@@ -39,17 +59,30 @@ function checkLoginAttempts(data) {
     pipeline.expire(remoteipKey, config.keepLoginAttempts);
   }
 
-  return pipeline
-    .exec()
-    .then(handlePipeline)
-    .spread((incrementValue) => {
-      this.loginAttempts = incrementValue;
-      if (this.loginAttempts > this.lockAfterAttempts) {
-        const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
-        const msg = `You are locked from making login attempts for the next ${duration}`;
-        throw new Errors.HttpStatusError(429, msg);
-      }
-    });
+  const [scopeAttempts] = await pipeline.exec().then(handlePipeline);
+
+  ctx.loginAttempts = scopeAttempts;
+
+  // locally scoped login attempts are prioritized
+  if (scopeAttempts > ctx.lockAfterAttempts) {
+    const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
+    const msg = `You are locked from making login attempts for the next ${duration}`;
+    throw new Errors.HttpStatusError(429, msg);
+  }
+};
+
+/**
+ * Checks if login attempts from remote ip have exceeded allowed
+ * limits
+ */
+async function checkLoginAttempts(dataOrError) {
+  const promises = [globalLoginAttempts(this)];
+
+  if ((dataOrError instanceof Error) === false) {
+    promises.push(localLoginAttempts(this, dataOrError));
+  }
+
+  await Promise.all(promises);
 }
 
 /**
@@ -97,7 +130,13 @@ function getVerifyStrategy(data) {
  */
 function dropLoginCounter() {
   this.loginAttempts = 0;
-  return this.redis.del(this.remoteipKey);
+
+  return this.redis
+    .pipeline()
+    .del(this.remoteipKey)
+    .hincrby(this.globalRemoteIpKey, -1)
+    .exec()
+    .then(handlePipeline);
 }
 
 /**
@@ -113,6 +152,7 @@ function getUserInfo({ id }) {
 function enrichError(err) {
   if (this.remoteip) {
     err.loginAttempts = this.loginAttempts;
+    err.globalLoginAttempts = this.globalLoginAttempts;
   }
 
   throw err;
@@ -134,11 +174,11 @@ function enrichError(err) {
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
-module.exports = function login({ params }) {
+function login({ params }) {
   const config = this.config.jwt;
   const { redis, tokenManager } = this;
   const { isDisposablePassword, isSSO, password } = params;
-  const { lockAfterAttempts, defaultAudience } = config;
+  const { lockAfterAttempts, globalLockAfterAttempts, defaultAudience } = config;
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
   const verifyIp = remoteip && lockAfterAttempts > 0;
@@ -151,12 +191,17 @@ module.exports = function login({ params }) {
     redis,
     config,
 
+    // counters
+    loginAttempts: 0,
+    globalLoginAttempts: 0,
+
     // business logic params
     params,
     isDisposablePassword,
     isSSO,
     password,
     lockAfterAttempts,
+    globalLockAfterAttempts,
     audience,
     remoteip,
     verifyIp,
@@ -165,9 +210,12 @@ module.exports = function login({ params }) {
   return Promise
     // service context
     .bind(this, params.username)
+    // resolve alias/email/phone to internal id
     .then(getInternalData)
     // login context
     .bind(ctx)
+    // record global login attempt even on 404
+    .tapCatch(isHttp404, verifyIp ? checkLoginAttempts : noop)
     // pass-through based on strategy
     .tap(verifyIp ? checkLoginAttempts : noop)
     // different auth strategies
@@ -181,6 +229,8 @@ module.exports = function login({ params }) {
     .then(getUserInfo)
     // enriches and rethrows
     .catch(enrichError);
-};
+}
 
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+login.transports = [ActionTransport.amqp, ActionTransport.internal];
+
+module.exports = login;

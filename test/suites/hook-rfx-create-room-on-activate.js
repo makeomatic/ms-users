@@ -1,9 +1,9 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const _ = require('lodash');
 const assert = require('assert');
-const hook = require('../../src/custom/rfx-create-room-on-activate');
-const sinon = require('sinon');
 const Promise = require('bluebird');
+const sinon = require('sinon').usingPromise(Promise);
+const hook = require('../../src/custom/rfx-create-room-on-activate');
 
 describe('Hook `rfx-create-room-on-activate`', function suite() {
   before(_.partial(global.startService, { hooks: { 'users:activate': hook } }));
@@ -18,7 +18,7 @@ describe('Hook `rfx-create-room-on-activate`', function suite() {
 
     amqpStub
       .withArgs('chat.internal.rooms.create')
-      .returns(Promise.resolve(room));
+      .resolves(room);
 
     return this
       .dispatch('users.invite', {

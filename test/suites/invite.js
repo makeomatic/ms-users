@@ -22,7 +22,7 @@ describe('#invite', function registerSuite() {
       .reflect()
       .then(inspectPromise(false))
       .then((err) => {
-        assert.equal(err.name, 'ValidationError');
+        assert.equal(err.name, 'HttpStatusError');
       });
   });
 

@@ -1,88 +1,84 @@
+const Promise = require('bluebird');
 const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const assert = require('assert');
-const redisKey = require('../../src/utils/key.js');
-const sinon = require('sinon');
+const sinon = require('sinon').usingPromise(Promise);
+const redisKey = require('../../src/utils/key');
 
 describe('#requestPassword', function requestPasswordSuite() {
   const username = 'v@makeomatic.ru';
   const audience = 'requestPassword';
   const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../src/constants.js');
 
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  let userId;
 
-  beforeEach(function pretest() {
-    return this
-      .dispatch('users.register', {
-        username,
-        password: '123',
-        audience,
-        metadata: {
-          rpass: true,
-        },
-      })
-      .then(({ user }) => (this.userId = user.id));
+  beforeEach(global.startService.bind(this));
+  afterEach(global.clearRedis.bind(this));
+
+  beforeEach(async () => {
+    const { user } = await this.dispatch('users.register', {
+      username,
+      password: '123',
+      audience,
+      metadata: {
+        rpass: true,
+      },
+    });
+
+    userId = user.id;
   });
 
-  it('must fail when user does not exist', function test() {
-    return this
+  it('must fail when user does not exist', async () => {
+    const requestPassword = await this
       .dispatch('users.requestPassword', { username: 'noob' })
       .reflect()
-      .then(inspectPromise(false))
-      .then(requestPassword => {
-        expect(requestPassword.name).to.be.eq('HttpStatusError');
-        expect(requestPassword.statusCode).to.be.eq(404);
-      });
+      .then(inspectPromise(false));
+
+    expect(requestPassword.name).to.be.eq('HttpStatusError');
+    expect(requestPassword.statusCode).to.be.eq(404);
   });
 
-  describe('account: inactive', function suite() {
-    beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(this.userId, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
+  describe('account: inactive', () => {
+    beforeEach(() => {
+      return this.users.redis.hset(redisKey(userId, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
     });
 
-    it('must fail when account is inactive', function test() {
-      return this.dispatch('users.requestPassword', { username })
+    it('must fail when account is inactive', async () => {
+      const requestPassword = await this.dispatch('users.requestPassword', { username })
         .reflect()
-        .then(inspectPromise(false))
-        .then(requestPassword => {
-          expect(requestPassword.name).to.be.eq('HttpStatusError');
-          expect(requestPassword.statusCode).to.be.eq(412);
-        });
-    });
-  });
+        .then(inspectPromise(false));
 
-  describe('account: banned', function suite() {
-    beforeEach(function pretest() {
-      return this.users.redis.hset(redisKey(this.userId, USERS_DATA), USERS_BANNED_FLAG, 'true');
-    });
-
-    it('must fail when account is banned', function test() {
-      return this.dispatch('users.requestPassword', { username })
-        .reflect()
-        .then(inspectPromise(false))
-        .then(requestPassword => {
-          expect(requestPassword.name).to.be.eq('HttpStatusError');
-          expect(requestPassword.statusCode).to.be.eq(423);
-        });
+      expect(requestPassword.name).to.be.eq('HttpStatusError');
+      expect(requestPassword.statusCode).to.be.eq(412);
     });
   });
 
-  describe('account: active', function suite() {
-    it('must send challenge email for an existing user with an active account', function test() {
-      return this.dispatch('users.requestPassword', { username })
-        .reflect()
-        .then(inspectPromise())
-        .then(requestPassword => {
-          expect(requestPassword).to.be.deep.eq({ success: true });
-        });
+  describe('account: banned', () => {
+    beforeEach(() => {
+      return this.users.redis.hset(redisKey(userId, USERS_DATA), USERS_BANNED_FLAG, 'true');
     });
 
-    it('must send challenge sms for an existing user with an active account', function test() {
+    it('must fail when account is banned', async () => {
+      const requestPassword = await this.dispatch('users.requestPassword', { username })
+        .reflect()
+        .then(inspectPromise(false));
+
+      expect(requestPassword.name).to.be.eq('HttpStatusError');
+      expect(requestPassword.statusCode).to.be.eq(423);
+    });
+  });
+
+  describe('account: active', () => {
+    it('must send challenge email for an existing user with an active account', async () => {
+      const requestPassword = await this.dispatch('users.requestPassword', { username });
+      expect(requestPassword).to.be.deep.eq({ success: true });
+    });
+
+    it('must send challenge sms for an existing user with an active account', async () => {
       const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
-      const username = '79215555555';
+      const phoneUsername = '79215555555';
       const registerParams = {
-        username,
+        username: phoneUsername,
         password: '123',
         challengeType: 'phone',
         audience,
@@ -90,43 +86,37 @@ describe('#requestPassword', function requestPasswordSuite() {
           rpass: true,
         },
       };
-      const requestPasswordParams = { username, challengeType: 'phone', wait: true };
+      const requestPasswordParams = { username: phoneUsername, challengeType: 'phone', wait: true };
 
       amqpStub.withArgs('phone.message.predefined')
-        .returns(Promise.resolve({ queued: true }));
+        .resolves({ queued: true });
 
-      return this.dispatch('users.register', registerParams)
-        .then(() => this.dispatch('users.requestPassword', requestPasswordParams))
-        .reflect()
-        .then(inspectPromise())
-        .then(requestPassword => {
-          assert.equal(amqpStub.args.length, 1);
+      await this.dispatch('users.register', registerParams);
+      const requestPassword = await this.dispatch('users.requestPassword', requestPasswordParams);
 
-          const args = amqpStub.args[0];
-          const action = args[0];
-          const message = args[1];
+      assert.equal(amqpStub.args.length, 1);
 
-          assert.equal(action, 'phone.message.predefined');
-          assert.equal(message.account, 'twilio');
-          assert.equal(/\d{4} is your code for reset password/.test(message.message), true);
-          assert.equal(message.to, '+79215555555');
-          assert.deepEqual(requestPassword, { success: true });
+      const args = amqpStub.args[0];
+      const action = args[0];
+      const message = args[1];
 
-          amqpStub.restore();
-        });
+      assert.equal(action, 'phone.message.predefined');
+      assert.equal(message.account, 'twilio');
+      assert.equal(/\d{4} is your code for reset password/.test(message.message), true);
+      assert.equal(message.to, '+79215555555');
+      assert.deepEqual(requestPassword, { success: true });
+
+      amqpStub.restore();
     });
 
-    it('must reject sending reset password emails for an existing user more than once in 3 hours', function test() {
-      return this.dispatch('users.requestPassword', { username })
-        .then(() => (
-          this.dispatch('users.requestPassword', { username })
-            .reflect()
-            .then(inspectPromise(false))
-            .then(requestPassword => {
-              expect(requestPassword.name).to.be.eq('HttpStatusError');
-              expect(requestPassword.statusCode).to.be.eq(429);
-            })
-        ));
+    it('must reject sending reset password emails for an existing user more than once in 3 hours', async () => {
+      await this.dispatch('users.requestPassword', { username });
+      const requestPassword = await this.dispatch('users.requestPassword', { username })
+        .reflect()
+        .then(inspectPromise(false));
+
+      expect(requestPassword.name).to.be.eq('HttpStatusError');
+      expect(requestPassword.statusCode).to.be.eq(429);
     });
   });
 });

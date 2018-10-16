@@ -1,14 +1,13 @@
-const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
 const is = require('is');
-const sinon = require('sinon');
+const sinon = require('sinon').usingPromise(Promise);
 
 describe('#register stubbed', function suite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(global.startService.bind(this));
+  afterEach(global.clearRedis.bind(this));
 
-  it('must be able to send activation code by sms', function test() {
+  it('must be able to send activation code by sms', async () => {
     const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
     const opts = {
       activate: false,
@@ -20,33 +19,32 @@ describe('#register stubbed', function suite() {
 
     amqpStub
       .withArgs('phone.message.predefined')
-      .returns(Promise.resolve({ queued: true }));
+      .resolves({ queued: true });
 
-    return this
-      .dispatch('users.register', opts)
-      .reflect()
-      .then(inspectPromise())
-      .then((value) => {
-        assert.equal(amqpStub.args.length, 1);
+    try {
+      const value = await this
+        .dispatch('users.register', opts);
 
-        const args = amqpStub.args[0];
-        const action = args[0];
-        const message = args[1];
+      assert.equal(amqpStub.args.length, 1);
 
-        assert.equal(action, 'phone.message.predefined');
-        assert.equal(message.account, 'twilio');
-        assert.equal(/\d{4} is your activation code/.test(message.message), true);
-        assert.equal(message.to, '+79215555555');
+      const args = amqpStub.args[0];
+      const action = args[0];
+      const message = args[1];
 
-        assert.ok(value.id);
-        assert.equal(value.requiresActivation, true);
-        assert.equal(is.string(value.uid), true);
+      assert.equal(action, 'phone.message.predefined');
+      assert.equal(message.account, 'twilio');
+      assert.equal(/\d{4} is your activation code/.test(message.message), true);
+      assert.equal(message.to, '+79215555555');
 
-        amqpStub.restore();
-      });
+      assert.ok(value.id);
+      assert.equal(value.requiresActivation, true);
+      assert.equal(is.string(value.uid), true);
+    } finally {
+      amqpStub.restore();
+    }
   });
 
-  it('must be able to send password by sms', function test() {
+  it('must be able to send password by sms', async () => {
     const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
     const opts = {
       activate: true,
@@ -57,32 +55,30 @@ describe('#register stubbed', function suite() {
 
     amqpStub
       .withArgs('phone.message.predefined')
-      .returns(Promise.resolve({ queued: true }));
+      .resolves({ queued: true });
 
-    return this
-      .dispatch('users.register', opts)
-      .reflect()
-      .then(inspectPromise())
-      .then((value) => {
-        assert.equal(amqpStub.args.length, 1);
+    try {
+      const value = await this.dispatch('users.register', opts);
 
-        const args = amqpStub.args[0];
-        const action = args[0];
-        const message = args[1];
+      assert.equal(amqpStub.args.length, 1);
 
-        assert.equal(action, 'phone.message.predefined');
-        assert.equal(message.account, 'twilio');
-        assert.equal(/^.{10} is your password/.test(message.message), true);
-        assert.equal(message.to, '+79215555555');
+      const args = amqpStub.args[0];
+      const action = args[0];
+      const message = args[1];
 
-        assert.ok(value.user.id);
-        assert.deepEqual(value.user.metadata['*.localhost'].username, '79215555555');
+      assert.equal(action, 'phone.message.predefined');
+      assert.equal(message.account, 'twilio');
+      assert.equal(/^.{10} is your password/.test(message.message), true);
+      assert.equal(message.to, '+79215555555');
 
-        amqpStub.restore();
-      });
+      assert.ok(value.user.id);
+      assert.deepEqual(value.user.metadata['*.localhost'].username, '79215555555');
+    } finally {
+      amqpStub.restore();
+    }
   });
 
-  it('should be able to register without password', function test() {
+  it('should be able to register without password', async () => {
     const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
     const opts = {
       activate: false,
@@ -93,32 +89,21 @@ describe('#register stubbed', function suite() {
     };
 
     amqpStub.withArgs('phone.message.predefined')
-      .returns(Promise.resolve({ queued: true }));
+      .resolves({ queued: true });
 
-    return this.dispatch('users.register', opts)
-      .reflect()
-      .then(inspectPromise())
-      .then(() => {
-        const args = amqpStub.args[0][1];
-        const code = args.message.match(/^(\d+)/)[0];
+    await this.dispatch('users.register', opts);
 
-        amqpStub.restore();
+    const args = amqpStub.args[0][1];
+    const code = args.message.match(/^(\d+)/)[0];
+    amqpStub.restore();
 
-        return this.dispatch('users.activate', { token: code, username: '79215555555' });
-      })
-      .reflect()
-      .then(inspectPromise())
-      .then((response) => {
-        assert.equal(is.string(response.jwt), true);
-        assert.ok(response.user.id);
-        assert.deepEqual(response.user.metadata['*.localhost'].username, '79215555555');
+    const response = await this.dispatch('users.activate', { token: code, username: '79215555555' });
 
-        return this.dispatch('users.getInternalData', { username: '79215555555' });
-      })
-      .reflect()
-      .then(inspectPromise())
-      .then((response) => {
-        assert.equal(is.undefined(response.password), true);
-      });
+    assert.equal(is.string(response.jwt), true);
+    assert.ok(response.user.id);
+    assert.deepEqual(response.user.metadata['*.localhost'].username, '79215555555');
+
+    const lastResponse = await this.dispatch('users.getInternalData', { username: '79215555555' });
+    assert.equal(is.undefined(lastResponse.password), true);
   });
 });

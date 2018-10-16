@@ -1,15 +1,14 @@
-const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
 const is = require('is');
-const sinon = require('sinon');
+const sinon = require('sinon').usingPromise(Promise);
 
 describe('`regenerate-token` action', function regenerateTokenSuite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(global.startService.bind(this));
+  afterEach(global.clearRedis.bind(this));
 
-  describe('with challenge type equals `phone`', function phoneSuite() {
-    it('should be able to regenerate activation token from uid', function test() {
+  describe('with challenge type equals `phone`', () => {
+    it('should be able to regenerate activation token from uid', async () => {
       const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
       const opts = {
         activate: false,
@@ -20,41 +19,37 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
       };
 
       amqpStub.withArgs('phone.message.predefined')
-        .returns(Promise.resolve({ queued: true }));
+        .resolves({ queued: true });
 
-      return this.dispatch('users.register', opts)
-        .reflect()
-        .then(inspectPromise())
-        .then((response) => {
-          assert.ok(response.id);
-          assert.equal(response.requiresActivation, true);
-          assert.equal(is.string(response.uid), true);
+      try {
+        const resp1 = await this.dispatch('users.register', opts);
 
-          return this.dispatch('users.regenerate-token', {
-            challengeType: 'phone',
-            uid: response.uid,
-          });
-        })
-        .reflect()
-        .then(inspectPromise())
-        .then((response) => {
-          assert.equal(response.regenerated, true);
-          assert.equal(amqpStub.args.length, 2);
+        assert.ok(resp1.id);
+        assert.equal(resp1.requiresActivation, true);
+        assert.equal(is.string(resp1.uid), true);
 
-          const args = amqpStub.args[1];
-          const action = args[0];
-          const message = args[1];
-
-          assert.equal(action, 'phone.message.predefined');
-          assert.equal(message.account, 'twilio');
-          assert.equal(/\d{4} is your activation code/.test(message.message), true);
-          assert.equal(message.to, '+79215555555');
-
-          amqpStub.restore();
+        const response = await this.dispatch('users.regenerate-token', {
+          challengeType: 'phone',
+          uid: resp1.uid,
         });
+
+        assert.equal(response.regenerated, true);
+        assert.equal(amqpStub.args.length, 2);
+
+        const args = amqpStub.args[1];
+        const action = args[0];
+        const message = args[1];
+
+        assert.equal(action, 'phone.message.predefined');
+        assert.equal(message.account, 'twilio');
+        assert.equal(/\d{4} is your activation code/.test(message.message), true);
+        assert.equal(message.to, '+79215555555');
+      } finally {
+        amqpStub.restore();
+      }
     });
 
-    it('should be able to regenerate reset password token from id and action', function test() {
+    it('should be able to regenerate reset password token from id and action', async () => {
       const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
       const username = '79215555555';
       const registerParams = {
@@ -67,82 +62,71 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
 
       amqpStub
         .withArgs('phone.message.predefined')
-        .returns(Promise.resolve({ queued: true }));
+        .resolves({ queued: true });
 
-      return this
-        .dispatch('users.register', registerParams)
-        .then(() => this.dispatch('users.requestPassword', requestPasswordParams))
-        .reflect()
-        .then(inspectPromise())
-        .then((response) => {
-          assert.deepEqual(response, { success: true });
+      try {
+        await this.dispatch('users.register', registerParams);
+        const resp1 = await this.dispatch('users.requestPassword', requestPasswordParams);
 
-          return this.dispatch('users.regenerate-token', {
-            action: 'reset',
-            challengeType: 'phone',
-            id: '79215555555',
-          });
-        })
-        .reflect()
-        .then(inspectPromise())
-        .then((response) => {
-          assert.equal(response.regenerated, true);
-          assert.equal(amqpStub.args.length, 2);
+        assert.deepEqual(resp1, { success: true });
 
-          const args = amqpStub.args[1];
-          const action = args[0];
-          const message = args[1];
-
-          assert.equal(action, 'phone.message.predefined');
-          assert.equal(message.account, 'twilio');
-          assert.equal(/\d{4} is your code for reset password/.test(message.message), true);
-          assert.equal(message.to, '+79215555555');
-
-          amqpStub.restore();
+        const response = await this.dispatch('users.regenerate-token', {
+          action: 'reset',
+          challengeType: 'phone',
+          id: '79215555555',
         });
+
+        assert.equal(response.regenerated, true);
+        assert.equal(amqpStub.args.length, 2);
+
+        const args = amqpStub.args[1];
+        const action = args[0];
+        const message = args[1];
+
+        assert.equal(action, 'phone.message.predefined');
+        assert.equal(message.account, 'twilio');
+        assert.equal(/\d{4} is your code for reset password/.test(message.message), true);
+        assert.equal(message.to, '+79215555555');
+      } finally {
+        amqpStub.restore();
+      }
     });
   });
 
-  describe('with challenge type equals `email`', function emailSuite() {
-    it('should be able to regenerate invitation from uid', function test() {
+  describe('with challenge type equals `email`', () => {
+    it('should be able to regenerate invitation from uid', async () => {
       const mailerStub = sinon.stub(this.users.mailer, 'send');
       mailerStub.withArgs('support@example.com')
-        .returns(Promise.resolve());
+        .resolves();
 
-      return this.dispatch('users.invite', {
-        email: 'foo@yandex.ru',
-        ctx: {
-          firstName: 'Alex',
-          lastName: 'Bon',
-        },
-        metadata: {
-          '*.localhost': { plan: 'premium' },
-        },
-      })
-      .reflect()
-      .then(inspectPromise())
-      .then((response) => {
-        assert.ok(response.queued);
-        assert.ok(mailerStub.args[0][1].html.includes(response.context.token.secret));
-
-        return this.dispatch('users.regenerate-token', {
-          challengeType: 'email',
-          uid: response.context.token.uid,
+      try {
+        const resp1 = await this.dispatch('users.invite', {
+          email: 'foo@yandex.ru',
+          ctx: {
+            firstName: 'Alex',
+            lastName: 'Bon',
+          },
+          metadata: {
+            '*.localhost': { plan: 'premium' },
+          },
         });
-      })
-      .reflect()
-      .then(inspectPromise())
-      .then((response) => {
+
+        assert.ok(resp1.queued);
+        assert.ok(mailerStub.args[0][1].html.includes(resp1.context.token.secret));
+
+        const response = await this.dispatch('users.regenerate-token', {
+          challengeType: 'email',
+          uid: resp1.context.token.uid,
+        });
+
         assert.ok(response.regenerated);
         assert.ok(response.uid);
 
-        return this.users.tokenManager.info({ uid: response.uid });
-      })
-      .then((token) => {
+        const token = await this.users.tokenManager.info({ uid: response.uid });
         assert.ok(mailerStub.args[1][1].html.includes(token.secret));
-
+      } finally {
         mailerStub.restore();
-      });
+      }
     });
   });
 });

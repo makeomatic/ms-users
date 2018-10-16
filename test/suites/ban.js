@@ -30,7 +30,7 @@ describe('#ban', function banSuite() {
         .reflect()
         .then(inspectPromise(false))
         .then((ban) => {
-          expect(ban.name).to.be.eq('ValidationError');
+          expect(ban.name).to.be.eq('HttpStatusError');
         });
     });
 

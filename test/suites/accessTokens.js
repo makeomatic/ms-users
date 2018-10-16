@@ -3,9 +3,9 @@ const Promise = require('bluebird');
 const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
 const uuid = require('uuid/v4');
+const md5 = require('md5');
 const { sign } = require('../../src/utils/signatures');
 const { USERS_API_TOKENS } = require('../../src/constants');
-const md5 = require('md5');
 const redisKey = require('../../src/utils/key');
 
 describe('#token.*', function activateSuite() {
@@ -20,8 +20,8 @@ describe('#token.*', function activateSuite() {
   after(global.clearRedis);
 
   // registers user and pushes JWT to this.jwt
-  before('register user', globalRegisterUser(username));
-  before('auth user', globalAuthUser(username));
+  before(globalRegisterUser(username));
+  before(globalAuthUser(username));
 
   // simple iterator
   const iterator = Array.from({ length: 40 });

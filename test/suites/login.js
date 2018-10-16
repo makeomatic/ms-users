@@ -1,18 +1,20 @@
+/* global startService, clearRedis */
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
 const { expect } = require('chai');
 const { omit, times } = require('lodash');
-const sinon = require('sinon');
+const sinon = require('sinon').usingPromise(Promise);
 
 describe('#login', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
 
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  before(startService.bind(this));
+  after(clearRedis.bind(this));
+  afterEach(clearRedis.bind(this, true));
 
-  it('must reject login on a non-existing username', async function test() {
+  it('must reject login on a non-existing username', async () => {
     const login = await this.users
       .dispatch('login', { params: user })
       .reflect()
@@ -22,8 +24,8 @@ describe('#login', function loginSuite() {
     expect(login.statusCode).to.be.eq(404);
   });
 
-  describe('existing user: inactivate', async function userSuite() {
-    beforeEach(async function pretest() {
+  describe('existing user: inactivate', () => {
+    beforeEach(async () => {
       await this.users.dispatch('register', {
         params: {
           ...userWithValidPassword,
@@ -33,7 +35,7 @@ describe('#login', function loginSuite() {
       });
     });
 
-    it('must reject login on an inactive account', async function test() {
+    it('must reject login on an inactive account', async () => {
       const login = await this.users
         .dispatch('login', { params: userWithValidPassword })
         .reflect()
@@ -44,13 +46,13 @@ describe('#login', function loginSuite() {
     });
   });
 
-  describe('existing user: active', function userSuite() {
-    beforeEach(async function pretest() {
+  describe('existing user: active', () => {
+    beforeEach(async () => {
       await this.users
         .dispatch('register', { params: userWithValidPassword });
     });
 
-    it('must reject login on an invalid password', async function test() {
+    it('must reject login on an invalid password', async () => {
       const login = await this.users
         .dispatch('login', { params: user })
         .reflect()
@@ -60,15 +62,15 @@ describe('#login', function loginSuite() {
       expect(login.statusCode).to.be.eq(403);
     });
 
-    describe('account: with alias', function suite() {
+    describe('account: with alias', () => {
       const alias = 'bond';
 
-      beforeEach(async function pretest() {
+      beforeEach(async () => {
         await this.users
           .dispatch('alias', { params: { username: userWithValidPassword.username, alias } });
       });
 
-      it('allows to sign in with a valid alias', function test() {
+      it('allows to sign in with a valid alias', () => {
         return this.users
           .dispatch('login', { params: { ...userWithValidPassword, username: alias } })
           .reflect()
@@ -76,12 +78,13 @@ describe('#login', function loginSuite() {
       });
     });
 
-    describe('account: banned', function suite() {
-      beforeEach(function pretest() {
-        return this.users.dispatch('ban', { params: { username: user.username, ban: true } });
+    describe('account: banned', () => {
+      beforeEach(async () => {
+        await this.users
+          .dispatch('ban', { params: { username: user.username, ban: true } });
       });
 
-      it('must reject login', async function test() {
+      it('must reject login', async () => {
         const login = await this.users
           .dispatch('login', { params: userWithValidPassword })
           .reflect()
@@ -92,14 +95,14 @@ describe('#login', function loginSuite() {
       });
     });
 
-    it('must login on a valid account with correct credentials', function test() {
+    it('must login on a valid account with correct credentials', () => {
       return this.users
         .dispatch('login', { params: userWithValidPassword })
         .reflect()
         .then(inspectPromise());
     });
 
-    it('must login on a valid account without password with isSSO: true', function test() {
+    it('must login on a valid account without password with isSSO: true', () => {
       const ssoUser = {
         ...omit(userWithValidPassword, ['password']),
         isSSO: true,
@@ -111,7 +114,7 @@ describe('#login', function loginSuite() {
         .then(inspectPromise());
     });
 
-    it('must lock account for authentication after 5 invalid login attemps', function test() {
+    it('must lock account for authentication after 5 invalid login attemps', () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
       const promises = [];
 
@@ -142,7 +145,28 @@ describe('#login', function loginSuite() {
       return Promise.all(promises);
     });
 
-    it('should reject signing in with bogus or expired disposable password', function test() {
+    it('must lock ip for login completely after 15 attempts', async () => {
+      const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
+      const promises = [];
+
+      times(16, () => {
+        promises.push((
+          this.users
+            .dispatch('login', { params: { ...userWithRemoteIP } })
+            .reflect()
+            .then(inspectPromise(false))
+        ));
+      });
+
+      const errors = await Promise.all(promises);
+      const Http404 = errors.filter(x => x.statusCode === 404 && x.name === 'HttpStatusError');
+      const Http429 = errors.filter(x => x.statusCode === 429 && x.name === 'HttpStatusError');
+
+      expect(Http404.length).to.be.eq(15);
+      expect(Http429.length).to.be.eq(1);
+    });
+
+    it('should reject signing in with bogus or expired disposable password', () => {
       const params = {
         audience: '*.localhost',
         isDisposablePassword: true,
@@ -168,12 +192,12 @@ describe('#login', function loginSuite() {
         });
     });
 
-    it('should be able to login by disposable password', async function test() {
+    it('should be able to login by disposable password', async () => {
       let params;
       let response;
+
       const amqpStub = sinon
-        .stub(this.users.amqp, 'publishAndWait')
-        .usingPromise(Promise);
+        .stub(this.users.amqp, 'publishAndWait');
 
       const opts = {
         activate: true,

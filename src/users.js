@@ -44,6 +44,21 @@ module.exports = class Users extends Mservice {
       },
     };
 
+    // 2 different plugin types
+    let redisDuplicate;
+    if (config.plugins.includes('redisCluster')) {
+      this.redisType = 'redisCluster';
+      redisDuplicate = () => new RedisCluster(config.redis.hosts, {
+        ...config.redis.options,
+        lazyConnect: true,
+      });
+    } else if (config.plugins.includes('redisSentinel')) {
+      this.redisType = 'redisSentinel';
+      redisDuplicate = redis => redis.duplicate();
+    } else {
+      throw new Error('must include redis family plugins');
+    }
+
     // id generator
     this.flake = new Flakeless(config.flake);
 
@@ -55,7 +70,7 @@ module.exports = class Users extends Mservice {
       this._mailer = null;
     });
 
-    this.on('plugin:connect:redisCluster', (redis) => {
+    this.on(`plugin:connect:${this.redisType}`, (redis) => {
       fsort.attach(redis, 'fsort');
 
       // init token manager
@@ -78,7 +93,7 @@ module.exports = class Users extends Mservice {
     });
 
     // cleanup connections
-    this.on('plugin:close:redisCluster', () => {
+    this.on(`plugin:close:${this.redisType}`, () => {
       this.dlock = null;
       this.tokenManager = null;
     });
@@ -93,23 +108,16 @@ module.exports = class Users extends Mservice {
     // adds mailer connector
     this._defineGetter('mailer');
 
-    // pubsub connection for lock service
-    this.addConnector(Mservice.ConnectorsTypes.database, () => {
-      this._pubsub = new RedisCluster(config.redis.hosts, {
-        ...config.redis.options,
-        lazyConnect: true,
-      });
-
-      return this._pubsub.connect();
-    });
-
     // ensure we close connection when needed
     this.addDestructor(Mservice.ConnectorsTypes.database, () => (
       this._pubsub.quit().reflect()
     ));
 
     // add lock manager
-    this.addConnector(Mservice.ConnectorsTypes.application, () => {
+    this.addConnector(Mservice.ConnectorsTypes.migration, async () => {
+      this._pubsub = redisDuplicate(this.redis);
+      await this._pubsub.connect();
+
       this.dlock = new LockManager({
         ...config.lockManager,
         client: this._redis,

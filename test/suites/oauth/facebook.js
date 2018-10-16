@@ -9,7 +9,6 @@ const assert = require('assert');
 const forEach = require('lodash/forEach');
 const request = require('request-promise');
 const puppeteer = require('puppeteer');
-const config = require('../../config');
 
 const serviceLink = 'https://ms-users.local';
 const graphApi = request.defaults({
@@ -113,9 +112,9 @@ describe('#facebook', function oauthFacebookSuite() {
 
   async function navigate({ href, waitUntil = 'networkidle0' } = {}) {
     if (href) {
-      await page.goto(href, { waitUntil, timeout: 10000 });
+      await page.goto(href, { waitUntil, timeout: 30000 });
     } else {
-      await page.waitForNavigation({ waitUntil, timeout: 10000 });
+      await page.waitForNavigation({ waitUntil, timeout: 30000 });
     }
 
     // just to be sure
@@ -201,13 +200,16 @@ describe('#facebook', function oauthFacebookSuite() {
     if (chrome) await chrome.close();
   });
 
-  beforeEach('start', global.startService);
+  before('start', global.startService);
   beforeEach('create user', createTestUser);
   beforeEach('save ref', function saveServiceRef() {
     service = this.users;
   });
 
-  afterEach(global.clearRedis);
+  afterEach(function cleanRedis() {
+    global.clearRedis.call(this, true);
+  });
+  after(global.clearRedis);
 
   it('should able to retrieve faceboook profile', async () => {
     const { token, body } = await getFacebookToken();
@@ -431,7 +433,7 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('apply config: retryOnMissingPermissions=true', () => {
-    config.oauth.providers.facebook.retryOnMissingPermissions = true;
+    service.config.oauth.providers.facebook.retryOnMissingPermissions = true;
   });
 
   it('should re-request partially returned scope endlessly', async () => {
@@ -442,7 +444,7 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('apply config: retryOnMissingPermissions=false', function test() {
-    config.oauth.providers.facebook.retryOnMissingPermissions = false;
+    service.config.oauth.providers.facebook.retryOnMissingPermissions = false;
   });
 
   it('should login with partially returned scope and report it', async () => {

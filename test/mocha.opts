@@ -2,5 +2,4 @@
 --require ./test/config.js
 --timeout 60000
 --bail
---exit
 -R spec

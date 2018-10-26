@@ -1,8 +1,8 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const get = require('lodash/get');
 const intersection = require('lodash/intersection');
+const get = require('../utils/get-value');
 const key = require('../utils/key');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/getMetadata');
@@ -81,7 +81,7 @@ async function removeUser({ params }) {
 
   // remove refs to SSO account
   for (const provider of SSO_PROVIDERS) {
-    const uid = get(internal, `${provider}.uid`, false);
+    const uid = get(internal, `${provider}.uid`, { default: false });
 
     if (uid) {
       transaction.hdel(USERS_SSO_TO_ID, uid);

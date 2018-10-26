@@ -1,9 +1,9 @@
 const Promise = require('bluebird');
 const Crypto = require('crypto');
 const differenceWith = require('lodash/differenceWith');
-const get = require('lodash/get');
 const defaults = require('lodash/defaults');
 const Urls = require('../utils/fb-urls');
+const get = require('../../../utils/get-value');
 
 const FIELDS = [
   'id',
@@ -46,7 +46,7 @@ function defaultProfileHandler(profile) {
   credentials.raw = profile;
 
   // if we have actual picture
-  if (get(profile, 'picture.data.is_silhouette', true) === false) {
+  if (get(profile, 'picture.data.is_silhouette', { default: true }) === false) {
     credentials.profile.picture = profile.picture.data.url;
   }
 
@@ -93,12 +93,11 @@ function verifyPermissions(permissions) {
 
 function profileFactory(fields, profileHandler = defaultProfileHandler) {
   return async function obtainProfile(credentials, params, getter) {
-    // eslint-disable-next-line camelcase
-    const appsecret_proof = Crypto.createHmac('sha256', this.clientSecret)
+    const ap = Crypto.createHmac('sha256', this.clientSecret)
       .update(credentials.token)
       .digest('hex');
 
-    const requiredPermissions = get(this, 'provider.scope', []);
+    const requiredPermissions = get(this, 'provider.scope', { default: [] });
     const ctx = {
       fields,
       credentials,
@@ -106,10 +105,10 @@ function profileFactory(fields, profileHandler = defaultProfileHandler) {
     };
 
     return Promise
-      .bind(ctx, [getter, { appsecret_proof }])
+      .bind(ctx, [getter, { appsecret_proof: ap }])
       .spread(fetchPermissions)
       .tap(verifyPermissions)
-      .return([getter, { appsecret_proof, fields }])
+      .return([getter, { appsecret_proof: ap, fields }])
       .spread(fetchProfile)
       .then(profileHandler);
   };
@@ -132,8 +131,8 @@ exports.options = (options) => {
     Urls.setVersion(apiVersion);
   }
 
-  const fields = get(options, 'fields', FIELDS);
-  const profileHandler = get(options, 'profileHandler', defaultProfileHandler);
+  const fields = get(options, 'fields', { default: FIELDS });
+  const profileHandler = get(options, 'profileHandler', { default: defaultProfileHandler });
 
   const configuredOptions = {
     scope,

@@ -29,7 +29,7 @@ async function Me({ auth }) {
 Me.auth = {
   name: 'bearer',
   strategy: 'required',
-  passError: true,
+  passAuthError: true,
 };
 Me.schema = 'me';
 Me.transports = [ActionTransport.http, ActionTransport.amqp];

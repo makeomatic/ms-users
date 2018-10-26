@@ -8,7 +8,7 @@ describe('#verify', function verifySuite() {
   afterEach(global.clearRedis);
 
   it('must reject on an invalid JWT token', function test() {
-    const { defaultAudience: audience } = this.users._config.jwt;
+    const { defaultAudience: audience } = this.users.config.jwt;
 
     return simpleDispatcher(this.users.router)('users.verify', { token: 'invalid-token', audience })
       .reflect()
@@ -25,7 +25,7 @@ describe('#verify', function verifySuite() {
 
     const {
       hashingFunction: algorithm, secret, issuer, defaultAudience,
-    } = this.users._config.jwt;
+    } = this.users.config.jwt;
     const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
 
     return simpleDispatcher(this.users.router)('users.verify', { token, audience: defaultAudience })

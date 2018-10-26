@@ -82,8 +82,8 @@ services:
       - rabbitmq
     working_dir: /src
     volumes:
-      - ${PWD}:/src
-      - ./configs:/configs
+      - ${PWD}:/src:cached
+      - ./configs:/configs:cached
     extra_hosts:
       - "ms-users.local:172.16.238.12"
     environment:

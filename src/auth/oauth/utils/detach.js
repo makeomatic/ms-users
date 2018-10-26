@@ -1,6 +1,6 @@
-const get = require('lodash/get');
 const Errors = require('common-errors');
 
+const get = require('../../../utils/get-value');
 const redisKey = require('../../../utils/key');
 const updateMetadata = require('../../../utils/updateMetadata');
 const handlePipeline = require('../../../utils/pipelineError');
@@ -17,7 +17,7 @@ module.exports = function detach(provider, userData) {
   const userDataKey = redisKey(userId, USERS_DATA);
   const pipeline = redis.pipeline();
 
-  const uid = get(userData, [provider, 'uid'], false);
+  const uid = get(userData, [provider, 'uid'], { default: false });
   if (!uid) {
     throw Errors.HttpStatusError(412, `${provider} account not found`);
   }

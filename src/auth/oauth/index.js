@@ -1,8 +1,8 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const get = require('lodash/get');
 const partial = require('lodash/partial');
 
+const get = require('../../utils/get-value');
 const getUid = require('./utils/uid');
 const refresh = require('./utils/refresh');
 const extractJWT = require('./utils/extractJWT');

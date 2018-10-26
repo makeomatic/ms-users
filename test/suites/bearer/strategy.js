@@ -51,7 +51,7 @@ describe('/_/me', function verifySuite() {
 
     const {
       hashingFunction: algorithm, secret, issuer, defaultAudience,
-    } = this.users._config.jwt;
+    } = this.users.config.jwt;
 
     const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
 

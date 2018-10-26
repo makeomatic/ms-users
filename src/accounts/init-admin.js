@@ -11,7 +11,6 @@ module.exports = function initAccounts() {
   return Promise
     .delay(config.initAdminAccountsDelay)
     .return(accounts)
-    // @todo use router dispatch, because a schema can contains default params
     .map((account) => {
       const userData = {
         audience,

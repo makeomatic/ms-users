@@ -1,3 +1,10 @@
+## [10.0.1](https://github.com/makeomatic/ms-users/compare/v10.0.0...v10.0.1) (2018-10-26)
+
+
+### Bug Fixes
+
+* updates deps ([#384](https://github.com/makeomatic/ms-users/issues/384)) ([9cdb298](https://github.com/makeomatic/ms-users/commit/9cdb298))
+
 # [10.0.0](https://github.com/makeomatic/ms-users/compare/v9.5.0...v10.0.0) (2018-10-16)
 
 

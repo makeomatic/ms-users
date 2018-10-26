@@ -1,19 +1,19 @@
-const Mservice = require('@microfleet/core');
+const { Microfleet, ConnectorsTypes } = require('@microfleet/core');
 const Mailer = require('ms-mailer-client');
 const merge = require('lodash/merge');
 const assert = require('assert');
 const fsort = require('redis-filtered-sort');
 const TokenManager = require('ms-token');
 const LockManager = require('dlock');
-const get = require('lodash/get');
 const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
 const conf = require('./config');
+const get = require('./utils/get-value');
 
 /**
  * @namespace Users
  */
-module.exports = class Users extends Mservice {
+module.exports = class Users extends Microfleet {
   /**
    * Configuration options for the service
    * @type {Object}
@@ -63,11 +63,11 @@ module.exports = class Users extends Mservice {
     this.flake = new Flakeless(config.flake);
 
     this.on('plugin:connect:amqp', (amqp) => {
-      this._mailer = new Mailer(amqp, config.mailer);
+      this.mailer = new Mailer(amqp, config.mailer);
     });
 
     this.on('plugin:close:amqp', () => {
-      this._mailer = null;
+      this.mailer = null;
     });
 
     this.on(`plugin:connect:${this.redisType}`, (redis) => {
@@ -80,16 +80,16 @@ module.exports = class Users extends Mservice {
 
     this.on('plugin:start:http', (server) => {
       // if oAuth is enabled - initiate the strategy
-      if (get(config, 'oauth.enabled', false) === true) {
+      if (get(config, 'oauth.enabled', { default: false }) === true) {
         assert.equal(config.http.server.handler, 'hapi', 'oAuth must be used with hapi.js webserver');
 
         const OAuthStrategyHandler = require('./auth/oauth/hapi');
-        this._oauth = new OAuthStrategyHandler(server, config);
+        this.oauth = new OAuthStrategyHandler(server, config);
       }
     });
 
     this.on('plugin:stop:http', () => {
-      this._oauth = null;
+      this.oauth = null;
     });
 
     // cleanup connections
@@ -100,28 +100,25 @@ module.exports = class Users extends Mservice {
 
     // add migration connector
     if (config.migrations.enabled === true) {
-      this.addConnector(Mservice.ConnectorsTypes.migration, () => (
+      this.addConnector(ConnectorsTypes.migration, () => (
         this.migrate('redis', `${__dirname}/migrations`)
       ));
     }
 
-    // adds mailer connector
-    this._defineGetter('mailer');
-
     // ensure we close connection when needed
-    this.addDestructor(Mservice.ConnectorsTypes.database, () => (
-      this._pubsub.quit().reflect()
+    this.addDestructor(ConnectorsTypes.database, () => (
+      this.pubsub.quit().reflect()
     ));
 
     // add lock manager
-    this.addConnector(Mservice.ConnectorsTypes.migration, async () => {
-      this._pubsub = redisDuplicate(this.redis);
-      await this._pubsub.connect();
+    this.addConnector(ConnectorsTypes.migration, async () => {
+      this.pubsub = redisDuplicate(this.redis);
+      await this.pubsub.connect();
 
       this.dlock = new LockManager({
         ...config.lockManager,
-        client: this._redis,
-        pubsub: this._pubsub,
+        client: this.redis,
+        pubsub: this.pubsub,
         log: this.log,
       });
 
@@ -129,13 +126,13 @@ module.exports = class Users extends Mservice {
     });
 
     // init account seed
-    this.addConnector(Mservice.ConnectorsTypes.application, () => (
+    this.addConnector(ConnectorsTypes.application, () => (
       this.initAdminAccounts()
     ));
 
     // fake accounts for development
     if (process.env.NODE_ENV === 'development') {
-      this.addConnector(Mservice.ConnectorsTypes.application, () => (
+      this.addConnector(ConnectorsTypes.application, () => (
         this.initFakeAccounts()
       ));
     }

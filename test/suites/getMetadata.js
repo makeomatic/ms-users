@@ -6,7 +6,7 @@ describe('#getMetadata', function getMetadataSuite() {
   afterEach(global.clearRedis);
 
   it('must reject to return metadata on a non-existing username', function test() {
-    const { defaultAudience: audience } = this.users._config.jwt;
+    const { defaultAudience: audience } = this.users.config.jwt;
 
     return this.dispatch('users.getMetadata', { username: 'noob', audience })
       .reflect()
@@ -27,7 +27,9 @@ describe('#getMetadata', function getMetadataSuite() {
         .dispatch('users.register', {
           username, password: '123', audience, metadata: { name: { q: 'verynicedata' } },
         })
-        .then(({ user }) => (this.firstUserId = user.id));
+        .then(({ user }) => {
+          this.firstUserId = user.id;
+        });
     });
 
     beforeEach(function pretest() {
@@ -35,7 +37,9 @@ describe('#getMetadata', function getMetadataSuite() {
         .dispatch('users.register', {
           username: usernameB, password: '123', audience, metadata: { name: 'boredom' },
         })
-        .then(({ user }) => (this.secondUserId = user.id));
+        .then(({ user }) => {
+          this.secondUserId = user.id;
+        });
     });
 
     beforeEach(function pretest() {

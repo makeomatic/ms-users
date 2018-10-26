@@ -6,7 +6,7 @@ describe('#AMQP', function AMQPSuite() {
   afterEach(global.clearRedis);
 
   it('should be able to make requests using AMQP transport', function test() {
-    const { defaultAudience: audience } = this.users._config.jwt;
+    const { defaultAudience: audience } = this.users.config.jwt;
 
     return this.users.amqp.publishAndWait('users.verify', { token: 'invalid-token', audience })
       .reflect()

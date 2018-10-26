@@ -1,8 +1,8 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const { expect } = require('chai');
-const redisKey = require('../../src/utils/key.js');
 const ld = require('lodash');
+const redisKey = require('../../src/utils/key.js');
 
 describe('#list', function listSuite() {
   this.timeout(50000);
@@ -13,7 +13,7 @@ describe('#list', function listSuite() {
   afterEach('reset redis', global.clearRedis);
 
   beforeEach('populate redis', function populateRedis() {
-    const audience = this.users._config.jwt.defaultAudience;
+    const audience = this.users.config.jwt.defaultAudience;
     const promises = [];
     const { USERS_INDEX, USERS_METADATA } = require('../../src/constants');
 
@@ -27,15 +27,16 @@ describe('#list', function listSuite() {
         },
       };
 
-      promises.push(this.users._redis
-        .pipeline()
-        .sadd(USERS_INDEX, user.id)
-        .hmset(
-          redisKey(user.id, USERS_METADATA, audience),
-          ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
-        )
-        .exec()
-      );
+      promises.push((
+        this.users.redis
+          .pipeline()
+          .sadd(USERS_INDEX, user.id)
+          .hmset(
+            redisKey(user.id, USERS_METADATA, audience),
+            ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
+          )
+          .exec()
+      ));
     });
 
     this.audience = audience;

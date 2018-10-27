@@ -1,3 +1,10 @@
+## [10.0.2](https://github.com/makeomatic/ms-users/compare/v10.0.1...v10.0.2) (2018-10-27)
+
+
+### Bug Fixes
+
+* update [@microfleet](https://github.com/microfleet)/core ([2e7e52b](https://github.com/makeomatic/ms-users/commit/2e7e52b))
+
 ## [10.0.1](https://github.com/makeomatic/ms-users/compare/v10.0.0...v10.0.1) (2018-10-26)
 
 

@@ -1,3 +1,10 @@
+## [10.0.4](https://github.com/makeomatic/ms-users.git/compare/v10.0.3...v10.0.4) (2018-10-28)
+
+
+### Bug Fixes
+
+* global login counter redis op ([c133d9e](https://github.com/makeomatic/ms-users.git/commit/c133d9e))
+
 ## [10.0.3](https://github.com/makeomatic/ms-users.git/compare/v10.0.2...v10.0.3) (2018-10-27)
 
 

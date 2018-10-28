@@ -134,7 +134,7 @@ function dropLoginCounter() {
   return this.redis
     .pipeline()
     .del(this.remoteipKey)
-    .hincrby(this.globalRemoteIpKey, -1)
+    .incrby(this.globalRemoteIpKey, -1)
     .exec()
     .then(handlePipeline);
 }

@@ -1,7 +1,4 @@
-const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
-const { getInternalData } = require('../../utils/userData');
-const { USERS_MFA_FLAG } = require('../../constants');
 
 /**
  * @api {http.get|amqp} <prefix>/_/me Return decoded data from JWT
@@ -18,11 +15,7 @@ const { USERS_MFA_FLAG } = require('../../constants');
  *
  */
 async function Me({ auth }) {
-  const { id, metadata } = auth.credentials;
-  const mfa = await Promise.bind(this, id)
-    .then(getInternalData)
-    .get(USERS_MFA_FLAG);
-
+  const { id, mfa, metadata } = auth.credentials;
   return { id, mfa, metadata };
 }
 

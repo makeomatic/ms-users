@@ -1,5 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
-const { checkMFA } = require('../../utils/mfa.js');
+const { checkMFA } = require('../../utils/mfa');
 const { MFA_TYPE_REQUIRED } = require('../../constants');
 
 /**

@@ -20,7 +20,6 @@ module.exports = exports = {
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
   USERS_MFA_FLAG: 'mfa',
-  USERS_MFA_SECRET: 'mfa-secret',
   USERS_MFA_RECOVERY: 'mfa-recovery',
 
   // standard JWT with TTL

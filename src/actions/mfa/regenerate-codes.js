@@ -2,11 +2,11 @@ const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const { checkMFA, generateRecoveryCodes } = require('../../utils/mfa.js');
+const { checkMFA, generateRecoveryCodes } = require('../../utils/mfa');
 const { USERS_MFA_RECOVERY, MFA_TYPE_REQUIRED } = require('../../constants');
 
 function storeData(userId) {
-  const redisKeyRecovery = redisKey(USERS_MFA_RECOVERY, userId);
+  const redisKeyRecovery = redisKey(userId, USERS_MFA_RECOVERY);
   const recoveryCodes = generateRecoveryCodes();
 
   return this.redis

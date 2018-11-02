@@ -10,7 +10,8 @@ const {
   ErrorTotpRequired,
   ErrorTotpInvalid,
   ErrorSecretRequired,
-  USERS_MFA_SECRET,
+  USERS_DATA,
+  USERS_MFA_FLAG,
   USERS_MFA_RECOVERY,
   MFA_TYPE_REQUIRED,
   MFA_TYPE_OPTIONAL,
@@ -33,9 +34,8 @@ function generateRecoveryCodes(length = 10) {
  * @returns {Boolean}
  */
 async function isMFAEnabled(userId) {
-  const { redis } = this;
-
-  const secret = await redis.get(redisKey(USERS_MFA_SECRET, userId));
+  const secret = await this.redis
+    .hget(redisKey(userId, USERS_DATA), USERS_MFA_FLAG);
 
   if (secret) {
     return secret;
@@ -50,7 +50,10 @@ async function isMFAEnabled(userId) {
  * @returns {null}
  */
 async function checkMFA({
-  action, params, locals, headers,
+  action,
+  params = Object.create(null),
+  locals = Object.create(null),
+  headers = Object.create(null),
 }) {
   if (!action.mfa) {
     return null;
@@ -58,7 +61,7 @@ async function checkMFA({
 
   const { redis } = this;
   const { username } = locals;
-  const totp = params.totp || headers['X-Auth-TOTP'];
+  const totp = params.totp || headers['x-auth-totp'];
   const userId = await Promise.bind({ redis }, username).then(getUserId);
 
   // checks if MFA is already enabled
@@ -100,7 +103,7 @@ async function checkMFA({
   // may be provided recovery key in place of totp
   // user may provide recovery key instead of totp
   // check it by trying to remove from set of codes
-  const deleted = await redis.srem(redisKey(USERS_MFA_RECOVERY, userId), totp);
+  const deleted = await redis.srem(redisKey(userId, USERS_MFA_RECOVERY), totp);
 
   // if nothing has been removed means code
   // is invalid, throw error

@@ -6,7 +6,6 @@ const { checkMFA } = require('../../utils/mfa.js');
 const {
   USERS_DATA,
   USERS_MFA_FLAG,
-  USERS_MFA_SECRET,
   USERS_MFA_RECOVERY,
   MFA_TYPE_REQUIRED,
 } = require('../../constants');
@@ -14,7 +13,7 @@ const {
 async function removeData(userId) {
   return this.redis
     .pipeline()
-    .del(redisKey(USERS_MFA_SECRET, userId), redisKey(USERS_MFA_RECOVERY, userId))
+    .del(redisKey(userId, USERS_MFA_RECOVERY))
     .hdel(redisKey(userId, USERS_DATA), USERS_MFA_FLAG)
     .exec()
     .then(handlePipeline)

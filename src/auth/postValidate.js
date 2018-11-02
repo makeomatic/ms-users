@@ -2,8 +2,7 @@ const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
 const { getUserId } = require('../utils/userData');
 
-const isMFARegExp = /mfa[./]/;
-const isMfaRoute = route => isMFARegExp.test(route);
+const { hasOwnProperty } = Object.prototype;
 module.exports = [{
   point: 'postValidate',
   handler: async function postValidateHandler(error, request) {
@@ -13,8 +12,7 @@ module.exports = [{
       return result;
     }
 
-    // TODO: refactor after implementation of route specific hooks in core
-    if (isMfaRoute(request.route) === false) {
+    if (hasOwnProperty.call(request.action, 'mfa') === false) {
       return result;
     }
 

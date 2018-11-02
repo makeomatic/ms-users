@@ -4,18 +4,21 @@ const Errors = require('common-errors');
 const moment = require('moment');
 const noop = require('lodash/noop');
 const is = require('is');
-const scrypt = require('../utils/scrypt.js');
-const redisKey = require('../utils/key.js');
-const jwt = require('../utils/jwt.js');
-const isActive = require('../utils/isActive.js');
-const isBanned = require('../utils/isBanned.js');
+const scrypt = require('../utils/scrypt');
+const redisKey = require('../utils/key');
+const jwt = require('../utils/jwt');
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
 const { getInternalData } = require('../utils/userData');
-const handlePipeline = require('../utils/pipelineError.js');
+const handlePipeline = require('../utils/pipelineError');
+const { checkMFA } = require('../utils/mfa');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
   USERS_ID_FIELD,
   USERS_USERNAME_FIELD,
+  USERS_MFA_FLAG,
+  MFA_TYPE_OPTIONAL,
 } = require('../constants');
 
 /**
@@ -142,8 +145,15 @@ function dropLoginCounter() {
 /**
  * Returns user info
  */
-function getUserInfo({ id }) {
-  return jwt.login.call(this.service, id, this.audience);
+async function getUserInfo(internalData) {
+  const datum = await Promise
+    .bind(this.service, [internalData.id, this.audience])
+    .spread(jwt.login);
+
+  // NOTE: transformed to boolean
+  datum.mfa = !!internalData[USERS_MFA_FLAG];
+
+  return datum;
 }
 
 /**
@@ -231,6 +241,8 @@ function login({ params }) {
     .catch(enrichError);
 }
 
+login.mfa = MFA_TYPE_OPTIONAL;
+login.allowed = checkMFA;
 login.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = login;

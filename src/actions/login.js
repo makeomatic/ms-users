@@ -9,7 +9,6 @@ const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
-const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipelineError');
 const { checkMFA } = require('../utils/mfa');
 const {
@@ -19,13 +18,13 @@ const {
   USERS_USERNAME_FIELD,
   USERS_MFA_FLAG,
   MFA_TYPE_OPTIONAL,
+  ErrorUserNotFound,
 } = require('../constants');
 
 /**
  * Internal functions
  */
 const is404 = e => parseInt(e.message, 10) === 404;
-const isHttp404 = e => e.statusCode === 404;
 
 const globalLoginAttempts = async (ctx) => {
   const { config } = ctx;
@@ -168,6 +167,10 @@ function enrichError(err) {
   throw err;
 }
 
+function verifyInternalData(data) {
+  if (!data) throw ErrorUserNotFound;
+}
+
 /**
  * @api {amqp} <prefix>.login User Authentication
  * @apiVersion 1.0.0
@@ -218,15 +221,11 @@ function login({ params, locals }) {
   };
 
   return Promise
-    // service context, locals.username is populated in the MFA
-    .bind(this, locals.username)
-    // resolve alias/email/phone to internal id
-    .then(getInternalData)
-    // login context
-    .bind(ctx)
+    .bind(ctx, locals.internalData)
+    // verify that locals.internalData exists
+    .tap(verifyInternalData)
     // record global login attempt even on 404
-    .tapCatch(isHttp404, verifyIp ? checkLoginAttempts : noop)
-    // pass-through based on strategy
+    .tapCatch(verifyIp ? checkLoginAttempts : noop)
     .tap(verifyIp ? checkLoginAttempts : noop)
     // different auth strategies
     .tap(getVerifyStrategy)

@@ -24,11 +24,6 @@ const auditLog = routerExtension('audit/log');
  */
 const preResponse = require('../auth/oauth/preResponse');
 
-/**
- * Performs
- * @type {Function}
- */
-const postValidate = require('../auth/postValidate');
 
 /**
  * Specifies configuration for the router of the microservice
@@ -42,7 +37,7 @@ exports.router = {
   },
   extensions: {
     enabled: ['preRequest', 'postRequest', 'postValidate', 'preResponse'],
-    register: [autoSchema, preResponse, auditLog, postValidate],
+    register: [autoSchema, preResponse, auditLog],
   },
   auth: {
     strategies: {

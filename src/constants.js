@@ -55,6 +55,7 @@ module.exports = exports = {
   ErrorTotpRequired: new HttpStatusError(403, 'TOTP required'),
   ErrorTotpInvalid: new HttpStatusError(403, 'TOTP invalid'),
   ErrorSecretRequired: new HttpStatusError(403, 'Secret required'),
+  ErrorUserNotFound: new HttpStatusError(404, 'username not found'),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',

@@ -38,13 +38,13 @@ function hasAnyData(data) {
 
 function verifyIdOnly(data) {
   if (data === null) {
-    throw new HttpStatusError(404, `"${this.userKey}" does not exists`);
+    throw new HttpStatusError(404, `"${this.userKey}" does not exist`);
   }
 }
 
 function handleNotFound(data) {
   if (data === null || hasAnyData(data) === false) {
-    throw new HttpStatusError(404, `"${this.userKey}" does not exists`);
+    throw new HttpStatusError(404, `"${this.userKey}" does not exist`);
   }
 }
 

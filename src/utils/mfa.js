@@ -18,6 +18,7 @@ const {
   MFA_TYPE_DISABLED,
 } = require('../constants');
 
+const is404 = e => parseInt(e.message, 10) === 404;
 authenticator.options = { crypto };
 
 /**
@@ -59,13 +60,22 @@ async function checkMFA({
     return null;
   }
 
+  let secret;
   const { redis } = this;
   const { username } = locals;
   const totp = params.totp || headers['x-auth-totp'];
-  const userId = await Promise.bind({ redis }, username).then(getUserId);
 
-  // checks if MFA is already enabled
-  let secret = await Promise.bind(this, userId).then(isMFAEnabled);
+  const userId = await Promise
+    .bind(this, username)
+    .then(getUserId)
+    .catchReturn(is404, null);
+
+  if (userId === null) {
+    secret = null;
+  } else {
+    // checks if MFA is already enabled
+    secret = await Promise.bind(this, userId).then(isMFAEnabled);
+  }
 
   if (!secret) {
     // MFA is not enabled but is optional, pass through

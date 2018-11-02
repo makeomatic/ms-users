@@ -184,7 +184,7 @@ function enrichError(err) {
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
-function login({ params }) {
+function login({ params, locals }) {
   const config = this.config.jwt;
   const { redis, tokenManager } = this;
   const { isDisposablePassword, isSSO, password } = params;
@@ -218,8 +218,8 @@ function login({ params }) {
   };
 
   return Promise
-    // service context
-    .bind(this, params.username)
+    // service context, locals.username is populated in the MFA
+    .bind(this, locals.username)
     // resolve alias/email/phone to internal id
     .then(getInternalData)
     // login context

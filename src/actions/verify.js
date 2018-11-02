@@ -27,16 +27,25 @@ async function decodedToken({ username, userId }) {
     audience.push(defaultAudience);
   }
 
-  const internalData = await getInternalData.call(service, username);
-  const resolveduserId = userId || internalData.id;
-  const hasMFA = !!internalData[USERS_MFA_FLAG];
-  const metadata = getMetadata.call(service, resolveduserId, audience);
+  let resolveduserId = userId;
+  let hasMFA;
+  if (resolveduserId == null) {
+    const internalData = await getInternalData.call(service, username);
+    resolveduserId = internalData.id;
+    hasMFA = !!internalData[USERS_MFA_FLAG];
+  }
 
-  return {
+  const metadata = await getMetadata.call(service, resolveduserId, audience);
+  const response = {
     id: resolveduserId,
-    mfa: hasMFA,
-    metadata: await metadata,
+    metadata,
   };
+
+  if (hasMFA !== undefined) {
+    response.mfa = hasMFA;
+  }
+
+  return response;
 }
 
 /**

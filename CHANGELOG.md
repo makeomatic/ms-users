@@ -1,3 +1,10 @@
+## [10.0.5](https://github.com/makeomatic/ms-users.git/compare/v10.0.4...v10.0.5) (2018-11-05)
+
+
+### Bug Fixes
+
+* mfa internals updated ([#385](https://github.com/makeomatic/ms-users.git/issues/385)) ([6d82f95](https://github.com/makeomatic/ms-users.git/commit/6d82f95))
+
 ## [10.0.4](https://github.com/makeomatic/ms-users.git/compare/v10.0.3...v10.0.4) (2018-10-28)
 
 

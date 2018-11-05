@@ -20,7 +20,6 @@ module.exports = exports = {
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
   USERS_MFA_FLAG: 'mfa',
-  USERS_MFA_SECRET: 'mfa-secret',
   USERS_MFA_RECOVERY: 'mfa-recovery',
 
   // standard JWT with TTL
@@ -56,6 +55,7 @@ module.exports = exports = {
   ErrorTotpRequired: new HttpStatusError(403, 'TOTP required'),
   ErrorTotpInvalid: new HttpStatusError(403, 'TOTP invalid'),
   ErrorSecretRequired: new HttpStatusError(403, 'Secret required'),
+  ErrorUserNotFound: new HttpStatusError(404, 'username not found'),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',

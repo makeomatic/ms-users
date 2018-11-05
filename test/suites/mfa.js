@@ -22,12 +22,20 @@ describe('#mfa.*', function activateSuite() {
   const verifyRoute = 'mfa.verify';
   const regenerateRoute = 'mfa.regenerate-codes';
   const detachRoute = 'mfa.detach';
+  const user = { username, password: '123', audience: '*.localhost' };
 
-  function topIsInvalid(error) {
+  function totpIsInvalid(error) {
     assert.equal(error.name, 'HttpStatusError');
     assert.equal(error.statusCode, 403);
     assert.equal(error.code, 'E_TOTP_INVALID');
     assert.ok(/TOTP invalid/.test(error.message), error.message);
+  }
+
+  function totpIsRequired(error) {
+    assert.equal(error.name, 'HttpStatusError');
+    assert.equal(error.statusCode, 403);
+    assert.equal(error.code, 'E_TOTP_REQUIRED');
+    assert.ok(/TOTP required/.test(error.message), error.message);
   }
 
   before(global.startService);
@@ -57,7 +65,7 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false));
 
-      topIsInvalid(error);
+      totpIsInvalid(error);
     });
 
     it('attaches secret to user account if provided totp is valid', async function test() {
@@ -87,7 +95,30 @@ describe('#mfa.*', function activateSuite() {
         headers: { authorization: `JWT ${this.jwt}` },
       });
 
-      assert.ok(res[USERS_MFA_FLAG]);
+      assert.equal(res[USERS_MFA_FLAG], true);
+    });
+
+    it('rejects login attempt with enabled mfa', async function test() {
+      const login = await this.users
+        .dispatch('login', { params: user })
+        .reflect()
+        .then(inspectPromise(false));
+
+      totpIsRequired(login);
+    });
+
+    it('login succeeds (header totp)', async function test() {
+      const login = await this.users
+        .dispatch('login', { params: user, headers: { 'x-auth-totp': authenticator.generate(secret) } });
+
+      assert.ok(login);
+    });
+
+    it('login succeeds (params totp)', async function test() {
+      const login = await this.users
+        .dispatch('login', { params: { ...user, totp: authenticator.generate(secret) } });
+
+      assert.ok(login);
     });
   });
 
@@ -98,7 +129,7 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false));
 
-      topIsInvalid(error);
+      totpIsInvalid(error);
     });
 
     it('doesn\'t throw if valid totp is provided', async function test() {
@@ -121,7 +152,7 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false));
 
-      topIsInvalid(error);
+      totpIsInvalid(error);
 
       // finally remove used code
       recoveryCodes = recoveryCodes.slice(1);
@@ -135,7 +166,7 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false));
 
-      topIsInvalid(error);
+      totpIsInvalid(error);
     });
 
     it('allows to regenerate codes if valid totp is provided', async function test() {
@@ -155,7 +186,7 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false));
 
-      topIsInvalid(error);
+      totpIsInvalid(error);
     });
 
     it('doesn\'t throw if new valid recovery is provided', async function test() {
@@ -175,7 +206,7 @@ describe('#mfa.*', function activateSuite() {
         .reflect()
         .then(inspectPromise(false));
 
-      topIsInvalid(error);
+      totpIsInvalid(error);
     });
 
     it('allows to detach if valid totp is provided', async function test() {
@@ -196,12 +227,12 @@ describe('#mfa.*', function activateSuite() {
       assert.ok(/MFA disabled/.test(error.message), error.message);
     });
 
-    it('removes mfa flag from metadata after detaching', async function test() {
+    it('sets mfa flag to false after detaching', async function test() {
       const res = await request.get({
         headers: { authorization: `JWT ${this.jwt}` },
       });
 
-      assert.equal(res[USERS_MFA_FLAG], undefined);
+      assert.equal(res[USERS_MFA_FLAG], false);
     });
   });
 });

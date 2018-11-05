@@ -4,25 +4,27 @@ const Errors = require('common-errors');
 const moment = require('moment');
 const noop = require('lodash/noop');
 const is = require('is');
-const scrypt = require('../utils/scrypt.js');
-const redisKey = require('../utils/key.js');
-const jwt = require('../utils/jwt.js');
-const isActive = require('../utils/isActive.js');
-const isBanned = require('../utils/isBanned.js');
-const { getInternalData } = require('../utils/userData');
-const handlePipeline = require('../utils/pipelineError.js');
+const scrypt = require('../utils/scrypt');
+const redisKey = require('../utils/key');
+const jwt = require('../utils/jwt');
+const isActive = require('../utils/isActive');
+const isBanned = require('../utils/isBanned');
+const handlePipeline = require('../utils/pipelineError');
+const { checkMFA } = require('../utils/mfa');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
   USERS_ID_FIELD,
   USERS_USERNAME_FIELD,
+  USERS_MFA_FLAG,
+  MFA_TYPE_OPTIONAL,
+  ErrorUserNotFound,
 } = require('../constants');
 
 /**
  * Internal functions
  */
 const is404 = e => parseInt(e.message, 10) === 404;
-const isHttp404 = e => e.statusCode === 404;
 
 const globalLoginAttempts = async (ctx) => {
   const { config } = ctx;
@@ -142,8 +144,15 @@ function dropLoginCounter() {
 /**
  * Returns user info
  */
-function getUserInfo({ id }) {
-  return jwt.login.call(this.service, id, this.audience);
+async function getUserInfo(internalData) {
+  const datum = await Promise
+    .bind(this.service, [internalData.id, this.audience])
+    .spread(jwt.login);
+
+  // NOTE: transformed to boolean
+  datum.mfa = !!internalData[USERS_MFA_FLAG];
+
+  return datum;
 }
 
 /**
@@ -156,6 +165,10 @@ function enrichError(err) {
   }
 
   throw err;
+}
+
+function verifyInternalData(data) {
+  if (!data) throw ErrorUserNotFound;
 }
 
 /**
@@ -174,7 +187,7 @@ function enrichError(err) {
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
-function login({ params }) {
+function login({ params, locals }) {
   const config = this.config.jwt;
   const { redis, tokenManager } = this;
   const { isDisposablePassword, isSSO, password } = params;
@@ -208,15 +221,11 @@ function login({ params }) {
   };
 
   return Promise
-    // service context
-    .bind(this, params.username)
-    // resolve alias/email/phone to internal id
-    .then(getInternalData)
-    // login context
-    .bind(ctx)
+    .bind(ctx, locals.internalData)
+    // verify that locals.internalData exists
+    .tap(verifyInternalData)
     // record global login attempt even on 404
-    .tapCatch(isHttp404, verifyIp ? checkLoginAttempts : noop)
-    // pass-through based on strategy
+    .tapCatch(verifyIp ? checkLoginAttempts : noop)
     .tap(verifyIp ? checkLoginAttempts : noop)
     // different auth strategies
     .tap(getVerifyStrategy)
@@ -231,6 +240,8 @@ function login({ params }) {
     .catch(enrichError);
 }
 
+login.mfa = MFA_TYPE_OPTIONAL;
+login.allowed = checkMFA;
 login.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = login;

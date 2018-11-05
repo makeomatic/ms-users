@@ -3,7 +3,8 @@ const { HttpStatusError } = require('common-errors');
 const { ActionTransport } = require('@microfleet/core');
 const jwt = require('../utils/jwt');
 const getMetadata = require('../utils/getMetadata');
-const { getUserId } = require('../utils/userData');
+const { getInternalData } = require('../utils/userData');
+const { USERS_MFA_FLAG } = require('../constants');
 
 /**
  * Internal functions
@@ -14,7 +15,7 @@ const toArray = maybeArray => (isArray(maybeArray) ? maybeArray : [maybeArray]);
 /**
  * Verifies decoded token
  */
-function decodedToken({ username, userId }) {
+async function decodedToken({ username, userId }) {
   if (!userId && !username) {
     throw new HttpStatusError(403, 'forged or expired token');
   }
@@ -26,12 +27,25 @@ function decodedToken({ username, userId }) {
     audience.push(defaultAudience);
   }
 
-  return Promise
-    .resolve(userId || getUserId.call(service, username))
-    .then(resolveduserId => Promise.props({
-      id: resolveduserId,
-      metadata: getMetadata.call(service, resolveduserId, audience),
-    }));
+  let resolveduserId = userId;
+  let hasMFA;
+  if (resolveduserId == null) {
+    const internalData = await getInternalData.call(service, username);
+    resolveduserId = internalData.id;
+    hasMFA = !!internalData[USERS_MFA_FLAG];
+  }
+
+  const metadata = await getMetadata.call(service, resolveduserId, audience);
+  const response = {
+    id: resolveduserId,
+    metadata,
+  };
+
+  if (hasMFA !== undefined) {
+    response.mfa = hasMFA;
+  }
+
+  return response;
 }
 
 /**

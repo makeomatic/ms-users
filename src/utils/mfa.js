@@ -1,16 +1,17 @@
-const Promise = require('bluebird');
+const { ActionTransport } = require('@microfleet/core');
 const assert = require('assert');
 const uuid = require('uuid/v4');
 const authenticator = require('otplib/authenticator');
 const crypto = require('crypto');
 const { HttpStatusError } = require('common-errors');
-const { getUserId } = require('./userData');
+const { getInternalData } = require('./userData');
 const redisKey = require('./key');
 const {
   ErrorTotpRequired,
   ErrorTotpInvalid,
   ErrorSecretRequired,
-  USERS_MFA_SECRET,
+  USERS_DATA,
+  USERS_MFA_FLAG,
   USERS_MFA_RECOVERY,
   MFA_TYPE_REQUIRED,
   MFA_TYPE_OPTIONAL,
@@ -33,9 +34,8 @@ function generateRecoveryCodes(length = 10) {
  * @returns {Boolean}
  */
 async function isMFAEnabled(userId) {
-  const { redis } = this;
-
-  const secret = await redis.get(redisKey(USERS_MFA_SECRET, userId));
+  const secret = await this.redis
+    .hget(redisKey(userId, USERS_DATA), USERS_MFA_FLAG);
 
   if (secret) {
     return secret;
@@ -49,21 +49,47 @@ async function isMFAEnabled(userId) {
  * @param  {Object}  request
  * @returns {null}
  */
-async function checkMFA({
-  action, params, locals, headers,
-}) {
+async function checkMFA(request) {
+  const {
+    action,
+    transport,
+    params,
+    headers,
+  } = request;
+
   if (!action.mfa) {
     return null;
   }
 
+  if (!request.locals) {
+    request.locals = Object.create(null);
+  }
+
+  let username;
+  if (transport === ActionTransport.http) {
+    username = request.auth.credentials.id;
+  } else if (params.username) {
+    username = params.username;
+  } else {
+    throw new HttpStatusError(400, 'no username source');
+  }
+
+  const { locals } = request;
   const { redis } = this;
-  const { username } = locals;
-  const totp = params.totp || headers['X-Auth-TOTP'];
-  const userId = await Promise.bind({ redis }, username).then(getUserId);
+  const totp = (params && params.totp) || (headers && headers['x-auth-totp']);
 
-  // checks if MFA is already enabled
-  let secret = await Promise.bind(this, userId).then(isMFAEnabled);
+  try {
+    locals.internalData = await getInternalData.call(this, username);
+    locals.username = locals.internalData.id;
+  } catch (e) {
+    if (action.mfa === MFA_TYPE_OPTIONAL) {
+      return null;
+    }
 
+    throw e;
+  }
+
+  let secret = locals.internalData[USERS_MFA_FLAG];
   if (!secret) {
     // MFA is not enabled but is optional, pass through
     if (action.mfa === MFA_TYPE_OPTIONAL) {
@@ -100,7 +126,7 @@ async function checkMFA({
   // may be provided recovery key in place of totp
   // user may provide recovery key instead of totp
   // check it by trying to remove from set of codes
-  const deleted = await redis.srem(redisKey(USERS_MFA_RECOVERY, userId), totp);
+  const deleted = await redis.srem(redisKey(locals.username, USERS_MFA_RECOVERY), totp);
 
   // if nothing has been removed means code
   // is invalid, throw error

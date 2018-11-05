@@ -3,11 +3,10 @@ const Promise = require('bluebird');
 
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const { checkMFA, generateRecoveryCodes } = require('../../utils/mfa.js');
+const { checkMFA, generateRecoveryCodes } = require('../../utils/mfa');
 const {
   USERS_DATA,
   USERS_MFA_FLAG,
-  USERS_MFA_SECRET,
   USERS_MFA_RECOVERY,
   MFA_TYPE_DISABLED,
 } = require('../../constants');
@@ -18,9 +17,9 @@ async function storeData(userId) {
 
   return redis
     .pipeline()
-    .set(redisKey(USERS_MFA_SECRET, userId), secret)
-    .sadd(redisKey(USERS_MFA_RECOVERY, userId), recoveryCodes)
-    .hset(redisKey(userId, USERS_DATA), USERS_MFA_FLAG, 'true')
+    .del(redisKey(userId, USERS_MFA_RECOVERY))
+    .sadd(redisKey(userId, USERS_MFA_RECOVERY), recoveryCodes)
+    .hset(redisKey(userId, USERS_DATA), USERS_MFA_FLAG, secret)
     .exec()
     .then(handlePipeline)
     .return({ recoveryCodes, enabled: true });

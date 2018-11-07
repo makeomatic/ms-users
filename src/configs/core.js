@@ -96,6 +96,6 @@ exports.accessTokens = {
  * Multi-Factor Authentication Settings
  */
 exports.mfa = {
-  serviceName: 'microfleet.io',
+  serviceName: encodeURIComponent('microfleet.io'),
   length: 40,
 };

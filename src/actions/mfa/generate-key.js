@@ -37,6 +37,10 @@ function generateKey({ auth, params }) {
     );
   }
 
+  if (params.time) {
+    response.skew = Date.now() - params.time;
+  }
+
   return response;
 }
 

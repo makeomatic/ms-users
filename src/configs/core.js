@@ -98,4 +98,7 @@ exports.accessTokens = {
 exports.mfa = {
   serviceName: encodeURIComponent('microfleet.io'),
   length: 40,
+  check: {
+    window: 10,
+  },
 };

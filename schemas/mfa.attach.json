@@ -17,6 +17,11 @@
     "remoteip": {
       "type": "string",
       "format": "ipv4"
+    },
+    "time": {
+      "type": "integer",
+      "maximum": 2004072666505,
+      "minimum": 1387434941021
     }
   }
 }

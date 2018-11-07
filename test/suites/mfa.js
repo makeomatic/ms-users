@@ -52,9 +52,10 @@ describe('#mfa.*', function activateSuite() {
   describe('#mfa.generate-key', function generateKeySuite() {
     it('generates key', async function test() {
       const data = await this.users
-        .dispatch(generateRoute, { params: { username } });
+        .dispatch(generateRoute, { params: { username, time: Date.now() } });
 
       assert(data.uri, 'must generate uri to be shown');
+      assert(typeof data.skew === 'number', 'skew must be present');
 
       secret = data.secret;
     });

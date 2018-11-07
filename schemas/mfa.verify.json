@@ -1,23 +1,16 @@
 {
-    "$id": "mfa.verify",
-    "type": "object",
-    "required": [
-        "username",
-        "totp"
-    ],
-    "properties": {
-        "username": {
-            "type": "string",
-            "minLength": 1
-        },
-        "totp": {
-            "type": "string",
-            "minLength": 6,
-            "maxLength": 36
-        },
-        "remoteip": {
-            "type": "string",
-            "format": "ipv4"
-        }
+  "$id": "mfa.verify",
+  "type": "object",
+  "required": [
+    "totp"
+  ],
+  "properties": {
+    "totp": {
+      "$ref": "common.json#/definitions/totp"
+    },
+    "remoteip": {
+      "type": "string",
+      "format": "ipv4"
     }
+  }
 }

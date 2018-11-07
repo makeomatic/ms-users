@@ -81,7 +81,6 @@ exports.validator = {
 exports.hooks = {};
 
 /**
- * [accessTokens description]
  * @type {Object}
  */
 exports.accessTokens = {
@@ -91,4 +90,12 @@ exports.accessTokens = {
     // NOTE: MAKE SURE TO SET THIS IN PRODUCTION
     production: '',
   },
+};
+
+/**
+ * Multi-Factor Authentication Settings
+ */
+exports.mfa = {
+  serviceName: 'microfleet.io',
+  length: 40,
 };

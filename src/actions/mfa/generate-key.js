@@ -1,6 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const authenticator = require('otplib/authenticator');
 const crypto = require('crypto');
+const { USERS_ALIAS_FIELD, USERS_USERNAME_FIELD } = require('../../constants');
 
 authenticator.options = { crypto };
 
@@ -17,8 +18,22 @@ authenticator.options = { crypto };
  *     "Authorization: JWT my.reallyniceandvalid.jsonwebtoken"
  *
  */
-function generateKey() {
-  return { secret: authenticator.generateSecret() };
+function generateKey({ auth, params }) {
+  const audience = this.config.jwt.defaultAudience;
+  const secret = authenticator.generateSecret(this.config.mfa.length);
+  const response = { secret };
+  const username = auth
+    ? (
+      auth.credentials.metadata[audience][USERS_ALIAS_FIELD]
+      || auth.credentials.metadata[audience][USERS_USERNAME_FIELD]
+    )
+    : params.username;
+
+  if (username) {
+    response.uri = authenticator.keyuri(username, this.config.mfa.serviceName, secret);
+  }
+
+  return response;
 }
 
 generateKey.auth = 'httpBearer';

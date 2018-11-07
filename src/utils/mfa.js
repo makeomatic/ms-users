@@ -121,7 +121,7 @@ async function checkMFA(request) {
   // provided totp (not recovery code)
   if (totp.length === 6) {
     // valid, pass through
-    assert(authenticator.check(totp, secret), ErrorTotpInvalid);
+    assert(authenticator.check(totp, secret, this.config.mfa.check), ErrorTotpInvalid);
     return null;
   }
 

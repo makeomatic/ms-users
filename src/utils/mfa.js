@@ -54,7 +54,6 @@ async function checkMFA(request) {
     action,
     transport,
     params,
-    headers,
   } = request;
 
   if (!action.mfa) {
@@ -79,6 +78,9 @@ async function checkMFA(request) {
 
   const { locals } = request;
   const { redis } = this;
+  const { headers } = transport === ActionTransport.amqp
+    ? request.headers
+    : request;
   const totp = (params && params.totp) || (headers && headers['x-auth-totp']);
 
   try {

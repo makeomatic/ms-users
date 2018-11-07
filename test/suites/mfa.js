@@ -54,6 +54,8 @@ describe('#mfa.*', function activateSuite() {
       const data = await this.users
         .dispatch(generateRoute, { params: { username } });
 
+      assert(data.uri, 'must generate uri to be shown');
+
       secret = data.secret;
     });
   });

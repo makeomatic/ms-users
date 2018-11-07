@@ -1,13 +1,9 @@
 {
-    "$id": "mfa.generate-key",
-    "type": "object",
-    "required": [
-        "username"
-    ],
-    "properties": {
-        "username": {
-            "type": "string",
-            "minLength": 1
-        }
+  "$id": "mfa.generate-key",
+  "type": "object",
+  "properties": {
+    "username": {
+      "$ref": "common.json#/definitions/userId"
     }
+  }
 }

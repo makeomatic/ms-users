@@ -1,3 +1,10 @@
+## [10.1.1](https://github.com/makeomatic/ms-users.git/compare/v10.1.0...v10.1.1) (2018-11-07)
+
+
+### Bug Fixes
+
+* correct headers location in AMQP ([e64441b](https://github.com/makeomatic/ms-users.git/commit/e64441b))
+
 # [10.1.0](https://github.com/makeomatic/ms-users.git/compare/v10.0.6...v10.1.0) (2018-11-07)
 
 

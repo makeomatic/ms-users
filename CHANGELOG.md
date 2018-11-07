@@ -1,3 +1,10 @@
+# [10.1.0](https://github.com/makeomatic/ms-users.git/compare/v10.0.6...v10.1.0) (2018-11-07)
+
+
+### Features
+
+* check params for totp, report clock skew ([#387](https://github.com/makeomatic/ms-users.git/issues/387)) ([d366bb4](https://github.com/makeomatic/ms-users.git/commit/d366bb4))
+
 ## [10.0.6](https://github.com/makeomatic/ms-users.git/compare/v10.0.5...v10.0.6) (2018-11-07)
 
 

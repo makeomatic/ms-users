@@ -44,6 +44,7 @@ module.exports = exports = {
   BEARER_LEGACY_USERNAME_FIELD: 'username',
 
   // pre-generated errors
+  ERROR_AUTH_REQUIRED: new HttpStatusError(401, 'authentication required'),
   USERS_CREDENTIALS_REQUIRED_ERROR: new HttpStatusError(401, 'Credentials Required'),
   USERS_DISPOSABLE_PASSWORD_MIA: new HttpStatusError(403, 'Invalid or Expired Password'),
   USERS_INCORRECT_PASSWORD: new HttpStatusError(403, 'incorrect password'),

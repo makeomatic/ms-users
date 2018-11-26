@@ -1,10 +1,10 @@
+const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const Errors = require('common-errors');
-
+const { ERROR_AUTH_REQUIRED } = require('../../constants');
 const attach = require('../../auth/oauth/utils/attach');
-const getSignedToken = require('../../auth/oauth/utils/getSignedToken');
+const { getSignedToken } = require('../../auth/oauth/utils/getSignedToken');
 
-function facebookCallbackAction(request) {
+async function facebookCallbackAction(request) {
   const { credentials } = request.auth;
   const { user, account } = credentials;
 
@@ -36,31 +36,35 @@ function facebookCallbackAction(request) {
     uid,
     email,
     profile,
-    provider,
+    provider: {
+      ...provider,
+    },
     internals,
   };
 
-  return Promise
+  const context = await Promise
     .bind(this, [facebook, user])
-    .spread(user ? attach : getSignedToken)
-    .then(context => ({
-      payload: context,
-      error: false,
-      missingPermissions,
-      type: 'ms-users:attached',
-      title: `Attached ${provider} account`,
-    }));
+    .spread(user ? attach : getSignedToken);
+
+  return {
+    payload: context,
+    error: false,
+    missingPermissions,
+    type: 'ms-users:attached',
+    title: `Attached ${provider} account`,
+  };
 }
 
-facebookCallbackAction.allowed = function isAllowed(request) {
+async function isAllowed(request) {
   if (!request.auth.credentials) {
-    throw new Errors.HttpStatusError(401, 'authentication required');
+    throw ERROR_AUTH_REQUIRED;
   }
-};
+}
 
+facebookCallbackAction.allowed = isAllowed;
 facebookCallbackAction.auth = 'oauth';
 facebookCallbackAction.strategy = 'facebook';
 facebookCallbackAction.passAuthError = true;
-facebookCallbackAction.transports = [require('@microfleet/core').ActionTransport.http];
+facebookCallbackAction.transports = [ActionTransport.http];
 
 module.exports = facebookCallbackAction;

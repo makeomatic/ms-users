@@ -31,6 +31,10 @@
         "isSSO": {
             "default": false,
             "type": "boolean"
+        },
+        "isOAuthFollowUp": {
+            "default": false,
+            "type": "boolean"
         }
     }
 }

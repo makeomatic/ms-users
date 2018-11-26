@@ -28,8 +28,12 @@ const mapJWT = props => ({
 });
 
 function verifyData(token, tokenOptions, extraOpts = {}) {
-  const { hashingFunction: algorithm, secret, issuer } = tokenOptions;
-  return jwt.verifyAsync(token, secret, { ...extraOpts, issuer, algorithms: [algorithm] });
+  return jwt.verifyAsync(token, tokenOptions.secret, {
+    ...tokenOptions.extra,
+    ...extraOpts,
+    issuer: tokenOptions.issuer,
+    algorithms: [tokenOptions.hashingFunction],
+  });
 }
 
 /**

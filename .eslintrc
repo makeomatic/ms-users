@@ -13,6 +13,7 @@
       }
     }, {
       "enforceForRenamedProperties": false
-    }]
+    }],
+    "object-curly-newline": 0
   }
 }

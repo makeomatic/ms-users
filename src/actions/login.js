@@ -11,6 +11,7 @@ const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const handlePipeline = require('../utils/pipelineError');
 const { checkMFA } = require('../utils/mfa');
+const { verifySignedToken } = require('../auth/oauth/utils/getSignedToken');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
@@ -18,6 +19,7 @@ const {
   USERS_USERNAME_FIELD,
   USERS_MFA_FLAG,
   MFA_TYPE_OPTIONAL,
+  USERS_INVALID_TOKEN,
   ErrorUserNotFound,
 } = require('../constants');
 
@@ -94,6 +96,16 @@ function verifyHash({ password }, comparableInput) {
   return scrypt.verify(password, comparableInput);
 }
 
+async function verifyOAuthToken({ id }, token) {
+  const providerData = await verifySignedToken(token);
+
+  if (providerData.userId !== id) {
+    throw USERS_INVALID_TOKEN;
+  }
+
+  return true;
+}
+
 /**
  * Checks onу-time password
  */
@@ -122,6 +134,10 @@ function getVerifyStrategy(data) {
 
   if (this.isDisposablePassword === true) {
     return verifyDisposablePassword(this, data);
+  }
+
+  if (this.isOAuthFollowUp === true) {
+    return verifyOAuthToken(data, this.password);
   }
 
   return verifyHash(data, this.password);
@@ -190,7 +206,7 @@ function verifyInternalData(data) {
 function login({ params, locals }) {
   const config = this.config.jwt;
   const { redis, tokenManager } = this;
-  const { isDisposablePassword, isSSO, password } = params;
+  const { isOAuthFollowUp, isDisposablePassword, isSSO, password } = params;
   const { lockAfterAttempts, globalLockAfterAttempts, defaultAudience } = config;
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
@@ -210,6 +226,7 @@ function login({ params, locals }) {
 
     // business logic params
     params,
+    isOAuthFollowUp,
     isDisposablePassword,
     isSSO,
     password,

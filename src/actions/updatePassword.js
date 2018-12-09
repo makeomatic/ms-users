@@ -79,13 +79,12 @@ function updatePassword(request) {
   // 2 cases - token reset and current password reset
   let promise;
   if (request.params.resetToken) {
-    promise = this.tokenManager
-      .verify(request.params.resetToken, {
+    // Refactor Me If You Can
+    promise = Promise
+      .resolve(this.tokenManager.verify(request.params.resetToken, {
         erase: true,
-        control: {
-          action: USERS_ACTION_RESET,
-        },
-      })
+        control: { action: USERS_ACTION_RESET },
+      }))
       .catchThrow(Forbidden)
       .get('id')
       .bind(this);

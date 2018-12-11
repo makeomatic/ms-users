@@ -109,15 +109,20 @@ async function verifyOAuthToken({ id }, token) {
 /**
  * Checks onу-time password
  */
-function verifyDisposablePassword(ctx, data) {
-  return ctx
-    .tokenManager
-    .verify({
+async function verifyDisposablePassword(ctx, data) {
+  try {
+    return await ctx.tokenManager.verify({
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
       id: data[USERS_USERNAME_FIELD],
       token: ctx.password,
-    })
-    .catchThrow(is404, USERS_DISPOSABLE_PASSWORD_MIA);
+    });
+  } catch (e) {
+    if (is404(e)) {
+      throw USERS_DISPOSABLE_PASSWORD_MIA;
+    }
+
+    throw e;
+  }
 }
 
 /**

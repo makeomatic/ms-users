@@ -1,3 +1,4 @@
+const { ActionTransport } = require('@microfleet/core');
 const { HttpStatusError } = require('common-errors');
 const {
   INVITATIONS_INDEX,
@@ -15,16 +16,20 @@ const {
  * @apiParam (Payload) {Object} id - id of the invitation
  *
  */
-module.exports = function removeInvite(request) {
+module.exports = async function removeInvite(request) {
   const { redis, tokenManager } = this;
   const { id } = request.params;
 
-  return tokenManager
-    .remove({ id, action: USERS_ACTION_INVITE })
-    .tap(() => redis.srem(INVITATIONS_INDEX, id))
-    .catch({ message: 404 }, () => {
+  try {
+    await tokenManager.remove({ id, action: USERS_ACTION_INVITE });
+    await redis.srem(INVITATIONS_INDEX, id);
+  } catch (e) {
+    if (e.message === 404) {
       throw new HttpStatusError(404, `Invite with id "${id}" not found`);
-    });
+    }
+
+    throw e;
+  }
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp];

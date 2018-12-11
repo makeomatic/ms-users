@@ -35,11 +35,11 @@ async function facebookCallbackAction(request) {
   const facebook = {
     uid,
     email,
-    profile,
-    provider: {
-      ...provider,
-    },
+    provider,
     internals,
+    profile: {
+      ...profile,
+    },
   };
 
   const context = await Promise

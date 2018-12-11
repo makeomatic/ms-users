@@ -235,7 +235,7 @@ describe('#facebook', function oauthFacebookSuite() {
     const { token } = await getFacebookToken();
     const registered = await createAccount(token);
 
-    console.log('rrrrrrrrrrr', registered)
+    console.log('rrrrrrrrrrr - %j', registered);
 
     assert(registered.hasOwnProperty('jwt'));
     assert(registered.hasOwnProperty('user'));
@@ -355,6 +355,7 @@ describe('#facebook', function oauthFacebookSuite() {
     const context = parseHTML(body);
 
     assert.ok(context.$ms_users_inj_post_message);
+    assert.equal(context.$ms_users_inj_post_message.error, false);
     assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:logged-in');
 
     const { payload } = context.$ms_users_inj_post_message;

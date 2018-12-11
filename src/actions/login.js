@@ -148,13 +148,10 @@ function getVerifyStrategy(data) {
  */
 function dropLoginCounter() {
   this.loginAttempts = 0;
+  this.globalLoginAttempts = 0;
 
   return this.redis
-    .pipeline()
-    .del(this.remoteipKey)
-    .incrby(this.globalRemoteIpKey, -1)
-    .exec()
-    .then(handlePipeline);
+    .dropLoginCounter(2, this.remoteipKey, this.globalRemoteIpKey);
 }
 
 /**

@@ -101,7 +101,7 @@ async function mserviceVerification(credentials) {
   // found a linked user, log in
   if (userId) {
     // pass-on internal user-id
-    credentials.provider.userId = userId;
+    credentials.profile.userId = userId;
 
     return Promise.bind(this.service, userId)
       .then(loginAttempt)

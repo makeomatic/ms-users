@@ -9,7 +9,7 @@ const { Redirect } = require('./utils/errors');
 const { ErrorTotpRequired } = require('../../constants');
 const { getSignedToken } = require('./utils/getSignedToken');
 
-const isOauthAttachRoute = route => /oauth\.facebook$/.test(route);
+const isOauthAttachRoute = route => route.endsWith('oauth.facebook');
 
 module.exports = [{
   point: 'preResponse',
@@ -55,6 +55,10 @@ module.exports = [{
       };
     } else {
       message = result;
+    }
+
+    if (message.error === true) {
+      this.log.warn({ error: message.payload }, 'oauth error');
     }
 
     // erase stack, no need to push it out

@@ -16,13 +16,14 @@ const {
  * @apiParam (Payload) {Object} id - id of the invitation
  *
  */
-module.exports = async function removeInvite(request) {
+module.exports = async function removeInvite({ params }) {
   const { redis, tokenManager } = this;
-  const { id } = request.params;
+  const { id } = params;
 
   try {
-    await tokenManager.remove({ id, action: USERS_ACTION_INVITE });
+    const response = await tokenManager.remove({ id, action: USERS_ACTION_INVITE });
     await redis.srem(INVITATIONS_INDEX, id);
+    return response;
   } catch (e) {
     if (e.message === 404) {
       throw new HttpStatusError(404, `Invite with id "${id}" not found`);

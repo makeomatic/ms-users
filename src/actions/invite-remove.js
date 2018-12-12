@@ -25,7 +25,7 @@ module.exports = async function removeInvite({ params }) {
     await redis.srem(INVITATIONS_INDEX, id);
     return response;
   } catch (e) {
-    if (e.message === 404) {
+    if (e.message === '404') {
       throw new HttpStatusError(404, `Invite with id "${id}" not found`);
     }
 

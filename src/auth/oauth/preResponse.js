@@ -40,7 +40,10 @@ module.exports = [{
     let message;
     if (error && error.code === ErrorTotpRequired.code) {
       message = {
-        payload: await getSignedToken(request.auth.credentials),
+        payload: Object.assign(
+          { userId: error.credentials.profile.userId },
+          await getSignedToken.call(this, error.credentials)
+        ),
         error: true,
         type: 'ms-users:totp_required',
         title: 'MFA required',

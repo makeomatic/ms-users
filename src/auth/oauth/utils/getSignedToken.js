@@ -8,7 +8,6 @@ const { signData, verifyData } = require('../../../utils/jwt');
  */
 async function getSignedToken(account) {
   const { provider } = account;
-
   const token = await Promise
     .bind(this, [account, this.config.oauth.token])
     .spread(signData);

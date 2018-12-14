@@ -97,9 +97,9 @@ function verifyHash({ password }, comparableInput) {
 }
 
 async function verifyOAuthToken({ id }, token) {
-  const providerData = await verifySignedToken(token);
+  const providerData = await verifySignedToken.call(this, token);
 
-  if (providerData.userId !== id) {
+  if (providerData.profile.userId !== id) {
     throw USERS_INVALID_TOKEN;
   }
 
@@ -142,7 +142,7 @@ function getVerifyStrategy(data) {
   }
 
   if (this.isOAuthFollowUp === true) {
-    return verifyOAuthToken(data, this.password);
+    return verifyOAuthToken.call(this.service, data, this.password);
   }
 
   return verifyHash(data, this.password);

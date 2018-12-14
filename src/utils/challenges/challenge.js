@@ -45,18 +45,6 @@ async function generateChallenge(type, opts, ctx = {}, wait = false) {
   const handler = selectChallenge(type, opts.action, ctx, wait);
 
   return handler.call(this, opts.id);
-
-  // return this
-  //   .tokenManager
-  //   .create(opts)
-  //   .catchThrow({ message: '429' }, isThrottled)
-  //   .then((token) => {
-  //     ctx.token = token;
-  //
-  //     return opts.id;
-  //   })
-  //   .bind(this)
-  //   .then(selectChallenge(type, opts.action, ctx, wait));
 }
 
 generateChallenge.selectChallenge = selectChallenge;

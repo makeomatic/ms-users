@@ -1,6 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 /* global globalRegisterUser, globalAuthUser */
 
+const authenticator = require('otplib/authenticator');
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const vm = require('vm');
@@ -486,5 +487,52 @@ describe('#facebook', function oauthFacebookSuite() {
 
     assert.equal(requiresActivation, true);
     assert.ok(id);
+  });
+
+  it.only('should be able to sign in with facebook account if mfa is enabled', async function test() {
+    const username = 'facebookuser@me.com';
+    const databag = { service };
+
+    await globalRegisterUser(username).call(databag);
+    await globalAuthUser(username).call(databag);
+    await getFacebookToken();
+    await Promise.delay(1000);
+
+    // enable mfa
+    const { secret } = await service.dispatch('mfa.generate-key', { params: { username, time: Date.now() } });
+    await service.dispatch('mfa.attach', { params: { username, secret, totp: authenticator.generate(secret) } });
+
+    const executeLink = `${serviceLink}/users/oauth/facebook`;
+
+    /* initial request for attaching account */
+    const preRequest = await navigate({ href: `${executeLink}?jwt=${databag.jwt}` });
+    console.assert(preRequest.status === 200, 'attaching account failed - %s - %s', preRequest.status, preRequest.url);
+
+    const { status, url, body } = await navigate({ href: executeLink });
+    console.assert(status === 200, 'signing in failed - %s - %s', status, url);
+
+    const context = parseHTML(body);
+
+    assert.ok(context.$ms_users_inj_post_message);
+    assert.equal(context.$ms_users_inj_post_message.error, true);
+    assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:totp_required');
+
+    const { payload: { userId, token } } = context.$ms_users_inj_post_message;
+    const login = await service.dispatch(
+      'login',
+      {
+        params: { username: userId, password: token, isOAuthFollowUp: true, audience: defaultAudience },
+        headers: { 'x-auth-totp': authenticator.generate(secret) },
+      }
+    );
+
+    assert(login.hasOwnProperty('jwt'));
+    assert(login.hasOwnProperty('user'));
+    assert(login.hasOwnProperty('mfa'));
+    assert(login.user.hasOwnProperty('metadata'));
+    assert(login.user.metadata.hasOwnProperty(defaultAudience));
+    assert(login.user.metadata[defaultAudience].hasOwnProperty('facebook'));
+    assert.ifError(login.user.password);
+    assert.ifError(login.user.audience);
   });
 });

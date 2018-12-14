@@ -16,19 +16,20 @@ describe('#updatePassword', function updatePasswordSuite() {
 
   beforeEach(function pretest() {
     return simpleDispatcher(this.users.router)('users.register', { username, password, audience })
-      .then(({ user }) => (this.userId = user.id));
+      .then(({ user }) => { this.userId = user.id; });
   });
 
   it('must reject updating password for a non-existing user on username+password update', function test() {
-    return simpleDispatcher(this.users.router)('users.updatePassword', {
-      username: 'mcdon@tour.de.france', currentPassword: 'xxx', newPassword: 'vvv',
-    })
-    .reflect()
-    .then(inspectPromise(false))
-    .then((updatePassword) => {
-      expect(updatePassword.name).to.be.eq('HttpStatusError');
-      expect(updatePassword.statusCode).to.be.eq(404);
-    });
+    const dispatch = simpleDispatcher(this.users.router);
+    const params = { username: 'mcdon@tour.de.france', currentPassword: 'xxx', newPassword: 'vvv' };
+
+    return dispatch('users.updatePassword', params)
+      .reflect()
+      .then(inspectPromise(false))
+      .then((updatePassword) => {
+        expect(updatePassword.name).to.be.eq('HttpStatusError');
+        expect(updatePassword.statusCode).to.be.eq(404);
+      });
   });
 
   describe('user: inactive', function suite() {
@@ -75,14 +76,14 @@ describe('#updatePassword', function updatePasswordSuite() {
     });
 
     it('must update password with a valid username/password combination and different newPassword', function test() {
-      return simpleDispatcher(this.users.router)('users.updatePassword', {
-        username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0',
-      })
-      .reflect()
-      .then(inspectPromise())
-      .then((updatePassword) => {
-        expect(updatePassword).to.be.deep.eq({ success: true });
-      });
+      const params = { username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0' };
+
+      return simpleDispatcher(this.users.router)('users.updatePassword', params)
+        .reflect()
+        .then(inspectPromise())
+        .then((updatePassword) => {
+          expect(updatePassword).to.be.deep.eq({ success: true });
+        });
     });
 
     describe('token', function tokenSuite() {

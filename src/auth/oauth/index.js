@@ -10,7 +10,7 @@ const { getInternalData } = require('../../utils/userData');
 
 const { verifyToken, loginAttempt } = require('../../utils/amqp');
 const { Redirect } = require('./utils/errors');
-const { USERS_ID_FIELD } = require('../../constants');
+const { USERS_ID_FIELD, ErrorTotpRequired } = require('../../constants');
 
 // helpers
 const isRedirect = ({ statusCode }) => statusCode === 301 || statusCode === 302;
@@ -103,9 +103,18 @@ async function mserviceVerification(credentials) {
     // pass-on internal user-id
     credentials.profile.userId = userId;
 
-    return Promise.bind(this.service, userId)
-      .then(loginAttempt)
-      .tap(partial(refresh, credentials));
+    try {
+      const userData = await loginAttempt.call(this.service, userId);
+      partial(refresh, credentials)(userData);
+
+      return userData;
+    } catch (error) {
+      if (error.code === ErrorTotpRequired.code) {
+        error.credentials = credentials;
+      }
+
+      throw error;
+    }
   }
 
   return { user, jwt, account: credentials };

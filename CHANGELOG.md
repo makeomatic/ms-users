@@ -1,3 +1,10 @@
+# [10.2.0](https://github.com/makeomatic/ms-users/compare/v10.1.1...v10.2.0) (2018-12-16)
+
+
+### Features
+
+* facebook oauth mfa ([#388](https://github.com/makeomatic/ms-users/issues/388)) ([8f09b15](https://github.com/makeomatic/ms-users/commit/8f09b15))
+
 ## [10.1.1](https://github.com/makeomatic/ms-users.git/compare/v10.1.0...v10.1.1) (2018-11-07)
 
 

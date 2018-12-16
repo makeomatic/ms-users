@@ -59,19 +59,6 @@ const mergeMetadata = (accumulator, value, prop) => {
 };
 
 /**
- * Verifies that token has not be used before
- * @param  {Object}  token
- * @return {Object}
- */
-function verifyRedisTokenResponse(token) {
-  if (!token.isFirstVerification) {
-    throw ErrorInvitationExpiredOrUsed;
-  }
-
-  return token;
-}
-
-/**
  * Token verification function, on top of it returns extra metadata
  * @return {Promise}
  */
@@ -82,13 +69,18 @@ async function verifyToken(tokenManager, params) {
     ? { action: USERS_ACTION_INVITE }
     : { action: USERS_ACTION_INVITE, id: params.username };
 
-  const meta = await tokenManager
-    .verify(params.inviteToken, { erase: false, control })
-    .then(verifyRedisTokenResponse)
-    .get('metadata')
-    .get(TOKEN_METADATA_FIELD_METADATA);
+  const token = await tokenManager
+    .verify(params.inviteToken, { erase: false, control });
 
-  return reduce(meta, mergeMetadata, params.metadata);
+  if (!token.isFirstVerification) {
+    throw ErrorInvitationExpiredOrUsed;
+  }
+
+  return reduce(
+    token.metadata[TOKEN_METADATA_FIELD_METADATA],
+    mergeMetadata,
+    params.metadata
+  );
 }
 
 /**

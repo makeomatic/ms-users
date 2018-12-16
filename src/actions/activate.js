@@ -68,8 +68,8 @@ function RethrowForbidden(error) {
 function verifyToken(args, opts) {
   const { tokenManager } = this;
 
-  return tokenManager
-    .verify(args, opts)
+  return Promise
+    .resolve(tokenManager.verify(args, opts))
     .bind(this)
     .catch(RethrowForbidden)
     .get('id');

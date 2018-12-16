@@ -33,15 +33,13 @@ describe('#invite-remove', function registerSuite() {
       .then(inspectPromise());
   });
 
-  it('must reject removing non-existing invite', function test() {
-    return this
+  it('must reject removing non-existing invite', async function test() {
+    const err = await this
       .dispatch('users.invite-remove', { id: email })
       .reflect()
-      .then(inspectPromise(false))
-      .then((err) => {
-        assert.equal(err.name, 'HttpStatusError');
-        assert.equal(err.message, `Invite with id "${email}" not found`);
-        return null;
-      });
+      .then(inspectPromise(false));
+
+    assert.equal(err.name, 'HttpStatusError', err.message);
+    assert.equal(err.message, `Invite with id "${email}" not found`);
   });
 });

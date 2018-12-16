@@ -17,7 +17,7 @@ exports.oauth = {
       production: '',
     },
     extra: {
-      expiresIn: '1h',
+      expiresIn: '10m', // should be more than enough
     },
   },
   providers: {

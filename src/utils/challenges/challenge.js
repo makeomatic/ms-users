@@ -30,18 +30,21 @@ const selectChallenge = (type, action, ctx, wait) => CHALLENGES[type](action, ct
  * @param {Boolean} [wait=false] - should we wait for challenge confirmation?
  * @return {Promise}
  */
-function generateChallenge(type, opts, ctx = {}, wait = false) {
-  return this
-    .tokenManager
-    .create(opts)
-    .catchThrow({ message: '429' }, isThrottled)
-    .then((token) => {
-      ctx.token = token;
+async function generateChallenge(type, opts, ctx = {}, wait = false) {
+  try {
+    const token = await this.tokenManager.create(opts);
+    ctx.token = token;
+  } catch (error) {
+    if (error.message === '429') {
+      throw isThrottled;
+    }
 
-      return opts.id;
-    })
-    .bind(this)
-    .then(selectChallenge(type, opts.action, ctx, wait));
+    throw error;
+  }
+
+  const handler = selectChallenge(type, opts.action, ctx, wait);
+
+  return handler.call(this, opts.id);
 }
 
 generateChallenge.selectChallenge = selectChallenge;

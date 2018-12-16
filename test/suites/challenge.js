@@ -1,6 +1,6 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
-const expect = require('chai').expect;
+const { expect } = require('chai');
 
 describe('#challenge', function challengeSuite() {
   beforeEach(global.startService);

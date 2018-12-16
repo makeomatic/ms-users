@@ -11,6 +11,7 @@ const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const handlePipeline = require('../utils/pipelineError');
 const { checkMFA } = require('../utils/mfa');
+const { verifySignedToken } = require('../auth/oauth/utils/getSignedToken');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
@@ -18,6 +19,7 @@ const {
   USERS_USERNAME_FIELD,
   USERS_MFA_FLAG,
   MFA_TYPE_OPTIONAL,
+  USERS_INVALID_TOKEN,
   ErrorUserNotFound,
 } = require('../constants');
 
@@ -94,18 +96,33 @@ function verifyHash({ password }, comparableInput) {
   return scrypt.verify(password, comparableInput);
 }
 
+async function verifyOAuthToken({ id }, token) {
+  const providerData = await verifySignedToken.call(this, token);
+
+  if (providerData.profile.userId !== id) {
+    throw USERS_INVALID_TOKEN;
+  }
+
+  return true;
+}
+
 /**
  * Checks onу-time password
  */
-function verifyDisposablePassword(ctx, data) {
-  return ctx
-    .tokenManager
-    .verify({
+async function verifyDisposablePassword(ctx, data) {
+  try {
+    return await ctx.tokenManager.verify({
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
       id: data[USERS_USERNAME_FIELD],
       token: ctx.password,
-    })
-    .catchThrow(is404, USERS_DISPOSABLE_PASSWORD_MIA);
+    });
+  } catch (e) {
+    if (is404(e)) {
+      throw USERS_DISPOSABLE_PASSWORD_MIA;
+    }
+
+    throw e;
+  }
 }
 
 /**
@@ -124,6 +141,10 @@ function getVerifyStrategy(data) {
     return verifyDisposablePassword(this, data);
   }
 
+  if (this.isOAuthFollowUp === true) {
+    return verifyOAuthToken.call(this.service, data, this.password);
+  }
+
   return verifyHash(data, this.password);
 }
 
@@ -132,13 +153,10 @@ function getVerifyStrategy(data) {
  */
 function dropLoginCounter() {
   this.loginAttempts = 0;
+  this.globalLoginAttempts = 0;
 
   return this.redis
-    .pipeline()
-    .del(this.remoteipKey)
-    .incrby(this.globalRemoteIpKey, -1)
-    .exec()
-    .then(handlePipeline);
+    .dropLoginCounter(2, this.remoteipKey, this.globalRemoteIpKey);
 }
 
 /**
@@ -190,7 +208,7 @@ function verifyInternalData(data) {
 function login({ params, locals }) {
   const config = this.config.jwt;
   const { redis, tokenManager } = this;
-  const { isDisposablePassword, isSSO, password } = params;
+  const { isOAuthFollowUp, isDisposablePassword, isSSO, password } = params;
   const { lockAfterAttempts, globalLockAfterAttempts, defaultAudience } = config;
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
@@ -210,6 +228,7 @@ function login({ params, locals }) {
 
     // business logic params
     params,
+    isOAuthFollowUp,
     isDisposablePassword,
     isSSO,
     password,

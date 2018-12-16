@@ -11,15 +11,13 @@ describe('#activate', function activateSuite() {
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
-  beforeEach(function genToken() {
-    return this
-      .users.tokenManager.create({
-        id: email,
-        action: 'activate',
-      })
-      .tap((result) => {
-        this.token = result.secret;
-      });
+  beforeEach(async function genToken() {
+    const result = await this.users.tokenManager.create({
+      id: email,
+      action: 'activate',
+    });
+
+    this.token = result.secret;
   });
 
   it('must reject activation when challenge token is invalid', function test() {
@@ -35,8 +33,8 @@ describe('#activate', function activateSuite() {
   });
 
   describe('activate existing user', function suite() {
-    beforeEach(function pretest() {
-      return this.dispatch('users.register', {
+    beforeEach(async function pretest() {
+      const { user } = await this.dispatch('users.register', {
         username: email,
         password: '123',
         audience: 'ok',
@@ -44,8 +42,9 @@ describe('#activate', function activateSuite() {
         metadata: {
           wolf: true,
         },
-      })
-        .then(({ user }) => (this.userId = user.id));
+      });
+
+      this.userId = user.id;
     });
 
     it('must reject activation when account is already activated', function test() {
@@ -131,7 +130,7 @@ describe('#activate', function activateSuite() {
       .reflect()
       .then(inspectPromise())
       .then((value) => {
-        const message = amqpStub.args[0][1].message;
+        const { message } = amqpStub.args[0][1];
         const code = message.match(/^(\d{4}) is your activation code/)[1];
         userId = value.id;
 

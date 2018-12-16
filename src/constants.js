@@ -44,6 +44,7 @@ module.exports = exports = {
   BEARER_LEGACY_USERNAME_FIELD: 'username',
 
   // pre-generated errors
+  ERROR_AUTH_REQUIRED: new HttpStatusError(401, 'authentication required'),
   USERS_CREDENTIALS_REQUIRED_ERROR: new HttpStatusError(401, 'Credentials Required'),
   USERS_DISPOSABLE_PASSWORD_MIA: new HttpStatusError(403, 'Invalid or Expired Password'),
   USERS_INCORRECT_PASSWORD: new HttpStatusError(403, 'incorrect password'),
@@ -52,7 +53,11 @@ module.exports = exports = {
   USERS_MALFORMED_TOKEN: new HttpStatusError(403, 'malformed token'),
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
-  ErrorTotpRequired: new HttpStatusError(403, 'TOTP required'),
+  ErrorTotpRequired: Object.defineProperty(
+    new HttpStatusError(403, 'TOTP required'),
+    'credentials',
+    { enumerable: false, writable: true }
+  ),
   ErrorTotpInvalid: new HttpStatusError(403, 'TOTP invalid'),
   ErrorSecretRequired: new HttpStatusError(403, 'Secret required'),
   ErrorUserNotFound: new HttpStatusError(404, 'username not found'),

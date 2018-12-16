@@ -6,12 +6,14 @@ const serialize = require('serialize-javascript');
 const { ActionTransport } = require('@microfleet/core');
 const { AuthenticationRequiredError } = require('common-errors');
 const { Redirect } = require('./utils/errors');
+const { ErrorTotpRequired } = require('../../constants');
+const { getSignedToken } = require('./utils/getSignedToken');
 
-const isOauthAttachRoute = route => /oauth\.facebook$/.test(route);
+const isOauthAttachRoute = route => route.endsWith('oauth.facebook');
 
 module.exports = [{
   point: 'preResponse',
-  handler: function preResponseHandler(error, result, request) {
+  async handler(error, result, request) {
     // return whatever we had before, no concern over it
     if (isOauthAttachRoute(request.route) === false || request.transport !== ActionTransport.http) {
       // pass-through
@@ -35,12 +37,32 @@ module.exports = [{
       protocol: server.proto,
     });
 
-    const message = error ? {
-      payload: is.fn(error.toJSON) ? error.toJSON() : serializeError(error),
-      error: true,
-      type: 'ms-users:attached',
-      title: 'Failed to attach account',
-    } : result;
+    let message;
+    if (error && error.code === ErrorTotpRequired.code) {
+      message = {
+        payload: Object.assign(
+          { userId: error.credentials.profile.userId },
+          await getSignedToken.call(this, error.credentials)
+        ),
+        error: true,
+        type: 'ms-users:totp_required',
+        title: 'MFA required',
+      };
+    } else if (error) {
+      message = {
+        payload: is.fn(error.toJSON) ? error.toJSON() : serializeError(error),
+        error: true,
+        type: 'ms-users:attached',
+        title: 'Failed to attach account',
+        meta: {},
+      };
+    } else {
+      message = result;
+    }
+
+    if (message.error === true) {
+      this.log.warn({ error: message.payload }, 'oauth error');
+    }
 
     // erase stack, no need to push it out
     if (error && message.payload.stack) {
@@ -64,7 +86,8 @@ module.exports = [{
           statusCode = error.statusCode || 500;
       }
 
-      response = response.then(reply => reply.code(statusCode));
+      const reply = await response;
+      response = reply.code(statusCode);
     }
 
     return Promise.all([null, response, request]);

@@ -1,4 +1,3 @@
-const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
@@ -13,7 +12,7 @@ describe('#updateMetadata', function getMetadataSuite() {
 
   beforeEach(function pretest() {
     return simpleDispatcher(this.users.router)('users.register', { username, password: '123', audience })
-      .tap(({ user }) => (this.userId = user.id));
+      .tap(({ user }) => { this.userId = user.id; });
   });
 
   it('must reject updating metadata on a non-existing user', function test() {
@@ -84,21 +83,27 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('must be able to run dynamic scripts', function test() {
-    return simpleDispatcher(this.users.router)('users.updateMetadata', { username,
+    const dispatch = simpleDispatcher(this.users.router);
+    const params = {
+      username,
       audience: [audience, extra],
       script: {
         balance: {
           lua: 'return {KEYS[1],KEYS[2],ARGV[1]}',
           argv: ['nom-nom'],
         },
-      } }).reflect()
-    .then(inspectPromise())
-    .then((data) => {
-      expect(data.balance).to.be.deep.eq([
-        `{ms-users}${this.userId}!metadata!${audience}`,
-        `{ms-users}${this.userId}!metadata!${extra}`,
-        'nom-nom',
-      ]);
-    });
+      },
+    };
+
+    return dispatch('users.updateMetadata', params)
+      .reflect()
+      .then(inspectPromise())
+      .then((data) => {
+        expect(data.balance).to.be.deep.eq([
+          `{ms-users}${this.userId}!metadata!${audience}`,
+          `{ms-users}${this.userId}!metadata!${extra}`,
+          'nom-nom',
+        ]);
+      });
   });
 });

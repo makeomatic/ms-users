@@ -10,7 +10,7 @@ const { getInternalData } = require('../../utils/userData');
 
 const { verifyToken, loginAttempt } = require('../../utils/amqp');
 const { Redirect } = require('./utils/errors');
-const { USERS_ID_FIELD } = require('../../constants');
+const { USERS_ID_FIELD, ErrorTotpRequired } = require('../../constants');
 
 // helpers
 const isRedirect = ({ statusCode }) => statusCode === 301 || statusCode === 302;
@@ -74,14 +74,16 @@ function oauthVerification(response, credentials) {
   return credentials;
 }
 
-function mserviceVerification(credentials) {
+async function mserviceVerification(credentials) {
   // query on initial request is recorded and is available via credentials.query
   // https://github.com/hapijs/bell/blob/63603c9e897f3607efeeca87b6ef3c02b939884b/lib/oauth.js#L261
   const oauthConfig = this.service.config.oauth;
   const jwt = extractJWT(this.transportRequest, oauthConfig) || credentials.query[oauthConfig.urlKey];
 
   // validate JWT token if provided
-  const checkAuth = jwt ? verifyToken.call(this.service, jwt) : Promise.resolve(false);
+  const checkAuth = jwt
+    ? verifyToken.call(this.service, jwt)
+    : false;
 
   // check if the profile is already attached to any existing credentials
   const getUserId = getInternalData
@@ -89,21 +91,33 @@ function mserviceVerification(credentials) {
     .get(USERS_ID_FIELD)
     .catchReturn(is404, false);
 
-  return Promise.join(checkAuth, getUserId, (user, userId) => {
-    // user is authenticated and profile is attached
-    if (user && userId) {
-      throw new Errors.HttpStatusError(412, 'profile is linked');
-    }
+  const [user, userId] = await Promise.all([checkAuth, getUserId]);
 
-    // found a linked user, log in
-    if (userId) {
-      return Promise.bind(this.service, userId)
-        .then(loginAttempt)
-        .tap(partial(refresh, credentials));
-    }
+  // user is authenticated and profile is attached
+  if (user && userId) {
+    throw new Errors.HttpStatusError(412, 'profile is linked');
+  }
 
-    return { user, jwt, account: credentials };
-  });
+  // found a linked user, log in
+  if (userId) {
+    // pass-on internal user-id
+    credentials.profile.userId = userId;
+
+    try {
+      const userData = await loginAttempt.call(this.service, userId);
+      partial(refresh, credentials)(userData);
+
+      return userData;
+    } catch (error) {
+      if (error.code === ErrorTotpRequired.code) {
+        error.credentials = credentials;
+      }
+
+      throw error;
+    }
+  }
+
+  return { user, jwt, account: credentials };
 }
 
 /**

@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const { selectChallenge } = require('../utils/challenges/challenge');
 const { TOKEN_METADATA_FIELD_CONTEXT } = require('../constants');
 
@@ -13,38 +12,31 @@ const { TOKEN_METADATA_FIELD_CONTEXT } = require('../constants');
  *
  * @apiSchema {jsonschema=../../schemas/regenerate-token.json} apiParam
  */
-module.exports = function regenerateToken(request) {
-  const {
-    action, challengeType, id, uid,
-  } = request.params;
+module.exports = async function regenerateToken({ params }) {
+  const { action, challengeType, id, uid } = params;
   const { tokenManager } = this;
   const args = uid ? { uid } : { action, id };
 
-  return Promise
-    .bind(tokenManager, args)
-    .tap(tokenManager.regenerate)
-    .then(tokenManager.info)
-    .bind(this)
-    .then((token) => {
-      let context = {};
+  await tokenManager.regenerate(args);
+  const token = await tokenManager.info(args);
 
-      if (token.metadata && token.metadata[TOKEN_METADATA_FIELD_CONTEXT]) {
-        context = token.metadata[TOKEN_METADATA_FIELD_CONTEXT];
-      }
+  let context;
+  if (token.metadata && token.metadata[TOKEN_METADATA_FIELD_CONTEXT]) {
+    context = token.metadata[TOKEN_METADATA_FIELD_CONTEXT];
+  } else {
+    context = Object.create(null);
+  }
 
-      const challenge = selectChallenge(challengeType, token.action, { ...context, token });
-      return challenge.call(this, token.id);
-    })
-    .then((challengeResponse) => {
-      const response = { regenerated: true };
-      const tokenUid = challengeResponse.context.token.uid;
+  const challenge = selectChallenge(challengeType, token.action, { ...context, token });
+  const challengeResponse = await challenge.call(this, token.id);
+  const response = { regenerated: true };
+  const tokenUid = challengeResponse.context.token.uid;
 
-      if (uid) {
-        response.uid = tokenUid;
-      }
+  if (uid) {
+    response.uid = tokenUid;
+  }
 
-      return response;
-    });
+  return response;
 };
 
 module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

@@ -1,6 +1,5 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const partial = require('lodash/partial');
 
 const get = require('../../utils/get-value');
 const getUid = require('./utils/uid');
@@ -105,7 +104,7 @@ async function mserviceVerification(credentials) {
 
     try {
       const userData = await loginAttempt.call(this.service, userId);
-      partial(refresh, credentials)(userData);
+      refresh.call(this.service, credentials, userData);
 
       return userData;
     } catch (error) {

@@ -489,7 +489,7 @@ describe('#facebook', function oauthFacebookSuite() {
     assert.ok(id);
   });
 
-  it.only('should be able to sign in with facebook account if mfa is enabled', async function test() {
+  it('should be able to sign in with facebook account if mfa is enabled', async function test() {
     const username = 'facebookuser@me.com';
     const databag = { service };
 

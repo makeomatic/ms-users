@@ -1,3 +1,10 @@
+## [10.2.1](https://github.com/makeomatic/ms-users/compare/v10.2.0...v10.2.1) (2018-12-17)
+
+
+### Bug Fixes
+
+* missing context ([bcc61d9](https://github.com/makeomatic/ms-users/commit/bcc61d9))
+
 # [10.2.0](https://github.com/makeomatic/ms-users/compare/v10.1.1...v10.2.0) (2018-12-16)
 
 

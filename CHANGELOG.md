@@ -1,3 +1,10 @@
+## [10.2.2](https://github.com/makeomatic/ms-users/compare/v10.2.1...v10.2.2) (2018-12-20)
+
+
+### Bug Fixes
+
+* upgrade deps ([0c37902](https://github.com/makeomatic/ms-users/commit/0c37902))
+
 ## [10.2.1](https://github.com/makeomatic/ms-users/compare/v10.2.0...v10.2.1) (2018-12-17)
 
 

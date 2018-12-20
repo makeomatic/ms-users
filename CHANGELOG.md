@@ -1,3 +1,10 @@
+## [10.2.3](https://github.com/makeomatic/ms-users/compare/v10.2.2...v10.2.3) (2018-12-20)
+
+
+### Bug Fixes
+
+* sentry logging ([6808593](https://github.com/makeomatic/ms-users/commit/6808593))
+
 ## [10.2.2](https://github.com/makeomatic/ms-users/compare/v10.2.1...v10.2.2) (2018-12-20)
 
 

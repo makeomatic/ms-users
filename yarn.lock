@@ -401,9 +401,9 @@
     lodash "^4.17.10"
 
 "@microfleet/core@^13.4.0":
-  version "13.4.1"
-  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-13.4.1.tgz#f53727ef2a8ecd0a3a635ebedd1db6a8df1db992"
-  integrity sha512-QeM4N1MddpySksIRT8PGwKA6h2OOCZvkMuryyr30GPnecMFKklCRacUFzjOvnJdAN/WWpCqYdbMkfg6GMYO7yg==
+  version "13.4.2"
+  resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-13.4.2.tgz#c9f5a3723d56a967186661a06d9240b545f34ed9"
+  integrity sha512-l2R9rn2CDZiG3I4QbdF5EuR8Yz+kGOEp/3GEYxdizcxMZQqzBfGrR9MUrca1PWsvesF3sDBOTm1nA1tUkkx/zQ==
   dependencies:
     bluebird "^3.5.2"
     bluebird-retry "^0.11.0"
@@ -420,7 +420,7 @@
     lodash.intersection "^4.4.0"
     lodash.partial "^4.2.1"
     opentracing "^0.14.3"
-    pino "^5.10.2"
+    pino "^5.10.3"
     pino-multi-stream "^4.0.1"
     semver "^5.6.0"
     sonic-boom "^0.7.1"
@@ -567,9 +567,9 @@
     p-reduce "^1.0.0"
 
 "@semantic-release/github@^5.0.0":
-  version "5.2.6"
-  resolved "https://registry.yarnpkg.com/@semantic-release/github/-/github-5.2.6.tgz#633911ba6c185d30256f7d76b67b2dacf4ded162"
-  integrity sha512-bk2+SN2KOvGBBhqbOWQHvh1hOctv712LRv5ll0GYo2WBvjI7urFSeS3HWYL79UUkyjHrYQIum2CJdvcCUjjw4g==
+  version "5.2.7"
+  resolved "https://registry.yarnpkg.com/@semantic-release/github/-/github-5.2.7.tgz#d9eb8bcc9332a02b85458ddb0988a17023e2b460"
+  integrity sha512-cWQhM9bdBv8KAwClmwM64Mo3vsOHVM2aJAGI6K3qbJfJ3GsLJLh1hTi+rMd5EkZ2DA8zUUHCiAJZ3ujMvUB0yg==
   dependencies:
     "@octokit/rest" "^16.0.1"
     "@semantic-release/error" "^2.2.0"
@@ -3598,9 +3598,9 @@ humanize-ms@^1.2.1:
     ms "^2.0.0"
 
 husky@^1.1.2:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/husky/-/husky-1.3.0.tgz#fbb97b5e52739d945fd86c3bf92def0ea60175c4"
-  integrity sha512-0Yfh4PkWr8Nrume/lEMgSgK5zg8Q19jGM7jDmN7H92VrqgcYSbn+CM1iLGmAvQSNWuaPx9iq/rq/4Y8LPX6dLA==
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/husky/-/husky-1.2.1.tgz#33628f7013e345c1790a4dbe4642ad047f772dee"
+  integrity sha512-4Ylal3HWhnDvIszuiyLoVrSGI7QLg/ogkNCoHE34c+yZYzb9kBZNrlTOsdw92cGi3cJT8pPb6CdVfxFkLnc8Dg==
   dependencies:
     cosmiconfig "^5.0.7"
     execa "^1.0.0"
@@ -6283,10 +6283,10 @@ pino-std-serializers@^2.3.0:
   resolved "https://registry.yarnpkg.com/pino-std-serializers/-/pino-std-serializers-2.3.0.tgz#34eeaab97c055c28e22c0542ae55978e7e427786"
   integrity sha512-klfGoOsP6sJH7ON796G4xoUSx2fkpFgKHO4YVVO2zmz31jR+etzc/QzGJILaOIiCD6HTCFgkPx+XN8nk+ruqPw==
 
-pino@^5.0.0, pino@^5.10.1, pino@^5.10.2, pino@^5.8.0:
-  version "5.10.2"
-  resolved "https://registry.yarnpkg.com/pino/-/pino-5.10.2.tgz#6daa2176ff7a62c2c6d0e1a6c8124e6d12be4b6d"
-  integrity sha512-EXpD/W4v3JNysmkgrYDUb1sax1M2nd+C9/EexmZvOnMwflJlEII4wfIEEzkEwLRUcpCA0avzsRZohB5n0+G5fw==
+pino@^5.0.0, pino@^5.10.1, pino@^5.10.3, pino@^5.8.0:
+  version "5.10.3"
+  resolved "https://registry.yarnpkg.com/pino/-/pino-5.10.3.tgz#eef9481ca9c87d150b38106cfb358fadfd9fedd2"
+  integrity sha512-SYci5U6KUzfYVIhIqM5m5pUBs9dXzD/N9PMO4TSIic6y0wVXOC6pUmzQVrJ9Ny6LGp/9ar5cDMlJr77R2EvnNA==
   dependencies:
     fast-json-parse "^1.0.3"
     fast-redact "^1.4.2"
@@ -7426,9 +7426,9 @@ sprintf-js@~1.0.2:
   integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
 
 sshpk@^1.7.0:
-  version "1.15.2"
-  resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.15.2.tgz#c946d6bd9b1a39d0e8635763f5242d6ed6dcb629"
-  integrity sha512-Ra/OXQtuh0/enyl4ETZAfTaeksa6BXks5ZcjpSUNrjBr0DvrJKX+1fsKDPpT9TBXgHAFsa4510aNVgI8g/+SzA==
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.16.0.tgz#1d4963a2fbffe58050aa9084ca20be81741c07de"
+  integrity sha512-Zhev35/y7hRMcID/upReIvRse+I9SVhyVre/KTJSJQWMz3C3+G+HpO7m1wK/yckEtujKZ7dS4hkVxAnmHaIGVQ==
   dependencies:
     asn1 "~0.2.3"
     assert-plus "^1.0.0"

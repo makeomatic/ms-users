@@ -1,3 +1,10 @@
+## [10.2.5](https://github.com/makeomatic/ms-users/compare/v10.2.4...v10.2.5) (2018-12-23)
+
+
+### Bug Fixes
+
+* sentry logger ([672c27c](https://github.com/makeomatic/ms-users/commit/672c27c))
+
 ## [10.2.4](https://github.com/makeomatic/ms-users/compare/v10.2.3...v10.2.4) (2018-12-21)
 
 

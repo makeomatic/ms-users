@@ -12,7 +12,6 @@ const FIELDS = [
   'first_name',
   'last_name',
   'middle_name',
-  'gender',
   'link',
   'locale',
   'timezone',
@@ -34,7 +33,6 @@ function defaultProfileHandler(profile) {
   credentials.profile = {
     id,
     displayName: profile.name,
-    gender: profile.gender,
     age_range: profile.age_range,
     name: {
       first: profile.first_name,

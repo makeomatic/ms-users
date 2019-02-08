@@ -37,7 +37,7 @@ exports.router = {
   },
   extensions: {
     enabled: ['preRequest', 'postRequest', 'postValidate', 'preResponse'],
-    register: [autoSchema, preResponse, auditLog],
+    register: [autoSchema, preResponse, auditLog()],
   },
   auth: {
     strategies: {

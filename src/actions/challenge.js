@@ -1,15 +1,15 @@
 const Promise = require('bluebird');
 const passThrough = require('lodash/identity');
+const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../utils/userData');
-const getMetadata = require('../utils/getMetadata.js');
-const isActive = require('../utils/isActive.js');
-const challenge = require('../utils/challenges/challenge.js');
+const getMetadata = require('../utils/getMetadata');
+const isActive = require('../utils/isActive');
+const challenge = require('../utils/challenges/challenge');
 const {
   USERS_ACTION_ACTIVATE,
-  CHALLENGE_TYPE_EMAIL,
   USER_ALREADY_ACTIVE,
   USERS_USERNAME_FIELD,
-} = require('../constants.js');
+} = require('../constants');
 
 /**
  * Predicate for inactive status
@@ -86,7 +86,7 @@ module.exports = function sendChallenge({ params }) {
   const service = this;
   const { config } = service;
   const { defaultAudience } = config.jwt;
-  const { throttle, ttl } = config.token[CHALLENGE_TYPE_EMAIL];
+  const { throttle, ttl } = config.token[params.type];
 
   const ctx = {
     service,
@@ -107,4 +107,4 @@ module.exports = function sendChallenge({ params }) {
     .then(createChallenge);
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp];

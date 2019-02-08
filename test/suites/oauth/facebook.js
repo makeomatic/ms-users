@@ -275,7 +275,6 @@ describe('#facebook', function oauthFacebookSuite() {
     assert.ok(metadata[defaultAudience].facebook, 'facebook profile not present');
     assert.ok(metadata[defaultAudience].facebook.id, 'facebook scoped is not present');
     assert.ok(metadata[defaultAudience].facebook.displayName, 'fb display name not present');
-    assert.ok(metadata[defaultAudience].facebook.gender, 'fb gender not present');
     assert.ok(metadata[defaultAudience].facebook.name, 'fb name not present');
     assert.ok(metadata[defaultAudience].facebook.uid, 'internal fb uid not present');
   });

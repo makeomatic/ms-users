@@ -8,7 +8,7 @@
     "properties": {
         "type": {
             "type": "string",
-            "const": "email"
+            "enum": ["email", "phone"]
         },
         "username": {
             "type": "string",

@@ -141,7 +141,7 @@ module.exports = async function authHandler({ action, transportRequest }) {
 
   let response;
   try {
-    const credentials = await http.auth.test(strategy, transportRequest);
+    const { credentials } = await http.auth.test(strategy, transportRequest);
     response = [null, credentials];
   } catch (err) {
     response = [err];

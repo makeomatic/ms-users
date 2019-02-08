@@ -1,3 +1,10 @@
+# [10.3.0](https://github.com/makeomatic/ms-users/compare/v10.2.5...v10.3.0) (2019-02-08)
+
+
+### Features
+
+* upgrade dependencies ([8a120ef](https://github.com/makeomatic/ms-users/commit/8a120ef))
+
 ## [10.2.5](https://github.com/makeomatic/ms-users/compare/v10.2.4...v10.2.5) (2018-12-23)
 
 

@@ -37,7 +37,7 @@
     "common-errors": "^1.0.5",
     "csv-write-stream": "^2.0.0",
     "disposable-email-domains": "^1.0.42",
-    "dlock": "^8.1.0",
+    "dlock": "^9.0.1",
     "flake-idgen": "^1.1.0",
     "get-stdin": "^6.0.0",
     "get-value": "^3.0.1",

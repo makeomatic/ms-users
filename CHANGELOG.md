@@ -1,3 +1,5 @@
+## [10.3.1](https://github.com/makeomatic/ms-users/compare/v10.3.0...v10.3.1) (2019-02-09)
+
 # [10.3.0](https://github.com/makeomatic/ms-users/compare/v10.2.5...v10.3.0) (2019-02-08)
 
 

@@ -12,15 +12,34 @@ describe('#admins', function verifySuite() {
 
   before(async () => {
     service = await startService.call(ctx, {
-      admins: [{
-        username: 'foobaz@makeomatic.ca',
-        password: 'megalongsuperpasswordfortest',
-        metadata: {
-          firstName: 'Foo',
-          lastName: 'Baz',
-          roles: [constants.USERS_ADMIN_ROLE],
+      admins: [
+        {
+          username: 'admin0@test.com',
+          password: 'megalongsuperpasswordfortest',
+          metadata: {
+            firstName: 'Im',
+            lastName: 'Admin0',
+          },
         },
-      }],
+        {
+          username: 'admin1@test.com',
+          password: 'megalongsuperpasswordfortest',
+          metadata: {
+            firstName: 'Im',
+            lastName: 'Admin1',
+            roles: [constants.USERS_ADMIN_ROLE],
+          },
+        },
+        {
+          username: 'user0@test.com',
+          password: 'megalongsuperpasswordfortest',
+          metadata: {
+            firstName: 'Im',
+            lastName: 'User0',
+            roles: [],
+          },
+        },
+      ],
       logger: {
         defaultLogger: true,
         debug: true,
@@ -34,12 +53,27 @@ describe('#admins', function verifySuite() {
   after(global.clearRedis.bind(ctx));
 
   it('should be able to login an admin', async () => {
-    const { jwt } = await dispatch('users.login', {
+    const admin0 = await dispatch('users.login', {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
-      username: 'foobaz@makeomatic.ca',
+      username: 'admin0@test.com',
+    });
+    const admin1 = await dispatch('users.login', {
+      audience: '*.localhost',
+      password: 'megalongsuperpasswordfortest',
+      username: 'admin1@test.com',
+    });
+    const user0 = await dispatch('users.login', {
+      audience: '*.localhost',
+      password: 'megalongsuperpasswordfortest',
+      username: 'user0@test.com',
     });
 
-    assert.ok(jwt);
+    assert.ok(admin0.jwt);
+    assert.ok(admin0.user.metadata['*.localhost'].roles.includes('admin'));
+    assert.ok(admin1.jwt);
+    assert.ok(admin1.user.metadata['*.localhost'].roles.includes('admin'));
+    assert.ok(user0.jwt);
+    assert.equal(user0.user.metadata['*.localhost'].roles.length, 0);
   });
 });

@@ -19,7 +19,7 @@ module.exports = function initAccounts() {
         metadata: defaults(account.metadata || {}, {
           firstName: account.firstName,
           lastName: account.lastName,
-          roles: [USERS_ADMIN_ROLE],
+          roles: account.roles === undefined ? [USERS_ADMIN_ROLE] : account.roles,
         }),
         activate: true,
         challengeType: CHALLENGE_TYPE_EMAIL,

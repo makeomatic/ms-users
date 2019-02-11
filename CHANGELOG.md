@@ -1,3 +1,10 @@
+## [10.3.2](https://github.com/makeomatic/ms-users/compare/v10.3.1...v10.3.2) (2019-02-11)
+
+
+### Bug Fixes
+
+* add roles to init admins ([#391](https://github.com/makeomatic/ms-users/issues/391)) ([8011a71](https://github.com/makeomatic/ms-users/commit/8011a71))
+
 ## [10.3.1](https://github.com/makeomatic/ms-users/compare/v10.3.0...v10.3.1) (2019-02-09)
 
 # [10.3.0](https://github.com/makeomatic/ms-users/compare/v10.2.5...v10.3.0) (2019-02-08)

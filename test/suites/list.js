@@ -7,6 +7,7 @@ const redisKey = require('../../src/utils/key.js');
 describe('#list', function listSuite() {
   this.timeout(50000);
 
+  const totalUsers = 105;
   const faker = require('faker');
 
   beforeEach('start service', global.startService);
@@ -17,7 +18,7 @@ describe('#list', function listSuite() {
     const promises = [];
     const { USERS_INDEX, USERS_METADATA } = require('../../src/constants');
 
-    ld.times(105, () => {
+    ld.times(totalUsers, () => {
       const user = {
         id: this.users.flake.next(),
         metadata: {
@@ -59,6 +60,7 @@ describe('#list', function listSuite() {
         expect(result.page).to.be.eq(6);
         expect(result.pages).to.be.eq(11);
         expect(result.cursor).to.be.eq(61);
+        expect(result.total).to.be.eq(totalUsers);
         expect(result.users).to.have.lengthOf(10);
 
         result.users.forEach((user) => {
@@ -312,6 +314,7 @@ describe('#list', function listSuite() {
           expect(result.page).to.be.eq(1);
           expect(result.pages).to.be.eq(11);
           expect(result.cursor).to.be.eq(10);
+          expect(result.total).to.be.eq(totalUsers);
 
           expect(result.users).to.have.lengthOf(10);
           expect(Array.isArray(result.users)).to.be.eq(true);

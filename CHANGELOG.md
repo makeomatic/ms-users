@@ -1,3 +1,10 @@
+## [10.3.3](https://github.com/makeomatic/ms-users/compare/v10.3.2...v10.3.3) (2019-02-15)
+
+
+### Bug Fixes
+
+* added users total count to list response ([#392](https://github.com/makeomatic/ms-users/issues/392)) ([27ee712](https://github.com/makeomatic/ms-users/commit/27ee712))
+
 ## [10.3.2](https://github.com/makeomatic/ms-users/compare/v10.3.1...v10.3.2) (2019-02-11)
 
 

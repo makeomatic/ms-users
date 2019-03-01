@@ -9,6 +9,7 @@ module.exports = exports = {
   USERS_ALIAS_TO_ID: 'users-alias',
   USERS_SSO_TO_ID: 'users-sso-hash',
   USERS_USERNAME_TO_ID: 'users-username',
+  ORGANIZATIONS_NAME_TO_ID: 'organizations-name',
 
   // referral tracking
   USERS_REF: 'users-ref',
@@ -21,6 +22,7 @@ module.exports = exports = {
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
   USERS_MFA_FLAG: 'mfa',
   USERS_MFA_RECOVERY: 'mfa-recovery',
+  ORGANIZATIONS_DATA: 'data',
 
   // standard JWT with TTL
   USERS_ID_FIELD: 'id',
@@ -38,6 +40,10 @@ module.exports = exports = {
   USERS_NEXT_CYCLE_FIELD: 'nextCycle',
   USERS_REFERRAL_FIELD: 'referral',
   USERS_SSO_FACEBOOK_FIELD: 'facebook',
+  ORGANIZATIONS_ID_FIELD: 'id',
+  ORGANIZATIONS_CREATED_FIELD: 'created',
+  ORGANIZATIONS_NAME_FIELD: 'name',
+  ORGANIZATIONS_ACTIVE_FLAG: 'active',
 
   // bearer tokens
   BEARER_USERNAME_FIELD: 'userId',
@@ -53,6 +59,7 @@ module.exports = exports = {
   USERS_MALFORMED_TOKEN: new HttpStatusError(403, 'malformed token'),
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
+  ErrorConflictOrganizationExists: new HttpStatusError(409, 'organization already exists'),
   ErrorTotpRequired: Object.defineProperty(
     new HttpStatusError(403, 'TOTP required'),
     'credentials',

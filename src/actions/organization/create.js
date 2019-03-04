@@ -1,11 +1,11 @@
 const Promise = require('bluebird');
-const last = require('lodash/last');
 
 const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const setMetadata = require('../../utils/updateMetadata');
-const { getOrganizationId } = require('../../utils/organizationData');
+const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
+const addOrganizationMembers = require('../../utils/addOrganizationMembers');
+const { getOrganizationId, getInternalData } = require('../../utils/organizationData');
 const {
   ErrorConflictOrganizationExists,
   ORGANIZATIONS_CREATED_FIELD,
@@ -18,19 +18,15 @@ const {
 
 const ErrorMissing = { statusCode: 404 };
 
-// init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
-
 module.exports = async function createOrganization({ params }) {
   const service = this;
-  const { redis } = service;
-  const { organizationName, active, audience, metadata } = params;
-  const defaultAudience = last(audience);
+  const { redis, config } = service;
+  const { name: organizationName, active = false, metadata, members } = params;
+  const { audience } = config.organizations;
 
-  // do verifications of DB state
   await Promise.bind(service, organizationName)
     .tap(getOrganizationId)
-    .throw(ErrorConflictOrganizationExists)
+    .then(ErrorConflictOrganizationExists)
     .catchReturn(ErrorMissing, organizationName);
 
   const organizationId = service.flake.next();
@@ -47,17 +43,24 @@ module.exports = async function createOrganization({ params }) {
   pipeline.hset(ORGANIZATIONS_NAME_TO_ID, organizationName, organizationId);
 
   await pipeline.exec().then(handlePipeline);
-  await setMetadata.call(service, {
+  await setOrganizationMetadata.call(service, {
     organizationId,
     audience,
-    metadata: audience.map(metaAudience => ({
-      $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
+    metadata: {
+      $set: Object.assign(metadata[audience] || {}, {
         [ORGANIZATIONS_ID_FIELD]: organizationId,
         [ORGANIZATIONS_NAME_FIELD]: organizationName,
         [ORGANIZATIONS_CREATED_FIELD]: created,
       }),
-    })),
+    },
   });
-  // ToDo await addOrganizationMembers()
-  // return createdOrganization()
+
+  if (members) {
+    await addOrganizationMembers.call(service, { organizationId, members });
+  }
+
+  return getInternalData.call(service, organizationId, true);
 };
+
+// init transport
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

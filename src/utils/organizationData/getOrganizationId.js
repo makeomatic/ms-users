@@ -1,8 +1,8 @@
 const getInternalData = require('./getInternalData');
 
-function getOrganizationId(username) {
+function getOrganizationId(organizationName) {
   return getInternalData
-    .call(this, username, false)
+    .call(this, organizationName, false)
     .get('id');
 }
 

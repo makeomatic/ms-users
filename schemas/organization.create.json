@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "metadata": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "members": {
+      "type": "array"
+    }
+  }
+}

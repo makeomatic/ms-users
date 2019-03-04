@@ -2,6 +2,7 @@ const makeKey = require('../key.js');
 const {
   ORGANIZATIONS_ID_FIELD,
   ORGANIZATIONS_DATA,
+  ORGANIZATIONS_MEMBERS,
 } = require('../../constants');
 
 function resolveOrganizationData(response) {
@@ -36,12 +37,14 @@ function resolveOrganizationId(id, fetchData = false) {
   const { redis } = this;
   const indexPlaceholder = 'organizationId';
   const organizationDataIndex = makeKey(indexPlaceholder, ORGANIZATIONS_DATA);
-  const numberOfKeys = 4;
+  const organizationMembersIndex = makeKey(indexPlaceholder, ORGANIZATIONS_MEMBERS);
+  const numberOfKeys = 2;
 
   return redis
-    .resolveUserIdBuffer(
+    .resolveOrganizationId(
       numberOfKeys,
       organizationDataIndex,
+      organizationMembersIndex,
       id,
       fetchData === true ? 1 : 0,
       indexPlaceholder

@@ -9,7 +9,7 @@ module.exports = exports = {
   USERS_ALIAS_TO_ID: 'users-alias',
   USERS_SSO_TO_ID: 'users-sso-hash',
   USERS_USERNAME_TO_ID: 'users-username',
-  ORGANIZATIONS_NAME_TO_ID: 'organizations-name',
+  ORGANIZATIONS_NAME_TO_ID: 'organization-name',
 
   // referral tracking
   USERS_REF: 'users-ref',
@@ -23,6 +23,8 @@ module.exports = exports = {
   USERS_MFA_FLAG: 'mfa',
   USERS_MFA_RECOVERY: 'mfa-recovery',
   ORGANIZATIONS_DATA: 'data',
+  ORGANIZATIONS_METADATA: 'metadata',
+  ORGANIZATIONS_MEMBERS: 'members',
 
   // standard JWT with TTL
   USERS_ID_FIELD: 'id',

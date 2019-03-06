@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "required": [
+    "name",
+    "active"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean"
+    }
+  }
+}

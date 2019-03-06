@@ -8,6 +8,7 @@ const {
   ORGANIZATIONS_METADATA,
   ORGANIZATIONS_MEMBERS,
   ORGANIZATIONS_NAME_TO_ID,
+  USERS_ORGANIZATIONS,
 } = require('../../constants');
 
 module.exports = async function deleteOrganization({ params }) {
@@ -32,6 +33,7 @@ module.exports = async function deleteOrganization({ params }) {
     organizationMembersIds[1].forEach((memberId, index) => {
       if (index === 0 || index % 2 === 0) {
         pipeline.del(memberId);
+        pipeline.hdel(redisKey(memberId.split('!').pop(), USERS_ORGANIZATIONS), organizationName);
       }
     });
     pipeline.del(organizationMembersListKey);

@@ -22,6 +22,7 @@ module.exports = exports = {
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
   USERS_MFA_FLAG: 'mfa',
   USERS_MFA_RECOVERY: 'mfa-recovery',
+  USERS_ORGANIZATIONS: 'user-organizations',
   ORGANIZATIONS_DATA: 'data',
   ORGANIZATIONS_METADATA: 'metadata',
   ORGANIZATIONS_MEMBERS: 'members',

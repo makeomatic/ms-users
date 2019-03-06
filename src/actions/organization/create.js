@@ -54,6 +54,7 @@ module.exports = async function createOrganization({ params }) {
     await Promise.all(checkMembers).catch(ErrorUserNotFound);
     await addOrganizationMembers.call(service, {
       organizationId,
+      organizationName,
       audience,
       members,
     });

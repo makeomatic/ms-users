@@ -54,7 +54,7 @@ describe('#create organization', function registerSuite() {
       .then((createdOrganization) => {
         assert(createdOrganization.name === opts.name);
         assert(createdOrganization.metadata.description === opts.metadata.description);
-        assert.deepEqual(createdOrganization.members, opts.members);
+        assert(createdOrganization.members.length === 2);
         assert.ok(createdOrganization.id);
         assert.ok(createdOrganization.active);
       });
@@ -68,7 +68,7 @@ describe('#create organization', function registerSuite() {
     await this.dispatch('users.organization.create', opts).reflect();
     return this.dispatch('users.organization.create', opts)
       .reflect()
-      .then(inspectPromise(true))
+      .then(inspectPromise(false))
       .then((response) => {
         assert.equal(response.name, 'HttpStatusError');
       });

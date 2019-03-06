@@ -3,7 +3,7 @@ const { getOrganizationId, getOrganizationMetadataAndMembers } = require('../../
 const { ErrorOrganizationNotFound, ORGANIZATIONS_ACTIVE_FLAG, ORGANIZATIONS_DATA } = require('../../constants');
 const redisKey = require('../../utils/key');
 
-module.exports = async function updateOrganizationMetadata({ params }) {
+module.exports = async function updateOrganizationState({ params }) {
   const service = this;
   const { redis } = service;
   const { name: organizationName, active } = params;

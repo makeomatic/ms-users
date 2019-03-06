@@ -2,7 +2,7 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 
-describe('#create organization', function registerSuite() {
+describe('#switch state organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);

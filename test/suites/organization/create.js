@@ -56,7 +56,6 @@ describe('#create organization', function registerSuite() {
         assert(createdOrganization.metadata.description === opts.metadata.description);
         assert.deepEqual(createdOrganization.members, opts.members);
         assert.ok(createdOrganization.id);
-        assert.ok(createdOrganization.created);
         assert.ok(createdOrganization.active);
       });
   });

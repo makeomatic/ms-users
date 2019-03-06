@@ -62,6 +62,7 @@ module.exports = exports = {
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
   ErrorConflictOrganizationExists: new HttpStatusError(409, 'organization already exists'),
+  ErrorOrganizationNotFound: new HttpStatusError(404, 'organization not found'),
   ErrorTotpRequired: Object.defineProperty(
     new HttpStatusError(403, 'TOTP required'),
     'credentials',

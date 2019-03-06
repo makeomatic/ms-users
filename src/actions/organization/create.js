@@ -5,17 +5,14 @@ const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
 const addOrganizationMembers = require('../../utils/addOrganizationMembers');
-const { getOrganizationId, getInternalData } = require('../../utils/organization');
+const { getOrganizationId, getOrganizationMetadataAndMembers } = require('../../utils/organization');
 const { getUserId } = require('../../utils/userData');
 const {
   ErrorConflictOrganizationExists,
   ErrorUserNotFound,
-  ORGANIZATIONS_CREATED_FIELD,
   ORGANIZATIONS_NAME_FIELD,
   ORGANIZATIONS_ACTIVE_FLAG,
   ORGANIZATIONS_DATA,
-  ORGANIZATIONS_METADATA,
-  ORGANIZATIONS_MEMBERS,
   ORGANIZATIONS_NAME_TO_ID,
 } = require('../../constants');
 
@@ -27,16 +24,14 @@ module.exports = async function createOrganization({ params }) {
 
   const organizationExists = await getOrganizationId.call(service, organizationName);
   if (organizationExists) {
-    return ErrorConflictOrganizationExists;
+    throw ErrorConflictOrganizationExists;
   }
 
   const organizationId = service.flake.next();
-  const created = Date.now();
   const pipeline = redis.pipeline();
   const basicInfo = {
-    [ORGANIZATIONS_CREATED_FIELD]: created,
     [ORGANIZATIONS_NAME_FIELD]: organizationName,
-    [ORGANIZATIONS_ACTIVE_FLAG]: Boolean(active),
+    [ORGANIZATIONS_ACTIVE_FLAG]: active,
   };
 
   const organizationDataKey = redisKey(organizationId, ORGANIZATIONS_DATA);
@@ -49,11 +44,7 @@ module.exports = async function createOrganization({ params }) {
       organizationId,
       audience,
       metadata: {
-        $set: Object.assign(metadata, {
-          [ORGANIZATIONS_CREATED_FIELD]: created,
-          [ORGANIZATIONS_NAME_FIELD]: organizationName,
-          [ORGANIZATIONS_ACTIVE_FLAG]: Boolean(active),
-        }),
+        $set: metadata,
       },
     });
   }
@@ -68,26 +59,7 @@ module.exports = async function createOrganization({ params }) {
     });
   }
 
-  const organization = await getInternalData.call(service, organizationId, true);
-  const organizationMetadata = await redis.hgetall(redisKey(organizationId, ORGANIZATIONS_METADATA, audience));
-  const organizationMembersIds = await redis.zscan(redisKey(organizationId, ORGANIZATIONS_MEMBERS), 0);
-  let organizationMembersJobs = [];
-  if (organizationMembersIds) {
-    organizationMembersJobs = organizationMembersIds[1].reduce((acc, memberId, index) => {
-      if (index === 0 || index % 2 === 0) {
-        acc.push(redis.hgetall(memberId));
-      }
-
-      return acc;
-    }, []);
-  }
-  const organizationMembers = await Promise.all(organizationMembersJobs);
-
-  return {
-    ...organization,
-    metadata: organizationMetadata,
-    members: organizationMembers,
-  };
+  return getOrganizationMetadataAndMembers.call(this, organizationId);
 };
 
 // init transport

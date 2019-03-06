@@ -60,6 +60,9 @@ async function addOrganizationMembers(opts) {
     const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
     for (const member of members) {
       const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
+      member.invited = Date.now();
+      member.accepted = null;
+      member.permissions = member.permissions || [];
       pipe.hmset(memberKey, member);
       pipe.zadd(membersKey, Date.now(), memberKey);
     }

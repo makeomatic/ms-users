@@ -1,11 +1,10 @@
-const makeKey = require('../key.js');
+const redisKey = require('../key.js');
 const {
   ORGANIZATIONS_ID_FIELD,
   ORGANIZATIONS_DATA,
-  ORGANIZATIONS_MEMBERS,
 } = require('../../constants');
 
-function resolveOrganizationData(response) {
+function resolveData(response) {
   // user not found
   if (response === null) {
     return null;
@@ -33,23 +32,21 @@ function resolveOrganizationData(response) {
  * @param {bool} fetchData - If `true` response will also contain user data
  * @returns {null|object}
  */
-function resolveOrganizationId(id, fetchData = false) {
+function resolveOrganizationData(id, fetchData = false) {
   const { redis } = this;
   const indexPlaceholder = 'organizationId';
-  const organizationDataIndex = makeKey(indexPlaceholder, ORGANIZATIONS_DATA);
-  const organizationMembersIndex = makeKey(indexPlaceholder, ORGANIZATIONS_MEMBERS);
-  const numberOfKeys = 2;
+  const organizationDataIndex = redisKey(indexPlaceholder, ORGANIZATIONS_DATA);
+  const numberOfKeys = 1;
 
   return redis
-    .resolveOrganizationId(
+    .resolveOrganization(
       numberOfKeys,
       organizationDataIndex,
-      organizationMembersIndex,
       id,
       fetchData === true ? 1 : 0,
       indexPlaceholder
     )
-    .then(resolveOrganizationData);
+    .then(resolveData);
 }
 
-module.exports = resolveOrganizationId;
+module.exports = resolveOrganizationData;

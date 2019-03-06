@@ -1,67 +1,38 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
 const { inspectPromise } = require('@makeomatic/deploy');
-const Promise = require('bluebird');
-const ld = require('lodash');
 const assert = require('assert');
-const redisKey = require('../../../src/utils/key.js');
 
 describe('#create organization', function registerSuite() {
   this.timeout(50000);
 
-  // const totalUsers = 105;
-  // const faker = require('faker');
-
   beforeEach(global.startService);
-  afterEach(global.clearRedis);
   beforeEach(function pretest() {
     return this
       .dispatch('users.register', {
-        username: 'organizationMember@makeomatic.ru', password: '123', audience: '*.localhost', metadata: { name: 'member1' },
+        username: 'organizationMember1@makeomatic.ru', password: '123', audience: '*.localhost', metadata: { name: 'member1' },
       })
       .then(({ user }) => {
-        this.userId = user.id;
+        this.userId1 = user.id;
       });
   });
-
-  // beforeEach('populate redis', function populateRedis() {
-  //   const audience = this.users.config.jwt.defaultAudience;
-  //   const promises = [];
-  //   const { USERS_INDEX, USERS_METADATA } = require('../../../src/constants');
-  //
-  //   ld.times(totalUsers, () => {
-  //     const user = {
-  //       id: this.users.flake.next(),
-  //       metadata: {
-  //         username: faker.internet.email(),
-  //         firstName: faker.name.firstName(),
-  //         lastName: faker.name.lastName(),
-  //       },
-  //     };
-  //
-  //     promises.push((
-  //       this.users.redis
-  //         .pipeline()
-  //         .sadd(USERS_INDEX, user.id)
-  //         .hmset(
-  //           redisKey(user.id, USERS_METADATA, audience),
-  //           ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
-  //         )
-  //         .exec()
-  //     ));
-  //   });
-  //
-  //   this.audience = audience;
-  //   this.userStubs = Promise.all(promises);
-  //   return this.userStubs;
-  // });
+  beforeEach(function pretest() {
+    return this
+      .dispatch('users.register', {
+        username: 'organizationMember2@makeomatic.ru', password: '123', audience: '*.localhost', metadata: { name: 'member2' },
+      })
+      .then(({ user }) => {
+        this.userId2 = user.id;
+      });
+  });
+  afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {
     return this.dispatch('users.organization.create', {})
       .reflect()
       .then(inspectPromise(false))
-      .then((createdOrganization) => {
-        assert.equal(createdOrganization.name, 'HttpStatusError');
-        assert.equal(createdOrganization.errors.length, 1);
+      .then((response) => {
+        assert.equal(response.name, 'HttpStatusError');
+        assert.equal(response.errors.length, 1);
       });
   });
 
@@ -71,17 +42,53 @@ describe('#create organization', function registerSuite() {
       metadata: {
         description: 'test organization',
       },
-      members: [{
-        id: this.userId,
-      }],
+      members: [
+        { id: this.userId1 },
+        { id: this.userId2 },
+      ],
     };
 
     return this.dispatch('users.organization.create', opts)
       .reflect()
       .then(inspectPromise(true))
       .then((createdOrganization) => {
-        assert.equal(createdOrganization.name, opts.name);
+        assert(createdOrganization.name === opts.name);
+        assert(createdOrganization.metadata.description === opts.metadata.description);
+        assert.deepEqual(createdOrganization.members, opts.members);
         assert.ok(createdOrganization.id);
+        assert.ok(createdOrganization.created);
+        assert.ok(createdOrganization.active);
+      });
+  });
+
+  it('must return organization exists error', async function test() {
+    const opts = {
+      name: 'Pied Piper',
+    };
+
+    await this.dispatch('users.organization.create', opts).reflect();
+    return this.dispatch('users.organization.create', opts)
+      .reflect()
+      .then(inspectPromise(true))
+      .then((response) => {
+        assert.equal(response.name, 'HttpStatusError');
+      });
+  });
+
+  it('must return member not found error', async function test() {
+    const opts = {
+      name: 'Pied Piper',
+      members: [
+        { id: this.userId1 },
+        { id: 'sdfasdf323' },
+      ],
+    };
+
+    return this.dispatch('users.organization.create', opts)
+      .reflect()
+      .then(inspectPromise(false))
+      .then((response) => {
+        assert.equal(response.name, 'HttpStatusError');
       });
   });
 });

@@ -1,13 +1,10 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const is = require('is');
-const mapValues = require('lodash/mapValues');
 const { HttpStatusError } = require('common-errors');
 const redisKey = require('../utils/key.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const { ORGANIZATIONS_METADATA } = require('../constants.js');
-
-const JSONStringify = data => JSON.stringify(data);
 
 /**
  * Process metadata update operation for a passed audience
@@ -26,7 +23,7 @@ function handleAudience(pipeline, key, metadata) {
   const $setKeys = $set && Object.keys($set);
   const $setLength = $setKeys && $setKeys.length || 0;
   if ($setLength > 0) {
-    pipeline.hmset(key, mapValues($set, JSONStringify));
+    pipeline.hmset(key, $set);
   }
 
   const { $incr } = metadata;
@@ -41,44 +38,6 @@ function handleAudience(pipeline, key, metadata) {
   return {
     $removeOps, $setLength, $incrLength, $incrFields,
   };
-}
-
-/**
- * Maps updateMetadata ops
- * @param  {Array} responses
- * @param  {Array} operations
- * @return {Object|Array}
- */
-function mapMetaResponse(operations, responses) {
-  let cursor = 0;
-  return Promise
-    .map(operations, (props) => {
-      const {
-        $removeOps, $setLength, $incrLength, $incrFields,
-      } = props;
-      const output = {};
-
-      if ($removeOps > 0) {
-        output.$remove = responses[cursor];
-        cursor += 1;
-      }
-
-      if ($setLength > 0) {
-        output.$set = responses[cursor];
-        cursor += 1;
-      }
-
-      if ($incrLength > 0) {
-        const $incrResponse = output.$incr = {};
-        $incrFields.forEach((fieldName) => {
-          $incrResponse[fieldName] = responses[cursor];
-          cursor += 1;
-        });
-      }
-
-      return output;
-    })
-    .then(ops => (ops.length > 1 ? ops : ops[0]));
 }
 
 /**
@@ -105,10 +64,8 @@ async function setOrganizationMetadata(opts) {
       return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
     }
 
-    const operations = metaOps.map((meta, idx) => handleAudience(pipe, keys[idx], meta));
-    await pipe.exec()
-      .then(handlePipeline)
-      .then(res => mapMetaResponse(operations, res));
+    metaOps.forEach((meta, idx) => handleAudience(pipe, keys[idx], meta));
+    await pipe.exec().then(handlePipeline);
   }
 
   return true;

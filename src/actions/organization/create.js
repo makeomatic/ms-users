@@ -1,15 +1,11 @@
-const Promise = require('bluebird');
-
 const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
 const addOrganizationMembers = require('../../utils/addOrganizationMembers');
 const { getOrganizationId, getOrganizationMetadataAndMembers } = require('../../utils/organization');
-const { getUserId } = require('../../utils/userData');
 const {
   ErrorConflictOrganizationExists,
-  ErrorUserNotFound,
   ORGANIZATIONS_NAME_FIELD,
   ORGANIZATIONS_ACTIVE_FLAG,
   ORGANIZATIONS_DATA,

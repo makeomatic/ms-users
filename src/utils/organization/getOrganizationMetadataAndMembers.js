@@ -24,7 +24,7 @@ async function getOrganizationMetadataAndMembers(organizationId) {
   return {
     ...organization,
     metadata,
-    members,
+    members: Object.values(members),
   };
 }
 

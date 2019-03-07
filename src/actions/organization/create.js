@@ -33,7 +33,6 @@ module.exports = async function createOrganization({ params }) {
     [ORGANIZATIONS_NAME_FIELD]: organizationName,
     [ORGANIZATIONS_ACTIVE_FLAG]: active,
   };
-
   const organizationDataKey = redisKey(organizationId, ORGANIZATIONS_DATA);
   pipeline.hmset(organizationDataKey, basicInfo);
   pipeline.hset(ORGANIZATIONS_NAME_TO_ID, organizationName, organizationId);
@@ -50,8 +49,6 @@ module.exports = async function createOrganization({ params }) {
   }
 
   if (members) {
-    const checkMembers = members.map(member => Promise.bind(service, member.id).tap(getUserId));
-    await Promise.all(checkMembers).catch(ErrorUserNotFound);
     await addOrganizationMembers.call(service, {
       organizationId,
       organizationName,

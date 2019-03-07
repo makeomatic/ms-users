@@ -13,37 +13,37 @@ describe('#list', function listSuite() {
   beforeEach('start service', global.startService);
   afterEach('reset redis', global.clearRedis);
 
-  // beforeEach('populate redis', function populateRedis() {
-  //   const audience = this.users.config.jwt.defaultAudience;
-  //   const promises = [];
-  //   const { USERS_INDEX, USERS_METADATA } = require('../../src/constants');
-  //
-  //   ld.times(totalUsers, () => {
-  //     const user = {
-  //       id: this.users.flake.next(),
-  //       metadata: {
-  //         username: faker.internet.email(),
-  //         firstName: faker.name.firstName(),
-  //         lastName: faker.name.lastName(),
-  //       },
-  //     };
-  //
-  //     promises.push((
-  //       this.users.redis
-  //         .pipeline()
-  //         .sadd(USERS_INDEX, user.id)
-  //         .hmset(
-  //           redisKey(user.id, USERS_METADATA, audience),
-  //           ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
-  //         )
-  //         .exec()
-  //     ));
-  //   });
-  //
-  //   this.audience = audience;
-  //   this.userStubs = Promise.all(promises);
-  //   return this.userStubs;
-  // });
+  beforeEach('populate redis', function populateRedis() {
+    const audience = this.users.config.jwt.defaultAudience;
+    const promises = [];
+    const { USERS_INDEX, USERS_METADATA } = require('../../src/constants');
+
+    ld.times(totalUsers, () => {
+      const user = {
+        id: this.users.flake.next(),
+        metadata: {
+          username: faker.internet.email(),
+          firstName: faker.name.firstName(),
+          lastName: faker.name.lastName(),
+        },
+      };
+
+      promises.push((
+        this.users.redis
+          .pipeline()
+          .sadd(USERS_INDEX, user.id)
+          .hmset(
+            redisKey(user.id, USERS_METADATA, audience),
+            ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
+          )
+          .exec()
+      ));
+    });
+
+    this.audience = audience;
+    this.userStubs = Promise.all(promises);
+    return this.userStubs;
+  });
 
   it('able to list users without any filters: ASC', function test() {
     return this

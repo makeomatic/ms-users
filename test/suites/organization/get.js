@@ -2,36 +2,32 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
-const { createOrganization } = require('../../helpers/organization');
+const { registerMembers, createOrganization } = require('../../helpers/organization');
 
-describe('#switch state organization', function registerSuite() {
+describe('#get organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return createOrganization.call(this, {}, 0); });
+  beforeEach(function () { return registerMembers.call(this, 2); });
+  beforeEach(function () { return createOrganization.call(this, {}, 2); });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('users.organization.state', {})
+    return this.dispatch('users.organization.get', {})
       .reflect()
       .then(inspectPromise(false))
       .then((response) => {
         assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 2);
+        assert.equal(response.errors.length, 1);
       });
   });
 
-  it('must be able to update organization state', async function test() {
-    const opts = {
-      name: this.organization.name,
-    };
-
-    return this.dispatch('users.organization.state', { ...opts, active: true })
+  it('must be able to get organization', async function test() {
+    return this.dispatch('users.organization.get', { name: this.organization.name })
       .reflect()
       .then(inspectPromise(true))
-      .then((createdOrganization) => {
-        assert(createdOrganization.name === opts.name);
-        assert(createdOrganization.active);
+      .then((response) => {
+        assert.deepEqual(response, this.organization);
       });
   });
 
@@ -40,7 +36,7 @@ describe('#switch state organization', function registerSuite() {
       name: faker.company.companyName(),
     };
 
-    return this.dispatch('users.organization.state', opts)
+    return this.dispatch('users.organization.get', opts)
       .reflect()
       .then(inspectPromise(false))
       .then((response) => {

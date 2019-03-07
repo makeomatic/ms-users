@@ -2,7 +2,7 @@ const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
-const addOrganizationMembers = require('../../utils/addOrganizationMembers');
+const addOrganizationMembers = require('../../utils/organization/addOrganizationMembers');
 const { getOrganizationId, getOrganizationMetadataAndMembers } = require('../../utils/organization');
 const {
   ErrorConflictOrganizationExists,

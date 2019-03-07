@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const { getOrganizationId, getOrganizationMetadataAndMembers } = require('../../../utils/organization');
 const { ErrorOrganizationNotFound } = require('../../../constants');
-const addOrganizationMembers = require('../../../utils/addOrganizationMembers');
+const addOrganizationMembers = require('../../../utils/organization/addOrganizationMembers');
 
 module.exports = async function addOrganizationMember({ params }) {
   const service = this;

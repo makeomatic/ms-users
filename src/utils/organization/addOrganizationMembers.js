@@ -1,9 +1,9 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
-const redisKey = require('../utils/key.js');
-const handlePipeline = require('../utils/pipelineError.js');
-const { ORGANIZATIONS_MEMBERS, ErrorUserNotFound, USERS_ORGANIZATIONS } = require('../constants.js');
-const { getUserId } = require('./userData');
+const redisKey = require('../key.js');
+const handlePipeline = require('../pipelineError.js');
+const { ORGANIZATIONS_MEMBERS, ErrorUserNotFound, USERS_ORGANIZATIONS } = require('../../constants.js');
+const { getUserId } = require('../userData/index');
 
 /**
  * Updates metadata on a organization object
@@ -35,7 +35,7 @@ async function addOrganizationMembers(opts) {
       pipe.hmset(memberKey, member);
       pipe.hset(memberOrganizations, organizationName, JSON.stringify(member.permissions));
       pipe.zadd(membersKey, Date.now(), memberKey);
-    })
+    });
 
     await pipe.exec().then(handlePipeline);
   }

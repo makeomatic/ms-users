@@ -3,7 +3,7 @@ const faker = require('faker');
 const times = require('lodash/times');
 const { inspectPromise } = require('@makeomatic/deploy');
 
-exports.registerMembers = async function (totalUsers) {
+exports.registerMembers = async function (totalUsers = 1) {
   const promises = [];
   const audience = '*.localhost';
 
@@ -32,7 +32,7 @@ exports.registerMembers = async function (totalUsers) {
   return this.userStubs;
 };
 
-exports.createOrganization = async function (customOpts, totalUsers) {
+exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
   const opts = {
     name: faker.company.companyName(),
     metadata: {

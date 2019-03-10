@@ -15,7 +15,7 @@
           "minLength": 1
         },
         "metadata": {
-          "$ref": "#/definitions/metadata"
+          "$ref": "common.json#/definitions/metadata"
         }
       }
     },
@@ -34,7 +34,7 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "#/definitions/metadata"
+            "$ref": "common.json#/definitions/metadata"
           }
         }
       }
@@ -79,51 +79,6 @@
       "type": "string",
       "minLength": 3,
       "maxLength": 50
-    },
-    "metadata": {
-      "type": "object",
-      "minProperties": 1,
-      "properties": {
-        "$set": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "oneOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              },
-              {
-                "type": "array"
-              },
-              {
-                "type": "object"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          }
-        },
-        "$remove": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "minItems": 1
-        },
-        "$incr": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "integer"
-          }
-        }
-      }
     }
   }
 }

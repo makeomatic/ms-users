@@ -8,49 +8,7 @@
       "type": "string"
     },
     "metadata": {
-      "type": "object",
-      "minProperties": 1,
-      "properties": {
-        "$set": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "oneOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              },
-              {
-                "type": "array"
-              },
-              {
-                "type": "object"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          }
-        },
-        "$remove": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "minItems": 1
-        },
-        "$incr": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "integer"
-          }
-        }
-      }
+      "$ref": "common.json#/definitions/metadata"
     }
   }
 }

@@ -18,7 +18,7 @@ module.exports = async function addOrganizationMember({ params }) {
     organizationId,
     organizationName,
     audience,
-    members: [{ id: username, permissions }],
+    members: [{ username, permissions }],
   });
 
   return getOrganizationMetadataAndMembers.call(this, organizationId);

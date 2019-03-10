@@ -15,7 +15,8 @@
       "minProperties": 1
     },
     "members": {
-      "type": "array"
+      "type": "array",
+      "minItems": 1
     }
   }
 }

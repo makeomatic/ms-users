@@ -1,13 +1,8 @@
-local organizationDataKeyTemplate = KEYS[1];
-local id = ARGV[1];
+local organizationDataKey = KEYS[1];
+local organizationId = ARGV[1];
 local fetchData = ARGV[2];
-local organizationIdPlaceholder = ARGV[3];
 
-local function makeOrganizationKey (organizationId, template, placeholder)
-  return template:gsub(placeholder, organizationId, 1);
-end
-
-local function getOrganizationData (organizationId, organizationDataKey, fetchData)
+local function getOrganizationData ()
   if fetchData == "0" then
     return { organizationId };
   end
@@ -18,12 +13,8 @@ local function getOrganizationData (organizationId, organizationDataKey, fetchDa
   };
 end
 
--- 1. Try organization id
-local organizationId = id;
-local organizationDataKey = makeOrganizationKey(organizationId, organizationDataKeyTemplate, organizationIdPlaceholder);
-
 if redis.call("EXISTS", organizationDataKey) == 1 then
-  return getOrganizationData(id, organizationDataKey, fetchData);
+  return getOrganizationData();
 end
 
 return nil;

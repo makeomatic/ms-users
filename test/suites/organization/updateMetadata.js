@@ -1,11 +1,14 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
+const { registerMembers, createOrganization } = require('../../helpers/organization');
 
 describe('#update metadata organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
+  beforeEach(function () { return registerMembers.call(this, 2); });
+  beforeEach(function () { return createOrganization.call(this, {}, 2); });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {
@@ -19,26 +22,19 @@ describe('#update metadata organization', function registerSuite() {
   });
 
   it('must be able to update organization', async function test() {
-    const opts = {
-      name: 'Pied Piper',
-      metadata: {
-        description: 'test organization',
-      },
-    };
     const updatedOpts = {
-      name: 'Pied Piper',
+      name: this.organization.name,
       metadata: {
         $set: { address: 'test' },
         $remove: ['description'],
       },
     };
 
-    await this.dispatch('users.organization.create', opts).reflect();
     return this.dispatch('users.organization.updateMetadata', updatedOpts)
       .reflect()
       .then(inspectPromise(true))
       .then((createdOrganization) => {
-        assert(createdOrganization.name === opts.name);
+        assert(createdOrganization.name === this.organization.name);
         assert(createdOrganization.metadata.description === undefined);
         assert(createdOrganization.metadata.address === 'test');
         assert.ok(createdOrganization.id);

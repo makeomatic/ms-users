@@ -1,4 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
+const snakeCase = require('lodash/snakeCase');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
@@ -12,11 +13,12 @@ const {
   ORGANIZATIONS_NAME_TO_ID,
 } = require('../../constants');
 
-module.exports = async function createOrganization({ params }) {
+async function createOrganization({ params }) {
   const service = this;
   const { redis, config } = service;
   const { name: organizationName, active = false, metadata, members } = params;
   const { audience } = config.organizations;
+  const normalizedOrganizationName = snakeCase(organizationName);
 
   const organizationExists = await getOrganizationId.call(service, organizationName);
   if (organizationExists) {
@@ -31,7 +33,7 @@ module.exports = async function createOrganization({ params }) {
   };
   const organizationDataKey = redisKey(organizationId, ORGANIZATIONS_DATA);
   pipeline.hmset(organizationDataKey, basicInfo);
-  pipeline.hset(ORGANIZATIONS_NAME_TO_ID, organizationName, organizationId);
+  pipeline.hset(ORGANIZATIONS_NAME_TO_ID, normalizedOrganizationName, organizationId);
   await pipeline.exec().then(handlePipeline);
 
   if (metadata) {
@@ -44,17 +46,17 @@ module.exports = async function createOrganization({ params }) {
     });
   }
 
-  if (members) {
-    await addOrganizationMembers.call(service, {
-      organizationId,
-      organizationName,
-      audience,
-      members,
-    });
-  }
+  await addOrganizationMembers.call(service, {
+    organizationId,
+    organizationName,
+    audience,
+    members,
+  });
 
   return getOrganizationMetadataAndMembers.call(this, organizationId);
-};
+}
 
-// init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+createOrganization.auth = 'httpBearer';
+createOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
+
+module.exports = createOrganization;

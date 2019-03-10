@@ -34,17 +34,15 @@ function resolveData(response) {
  */
 function resolveOrganizationData(id, fetchData = false) {
   const { redis } = this;
-  const indexPlaceholder = 'organizationId';
-  const organizationDataIndex = redisKey(indexPlaceholder, ORGANIZATIONS_DATA);
+  const organizationDataKey = redisKey(id, ORGANIZATIONS_DATA);
   const numberOfKeys = 1;
 
   return redis
     .resolveOrganization(
       numberOfKeys,
-      organizationDataIndex,
+      organizationDataKey,
       id,
-      fetchData === true ? 1 : 0,
-      indexPlaceholder
+      fetchData === true ? 1 : 0
     )
     .then(resolveData);
 }

@@ -2,33 +2,36 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
-const { createMembers, createOrganization } = require('../../../helpers/organization');
+const { createOrganization, createMembers } = require('../../../helpers/organization');
 
-describe('#accept invite organization', function registerSuite() {
+describe('#edit member permission', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return createMembers.call(this); });
+  beforeEach(function () { return createMembers.call(this, 1); });
   beforeEach(function () { return createOrganization.call(this); });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('users.organization.invites.accept', {})
+    return this.dispatch('users.organization.members.permission', {})
       .reflect()
       .then(inspectPromise(false))
       .then((response) => {
         assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 2);
+        assert.equal(response.errors.length, 3);
       });
   });
 
-  it('must be able to accept invite to member', async function test() {
+  it('must be able to edit member permission', async function test() {
     const opts = {
       name: this.organization.name,
       username: this.userNames[0].username,
+      permission: {
+        $set: ['admin'],
+      },
     };
 
-    await this.dispatch('users.organization.invites.accept', opts)
+    return this.dispatch('users.organization.members.permission', opts)
       .reflect()
       .then(inspectPromise(true));
   });
@@ -37,29 +40,33 @@ describe('#accept invite organization', function registerSuite() {
     const opts = {
       name: faker.company.companyName(),
       username: faker.internet.email(),
+      permission: {
+        $set: ['admin'],
+      },
     };
 
-    return this.dispatch('users.organization.invites.accept', opts)
+    return this.dispatch('users.organization.members.permission', opts)
       .reflect()
       .then(inspectPromise(false))
       .then((response) => {
         assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.message, 'organization not found');
       });
   });
 
-  it('must return user not organization member error', async function test() {
-    const acceptOpts = {
+  it('must return user not found error', async function test() {
+    const opts = {
       name: this.organization.name,
       username: faker.internet.email(),
+      permission: {
+        $set: ['admin'],
+      },
     };
 
-    return this.dispatch('users.organization.invites.accept', acceptOpts)
+    return this.dispatch('users.organization.members.permission', opts)
       .reflect()
       .then(inspectPromise(false))
       .then((response) => {
         assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.message, 'username not member of organization');
       });
   });
 });

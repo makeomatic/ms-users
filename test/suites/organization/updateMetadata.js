@@ -1,13 +1,13 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
-const { registerMembers, createOrganization } = require('../../helpers/organization');
+const { createMembers, createOrganization } = require('../../helpers/organization');
 
 describe('#update metadata organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return registerMembers.call(this, 2); });
+  beforeEach(function () { return createMembers.call(this, 2); });
   beforeEach(function () { return createOrganization.call(this, {}, 2); });
   afterEach(global.clearRedis);
 

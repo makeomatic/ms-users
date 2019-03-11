@@ -1,8 +1,6 @@
-const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
 const { getOrganizationId } = require('../../../utils/organization');
-const { ErrorOrganizationNotFound, ErrorUserNotFound, ErrorUserNotMember, ORGANIZATIONS_MEMBERS } = require('../../../constants');
-const { getUserId } = require('../../../utils/userData');
+const { ErrorOrganizationNotFound, ErrorUserNotMember, ORGANIZATIONS_MEMBERS } = require('../../../constants');
 const redisKey = require('../../../utils/key.js');
 
 module.exports = async function acceptOrganizationMember({ params }) {
@@ -14,12 +12,8 @@ module.exports = async function acceptOrganizationMember({ params }) {
     throw ErrorOrganizationNotFound;
   }
 
-  const userId = await Promise.bind(this, username)
-    .then(getUserId)
-    .throw(ErrorUserNotFound);
-
-  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
-  const userInOrganization = await redis.hget(memberKey, 'id');
+  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, username);
+  const userInOrganization = await redis.hget(memberKey, 'username');
   if (!userInOrganization) {
     throw ErrorUserNotMember;
   }

@@ -1,9 +1,9 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const redisKey = require('../key.js');
+const { generateInvite } = require('../../actions/invite');
 const handlePipeline = require('../pipelineError.js');
-const { ORGANIZATIONS_MEMBERS, ErrorUserNotFound, USERS_ORGANIZATIONS } = require('../../constants.js');
-const { getUserId } = require('../userData/index');
+const { ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS } = require('../../constants.js');
 
 /**
  * Updates metadata on a organization object
@@ -15,30 +15,25 @@ async function addOrganizationMembers(opts) {
   const { organizationId, members, organizationName } = opts;
 
   const membersIdsJob = members.map(member => Promise
-    .bind(this, member.username)
-    .then(getUserId)
-    .catch(ErrorUserNotFound));
-  const membersIds = await Promise.all(membersIdsJob);
+    .bind(this, { email: member.username })
+    .then(generateInvite));
+  await Promise.all(membersIdsJob);
 
-  // if we have meta, then we can
-  if (members) {
-    const pipe = redis.pipeline();
+  const pipe = redis.pipeline();
 
-    const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
-    members.forEach((member, idx) => {
-      member.id = membersIds[idx];
-      const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
-      const memberOrganizations = redisKey(member.id, USERS_ORGANIZATIONS);
-      member.invited = Date.now();
-      member.accepted = null;
-      member.permissions = member.permissions || [];
-      pipe.hmset(memberKey, member);
-      pipe.hset(memberOrganizations, organizationName, JSON.stringify(member.permissions));
-      pipe.zadd(membersKey, Date.now(), memberKey);
-    });
+  const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
+  members.forEach((member) => {
+    const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.username);
+    const memberOrganizations = redisKey(member.username, USERS_ORGANIZATIONS);
+    member.invited = Date.now();
+    member.accepted = null;
+    member.permissions = member.permissions || [];
+    pipe.hmset(memberKey, member);
+    pipe.hset(memberOrganizations, organizationName, JSON.stringify(member.permissions));
+    pipe.zadd(membersKey, Date.now(), memberKey);
+  });
 
-    await pipe.exec().then(handlePipeline);
-  }
+  await pipe.exec().then(handlePipeline);
 
   return true;
 }

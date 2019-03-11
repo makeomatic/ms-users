@@ -2,13 +2,13 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
-const { createOrganization, registerMembers } = require('../../helpers/organization');
+const { createOrganization, createMembers } = require('../../helpers/organization');
 
 describe('#switch state organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return registerMembers.call(this); });
+  beforeEach(function () { return createMembers.call(this); });
   beforeEach(function () { return createOrganization.call(this); });
   afterEach(global.clearRedis);
 

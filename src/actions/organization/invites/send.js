@@ -1,27 +1,21 @@
+const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
-const { getOrganizationId, getOrganizationMetadataAndMembers } = require('../../../utils/organization');
+const { generateInvite } = require('../../invite');
+const { getOrganizationId } = require('../../../utils/organization');
 const { ErrorOrganizationNotFound } = require('../../../constants');
-const addOrganizationMembers = require('../../../utils/organization/addOrganizationMembers');
 
-module.exports = async function addOrganizationMember({ params }) {
+module.exports = async function sendOrganizationInvite({ params }) {
   const service = this;
-  const { config } = service;
-  const { name: organizationName, username, permissions } = params;
-  const { audience } = config.organizations;
+  const { name: organizationName, email } = params;
 
   const organizationId = await getOrganizationId.call(service, organizationName);
   if (!organizationId) {
     throw ErrorOrganizationNotFound;
   }
 
-  await addOrganizationMembers.call(service, {
-    organizationId,
-    organizationName,
-    audience,
-    members: [{ username, permissions }],
-  });
-
-  return getOrganizationMetadataAndMembers.call(this, organizationId);
+  return Promise
+    .bind(this, { email })
+    .then(generateInvite);
 };
 
 // init transport

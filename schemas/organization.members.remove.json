@@ -2,13 +2,13 @@
   "type": "object",
   "required": [
     "name",
-    "email"
+    "username"
   ],
   "properties": {
     "name": {
       "type": "string"
     },
-    "email": {
+    "username": {
       "type": "string"
     }
   }

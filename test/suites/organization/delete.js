@@ -2,14 +2,14 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
-const { registerMembers, createOrganization } = require('../../helpers/organization');
+const { createMembers, createOrganization } = require('../../helpers/organization');
 
 describe('#delete organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);
-  beforeEach(function () { return registerMembers.call(this, 2); });
+  beforeEach(function () { return createMembers.call(this, 2); });
   beforeEach(function () { return createOrganization.call(this, {}, 2); });
 
   it('must reject invalid organization params and return detailed error', function test() {

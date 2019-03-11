@@ -2,13 +2,13 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
-const { registerMembers } = require('../../helpers/organization');
+const { createMembers } = require('../../helpers/organization');
 
 describe('#create organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return registerMembers.call(this, 2); });
+  beforeEach(function () { return createMembers.call(this, 2); });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {
@@ -48,23 +48,6 @@ describe('#create organization', function registerSuite() {
     };
 
     await this.dispatch('users.organization.create', opts).reflect();
-    return this.dispatch('users.organization.create', opts)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-      });
-  });
-
-  it('must return member not found error', async function test() {
-    const opts = {
-      name: faker.company.companyName(),
-      members: [
-        ...this.userNames.slice(0, 2),
-        { username: faker.internet.email() },
-      ],
-    };
-
     return this.dispatch('users.organization.create', opts)
       .reflect()
       .then(inspectPromise(false))

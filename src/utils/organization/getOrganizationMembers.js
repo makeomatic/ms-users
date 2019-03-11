@@ -15,9 +15,8 @@ async function getOrganizationMembers(organizationId) {
       return acc;
     }, []);
   }
-  const members = await Promise.all(organizationMembersJobs);
 
-  return { members };
+  return Promise.all(organizationMembersJobs);
 }
 
 module.exports = getOrganizationMembers;

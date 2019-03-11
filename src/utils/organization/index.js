@@ -3,6 +3,7 @@ const resolveOrganizationData = require('./resolveOrganizationData');
 const getInternalData = require('./getInternalData');
 const getOrganizationMetadataAndMembers = require('./getOrganizationMetadataAndMembers');
 const getOrganizationMembers = require('./getOrganizationMembers');
+const getOrganizationMetadata = require('./getOrganizationMetadata');
 
 module.exports = {
   getOrganizationId,
@@ -10,4 +11,5 @@ module.exports = {
   getInternalData,
   getOrganizationMetadataAndMembers,
   getOrganizationMembers,
+  getOrganizationMetadata,
 };

@@ -9,7 +9,18 @@ const {
   ErrorUserNotMember,
 } = require('../../../constants');
 
-module.exports = async function removeMember({ params }) {
+/**
+ * @api {amqp} <prefix>.members.remove Remove organization member
+ * @apiVersion 1.0.0
+ * @apiName members.remove
+ * @apiGroup Organizations
+ *
+ * @apiDescription This should be used to remove member.
+ *
+ * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} username - member email.
+ */
+async function removeMember({ params }) {
   const service = this;
   const { redis } = service;
   const { name: organizationName, username } = params;
@@ -31,7 +42,7 @@ module.exports = async function removeMember({ params }) {
   pipeline.zrem(redisKey(organizationId, ORGANIZATIONS_MEMBERS), memberKey);
 
   return pipeline.exec().then(handlePipeline);
-};
+}
 
-// init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+removeMember.transports = [ActionTransport.amqp, ActionTransport.internal];
+module.exports = removeMember;

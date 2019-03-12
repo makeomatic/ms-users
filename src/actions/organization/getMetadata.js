@@ -3,7 +3,17 @@ const { getOrganizationId } = require('../../utils/organization');
 const { ErrorOrganizationNotFound } = require('../../constants');
 const { getOrganizationMetadata } = require('../../utils/organization');
 
-module.exports = async function organizationMembersList({ params }) {
+/**
+ * @api {amqp} <prefix>.getMetadata Get organization metadata
+ * @apiVersion 1.0.0
+ * @apiName getMetadata
+ * @apiGroup Organizations
+ *
+ * @apiParam (Payload) {String} name - organization name.
+ *
+ * @apiSuccess (Response) {Object} metadata - organization metadata
+ */
+async function organizationMetadata({ params }) {
   const { name: organizationName } = params;
 
   const organizationId = await getOrganizationId.call(this, organizationName);
@@ -13,7 +23,7 @@ module.exports = async function organizationMembersList({ params }) {
 
   const metadata = await getOrganizationMetadata.call(this, organizationId);
   return { metadata };
-};
+}
 
-// init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+organizationMetadata.transports = [ActionTransport.amqp, ActionTransport.internal];
+module.exports = organizationMetadata;

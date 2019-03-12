@@ -1,9 +1,23 @@
 const { ActionTransport } = require('@microfleet/core');
 const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
-const { getOrganizationId, getOrganizationMetadataAndMembers } = require('../../utils/organization');
+const { getOrganizationId, getOrganizationMetadata } = require('../../utils/organization');
 const { ErrorOrganizationNotFound } = require('../../constants');
 
-module.exports = async function updateOrganizationMetadata({ params }) {
+/**
+ * @api {amqp} <prefix>.updateMetadata Update metadata organization
+ * @apiVersion 1.0.0
+ * @apiName updateMetadata
+ * @apiGroup Organizations
+ *
+ * @apiDescription This should be used to update organization metadata.
+ *
+ * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {Object} metadata - metadata operations,
+ *   supports `$set key:value`, `$remove keys[]`, `$incr key:diff`
+ *
+ * @apiSuccess (Response) {Object} metadata - organization metadata
+ */
+async function updateOrganizationMetadata({ params }) {
   const service = this;
   const { config } = service;
   const { name: organizationName, metadata } = params;
@@ -22,8 +36,8 @@ module.exports = async function updateOrganizationMetadata({ params }) {
     });
   }
 
-  return getOrganizationMetadataAndMembers.call(this, organizationId);
-};
+  return getOrganizationMetadata.call(this, organizationId);
+}
 
-// init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+updateOrganizationMetadata.transports = [ActionTransport.amqp, ActionTransport.internal];
+module.exports = updateOrganizationMetadata;

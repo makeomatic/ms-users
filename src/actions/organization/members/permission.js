@@ -3,7 +3,20 @@ const { getOrganizationId } = require('../../../utils/organization');
 const redisKey = require('../../../utils/key');
 const { ErrorOrganizationNotFound, ErrorUserNotMember, ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS } = require('../../../constants');
 
-module.exports = async function addOrganizationMember({ params }) {
+/**
+ * @api {amqp} <prefix>.members.permission Sets permission levels for a given user
+ * @apiVersion 1.0.0
+ * @apiName members.permission
+ * @apiGroup Organizations
+ *
+ * @apiDescription Sets permission levels for a given user.
+ *
+ * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} username - organization member email.
+ * @apiParam (Payload) {Object} permission - metadata operations,
+ *   supports `$set string[]`, `$remove string[]`
+ */
+async function addOrganizationMember({ params }) {
   const service = this;
   const { redis } = service;
   const { name: organizationName, username, permission } = params;
@@ -35,7 +48,7 @@ module.exports = async function addOrganizationMember({ params }) {
   }
 
   return redis.hset(redisKey(username, USERS_ORGANIZATIONS), organizationName, JSON.stringify(currentPermissions));
-};
+}
 
-// init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+addOrganizationMember.transports = [ActionTransport.amqp, ActionTransport.internal];
+module.exports = addOrganizationMember;

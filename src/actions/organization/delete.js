@@ -11,7 +11,17 @@ const {
   USERS_ORGANIZATIONS,
 } = require('../../constants');
 
-module.exports = async function deleteOrganization({ params }) {
+/**
+ * @api {amqp} <prefix>.delete Delete organization
+ * @apiVersion 1.0.0
+ * @apiName delete
+ * @apiGroup Organizations
+ *
+ * @apiDescription This should be used to delete organization.
+ *
+ * @apiParam (Payload) {String} name - organization name.
+ */
+async function deleteOrganization({ params }) {
   const service = this;
   const { redis, config } = service;
   const { name: organizationName } = params;
@@ -41,7 +51,7 @@ module.exports = async function deleteOrganization({ params }) {
   pipeline.hdel(ORGANIZATIONS_NAME_TO_ID, organizationName);
 
   return pipeline.exec().then(handlePipeline);
-};
+}
 
-// init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+deleteOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
+module.exports = deleteOrganization;

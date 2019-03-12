@@ -4,7 +4,19 @@ const { generateInvite } = require('../../invite');
 const { getOrganizationId } = require('../../../utils/organization');
 const { ErrorOrganizationNotFound } = require('../../../constants');
 
-module.exports = async function sendOrganizationInvite({ params }) {
+/**
+ * @api {amqp} <prefix>.invites.send Send invitation
+ * @apiVersion 1.0.0
+ * @apiName invites.send
+ * @apiGroup Organizations
+ *
+ * @apiDescription In a normal flow - sends out an email to a Customer to accept invitation to the organization.
+ * Can potentially be used by other Customers in the same organization
+ *
+ * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} username - member email.
+ */
+async function sendOrganizationInvite({ params }) {
   const service = this;
   const { name: organizationName, email } = params;
 
@@ -16,7 +28,7 @@ module.exports = async function sendOrganizationInvite({ params }) {
   return Promise
     .bind(this, { email })
     .then(generateInvite);
-};
+}
 
-// init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+sendOrganizationInvite.transports = [ActionTransport.amqp, ActionTransport.internal];
+module.exports = sendOrganizationInvite;

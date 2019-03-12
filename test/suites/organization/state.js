@@ -29,11 +29,7 @@ describe('#switch state organization', function registerSuite() {
 
     return this.dispatch('users.organization.state', { ...opts, active: true })
       .reflect()
-      .then(inspectPromise(true))
-      .then((createdOrganization) => {
-        assert(createdOrganization.name === opts.name);
-        assert(createdOrganization.active);
-      });
+      .then(inspectPromise(true));
   });
 
   it('must return organization not found error', async function test() {

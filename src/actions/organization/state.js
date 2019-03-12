@@ -1,12 +1,23 @@
 const { ActionTransport } = require('@microfleet/core');
-const { getOrganizationId, getOrganizationMetadataAndMembers } = require('../../utils/organization');
+const { getOrganizationId } = require('../../utils/organization');
 const { ErrorOrganizationNotFound, ORGANIZATIONS_ACTIVE_FLAG, ORGANIZATIONS_DATA } = require('../../constants');
 const redisKey = require('../../utils/key');
 
-module.exports = async function updateOrganizationState({ params }) {
+/**
+ * @api {amqp} <prefix>.state Update organization state
+ * @apiVersion 1.0.0
+ * @apiName state
+ * @apiGroup Organizations
+ *
+ * @apiDescription This should be used to update organization state.
+ *
+ * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {Boolean} active=false - organization state.
+ */
+async function updateOrganizationState({ params }) {
   const service = this;
   const { redis } = service;
-  const { name: organizationName, active } = params;
+  const { name: organizationName, active = false } = params;
 
   const organizationId = await getOrganizationId.call(service, organizationName);
   if (!organizationId) {
@@ -14,11 +25,8 @@ module.exports = async function updateOrganizationState({ params }) {
   }
 
   const organizationDataKey = redisKey(organizationId, ORGANIZATIONS_DATA);
-  await redis.hset(organizationDataKey, ORGANIZATIONS_ACTIVE_FLAG, active);
+  return redis.hset(organizationDataKey, ORGANIZATIONS_ACTIVE_FLAG, active);
+}
 
-
-  return getOrganizationMetadataAndMembers.call(this, organizationId);
-};
-
-// init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+updateOrganizationState.transports = [ActionTransport.amqp, ActionTransport.internal];
+module.exports = updateOrganizationState;

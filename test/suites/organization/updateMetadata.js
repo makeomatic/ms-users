@@ -34,7 +34,6 @@ describe('#update metadata organization', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((createdOrganization) => {
-        console.log(createdOrganization)
         assert(createdOrganization.name === this.organization.name);
         assert(createdOrganization.metadata.description === undefined);
         assert(createdOrganization.metadata.address === 'test');

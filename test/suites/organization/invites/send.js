@@ -2,7 +2,7 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
-const { createMembers, createOrganization } = require('../../../helpers/organization');
+const { createOrganization } = require('../../../helpers/organization');
 
 describe('#send invite organization', function registerSuite() {
   this.timeout(50000);

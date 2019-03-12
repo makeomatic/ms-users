@@ -36,7 +36,8 @@ async function updateOrganizationMetadata({ params }) {
     });
   }
 
-  return getOrganizationMetadata.call(this, organizationId);
+  const data = await getOrganizationMetadata.call(this, organizationId);
+  return { metadata: data };
 }
 
 updateOrganizationMetadata.transports = [ActionTransport.amqp, ActionTransport.internal];

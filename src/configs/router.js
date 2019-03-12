@@ -34,6 +34,7 @@ exports.router = {
     directory: path.resolve(__dirname, '../actions'),
     prefix: 'users',
     transports: [ActionTransport.amqp, ActionTransport.http, ActionTransport.internal],
+    enabledGenericActions: ['health'],
   },
   extensions: {
     enabled: ['preRequest', 'postRequest', 'postValidate', 'preResponse'],

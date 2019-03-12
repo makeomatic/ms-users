@@ -4,9 +4,14 @@ const { USERS_REFERRAL_INDEX } = require('../../constants.js');
 const { getUserId } = require('../../utils/userData');
 
 /**
- *
+ * Return master node in case of redisCluster to be able to use
+ * specific commands like `keys`. We can use usual redis instance in
+ * other cases.
  */
 function getRedisMasterNode(redis, config) {
+  if (!config.plugins.includes('redisCluster')) {
+    return redis;
+  }
   const { keyPrefix } = config.redis.options;
   const slot = calcSlot(keyPrefix);
   const nodeKeys = redis.slots[slot];

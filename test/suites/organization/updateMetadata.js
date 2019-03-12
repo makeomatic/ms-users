@@ -34,11 +34,8 @@ describe('#update metadata organization', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((createdOrganization) => {
-        assert(createdOrganization.name === this.organization.name);
         assert(createdOrganization.metadata.description === undefined);
         assert(createdOrganization.metadata.address === 'test');
-        assert.ok(createdOrganization.id);
-        assert.ok(createdOrganization.active);
       });
   });
 

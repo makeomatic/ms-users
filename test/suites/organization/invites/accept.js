@@ -18,7 +18,7 @@ describe('#accept invite organization', function registerSuite() {
       .then(inspectPromise(false))
       .then((response) => {
         assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 2);
+        assert.equal(response.errors.length, 3);
       });
   });
 
@@ -26,6 +26,7 @@ describe('#accept invite organization', function registerSuite() {
     const opts = {
       name: this.organization.name,
       username: this.userNames[0].username,
+      inviteToken: 'token',
     };
 
     await this.dispatch('users.organization.invites.accept', opts)

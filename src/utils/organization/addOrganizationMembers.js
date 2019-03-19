@@ -15,9 +15,10 @@ async function addOrganizationMembers(opts) {
   const { organizationId, members, organizationName } = opts;
 
   const membersIdsJob = members.map(member => Promise
-    .bind(this, { email: member.username })
+    .bind(this, { email: member.email, ctx: { firstName: member.firstName, lastName: member.lastName } })
     .then(generateInvite));
-  await Promise.all(membersIdsJob);
+  const invites = await Promise.all(membersIdsJob);
+  console.log('invites', invites);
 
   const pipe = redis.pipeline();
 

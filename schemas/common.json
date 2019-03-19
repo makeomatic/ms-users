@@ -131,6 +131,28 @@
           }
         }
       }
+    },
+    "organizationMember": {
+      "type": "object",
+      "required": [
+        "firstName",
+        "lastName",
+        "email"
+      ],
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array"
+        }
+      }
     }
   }
 }

@@ -1,8 +1,7 @@
 const mapValues = require('lodash/mapValues');
 const { ORGANIZATIONS_METADATA } = require('../../constants');
 const redisKey = require('../key');
-
-const JSONParse = data => JSON.parse(data);
+const JSONParse = require('../safeParse');
 
 async function getOrganizationMetadata(organizationId) {
   const { redis, config } = this;

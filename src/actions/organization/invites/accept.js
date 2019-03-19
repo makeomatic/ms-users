@@ -1,6 +1,12 @@
 const { ActionTransport } = require('@microfleet/core');
 const { getOrganizationId } = require('../../../utils/organization');
-const { ErrorOrganizationNotFound, ErrorUserNotMember, ORGANIZATIONS_MEMBERS } = require('../../../constants');
+const {
+  ErrorOrganizationNotFound,
+  ErrorUserNotMember,
+  ORGANIZATIONS_MEMBERS,
+  USERS_ACTION_INVITE,
+  ErrorInvitationExpiredOrUsed,
+} = require('../../../constants');
 const redisKey = require('../../../utils/key.js');
 
 /**
@@ -39,4 +45,33 @@ async function acceptOrganizationMember({ params }) {
 }
 
 acceptOrganizationMember.transports = [ActionTransport.amqp, ActionTransport.internal];
+
+/**
+ * Token verification function, on top of it returns extra metadata
+ * @return {Promise}
+ */
+async function verifyToken(tokenManager, params) {
+  // we must ensure that token matches supplied ID
+  // it can be overwritten by sending `anyUsername: true`
+  const control = {
+    action: USERS_ACTION_INVITE,
+    id: params.username,
+  };
+
+  const token = await tokenManager
+    .verify(params.inviteToken, { erase: false, control });
+
+  if (!token.isFirstVerification) {
+    throw ErrorInvitationExpiredOrUsed;
+  }
+}
+
+acceptOrganizationMember.allowed = async function checkInviteToken({ params }) {
+  if (params.inviteToken) {
+    await verifyToken(this.tokenManager, params);
+  }
+
+  return null;
+};
+
 module.exports = acceptOrganizationMember;

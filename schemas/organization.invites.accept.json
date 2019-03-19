@@ -2,7 +2,8 @@
   "type": "object",
   "required": [
     "name",
-    "username"
+    "username",
+    "inviteToken"
   ],
   "properties": {
     "name": {
@@ -10,6 +11,10 @@
     },
     "username": {
       "type": "string"
+    },
+    "inviteToken": {
+      "type": "string",
+      "minLength": 1
     }
   }
 }

@@ -73,6 +73,7 @@ module.exports = exports = {
   ErrorSecretRequired: new HttpStatusError(403, 'Secret required'),
   ErrorUserNotFound: new HttpStatusError(404, 'username not found'),
   ErrorUserNotMember: new HttpStatusError(404, 'username not member of organization'),
+  ErrorInvitationExpiredOrUsed: new HttpStatusError(400, 'Invitation has expired or already been used'),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',

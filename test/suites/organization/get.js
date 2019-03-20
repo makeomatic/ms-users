@@ -2,13 +2,12 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
-const { createMembers, createOrganization } = require('../../helpers/organization');
+const { createOrganization } = require('../../helpers/organization');
 
 describe('#get organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return createMembers.call(this, 2); });
   beforeEach(function () { return createOrganization.call(this, {}, 2); });
   afterEach(global.clearRedis);
 
@@ -23,11 +22,12 @@ describe('#get organization', function registerSuite() {
   });
 
   it('must be able to get organization', async function test() {
+    const { invites, ...organization } = this.organization
     return this.dispatch('users.organization.get', { name: this.organization.name })
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        assert.deepEqual(response, this.organization);
+        assert.deepEqual(response, organization);
       });
   });
 

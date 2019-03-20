@@ -12,15 +12,16 @@ const addOrganizationMembers = require('../../../utils/organization/addOrganizat
  * @apiDescription This should be used to add member and send invitation.
  *
  * @apiParam (Payload) {String} name - organization name.
- * @apiParam (Payload) {String} email - member email.
- * @apiParam (Payload) {String} firstName - member first name.
- * @apiParam (Payload) {String} lastName - member last name.
- * @apiParam (Payload) {String[]} permissions - member permission list.
+ * @apiParam (Payload) {Object} member - member.
+ * @apiParam (Payload) {String} member.email - member email.
+ * @apiParam (Payload) {String} member.firstName - member first name.
+ * @apiParam (Payload) {String} member.lastName - member last name.
+ * @apiParam (Payload) {String[]} member.permissions - member permission list.
  */
 async function addOrganizationMember({ params }) {
   const service = this;
   const { config } = service;
-  const { name: organizationName, email, permissions, firstName, lastName } = params;
+  const { name: organizationName, member } = params;
   const { audience } = config.organizations;
 
   const organizationId = await getOrganizationId.call(service, organizationName);
@@ -32,7 +33,7 @@ async function addOrganizationMember({ params }) {
     organizationId,
     organizationName,
     audience,
-    members: [{ username: email, permissions, firstName, lastName }],
+    members: [member],
   });
 }
 

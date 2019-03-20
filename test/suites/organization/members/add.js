@@ -24,7 +24,11 @@ describe('#add member to organization', function registerSuite() {
   it('must be able to add member', async function test() {
     const opts = {
       name: this.organization.name,
-      email: faker.internet.email(),
+      member: {
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+      },
     };
 
     return this.dispatch('users.organization.members.add', opts)
@@ -35,7 +39,11 @@ describe('#add member to organization', function registerSuite() {
   it('must return organization not found error', async function test() {
     const opts = {
       name: faker.company.companyName(),
-      email: faker.internet.email(),
+      member: {
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+      },
     };
 
     return this.dispatch('users.organization.members.add', opts)

@@ -1,4 +1,15 @@
 {
   "type": "object",
-  "$ref": "common.json#/definitions/organizationMember"
+  "required": [
+    "name",
+    "member"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "member": {
+      "$ref": "common.json#/definitions/organizationMember"
+    }
+  }
 }

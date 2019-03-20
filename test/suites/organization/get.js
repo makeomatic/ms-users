@@ -22,7 +22,7 @@ describe('#get organization', function registerSuite() {
   });
 
   it('must be able to get organization', async function test() {
-    const { invites, ...organization } = this.organization
+    const { invites, ...organization } = this.organization;
     return this.dispatch('users.organization.get', { name: this.organization.name })
       .reflect()
       .then(inspectPromise(true))

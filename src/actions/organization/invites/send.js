@@ -1,8 +1,8 @@
-const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
 const generateInvite = require('../../invite');
+const redisKey = require('../../../utils/key');
 const { getOrganizationId } = require('../../../utils/organization');
-const { ErrorOrganizationNotFound } = require('../../../constants');
+const { ErrorOrganizationNotFound, ORGANIZATIONS_MEMBERS, ErrorUserNotMember } = require('../../../constants');
 
 /**
  * @api {amqp} <prefix>.invites.send Send invitation
@@ -14,20 +14,31 @@ const { ErrorOrganizationNotFound } = require('../../../constants');
  * Can potentially be used by other Customers in the same organization
  *
  * @apiParam (Payload) {String} name - organization name.
- * @apiParam (Payload) {String} username - member email.
+ * @apiParam (Payload) {Object} member - member data.
+ * @apiParam (Payload) {String} member.email - member email.
+ * @apiParam (Payload) {String} member.firstName - member first name.
+ * @apiParam (Payload) {String} member.lastName - member last name.
+ * @apiParam (Payload) {String[]} member.permissions - member permission list.
  */
 async function sendOrganizationInvite({ params }) {
   const service = this;
-  const { name: organizationName, email } = params;
+  const { name: organizationName, member } = params;
 
   const organizationId = await getOrganizationId.call(service, organizationName);
   if (!organizationId) {
     throw ErrorOrganizationNotFound;
   }
 
-  return Promise
-    .bind(this, { email })
-    .then(generateInvite);
+  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
+  const userInOrganization = await service.redis.hget(memberKey, 'username');
+  if (!userInOrganization) {
+    throw ErrorUserNotMember;
+  }
+
+  return generateInvite.call(this, { params: {
+    email: member.email,
+    ctx: { firstName: member.firstName, lastName: member.lastName },
+  } });
 }
 
 sendOrganizationInvite.transports = [ActionTransport.amqp, ActionTransport.internal];

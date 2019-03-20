@@ -2,14 +2,14 @@
   "type": "object",
   "required": [
     "name",
-    "email"
+    "member"
   ],
   "properties": {
     "name": {
       "type": "string"
     },
-    "email": {
-      "type": "string"
+    "member": {
+      "$ref": "common.json#/definitions/organizationMember"
     }
   }
 }

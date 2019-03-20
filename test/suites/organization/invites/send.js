@@ -24,7 +24,7 @@ describe('#send invite organization', function registerSuite() {
   it('must be able to send invite to member', async function test() {
     const opts = {
       name: this.organization.name,
-      email: faker.internet.email(),
+      member: this.userNames[0],
     };
 
     return this.dispatch('users.organization.invites.send', opts)
@@ -35,6 +35,7 @@ describe('#send invite organization', function registerSuite() {
   it('must return organization not found error', async function test() {
     const opts = {
       name: faker.company.companyName(),
+      member: this.userNames[0],
     };
 
     return this.dispatch('users.organization.invites.send', opts)

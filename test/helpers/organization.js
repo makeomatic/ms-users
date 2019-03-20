@@ -2,7 +2,7 @@ const faker = require('faker');
 const times = require('lodash/times');
 const { inspectPromise } = require('@makeomatic/deploy');
 
-exports.createMembers = async function (totalUsers = 1) {
+async function createMembers(totalUsers = 1) {
   this.userNames = [];
 
   times(totalUsers, () => {
@@ -12,9 +12,14 @@ exports.createMembers = async function (totalUsers = 1) {
       lastName: faker.name.lastName(),
     });
   });
-};
+}
+
+exports.createMembers = createMembers;
 
 exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
+  if (!this.userNames) {
+    await createMembers.call(this, totalUsers);
+  }
   const opts = {
     name: faker.company.companyName(),
     metadata: {

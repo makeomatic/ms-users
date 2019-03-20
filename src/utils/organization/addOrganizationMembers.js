@@ -1,7 +1,7 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const redisKey = require('../key.js');
-const { generateInvite } = require('../../actions/invite');
+const generateInvite = require('../../actions/invite');
 const handlePipeline = require('../pipelineError.js');
 const { ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS } = require('../../constants.js');
 
@@ -14,18 +14,19 @@ async function addOrganizationMembers(opts) {
   const { redis } = this;
   const { organizationId, members, organizationName } = opts;
 
-  const membersIdsJob = members.map(member => Promise
-    .bind(this, { email: member.email, ctx: { firstName: member.firstName, lastName: member.lastName } })
-    .then(generateInvite));
+  const membersIdsJob = members.map(member => generateInvite.call(this, { params: {
+    email: member.email,
+    ctx: { firstName: member.firstName, lastName: member.lastName },
+  } }));
   const invites = await Promise.all(membersIdsJob);
-  console.log('invites', invites);
 
   const pipe = redis.pipeline();
 
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   members.forEach((member) => {
-    const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.username);
-    const memberOrganizations = redisKey(member.username, USERS_ORGANIZATIONS);
+    const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
+    const memberOrganizations = redisKey(member.email, USERS_ORGANIZATIONS);
+    member.username = member.email;
     member.invited = Date.now();
     member.accepted = null;
     member.permissions = member.permissions || [];
@@ -36,7 +37,7 @@ async function addOrganizationMembers(opts) {
 
   await pipe.exec().then(handlePipeline);
 
-  return true;
+  return invites;
 }
 
 module.exports = addOrganizationMembers;

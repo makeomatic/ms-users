@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
-const { generateInvite } = require('../../invite');
+const generateInvite = require('../../invite');
 const { getOrganizationId } = require('../../../utils/organization');
 const { ErrorOrganizationNotFound } = require('../../../constants');
 

@@ -75,14 +75,19 @@ async function createOrganization({ params }) {
     });
   }
 
-  await addOrganizationMembers.call(service, {
+  const invites = await addOrganizationMembers.call(service, {
     organizationId,
     organizationName,
     audience,
     members,
   });
 
-  return getOrganizationMetadataAndMembers.call(this, organizationId);
+  const response = await getOrganizationMetadataAndMembers.call(this, organizationId);
+
+  return {
+    ...response,
+    invites,
+  };
 }
 
 createOrganization.auth = 'httpBearer';

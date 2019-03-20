@@ -2,14 +2,15 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
+const uuid = require('uuid');
 const { createMembers, createOrganization } = require('../../../helpers/organization');
 
 describe('#accept invite organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return createMembers.call(this); });
-  beforeEach(function () { return createOrganization.call(this); });
+  beforeEach(function () { return createMembers.call(this, 2); });
+  beforeEach(function () { return createOrganization.call(this, {}, 2); });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {
@@ -25,8 +26,8 @@ describe('#accept invite organization', function registerSuite() {
   it('must be able to accept invite to member', async function test() {
     const opts = {
       name: this.organization.name,
-      username: this.userNames[0].username,
-      inviteToken: 'token',
+      username: this.userNames[0].email,
+      inviteToken: this.organization.invites[0].context.token.secret,
     };
 
     await this.dispatch('users.organization.invites.accept', opts)
@@ -38,6 +39,7 @@ describe('#accept invite organization', function registerSuite() {
     const opts = {
       name: faker.company.companyName(),
       username: faker.internet.email(),
+      inviteToken: uuid.v4(),
     };
 
     return this.dispatch('users.organization.invites.accept', opts)
@@ -53,6 +55,7 @@ describe('#accept invite organization', function registerSuite() {
     const acceptOpts = {
       name: this.organization.name,
       username: faker.internet.email(),
+      inviteToken: uuid.v4(),
     };
 
     return this.dispatch('users.organization.invites.accept', acceptOpts)

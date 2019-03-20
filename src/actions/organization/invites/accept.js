@@ -10,6 +10,26 @@ const {
 const redisKey = require('../../../utils/key.js');
 
 /**
+ * Token verification function, on top of it returns extra metadata
+ * @return {Promise}
+ */
+async function verifyToken(tokenManager, params) {
+  // we must ensure that token matches supplied ID
+  // it can be overwritten by sending `anyUsername: true`
+  const control = {
+    action: USERS_ACTION_INVITE,
+    id: params.username,
+  };
+
+  const token = await tokenManager
+    .verify(params.inviteToken, { erase: false, control });
+
+  if (!token.isFirstVerification) {
+    throw ErrorInvitationExpiredOrUsed;
+  }
+}
+
+/**
  * @api {amqp} <prefix>.invites.accept Accept invitation
  * @apiVersion 1.0.0
  * @apiName invites.accept
@@ -35,6 +55,8 @@ async function acceptOrganizationMember({ params }) {
     throw ErrorUserNotMember;
   }
 
+  await verifyToken(this.tokenManager, params);
+
   const userAlreadyAccepted = await redis.hget(memberKey, 'accepted');
 
   if (userAlreadyAccepted) {
@@ -45,33 +67,5 @@ async function acceptOrganizationMember({ params }) {
 }
 
 acceptOrganizationMember.transports = [ActionTransport.amqp, ActionTransport.internal];
-
-/**
- * Token verification function, on top of it returns extra metadata
- * @return {Promise}
- */
-async function verifyToken(tokenManager, params) {
-  // we must ensure that token matches supplied ID
-  // it can be overwritten by sending `anyUsername: true`
-  const control = {
-    action: USERS_ACTION_INVITE,
-    id: params.username,
-  };
-
-  const token = await tokenManager
-    .verify(params.inviteToken, { erase: false, control });
-
-  if (!token.isFirstVerification) {
-    throw ErrorInvitationExpiredOrUsed;
-  }
-}
-
-acceptOrganizationMember.allowed = async function checkInviteToken({ params }) {
-  if (params.inviteToken) {
-    await verifyToken(this.tokenManager, params);
-  }
-
-  return null;
-};
 
 module.exports = acceptOrganizationMember;

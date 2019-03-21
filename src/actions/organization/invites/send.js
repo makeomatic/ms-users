@@ -1,8 +1,8 @@
 const { ActionTransport } = require('@microfleet/core');
 const generateInvite = require('../../invite');
 const redisKey = require('../../../utils/key');
-const { getOrganizationId } = require('../../../utils/organization');
-const { ErrorOrganizationNotFound, ORGANIZATIONS_MEMBERS, ErrorUserNotMember } = require('../../../constants');
+const { checkOrganizationExists } = require('../../../utils/organization');
+const { ORGANIZATIONS_MEMBERS, ErrorUserNotMember } = require('../../../constants');
 
 /**
  * @api {amqp} <prefix>.invites.send Send invitation
@@ -22,12 +22,8 @@ const { ErrorOrganizationNotFound, ORGANIZATIONS_MEMBERS, ErrorUserNotMember } =
  */
 async function sendOrganizationInvite({ params }) {
   const service = this;
-  const { name: organizationName, member } = params;
-
-  const organizationId = await getOrganizationId.call(service, organizationName);
-  if (!organizationId) {
-    throw ErrorOrganizationNotFound;
-  }
+  const { organizationId } = this.locals;
+  const { member } = params;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
   const userInOrganization = await service.redis.hget(memberKey, 'username');
@@ -41,5 +37,6 @@ async function sendOrganizationInvite({ params }) {
   } });
 }
 
+sendOrganizationInvite.allowed = checkOrganizationExists;
 sendOrganizationInvite.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = sendOrganizationInvite;

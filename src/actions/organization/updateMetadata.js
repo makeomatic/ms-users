@@ -1,7 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
 const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
-const { getOrganizationId, getOrganizationMetadata } = require('../../utils/organization');
-const { ErrorOrganizationNotFound } = require('../../constants');
+const { checkOrganizationExists, getOrganizationMetadata } = require('../../utils/organization');
 
 /**
  * @api {amqp} <prefix>.updateMetadata Update metadata organization
@@ -18,18 +17,13 @@ const { ErrorOrganizationNotFound } = require('../../constants');
  * @apiSuccess (Response) {Object} metadata - organization metadata
  */
 async function updateOrganizationMetadata({ params }) {
-  const service = this;
-  const { config } = service;
-  const { name: organizationName, metadata } = params;
+  const { config, locals } = this;
+  const { organizationId } = locals;
+  const { metadata } = params;
   const { audience } = config.organizations;
 
-  const organizationId = await getOrganizationId.call(service, organizationName);
-  if (!organizationId) {
-    throw ErrorOrganizationNotFound;
-  }
-
   if (metadata) {
-    await setOrganizationMetadata.call(service, {
+    await setOrganizationMetadata.call(this, {
       organizationId,
       audience,
       metadata,
@@ -40,5 +34,6 @@ async function updateOrganizationMetadata({ params }) {
   return { metadata: data };
 }
 
+updateOrganizationMetadata.allowed = checkOrganizationExists;
 updateOrganizationMetadata.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = updateOrganizationMetadata;

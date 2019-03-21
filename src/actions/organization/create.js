@@ -49,11 +49,6 @@ async function createOrganization({ params }) {
   const { audience } = config.organizations;
   const normalizedOrganizationName = snakeCase(organizationName);
 
-  const organizationExists = await getOrganizationId.call(service, organizationName);
-  if (organizationExists) {
-    throw ErrorConflictOrganizationExists;
-  }
-
   const organizationId = service.flake.next();
   const pipeline = redis.pipeline();
   const basicInfo = {
@@ -90,7 +85,17 @@ async function createOrganization({ params }) {
   };
 }
 
-createOrganization.auth = 'httpBearer';
+createOrganization.auth = 'bearer';
 createOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
+createOrganization.allowed = async function checkOrganizationExistsConflict({ params }) {
+  const { name: organizationName } = params;
+
+  const organizationExists = await getOrganizationId.call(this, organizationName);
+  if (organizationExists) {
+    throw ErrorConflictOrganizationExists;
+  }
+
+  return null;
+};
 
 module.exports = createOrganization;

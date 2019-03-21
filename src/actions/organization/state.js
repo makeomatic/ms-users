@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
-const { getOrganizationId } = require('../../utils/organization');
-const { ErrorOrganizationNotFound, ORGANIZATIONS_ACTIVE_FLAG, ORGANIZATIONS_DATA } = require('../../constants');
+const { checkOrganizationExists } = require('../../utils/organization');
+const { ORGANIZATIONS_ACTIVE_FLAG, ORGANIZATIONS_DATA } = require('../../constants');
 const redisKey = require('../../utils/key');
 
 /**
@@ -15,18 +15,14 @@ const redisKey = require('../../utils/key');
  * @apiParam (Payload) {Boolean} active=false - organization state.
  */
 async function updateOrganizationState({ params }) {
-  const service = this;
-  const { redis } = service;
-  const { name: organizationName, active = false } = params;
-
-  const organizationId = await getOrganizationId.call(service, organizationName);
-  if (!organizationId) {
-    throw ErrorOrganizationNotFound;
-  }
+  const { redis, locals } = this;
+  const { organizationId } = locals;
+  const { active = false } = params;
 
   const organizationDataKey = redisKey(organizationId, ORGANIZATIONS_DATA);
   return redis.hset(organizationDataKey, ORGANIZATIONS_ACTIVE_FLAG, active);
 }
 
+updateOrganizationState.allowed = checkOrganizationExists;
 updateOrganizationState.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = updateOrganizationState;

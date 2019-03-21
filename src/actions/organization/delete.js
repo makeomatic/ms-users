@@ -1,9 +1,8 @@
 const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const { getOrganizationId } = require('../../utils/organization');
+const { checkOrganizationExists } = require('../../utils/organization');
 const {
-  ErrorOrganizationNotFound,
   ORGANIZATIONS_DATA,
   ORGANIZATIONS_METADATA,
   ORGANIZATIONS_MEMBERS,
@@ -26,11 +25,7 @@ async function deleteOrganization({ params }) {
   const { redis, config } = service;
   const { name: organizationName } = params;
   const { audience } = config.organizations;
-
-  const organizationId = await getOrganizationId.call(service, organizationName);
-  if (!organizationId) {
-    throw ErrorOrganizationNotFound;
-  }
+  const { organizationId } = this.locals;
 
   const organizationMembersListKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const organizationMembersIds = await redis.zscan(organizationMembersListKey, 0);
@@ -53,5 +48,7 @@ async function deleteOrganization({ params }) {
   return pipeline.exec().then(handlePipeline);
 }
 
+deleteOrganization.auth = 'bearer';
+deleteOrganization.allowed = checkOrganizationExists;
 deleteOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = deleteOrganization;

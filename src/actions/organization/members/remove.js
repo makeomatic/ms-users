@@ -1,9 +1,8 @@
 const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../../../utils/key');
 const handlePipeline = require('../../../utils/pipelineError');
-const { getOrganizationId } = require('../../../utils/organization');
+const { checkOrganizationExists } = require('../../../utils/organization');
 const {
-  ErrorOrganizationNotFound,
   ORGANIZATIONS_MEMBERS,
   USERS_ORGANIZATIONS,
   ErrorUserNotMember,
@@ -21,14 +20,9 @@ const {
  * @apiParam (Payload) {String} username - member email.
  */
 async function removeMember({ params }) {
-  const service = this;
-  const { redis } = service;
+  const { redis, locals } = this;
   const { name: organizationName, username } = params;
-
-  const organizationId = await getOrganizationId.call(service, organizationName);
-  if (!organizationId) {
-    throw ErrorOrganizationNotFound;
-  }
+  const { organizationId } = locals;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, username);
   const userInOrganization = await redis.hget(memberKey, 'username');
@@ -44,5 +38,6 @@ async function removeMember({ params }) {
   return pipeline.exec().then(handlePipeline);
 }
 
+removeMember.allowed = checkOrganizationExists;
 removeMember.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = removeMember;

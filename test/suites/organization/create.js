@@ -1,14 +1,40 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
+const Promise = require('bluebird');
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
 const { createMembers } = require('../../helpers/organization');
+const jwt = require('../../../src/utils/jwt');
 
 describe('#create organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
   beforeEach(function () { return createMembers.call(this, 2); });
+  beforeEach(async function pretest() {
+    await this.users.dispatch('register', {
+      params: {
+        username: 'v@makeomatic.ru',
+        password: '123',
+        audience: 'test',
+        metadata: {
+          fine: true,
+        },
+      },
+    });
+
+    const [bearer] = await Promise.all([
+      this.users.dispatch('token.create', {
+        params: {
+          username: 'v@makeomatic.ru',
+          name: 'sample',
+        },
+      }),
+      jwt.login.call(this.users, 'v@makeomatic.ru', 'test'),
+    ]);
+
+    this.bearerAuthHeaders = { authorization: `Bearer ${bearer}` };
+  });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {

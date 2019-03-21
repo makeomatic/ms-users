@@ -1,6 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
-const { getOrganizationId } = require('../../../utils/organization');
-const { ErrorOrganizationNotFound } = require('../../../constants');
+const { checkOrganizationExists } = require('../../../utils/organization');
 const addOrganizationMembers = require('../../../utils/organization/addOrganizationMembers');
 
 /**
@@ -19,17 +18,12 @@ const addOrganizationMembers = require('../../../utils/organization/addOrganizat
  * @apiParam (Payload) {String[]} member.permissions - member permission list.
  */
 async function addOrganizationMember({ params }) {
-  const service = this;
-  const { config } = service;
+  const { config, locals } = this;
+  const { organizationId } = locals;
   const { name: organizationName, member } = params;
   const { audience } = config.organizations;
 
-  const organizationId = await getOrganizationId.call(service, organizationName);
-  if (!organizationId) {
-    throw ErrorOrganizationNotFound;
-  }
-
-  return addOrganizationMembers.call(service, {
+  return addOrganizationMembers.call(this, {
     organizationId,
     organizationName,
     audience,
@@ -37,5 +31,6 @@ async function addOrganizationMember({ params }) {
   });
 }
 
+addOrganizationMember.allowed = checkOrganizationExists;
 addOrganizationMember.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = addOrganizationMember;

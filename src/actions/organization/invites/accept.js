@@ -1,7 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
-const { getOrganizationId } = require('../../../utils/organization');
+const { checkOrganizationExists } = require('../../../utils/organization');
 const {
-  ErrorOrganizationNotFound,
   ErrorUserNotMember,
   ORGANIZATIONS_MEMBERS,
   USERS_ACTION_INVITE,
@@ -41,13 +40,9 @@ async function verifyToken(tokenManager, params) {
  * @apiParam (Payload) {String} username - member email.
  */
 async function acceptOrganizationMember({ params }) {
-  const { redis } = this;
-  const { name: organizationName, username } = params;
-
-  const organizationId = await getOrganizationId.call(this, organizationName);
-  if (!organizationId) {
-    throw ErrorOrganizationNotFound;
-  }
+  const { redis, locals } = this;
+  const { organizationId } = locals;
+  const { username } = params;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, username);
   const userInOrganization = await redis.hget(memberKey, 'username');
@@ -66,6 +61,7 @@ async function acceptOrganizationMember({ params }) {
   return redis.hset(memberKey, 'accepted', Date.now());
 }
 
+acceptOrganizationMember.allowed = checkOrganizationExists;
 acceptOrganizationMember.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = acceptOrganizationMember;

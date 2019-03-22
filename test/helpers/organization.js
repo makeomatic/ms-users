@@ -25,7 +25,7 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
   await this.users.dispatch('register', {
     params: {
       username: 'v@makeomatic.ru',
-      password: '123',
+      password: '123456',
       audience: 'test',
       metadata: {
         fine: true,

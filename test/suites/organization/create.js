@@ -1,44 +1,18 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
-const Promise = require('bluebird');
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
-const { createMembers } = require('../../helpers/organization');
-const jwt = require('../../../src/utils/jwt');
+const { createOrganization } = require('../../helpers/organization');
 
 describe('#create organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return createMembers.call(this, 2); });
-  beforeEach(async function pretest() {
-    await this.users.dispatch('register', {
-      params: {
-        username: 'v@makeomatic.ru',
-        password: '123',
-        audience: 'test',
-        metadata: {
-          fine: true,
-        },
-      },
-    });
-
-    const [bearer] = await Promise.all([
-      this.users.dispatch('token.create', {
-        params: {
-          username: 'v@makeomatic.ru',
-          name: 'sample',
-        },
-      }),
-      jwt.login.call(this.users, 'v@makeomatic.ru', 'test'),
-    ]);
-
-    this.bearerAuthHeaders = { authorization: `Bearer ${bearer}` };
-  });
+  beforeEach(function () { return createOrganization.call(this, {}, 2); });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('users.organization.create', {})
+    return this.users.dispatch('organization.create', { headers: this.bearerAuthHeaders })
       .reflect()
       .then(inspectPromise(false))
       .then((response) => {
@@ -48,7 +22,7 @@ describe('#create organization', function registerSuite() {
   });
 
   it('must be able to create organization', function test() {
-    const opts = {
+    const params = {
       name: faker.company.companyName(),
       metadata: {
         description: 'test organization',
@@ -56,12 +30,12 @@ describe('#create organization', function registerSuite() {
       members: this.userNames.slice(0, 2),
     };
 
-    return this.dispatch('users.organization.create', opts)
+    return this.users.dispatch('organization.create', { params, headers: this.bearerAuthHeaders })
       .reflect()
       .then(inspectPromise(true))
       .then((createdOrganization) => {
-        assert(createdOrganization.name === opts.name);
-        assert(createdOrganization.metadata.description === opts.metadata.description);
+        assert(createdOrganization.name === params.name);
+        assert(createdOrganization.metadata.description === params.metadata.description);
         assert(createdOrganization.members.length === 2);
         assert.ok(createdOrganization.id);
         assert.ok(createdOrganization.active);
@@ -69,12 +43,11 @@ describe('#create organization', function registerSuite() {
   });
 
   it('must return organization exists error', async function test() {
-    const opts = {
-      name: faker.company.companyName(),
+    const params = {
+      name: this.organization.name,
     };
 
-    await this.dispatch('users.organization.create', opts).reflect();
-    return this.dispatch('users.organization.create', opts)
+    return this.users.dispatch('organization.create', { params, headers: this.bearerAuthHeaders })
       .reflect()
       .then(inspectPromise(false))
       .then((response) => {

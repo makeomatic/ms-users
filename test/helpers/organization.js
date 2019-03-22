@@ -1,6 +1,8 @@
+const Promise = require('bluebird');
 const faker = require('faker');
 const times = require('lodash/times');
 const { inspectPromise } = require('@makeomatic/deploy');
+const jwt = require('../../src/utils/jwt');
 
 async function createMembers(totalUsers = 1) {
   this.userNames = [];
@@ -20,7 +22,30 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
   if (!this.userNames) {
     await createMembers.call(this, totalUsers);
   }
-  const opts = {
+  await this.users.dispatch('register', {
+    params: {
+      username: 'v@makeomatic.ru',
+      password: '123',
+      audience: 'test',
+      metadata: {
+        fine: true,
+      },
+    },
+  });
+
+  const [bearer] = await Promise.all([
+    this.users.dispatch('token.create', {
+      params: {
+        username: 'v@makeomatic.ru',
+        name: 'sample',
+      },
+    }),
+    jwt.login.call(this.users, 'v@makeomatic.ru', 'test'),
+  ]);
+
+  this.bearerAuthHeaders = { authorization: `Bearer ${bearer}` };
+
+  const params = {
     name: faker.company.companyName(),
     metadata: {
       description: 'Test description',
@@ -29,6 +54,9 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
     members: this.userNames.slice(0, totalUsers),
     ...customOpts,
   };
-  this.organization = await this.dispatch('users.organization.create', opts).reflect().then(inspectPromise(true));
+  this.organization = await this.users
+    .dispatch('organization.create', { params, headers: this.bearerAuthHeaders })
+    .reflect()
+    .then(inspectPromise(true));
   return this.organization;
 };

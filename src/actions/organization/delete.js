@@ -8,6 +8,7 @@ const {
   ORGANIZATIONS_MEMBERS,
   ORGANIZATIONS_NAME_TO_ID,
   USERS_ORGANIZATIONS,
+  ORGANIZATIONS_INDEX,
 } = require('../../constants');
 
 /**
@@ -34,6 +35,7 @@ async function deleteOrganization({ params }) {
 
   pipeline.del(redisKey(organizationId, ORGANIZATIONS_DATA));
   pipeline.del(redisKey(organizationId, ORGANIZATIONS_METADATA, audience));
+  pipeline.srem(ORGANIZATIONS_INDEX, organizationId);
   if (organizationMembersIds) {
     organizationMembersIds[1].forEach((memberId, index) => {
       if (index === 0 || index % 2 === 0) {

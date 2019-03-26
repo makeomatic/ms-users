@@ -11,6 +11,7 @@ const {
   ORGANIZATIONS_ACTIVE_FLAG,
   ORGANIZATIONS_DATA,
   ORGANIZATIONS_NAME_TO_ID,
+  ORGANIZATIONS_INDEX,
 } = require('../../constants');
 
 /**
@@ -58,6 +59,7 @@ async function createOrganization({ params }) {
   const organizationDataKey = redisKey(organizationId, ORGANIZATIONS_DATA);
   pipeline.hmset(organizationDataKey, basicInfo);
   pipeline.hset(ORGANIZATIONS_NAME_TO_ID, normalizedOrganizationName, organizationId);
+  pipeline.sadd(ORGANIZATIONS_INDEX, organizationId);
   await pipeline.exec().then(handlePipeline);
 
   if (metadata) {

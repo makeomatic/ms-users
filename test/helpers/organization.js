@@ -22,6 +22,7 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
   if (!this.userNames) {
     await createMembers.call(this, totalUsers);
   }
+
   await this.users.dispatch('register', {
     params: {
       username: 'v@makeomatic.ru',
@@ -31,7 +32,7 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
         fine: true,
       },
     },
-  });
+  }).catch(() => null);
 
   const [bearer] = await Promise.all([
     this.users.dispatch('token.create', {

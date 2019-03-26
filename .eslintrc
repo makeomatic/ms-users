@@ -14,7 +14,6 @@
     }, {
       "enforceForRenamedProperties": false
     }],
-    "object-curly-newline": 0,
-    "promise/no-native": "off"
+    "object-curly-newline": 0
   }
 }

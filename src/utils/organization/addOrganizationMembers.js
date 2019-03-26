@@ -1,4 +1,5 @@
 /* eslint-disable no-mixed-operators */
+const Promise = require('bluebird');
 const redisKey = require('../key.js');
 const generateInvite = require('../../actions/invite');
 const handlePipeline = require('../pipelineError.js');

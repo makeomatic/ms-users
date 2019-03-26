@@ -21,8 +21,8 @@ const { getOrganizationMetadataAndMembers, checkOrganizationExists } = require('
  * @apiSuccess (Response) {String[]} members.permissions - member permission list.
  * @apiSuccess (Response) {Object} metadata - organization metadata
  */
-async function getOrganization() {
-  const { organizationId } = this.locals;
+async function getOrganization({ locals }) {
+  const { organizationId } = locals;
   return getOrganizationMetadataAndMembers.call(this, organizationId);
 }
 

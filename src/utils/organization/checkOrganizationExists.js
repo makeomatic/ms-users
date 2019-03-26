@@ -1,14 +1,11 @@
 const getOrganizationId = require('./getOrganizationId');
 const { ErrorOrganizationNotFound } = require('../../constants');
 
-async function checkOrganizationExists({ params }) {
-  const { name: organizationName } = params;
-  if (!this.locals) {
-    this.locals = {};
-  }
+async function checkOrganizationExists(request) {
+  const { name: organizationName } = request.params;
 
-  this.locals.organizationId = await getOrganizationId.call(this, organizationName);
-  if (!this.locals.organizationId) {
+  request.locals.organizationId = await getOrganizationId.call(this, organizationName);
+  if (!request.locals.organizationId) {
     throw ErrorOrganizationNotFound;
   }
 }

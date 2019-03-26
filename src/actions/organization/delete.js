@@ -21,12 +21,12 @@ const {
  *
  * @apiParam (Payload) {String} name - organization name.
  */
-async function deleteOrganization({ params }) {
+async function deleteOrganization({ params, locals }) {
   const service = this;
   const { redis, config } = service;
   const { name: organizationName } = params;
   const { audience } = config.organizations;
-  const { organizationId } = this.locals;
+  const { organizationId } = locals;
 
   const organizationMembersListKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const organizationMembersIds = await redis.zscan(organizationMembersListKey, 0);

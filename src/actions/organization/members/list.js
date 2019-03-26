@@ -20,8 +20,8 @@ const { getOrganizationMembers } = require('../../../utils/organization');
  * @apiSuccess (Response) {Date} members.accepted - member accept invite date.
  * @apiSuccess (Response) {String[]} members.permissions - member permission list.
  */
-async function organizationMembersList() {
-  const { organizationId } = this.locals;
+async function organizationMembersList({ locals }) {
+  const { organizationId } = locals;
 
   const members = await getOrganizationMembers.call(this, organizationId);
   return { members };

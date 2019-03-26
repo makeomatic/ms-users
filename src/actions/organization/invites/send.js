@@ -20,9 +20,9 @@ const { ORGANIZATIONS_MEMBERS, ErrorUserNotMember } = require('../../../constant
  * @apiParam (Payload) {String} member.lastName - member last name.
  * @apiParam (Payload) {String[]} member.permissions - member permission list.
  */
-async function sendOrganizationInvite({ params }) {
+async function sendOrganizationInvite({ params, locals }) {
   const service = this;
-  const { organizationId } = this.locals;
+  const { organizationId } = locals;
   const { member } = params;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);

@@ -11,8 +11,8 @@ const { getOrganizationMetadata, checkOrganizationExists } = require('../../util
  *
  * @apiSuccess (Response) {Object} metadata - organization metadata
  */
-async function organizationMetadata() {
-  const { organizationId } = this.locals;
+async function organizationMetadata({ locals }) {
+  const { organizationId } = locals;
 
   const metadata = await getOrganizationMetadata.call(this, organizationId);
   return { metadata };

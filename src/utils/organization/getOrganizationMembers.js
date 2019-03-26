@@ -4,7 +4,7 @@ const redisKey = require('../key');
 
 async function getOrganizationMembers(organizationId) {
   const { redis } = this;
-  const organizationMembersIds = await redis.zscan(redisKey(organizationId, ORGANIZATIONS_MEMBERS), 0);
+  const organizationMembersIds = await redis.zrange(redisKey(organizationId, ORGANIZATIONS_MEMBERS), 0, -1);
   let organizationMembersJobs = [];
   if (organizationMembersIds) {
     organizationMembersJobs = organizationMembersIds[1].reduce((acc, memberId, index) => {

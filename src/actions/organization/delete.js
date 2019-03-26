@@ -29,7 +29,7 @@ async function deleteOrganization({ params, locals }) {
   const { organizationId } = locals;
 
   const organizationMembersListKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
-  const organizationMembersIds = await redis.zscan(organizationMembersListKey, 0);
+  const organizationMembersIds = await redis.zrange(organizationMembersListKey, 0, -1);
 
   const pipeline = redis.pipeline();
 

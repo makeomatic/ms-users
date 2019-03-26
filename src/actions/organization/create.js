@@ -12,6 +12,7 @@ const {
   ORGANIZATIONS_DATA,
   ORGANIZATIONS_NAME_TO_ID,
   ORGANIZATIONS_INDEX,
+  lockOrganization,
 } = require('../../constants');
 
 /**
@@ -43,7 +44,7 @@ const {
  * @apiSuccess (Response) {String[]} members.permissions - member permission list.
  * @apiSuccess (Response) {Object} metadata - organization metadata
  */
-async function createOrganization({ params }) {
+async function createOrganization({ params, locals }) {
   const service = this;
   const { redis, config } = service;
   const { name: organizationName, active = false, metadata, members } = params;
@@ -61,6 +62,10 @@ async function createOrganization({ params }) {
   pipeline.hset(ORGANIZATIONS_NAME_TO_ID, normalizedOrganizationName, organizationId);
   pipeline.sadd(ORGANIZATIONS_INDEX, organizationId);
   await pipeline.exec().then(handlePipeline);
+
+  if (locals.lock !== undefined) {
+    await locals.lock.release();
+  }
 
   if (metadata) {
     await setOrganizationMetadata.call(service, {
@@ -89,13 +94,15 @@ async function createOrganization({ params }) {
 
 createOrganization.auth = 'bearer';
 createOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
-createOrganization.allowed = async function checkOrganizationExistsConflict({ params }) {
-  const { name: organizationName } = params;
+createOrganization.allowed = async function checkOrganizationExistsConflict({ params, locals }) {
+  const { name } = params;
 
-  const organizationExists = await getOrganizationId.call(this, organizationName);
+  const organizationExists = await getOrganizationId.call(this, name);
   if (organizationExists) {
     throw ErrorConflictOrganizationExists;
   }
+
+  locals.lock = await this.dlock.once(lockOrganization(name));
 
   return null;
 };

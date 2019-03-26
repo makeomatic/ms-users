@@ -104,6 +104,7 @@ module.exports = exports = {
   // lock names
   lockAlias: alias => `users:alias:${alias}`,
   lockRegister: username => `users:register:${username}`,
+  lockOrganization: organizationName => `organizations:create:${organizationName}`,
 };
 
 // embed error codes

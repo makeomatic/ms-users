@@ -6,15 +6,11 @@ if redis.call("EXISTS", organizationDataKey) == 0 then
   return redis.error_reply("E404");
 end
 
-if redis.call("EXISTS", organizationDataKey) == 1 then
-  if fetchData == "0" then
-    return { organizationId };
-  end
-
-  return {
-    organizationId,
-    redis.call("HGETALL", organizationDataKey)
-  };
+if fetchData == "0" then
+  return { organizationId };
 end
 
-return nil;
+return {
+  organizationId,
+  redis.call("HGETALL", organizationDataKey)
+};

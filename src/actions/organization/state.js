@@ -11,16 +11,22 @@ const redisKey = require('../../utils/key');
  *
  * @apiDescription This should be used to update organization state.
  *
- * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  * @apiParam (Payload) {Boolean} active=false - organization state.
  */
 async function updateOrganizationState({ params }) {
-  const { redis, locals } = this;
-  const { organizationId } = locals;
-  const { active = false } = params;
+  const { redis } = this;
+  const { organizationId, active = false } = params;
 
   const organizationDataKey = redisKey(organizationId, ORGANIZATIONS_DATA);
-  return redis.hset(organizationDataKey, ORGANIZATIONS_ACTIVE_FLAG, active);
+  await redis.hset(organizationDataKey, ORGANIZATIONS_ACTIVE_FLAG, active);
+
+  return {
+    data: {
+      id: organizationId,
+      active,
+    },
+  };
 }
 
 updateOrganizationState.allowed = checkOrganizationExists;

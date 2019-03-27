@@ -33,7 +33,8 @@ describe('#create organization', function registerSuite() {
     return this.users.dispatch('organization.create', { params, headers: this.bearerAuthHeaders })
       .reflect()
       .then(inspectPromise(true))
-      .then((createdOrganization) => {
+      .then((response) => {
+        const createdOrganization = response.data;
         assert(createdOrganization.name === params.name);
         assert(createdOrganization.metadata.description === params.metadata.description);
         assert(createdOrganization.members.length === 2);

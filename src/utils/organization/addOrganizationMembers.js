@@ -12,7 +12,7 @@ const { ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS } = require('../../constants.
  */
 async function addOrganizationMembers(opts) {
   const { redis } = this;
-  const { organizationId, members, organizationName } = opts;
+  const { organizationId, members } = opts;
 
   const pipe = redis.pipeline();
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
@@ -24,7 +24,7 @@ async function addOrganizationMembers(opts) {
     member.accepted = null;
     member.permissions = member.permissions || [];
     pipe.hmset(memberKey, member);
-    pipe.hset(memberOrganizations, organizationName, JSON.stringify(member.permissions));
+    pipe.hset(memberOrganizations, organizationId, JSON.stringify(member.permissions));
     pipe.zadd(membersKey, member.invited, memberKey);
   });
 

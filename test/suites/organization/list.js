@@ -30,12 +30,12 @@ describe('#organizations list', function registerSuite() {
     return this.dispatch('users.organization.list', opts)
       .reflect()
       .then(inspectPromise(true))
-      .then((response) => {
-        assert.equal(response.total, organizationsLength);
-        assert.equal(response.cursor, opts.limit + opts.offset);
-        assert.equal(response.page, 1);
-        assert.equal(response.pages, organizationsLength / opts.limit);
-        response.organizations.forEach((organization) => {
+      .then(({ data, meta }) => {
+        assert.equal(meta.total, organizationsLength);
+        assert.equal(meta.cursor, opts.limit + opts.offset);
+        assert.equal(meta.page, 1);
+        assert.equal(meta.pages, organizationsLength / opts.limit);
+        data.forEach((organization) => {
           expect(organization).to.have.ownProperty('id');
           expect(organization).to.have.ownProperty('metadata');
           expect(organization).to.have.ownProperty('name');
@@ -64,12 +64,12 @@ describe('#organizations list', function registerSuite() {
     return this.dispatch('users.organization.list', opts)
       .reflect()
       .then(inspectPromise(true))
-      .then((response) => {
-        assert.equal(response.total, 1);
-        assert.equal(response.cursor, 1);
-        assert.equal(response.page, 1);
-        assert.equal(response.pages, 1);
-        assert.deepEqual(response.organizations[0], organization);
+      .then(({ data, meta }) => {
+        assert.equal(meta.total, 1);
+        assert.equal(meta.cursor, 1);
+        assert.equal(meta.page, 1);
+        assert.equal(meta.pages, 1);
+        assert.deepEqual(data[0], organization);
       });
   });
 });

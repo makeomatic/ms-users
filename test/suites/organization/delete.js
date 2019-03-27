@@ -23,9 +23,8 @@ describe('#delete organization', function registerSuite() {
 
   it('must be able to remove organization', async function test() {
     const params = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
     };
-
     return this.users.dispatch('organization.delete', { params, headers: this.bearerAuthHeaders })
       .reflect()
       .then(inspectPromise());
@@ -33,7 +32,7 @@ describe('#delete organization', function registerSuite() {
 
   it('must return organization not exists error', async function test() {
     const params = {
-      name: faker.company.companyName(),
+      organizationId: faker.company.companyName(),
     };
 
     return this.users.dispatch('organization.delete', { params, headers: this.bearerAuthHeaders })

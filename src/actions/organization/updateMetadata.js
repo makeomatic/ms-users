@@ -10,16 +10,15 @@ const { checkOrganizationExists, getOrganizationMetadata } = require('../../util
  *
  * @apiDescription This should be used to update organization metadata.
  *
- * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  * @apiParam (Payload) {Object} metadata - metadata operations,
  *   supports `$set key:value`, `$remove keys[]`, `$incr key:diff`
  *
  * @apiSuccess (Response) {Object} metadata - organization metadata
  */
 async function updateOrganizationMetadata({ params }) {
-  const { config, locals } = this;
-  const { organizationId } = locals;
-  const { metadata } = params;
+  const { config } = this;
+  const { metadata, organizationId } = params;
   const { audience } = config.organizations;
 
   if (metadata) {
@@ -31,7 +30,12 @@ async function updateOrganizationMetadata({ params }) {
   }
 
   const data = await getOrganizationMetadata.call(this, organizationId);
-  return { metadata: data };
+  return {
+    data: {
+      id: organizationId,
+      metadata: data,
+    },
+  };
 }
 
 updateOrganizationMetadata.allowed = checkOrganizationExists;

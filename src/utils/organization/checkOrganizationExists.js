@@ -1,13 +1,8 @@
-const getOrganizationId = require('./getOrganizationId');
-const { ErrorOrganizationNotFound } = require('../../constants');
+const getInternalData = require('./getInternalData');
 
 async function checkOrganizationExists(request) {
-  const { name: organizationName } = request.params;
-
-  request.locals.organizationId = await getOrganizationId.call(this, organizationName);
-  if (!request.locals.organizationId) {
-    throw ErrorOrganizationNotFound;
-  }
+  const { organizationId } = request.params;
+  await getInternalData.call(this, organizationId, false);
 }
 
 module.exports = checkOrganizationExists;

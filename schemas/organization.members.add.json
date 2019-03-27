@@ -1,11 +1,11 @@
 {
   "type": "object",
   "required": [
-    "name",
+    "organizationId",
     "member"
   ],
   "properties": {
-    "name": {
+    "organizationId": {
       "type": "string"
     },
     "member": {

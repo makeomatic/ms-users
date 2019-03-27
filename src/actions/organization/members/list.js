@@ -10,7 +10,7 @@ const { getOrganizationMembers } = require('../../../utils/organization');
  *
  * @apiDescription This should be used to get organization members list.
  *
- * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  *
  * @apiSuccess (Response) {Object[]} members - organization members.
  * @apiSuccess (Response) {String} members.username - member email.
@@ -20,11 +20,11 @@ const { getOrganizationMembers } = require('../../../utils/organization');
  * @apiSuccess (Response) {Date} members.accepted - member accept invite date.
  * @apiSuccess (Response) {String[]} members.permissions - member permission list.
  */
-async function organizationMembersList({ locals }) {
-  const { organizationId } = locals;
+async function organizationMembersList({ params }) {
+  const { organizationId } = params;
 
   const members = await getOrganizationMembers.call(this, organizationId);
-  return { members };
+  return { data: { id: organizationId, members } };
 }
 
 organizationMembersList.allowed = checkOrganizationExists;

@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
-const { checkOrganizationExists } = require('../../utils/organization');
+const { checkOrganizationExists, getInternalData } = require('../../utils/organization');
 const {
   ORGANIZATIONS_DATA,
   ORGANIZATIONS_METADATA,
@@ -9,6 +9,7 @@ const {
   ORGANIZATIONS_NAME_TO_ID,
   USERS_ORGANIZATIONS,
   ORGANIZATIONS_INDEX,
+  ORGANIZATIONS_NAME_FIELD,
 } = require('../../constants');
 
 /**
@@ -19,17 +20,17 @@ const {
  *
  * @apiDescription This should be used to delete organization.
  *
- * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  */
-async function deleteOrganization({ params, locals }) {
+async function deleteOrganization({ params }) {
   const service = this;
   const { redis, config } = service;
-  const { name: organizationName } = params;
+  const { organizationId } = params;
   const { audience } = config.organizations;
-  const { organizationId } = locals;
 
   const organizationMembersListKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const organizationMembersIds = await redis.zrange(organizationMembersListKey, 0, -1);
+  const organization = await getInternalData.call(this, organizationId);
 
   const pipeline = redis.pipeline();
 
@@ -37,15 +38,13 @@ async function deleteOrganization({ params, locals }) {
   pipeline.del(redisKey(organizationId, ORGANIZATIONS_METADATA, audience));
   pipeline.srem(ORGANIZATIONS_INDEX, organizationId);
   if (organizationMembersIds) {
-    organizationMembersIds[1].forEach((memberId, index) => {
-      if (index === 0 || index % 2 === 0) {
-        pipeline.del(memberId);
-        pipeline.hdel(redisKey(memberId.split('!').pop(), USERS_ORGANIZATIONS), organizationName);
-      }
+    organizationMembersIds.forEach((memberId) => {
+      pipeline.del(memberId);
+      pipeline.hdel(redisKey(memberId.split('!').pop(), USERS_ORGANIZATIONS), organizationId);
     });
     pipeline.del(organizationMembersListKey);
   }
-  pipeline.hdel(ORGANIZATIONS_NAME_TO_ID, organizationName);
+  pipeline.hdel(ORGANIZATIONS_NAME_TO_ID, organization[ORGANIZATIONS_NAME_FIELD]);
 
   return pipeline.exec().then(handlePipeline);
 }

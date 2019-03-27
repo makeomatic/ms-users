@@ -17,13 +17,13 @@ describe('#update metadata organization', function registerSuite() {
       .then(inspectPromise(false))
       .then((response) => {
         assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 1);
+        assert.equal(response.errors.length, 2);
       });
   });
 
   it('must be able to update organization', async function test() {
     const updatedOpts = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
       metadata: {
         $set: { address: 'test' },
         $remove: ['description'],
@@ -34,14 +34,14 @@ describe('#update metadata organization', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((createdOrganization) => {
-        assert(createdOrganization.metadata.description === undefined);
-        assert(createdOrganization.metadata.address === 'test');
+        assert(createdOrganization.data.metadata.description === undefined);
+        assert(createdOrganization.data.metadata.address === 'test');
       });
   });
 
   it('must return organization not found error', async function test() {
     const opts = {
-      name: 'Pied Piper',
+      organizationId: '1234',
     };
 
     return this.dispatch('users.organization.updateMetadata', opts)

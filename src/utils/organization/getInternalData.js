@@ -1,7 +1,6 @@
-const { HttpStatusError } = require('common-errors');
 const Promise = require('bluebird');
 const resolveOrganizationData = require('./resolveOrganizationData');
-const { ORGANIZATIONS_ID_FIELD } = require('../../constants');
+const { ORGANIZATIONS_ID_FIELD, ErrorOrganizationNotFound } = require('../../constants');
 
 const { hasOwnProperty } = Object.prototype;
 
@@ -18,13 +17,13 @@ function hasAnyData(data) {
 
 function verifyIdOnly(data) {
   if (data === null) {
-    throw new HttpStatusError(404, `"${this.organizationKey}" does not exist`);
+    throw ErrorOrganizationNotFound;
   }
 }
 
 function handleNotFound(data) {
   if (data === null || hasAnyData(data) === false) {
-    throw new HttpStatusError(404, `"${this.organizationKey}" does not exist`);
+    throw ErrorOrganizationNotFound;
   }
 }
 

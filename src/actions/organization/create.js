@@ -79,30 +79,34 @@ async function createOrganization({ params, locals }) {
 
   const invites = await addOrganizationMembers.call(service, {
     organizationId,
-    organizationName,
     audience,
     members,
   });
 
-  const response = await getOrganizationMetadataAndMembers.call(this, organizationId);
+  const data = await getOrganizationMetadataAndMembers.call(this, organizationId);
 
   return {
-    ...response,
-    invites,
+    data,
+    meta: {
+      invites,
+    },
   };
 }
 
 createOrganization.auth = 'bearer';
 createOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
-createOrganization.allowed = async function checkOrganizationExistsConflict({ params, locals }) {
-  const { name } = params;
+createOrganization.allowed = async function checkOrganizationExistsConflict(request) {
+  const { name } = request.params;
 
   const organizationExists = await getOrganizationId.call(this, name);
   if (organizationExists) {
     throw ErrorConflictOrganizationExists;
   }
 
-  locals.lock = await this.dlock.once(lockOrganization(name));
+  if (!request.locals) {
+    request.locals = {};
+  }
+  request.locals.lock = await this.dlock.once(lockOrganization(name));
 
   return null;
 };

@@ -24,7 +24,7 @@ describe('#remove member from organization', function registerSuite() {
 
   it('must be able to remove member', async function test() {
     const opts = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
       username: this.userNames[0].username,
     };
 
@@ -35,7 +35,7 @@ describe('#remove member from organization', function registerSuite() {
 
   it('must return organization not found error', async function test() {
     const opts = {
-      name: faker.company.companyName(),
+      organizationId: faker.company.companyName(),
       username: faker.internet.email(),
     };
 

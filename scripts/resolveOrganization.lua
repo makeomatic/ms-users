@@ -3,7 +3,7 @@ local organizationId = ARGV[1];
 local fetchData = ARGV[2];
 
 if redis.call("EXISTS", organizationDataKey) == 0 then
-  return redis.error_reply("E404");
+  return nil;
 end
 
 if fetchData == "0" then

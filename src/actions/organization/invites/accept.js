@@ -36,13 +36,12 @@ async function verifyToken(tokenManager, params) {
  *
  * @apiDescription This should be used to accept invitation.
  *
- * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  * @apiParam (Payload) {String} username - member email.
  */
 async function acceptOrganizationMember({ params }) {
-  const { redis, locals } = this;
-  const { organizationId } = locals;
-  const { username } = params;
+  const { redis } = this;
+  const { username, organizationId } = params;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, username);
   const userInOrganization = await redis.hget(memberKey, 'username');

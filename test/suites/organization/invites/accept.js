@@ -25,7 +25,7 @@ describe('#accept invite organization', function registerSuite() {
 
   it('must be able to accept invite to member', async function test() {
     const opts = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
       username: this.userNames[0].email,
       inviteToken: this.organization.invites[0].context.token.secret,
     };
@@ -37,7 +37,7 @@ describe('#accept invite organization', function registerSuite() {
 
   it('must return organization not found error', async function test() {
     const opts = {
-      name: faker.company.companyName(),
+      organizationId: faker.company.companyName(),
       username: faker.internet.email(),
       inviteToken: uuid.v4(),
     };
@@ -53,7 +53,7 @@ describe('#accept invite organization', function registerSuite() {
 
   it('must return user not organization member error', async function test() {
     const acceptOpts = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
       username: faker.internet.email(),
       inviteToken: uuid.v4(),
     };

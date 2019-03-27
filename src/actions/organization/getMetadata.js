@@ -7,15 +7,20 @@ const { getOrganizationMetadata, checkOrganizationExists } = require('../../util
  * @apiName getMetadata
  * @apiGroup Organizations
  *
- * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  *
  * @apiSuccess (Response) {Object} metadata - organization metadata
  */
-async function organizationMetadata({ locals }) {
-  const { organizationId } = locals;
+async function organizationMetadata({ params }) {
+  const { organizationId } = params;
 
   const metadata = await getOrganizationMetadata.call(this, organizationId);
-  return { metadata };
+  return {
+    data: {
+      id: organizationId,
+      metadata,
+    },
+  };
 }
 
 organizationMetadata.allowed = checkOrganizationExists;

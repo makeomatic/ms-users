@@ -24,21 +24,21 @@ describe('#organization members list', function registerSuite() {
 
   it('must be able to return list of members', async function test() {
     const opts = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
     };
 
     return this.dispatch('users.organization.members.list', opts)
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        assert.ok(response.members);
-        assert.equal(response.members.length, 5);
+        assert.ok(response.data.members);
+        assert.equal(response.data.members.length, 5);
       });
   });
 
   it('must return organization not found error', async function test() {
     const opts = {
-      name: faker.company.companyName(),
+      organizationId: faker.company.companyName(),
     };
 
     return this.dispatch('users.organization.members.list', opts)

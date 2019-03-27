@@ -24,17 +24,20 @@ describe('#switch state organization', function registerSuite() {
 
   it('must be able to update organization state', async function test() {
     const opts = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
     };
 
     return this.dispatch('users.organization.state', { ...opts, active: true })
       .reflect()
-      .then(inspectPromise(true));
+      .then(inspectPromise(true))
+      .then((response) => {
+        assert.deepEqual({ id: this.organization.id, active: true }, response.data);
+      });
   });
 
   it('must return organization not found error', async function test() {
     const opts = {
-      name: faker.company.companyName(),
+      organizationId: faker.company.companyName(),
     };
 
     return this.dispatch('users.organization.state', opts)

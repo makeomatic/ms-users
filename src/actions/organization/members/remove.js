@@ -16,13 +16,12 @@ const {
  *
  * @apiDescription This should be used to remove member.
  *
- * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  * @apiParam (Payload) {String} username - member email.
  */
 async function removeMember({ params }) {
-  const { redis, locals } = this;
-  const { name: organizationName, username } = params;
-  const { organizationId } = locals;
+  const { redis } = this;
+  const { organizationId, username } = params;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, username);
   const userInOrganization = await redis.hget(memberKey, 'username');
@@ -32,7 +31,7 @@ async function removeMember({ params }) {
 
   const pipeline = redis.pipeline();
   pipeline.del(memberKey);
-  pipeline.hdel(redisKey(username, USERS_ORGANIZATIONS), organizationName);
+  pipeline.hdel(redisKey(username, USERS_ORGANIZATIONS), organizationId);
   pipeline.zrem(redisKey(organizationId, ORGANIZATIONS_MEMBERS), memberKey);
 
   return pipeline.exec().then(handlePipeline);

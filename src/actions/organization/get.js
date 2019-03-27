@@ -7,7 +7,7 @@ const { getOrganizationMetadataAndMembers, checkOrganizationExists } = require('
  * @apiName get
  * @apiGroup Organizations
  *
- * @apiParam (Payload) {String} name - unique organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  *
  * @apiSuccess (Response) {String} id - organization id.
  * @apiSuccess (Response) {String} name - organization name.
@@ -21,9 +21,10 @@ const { getOrganizationMetadataAndMembers, checkOrganizationExists } = require('
  * @apiSuccess (Response) {String[]} members.permissions - member permission list.
  * @apiSuccess (Response) {Object} metadata - organization metadata
  */
-async function getOrganization({ locals }) {
-  const { organizationId } = locals;
-  return getOrganizationMetadataAndMembers.call(this, organizationId);
+async function getOrganization({ params }) {
+  const { organizationId } = params;
+  const data = await getOrganizationMetadataAndMembers.call(this, organizationId);
+  return { data };
 }
 
 getOrganization.allowed = checkOrganizationExists;

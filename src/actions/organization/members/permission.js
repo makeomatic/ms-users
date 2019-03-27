@@ -11,16 +11,15 @@ const { ErrorUserNotMember, ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS } = requi
  *
  * @apiDescription Sets permission levels for a given user.
  *
- * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  * @apiParam (Payload) {String} username - organization member email.
  * @apiParam (Payload) {Object} permission - metadata operations,
  *   supports `$set string[]`, `$remove string[]`
  */
 async function addOrganizationMember({ params }) {
   const service = this;
-  const { redis, locals } = service;
-  const { organizationId } = locals;
-  const { name: organizationName, username, permission } = params;
+  const { redis } = service;
+  const { organizationId, username, permission } = params;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, username);
   const userInOrganization = await redis.hget(memberKey, 'username');
@@ -43,7 +42,7 @@ async function addOrganizationMember({ params }) {
     permissions = permissions.filter(item => item !== permissionItem);
   }
 
-  return redis.hset(redisKey(username, USERS_ORGANIZATIONS), organizationName, JSON.stringify(currentPermissions));
+  return redis.hset(redisKey(username, USERS_ORGANIZATIONS), organizationId, JSON.stringify(currentPermissions));
 }
 
 addOrganizationMember.allowed = checkOrganizationExists;

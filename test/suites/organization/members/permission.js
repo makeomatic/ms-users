@@ -24,7 +24,7 @@ describe('#edit member permission', function registerSuite() {
 
   it('must be able to edit member permission', async function test() {
     const opts = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
       username: this.userNames[0].username,
       permission: {
         $set: ['admin'],
@@ -38,7 +38,7 @@ describe('#edit member permission', function registerSuite() {
 
   it('must return organization not found error', async function test() {
     const opts = {
-      name: faker.company.companyName(),
+      organizationId: faker.company.companyName(),
       username: faker.internet.email(),
       permission: {
         $set: ['admin'],
@@ -55,7 +55,7 @@ describe('#edit member permission', function registerSuite() {
 
   it('must return user not found error', async function test() {
     const opts = {
-      name: this.organization.name,
+      organizationId: this.organization.name,
       username: faker.internet.email(),
       permission: {
         $set: ['admin'],

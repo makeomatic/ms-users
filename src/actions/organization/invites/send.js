@@ -13,17 +13,16 @@ const { ORGANIZATIONS_MEMBERS, ErrorUserNotMember } = require('../../../constant
  * @apiDescription In a normal flow - sends out an email to a Customer to accept invitation to the organization.
  * Can potentially be used by other Customers in the same organization
  *
- * @apiParam (Payload) {String} name - organization name.
+ * @apiParam (Payload) {String} organizationId - organization id.
  * @apiParam (Payload) {Object} member - member data.
  * @apiParam (Payload) {String} member.email - member email.
  * @apiParam (Payload) {String} member.firstName - member first name.
  * @apiParam (Payload) {String} member.lastName - member last name.
  * @apiParam (Payload) {String[]} member.permissions - member permission list.
  */
-async function sendOrganizationInvite({ params, locals }) {
+async function sendOrganizationInvite({ params }) {
   const service = this;
-  const { organizationId } = locals;
-  const { member } = params;
+  const { member, organizationId } = params;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
   const userInOrganization = await service.redis.hget(memberKey, 'username');

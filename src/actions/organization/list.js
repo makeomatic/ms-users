@@ -55,11 +55,13 @@ async function getOrganizationsList({ params }) {
   });
 
   return {
-    organizations,
-    cursor: offset + limit,
-    page: Math.floor(offset / limit) + 1,
-    pages: Math.ceil(length / limit),
-    total: length,
+    data: organizations,
+    meta: {
+      cursor: offset + limit,
+      page: Math.floor(offset / limit) + 1,
+      pages: Math.ceil(length / limit),
+      total: length,
+    },
   };
 }
 

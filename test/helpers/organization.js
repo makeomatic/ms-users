@@ -55,9 +55,14 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
     members: this.userNames.slice(0, totalUsers),
     ...customOpts,
   };
-  this.organization = await this.users
+  const organization = await this.users
     .dispatch('organization.create', { params, headers: this.bearerAuthHeaders })
     .reflect()
     .then(inspectPromise(true));
+
+  this.organization = {
+    ...organization.data,
+    ...organization.meta,
+  };
   return this.organization;
 };

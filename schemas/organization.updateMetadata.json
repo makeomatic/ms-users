@@ -1,10 +1,11 @@
 {
   "type": "object",
   "required": [
-    "name"
+    "organizationId",
+    "metadata"
   ],
   "properties": {
-    "name": {
+    "organizationId": {
       "type": "string"
     },
     "metadata": {

@@ -23,17 +23,17 @@ describe('#get organization', function registerSuite() {
 
   it('must be able to get organization', async function test() {
     const { invites, ...organization } = this.organization;
-    return this.dispatch('users.organization.get', { name: this.organization.name })
+    return this.dispatch('users.organization.get', { organizationId: this.organization.id })
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        assert.deepEqual(response, organization);
+        assert.deepEqual(response.data, organization);
       });
   });
 
   it('must return organization not found error', async function test() {
     const opts = {
-      name: faker.company.companyName(),
+      organizationId: faker.company.companyName(),
     };
 
     return this.dispatch('users.organization.get', opts)

@@ -23,21 +23,21 @@ describe('#organization members metadata', function registerSuite() {
 
   it('must be able to return metadata', async function test() {
     const opts = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
     };
 
     return this.dispatch('users.organization.getMetadata', opts)
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        assert.ok(response.metadata);
-        assert.deepEqual(response.metadata, this.organization.metadata);
+        assert.ok(response.data.metadata);
+        assert.deepEqual(response.data.metadata, this.organization.metadata);
       });
   });
 
   it('must return organization not found error', async function test() {
     const opts = {
-      name: faker.company.companyName(),
+      organizationId: faker.company.companyName(),
     };
 
     return this.dispatch('users.organization.getMetadata', opts)

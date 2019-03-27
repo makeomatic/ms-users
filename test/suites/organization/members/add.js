@@ -23,7 +23,7 @@ describe('#add member to organization', function registerSuite() {
 
   it('must be able to add member', async function test() {
     const opts = {
-      name: this.organization.name,
+      organizationId: this.organization.id,
       member: {
         email: faker.internet.email(),
         firstName: faker.name.firstName(),
@@ -38,7 +38,7 @@ describe('#add member to organization', function registerSuite() {
 
   it('must return organization not found error', async function test() {
     const opts = {
-      name: faker.company.companyName(),
+      organizationId: faker.company.companyName(),
       member: {
         email: faker.internet.email(),
         firstName: faker.name.firstName(),

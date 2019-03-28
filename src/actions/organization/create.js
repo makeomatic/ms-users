@@ -15,6 +15,34 @@ const {
   lockOrganization,
 } = require('../../constants');
 
+async function createOrganization(organizationName, active, lock) {
+  const { redis, flake } = this;
+
+  try {
+    const normalizedOrganizationName = snakeCase(organizationName);
+    const organizationId = flake.next();
+    const pipeline = redis.pipeline();
+    const organizationDataKey = redisKey(organizationId, ORGANIZATIONS_DATA);
+    const basicInfo = {
+      [ORGANIZATIONS_NAME_FIELD]: organizationName,
+      [ORGANIZATIONS_ACTIVE_FLAG]: active,
+    };
+
+    pipeline.hmset(organizationDataKey, basicInfo);
+    pipeline.hset(ORGANIZATIONS_NAME_TO_ID, normalizedOrganizationName, organizationId);
+    pipeline.sadd(ORGANIZATIONS_INDEX, organizationId);
+    await pipeline.exec().then(handlePipeline);
+
+    return organizationId;
+  } catch (e) {
+    throw e;
+  } finally {
+    if (lock !== undefined) {
+      await lock.release();
+    }
+  }
+}
+
 /**
  * @api {amqp} <prefix>.create Create organization
  * @apiVersion 1.0.0
@@ -44,28 +72,12 @@ const {
  * @apiSuccess (Response) {String[]} members.permissions - member permission list.
  * @apiSuccess (Response) {Object} metadata - organization metadata
  */
-async function createOrganization({ params, locals }) {
+async function createOrganizationAction({ params, locals }) {
   const service = this;
-  const { redis, config } = service;
-  const { name: organizationName, active = false, metadata, members } = params;
-  const { audience } = config.organizations;
-  const normalizedOrganizationName = snakeCase(organizationName);
+  const { name, active = false, metadata, members } = params;
+  const { audience } = service.config.organizations;
 
-  const organizationId = service.flake.next();
-  const pipeline = redis.pipeline();
-  const basicInfo = {
-    [ORGANIZATIONS_NAME_FIELD]: organizationName,
-    [ORGANIZATIONS_ACTIVE_FLAG]: active,
-  };
-  const organizationDataKey = redisKey(organizationId, ORGANIZATIONS_DATA);
-  pipeline.hmset(organizationDataKey, basicInfo);
-  pipeline.hset(ORGANIZATIONS_NAME_TO_ID, normalizedOrganizationName, organizationId);
-  pipeline.sadd(ORGANIZATIONS_INDEX, organizationId);
-  await pipeline.exec().then(handlePipeline);
-
-  if (locals.lock !== undefined) {
-    await locals.lock.release();
-  }
+  const organizationId = await createOrganization.call(this, name, active, locals.lock);
 
   if (metadata) {
     await setOrganizationMetadata.call(service, {
@@ -93,9 +105,9 @@ async function createOrganization({ params, locals }) {
   };
 }
 
-createOrganization.auth = 'bearer';
-createOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
-createOrganization.allowed = async function checkOrganizationExistsConflict(request) {
+createOrganizationAction.auth = 'bearer';
+createOrganizationAction.transports = [ActionTransport.amqp, ActionTransport.internal];
+createOrganizationAction.allowed = async function checkOrganizationExistsConflict(request) {
   const { name } = request.params;
 
   const organizationExists = await getOrganizationId.call(this, name);
@@ -111,4 +123,4 @@ createOrganization.allowed = async function checkOrganizationExistsConflict(requ
   return null;
 };
 
-module.exports = createOrganization;
+module.exports = createOrganizationAction;

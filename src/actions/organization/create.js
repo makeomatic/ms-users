@@ -9,6 +9,7 @@ const {
   ErrorConflictOrganizationExists,
   ORGANIZATIONS_NAME_FIELD,
   ORGANIZATIONS_ACTIVE_FLAG,
+  ORGANIZATIONS_CREATED_FIELD,
   ORGANIZATIONS_DATA,
   ORGANIZATIONS_NAME_TO_ID,
   ORGANIZATIONS_INDEX,
@@ -26,6 +27,7 @@ async function createOrganization(organizationName, active, lock) {
     const basicInfo = {
       [ORGANIZATIONS_NAME_FIELD]: organizationName,
       [ORGANIZATIONS_ACTIVE_FLAG]: active,
+      [ORGANIZATIONS_CREATED_FIELD]: Date.now(),
     };
 
     pipeline.hmset(organizationDataKey, basicInfo);

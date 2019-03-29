@@ -140,4 +140,5 @@ function updateMetadata(opts) {
   return Promise.all(scripts).then(res => mapScriptResponse($scriptKeys, res));
 }
 
+updateMetadata.handleAudience = handleAudience;
 module.exports = updateMetadata;

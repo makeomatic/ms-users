@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "required": [
+    "organizationId",
+    "username",
+    "permission"
+  ],
+  "properties": {
+    "organizationId": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "permission": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "$set": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "$remove": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      }
+    }
+  }
+}

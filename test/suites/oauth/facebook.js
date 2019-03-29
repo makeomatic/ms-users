@@ -50,6 +50,10 @@ function parseHTML(body) {
 }
 
 describe('#facebook', function oauthFacebookSuite() {
+  before(function () {
+    this.skip();
+  });
+
   let chrome;
   let page;
   let service;

@@ -5,10 +5,12 @@ module.exports = exports = {
   USERS_INDEX: 'user-iterator-set',
   USERS_PUBLIC_INDEX: 'users-public',
   USERS_REFERRAL_INDEX: 'users-referral',
+  ORGANIZATIONS_INDEX: 'organization-iterator-set',
   // id mapping
   USERS_ALIAS_TO_ID: 'users-alias',
   USERS_SSO_TO_ID: 'users-sso-hash',
   USERS_USERNAME_TO_ID: 'users-username',
+  ORGANIZATIONS_NAME_TO_ID: 'organization-name',
 
   // referral tracking
   USERS_REF: 'users-ref',
@@ -21,6 +23,10 @@ module.exports = exports = {
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
   USERS_MFA_FLAG: 'mfa',
   USERS_MFA_RECOVERY: 'mfa-recovery',
+  USERS_ORGANIZATIONS: 'user-organizations',
+  ORGANIZATIONS_DATA: 'data',
+  ORGANIZATIONS_METADATA: 'metadata',
+  ORGANIZATIONS_MEMBERS: 'members',
 
   // standard JWT with TTL
   USERS_ID_FIELD: 'id',
@@ -38,6 +44,10 @@ module.exports = exports = {
   USERS_NEXT_CYCLE_FIELD: 'nextCycle',
   USERS_REFERRAL_FIELD: 'referral',
   USERS_SSO_FACEBOOK_FIELD: 'facebook',
+  ORGANIZATIONS_ID_FIELD: 'id',
+  ORGANIZATIONS_CREATED_FIELD: 'created',
+  ORGANIZATIONS_NAME_FIELD: 'name',
+  ORGANIZATIONS_ACTIVE_FLAG: 'active',
 
   // bearer tokens
   BEARER_USERNAME_FIELD: 'userId',
@@ -53,6 +63,8 @@ module.exports = exports = {
   USERS_MALFORMED_TOKEN: new HttpStatusError(403, 'malformed token'),
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
+  ErrorConflictOrganizationExists: new HttpStatusError(409, 'organization already exists'),
+  ErrorOrganizationNotFound: new HttpStatusError(404, 'organization not found'),
   ErrorTotpRequired: Object.defineProperty(
     new HttpStatusError(403, 'TOTP required'),
     'credentials',
@@ -61,6 +73,8 @@ module.exports = exports = {
   ErrorTotpInvalid: new HttpStatusError(403, 'TOTP invalid'),
   ErrorSecretRequired: new HttpStatusError(403, 'Secret required'),
   ErrorUserNotFound: new HttpStatusError(404, 'username not found'),
+  ErrorUserNotMember: new HttpStatusError(404, 'username not member of organization'),
+  ErrorInvitationExpiredOrUsed: new HttpStatusError(400, 'Invitation has expired or already been used'),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
@@ -90,6 +104,7 @@ module.exports = exports = {
   // lock names
   lockAlias: alias => `users:alias:${alias}`,
   lockRegister: username => `users:register:${username}`,
+  lockOrganization: organizationName => `organizations:create:${organizationName}`,
 };
 
 // embed error codes

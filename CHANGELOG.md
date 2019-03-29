@@ -1,3 +1,15 @@
+# [10.4.0](https://github.com/makeomatic/ms-users/compare/v10.3.3...v10.4.0) (2019-03-29)
+
+
+### Bug Fixes
+
+* support redis sentinel in migrations ([#394](https://github.com/makeomatic/ms-users/issues/394)) ([562608a](https://github.com/makeomatic/ms-users/commit/562608a))
+
+
+### Features
+
+* organizations api ([#393](https://github.com/makeomatic/ms-users/issues/393)) ([1b7c7ab](https://github.com/makeomatic/ms-users/commit/1b7c7ab))
+
 ## [10.3.3](https://github.com/makeomatic/ms-users/compare/v10.3.2...v10.3.3) (2019-02-15)
 
 

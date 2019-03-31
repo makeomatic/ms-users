@@ -1,3 +1,10 @@
+## [10.4.1](https://github.com/makeomatic/ms-users/compare/v10.4.0...v10.4.1) (2019-03-31)
+
+
+### Bug Fixes
+
+* node version ([ac18c08](https://github.com/makeomatic/ms-users/commit/ac18c08))
+
 # [10.4.0](https://github.com/makeomatic/ms-users/compare/v10.3.3...v10.4.0) (2019-03-29)
 
 

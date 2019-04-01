@@ -1,3 +1,10 @@
+## [10.4.2](https://github.com/makeomatic/ms-users/compare/v10.4.1...v10.4.2) (2019-04-01)
+
+
+### Bug Fixes
+
+* removed auth on organization api ([#395](https://github.com/makeomatic/ms-users/issues/395)) ([1b8f5bd](https://github.com/makeomatic/ms-users/commit/1b8f5bd))
+
 ## [10.4.1](https://github.com/makeomatic/ms-users/compare/v10.4.0...v10.4.1) (2019-03-31)
 
 

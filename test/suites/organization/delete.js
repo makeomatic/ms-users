@@ -12,7 +12,7 @@ describe('#delete organization', function registerSuite() {
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('organization.delete', {})
+    return this.dispatch('users.organization.delete', {})
       .reflect()
       .then(inspectPromise(false))
       .then((response) => {
@@ -25,7 +25,7 @@ describe('#delete organization', function registerSuite() {
     const params = {
       organizationId: this.organization.id,
     };
-    return this.dispatch('organization.delete', params)
+    return this.dispatch('users.organization.delete', params)
       .reflect()
       .then(inspectPromise());
   });
@@ -35,7 +35,7 @@ describe('#delete organization', function registerSuite() {
       organizationId: faker.company.companyName(),
     };
 
-    return this.dispatch('organization.delete', params)
+    return this.dispatch('users.organization.delete', params)
       .reflect()
       .then(inspectPromise(false))
       .then((response) => {

@@ -30,7 +30,7 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
     members: this.userNames.slice(0, totalUsers),
     ...customOpts,
   };
-  const organization = await this.dispatch('organization.create', params)
+  const organization = await this.dispatch('users.organization.create', params)
     .reflect()
     .then(inspectPromise(true));
 

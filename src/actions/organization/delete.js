@@ -49,7 +49,6 @@ async function deleteOrganization({ params }) {
   return pipeline.exec().then(handlePipeline);
 }
 
-deleteOrganization.auth = 'bearer';
 deleteOrganization.allowed = checkOrganizationExists;
 deleteOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = deleteOrganization;

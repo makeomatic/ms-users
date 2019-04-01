@@ -107,7 +107,6 @@ async function createOrganizationAction({ params, locals }) {
   };
 }
 
-createOrganizationAction.auth = 'bearer';
 createOrganizationAction.transports = [ActionTransport.amqp, ActionTransport.internal];
 createOrganizationAction.allowed = async function checkOrganizationExistsConflict(request) {
   const { name } = request.params;

@@ -23,29 +23,6 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
     await createMembers.call(this, totalUsers);
   }
 
-  await this.users.dispatch('register', {
-    params: {
-      username: 'v@makeomatic.ru',
-      password: '123456',
-      audience: 'test',
-      metadata: {
-        fine: true,
-      },
-    },
-  }).catch(() => null);
-
-  const [bearer] = await Promise.all([
-    this.users.dispatch('token.create', {
-      params: {
-        username: 'v@makeomatic.ru',
-        name: 'sample',
-      },
-    }),
-    jwt.login.call(this.users, 'v@makeomatic.ru', 'test'),
-  ]);
-
-  this.bearerAuthHeaders = { authorization: `Bearer ${bearer}` };
-
   const params = {
     name: faker.company.companyName(),
     metadata: {
@@ -55,8 +32,7 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
     members: this.userNames.slice(0, totalUsers),
     ...customOpts,
   };
-  const organization = await this.users
-    .dispatch('organization.create', { params, headers: this.bearerAuthHeaders })
+  const organization = await this.dispatch('organization.create', params)
     .reflect()
     .then(inspectPromise(true));
 

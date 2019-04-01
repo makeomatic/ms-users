@@ -1,8 +1,6 @@
-const Promise = require('bluebird');
 const faker = require('faker');
 const times = require('lodash/times');
 const { inspectPromise } = require('@makeomatic/deploy');
-const jwt = require('../../src/utils/jwt');
 
 async function createMembers(totalUsers = 1) {
   this.userNames = [];

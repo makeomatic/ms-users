@@ -62,17 +62,20 @@ async function createOrganization(organizationName, active, lock) {
  * @apiParam (Payload) {String} members.lastName - member last name.
  * @apiParam (Payload) {String[]} members.permissions - member permission list.
  *
- * @apiSuccess (Response) {String} id - organization id.
- * @apiSuccess (Response) {String} name - organization name.
- * @apiSuccess (Response) {Boolean} active - organization state.
- * @apiSuccess (Response) {Object[]} members - organization members.
- * @apiSuccess (Response) {String} members.username - member email.
- * @apiSuccess (Response) {String} members.firstName - member first name.
- * @apiSuccess (Response) {String} members.lastName - member last name.
- * @apiSuccess (Response) {Date} members.invited - member invite date.
- * @apiSuccess (Response) {Date} members.accepted - member accept invite date.
- * @apiSuccess (Response) {String[]} members.permissions - member permission list.
- * @apiSuccess (Response) {Object} metadata - organization metadata
+ * @apiSuccess (Response) {String} meta.invites - organization invites list.
+ * @apiSuccess (Response) {String} data.id - organization id.
+ * @apiSuccess (Response) {String} data.type - response type.
+ * @apiSuccess (Response) {String} data.attributes.id - organization id.
+ * @apiSuccess (Response) {String} data.attributes.name - organization name.
+ * @apiSuccess (Response) {Boolean} data.attributes.active - organization state.
+ * @apiSuccess (Response) {Object[]} data.attributes.members - organization members.
+ * @apiSuccess (Response) {String} data.attributes.members.username - member email.
+ * @apiSuccess (Response) {String} data.attributes.members.firstName - member first name.
+ * @apiSuccess (Response) {String} data.attributes.members.lastName - member last name.
+ * @apiSuccess (Response) {Date} data.attributes.members.invited - member invite date.
+ * @apiSuccess (Response) {Date} data.attributes.members.accepted - member accept invite date.
+ * @apiSuccess (Response) {String[]} data.attributes.members.permissions - member permission list.
+ * @apiSuccess (Response) {Object} data.attributes.metadata - organization metadata
  */
 async function createOrganizationAction({ params, locals }) {
   const service = this;
@@ -97,10 +100,14 @@ async function createOrganizationAction({ params, locals }) {
     members,
   });
 
-  const data = await getOrganizationMetadataAndMembers.call(this, organizationId);
+  const organization = await getOrganizationMetadataAndMembers.call(this, organizationId);
 
   return {
-    data,
+    data: {
+      id: organizationId,
+      type: 'organization',
+      attributes: organization,
+    },
     meta: {
       invites,
     },

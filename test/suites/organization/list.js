@@ -37,9 +37,11 @@ describe('#organizations list', function registerSuite() {
         assert.equal(meta.pages, organizationsLength / opts.limit);
         data.forEach((organization) => {
           expect(organization).to.have.ownProperty('id');
-          expect(organization).to.have.ownProperty('metadata');
-          expect(organization).to.have.ownProperty('name');
-          expect(organization).to.have.ownProperty('active');
+          expect(organization).to.have.ownProperty('type');
+          expect(organization.attributes).to.have.ownProperty('id');
+          expect(organization.attributes).to.have.ownProperty('name');
+          expect(organization.attributes).to.have.ownProperty('active');
+          expect(organization.attributes).to.have.ownProperty('metadata');
         });
       });
   });
@@ -69,7 +71,7 @@ describe('#organizations list', function registerSuite() {
         assert.equal(meta.cursor, 1);
         assert.equal(meta.page, 1);
         assert.equal(meta.pages, 1);
-        assert.deepEqual(data[0], organization);
+        assert.deepEqual(data[0].attributes, organization);
       });
   });
 });

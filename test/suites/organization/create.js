@@ -34,7 +34,7 @@ describe('#create organization', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        const createdOrganization = response.data;
+        const createdOrganization = response.data.attributes;
         assert(createdOrganization.name === params.name);
         assert(createdOrganization.metadata.description === params.metadata.description);
         assert(createdOrganization.members.length === 2);

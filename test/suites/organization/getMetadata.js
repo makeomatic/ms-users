@@ -30,8 +30,8 @@ describe('#organization members metadata', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        assert.ok(response.data.metadata);
-        assert.deepEqual(response.data.metadata, this.organization.metadata);
+        assert.ok(response.data.attributes);
+        assert.deepEqual(response.data.attributes, this.organization.metadata);
       });
   });
 

@@ -34,8 +34,8 @@ describe('#update metadata organization', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((createdOrganization) => {
-        assert(createdOrganization.data.metadata.description === undefined);
-        assert(createdOrganization.data.metadata.address === 'test');
+        assert(createdOrganization.data.attributes.description === undefined);
+        assert(createdOrganization.data.attributes.address === 'test');
       });
   });
 

@@ -33,7 +33,8 @@ async function updateOrganizationMetadata({ params }) {
   return {
     data: {
       id: organizationId,
-      metadata: data,
+      type: 'organizationMetadata',
+      attributes: data,
     },
   };
 }

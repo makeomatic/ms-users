@@ -31,8 +31,8 @@ describe('#organization members list', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        assert.ok(response.data.members);
-        assert.equal(response.data.members.length, 5);
+        assert.ok(response.data.attributes);
+        assert.equal(response.data.attributes.length, 5);
       });
   });
 

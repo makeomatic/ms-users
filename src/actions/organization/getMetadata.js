@@ -9,7 +9,9 @@ const { getOrganizationMetadata, checkOrganizationExists } = require('../../util
  *
  * @apiParam (Payload) {String} organizationId - organization id.
  *
- * @apiSuccess (Response) {Object} metadata - organization metadata
+ * @apiSuccess (Response) {Object} data.id - organization id
+ * @apiSuccess (Response) {String} data.type - response type.
+ * @apiSuccess (Response) {Object} data.attributes.metadata - organization metadata
  */
 async function organizationMetadata({ params }) {
   const { organizationId } = params;
@@ -18,7 +20,8 @@ async function organizationMetadata({ params }) {
   return {
     data: {
       id: organizationId,
-      metadata,
+      type: 'organizationMetadata',
+      attributes: metadata,
     },
   };
 }

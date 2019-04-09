@@ -27,7 +27,7 @@ describe('#get organization', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        assert.deepEqual(response.data, organization);
+        assert.deepEqual(response.data.attributes, organization);
       });
   });
 

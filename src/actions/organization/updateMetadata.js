@@ -14,7 +14,10 @@ const { checkOrganizationExists, getOrganizationMetadata } = require('../../util
  * @apiParam (Payload) {Object} metadata - metadata operations,
  *   supports `$set key:value`, `$remove keys[]`, `$incr key:diff`
  *
- * @apiSuccess (Response) {Object} metadata - organization metadata
+ * @apiSuccess (Response) {Object} data - response data.
+ * @apiSuccess (Response) {Object} data.id - organization id
+ * @apiSuccess (Response) {String} data.type - response type.
+ * @apiSuccess (Response) {Object} data.attributes - organization metadata
  */
 async function updateOrganizationMetadata({ params }) {
   const { config } = this;

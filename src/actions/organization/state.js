@@ -13,6 +13,11 @@ const redisKey = require('../../utils/key');
  *
  * @apiParam (Payload) {String} organizationId - organization id.
  * @apiParam (Payload) {Boolean} active=false - organization state.
+ *
+ * @apiSuccess (Response) {Object} data - response data.
+ * @apiSuccess (Response) {String} data.id - organization id.
+ * @apiSuccess (Response) {String} data.type - response type.
+ * @apiSuccess (Response) {Boolean} data.attributes.active - organization state.
  */
 async function updateOrganizationState({ params }) {
   const { redis } = this;

@@ -9,6 +9,7 @@ const { getOrganizationMetadata, checkOrganizationExists } = require('../../util
  *
  * @apiParam (Payload) {String} organizationId - organization id.
  *
+ * @apiSuccess (Response) {Object} data - response data.
  * @apiSuccess (Response) {Object} data.id - organization id
  * @apiSuccess (Response) {String} data.type - response type.
  * @apiSuccess (Response) {Object} data.attributes.metadata - organization metadata

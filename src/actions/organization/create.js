@@ -62,7 +62,8 @@ async function createOrganization(organizationName, active, lock) {
  * @apiParam (Payload) {String} members.lastName - member last name.
  * @apiParam (Payload) {String[]} members.permissions - member permission list.
  *
- * @apiSuccess (Response) {String} meta.invites - organization invites list.
+ * @apiSuccess (Response) {Object} data - response data.
+ * @apiSuccess (Response) {Object} meta - response meta.
  * @apiSuccess (Response) {String} data.id - organization id.
  * @apiSuccess (Response) {String} data.type - response type.
  * @apiSuccess (Response) {String} data.attributes.id - organization id.
@@ -76,6 +77,7 @@ async function createOrganization(organizationName, active, lock) {
  * @apiSuccess (Response) {Date} data.attributes.members.accepted - member accept invite date.
  * @apiSuccess (Response) {String[]} data.attributes.members.permissions - member permission list.
  * @apiSuccess (Response) {Object} data.attributes.metadata - organization metadata
+ * @apiSuccess (Response) {String} meta.invites - organization invites list.
  */
 async function createOrganizationAction({ params, locals }) {
   const service = this;

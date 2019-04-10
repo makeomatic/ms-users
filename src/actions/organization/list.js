@@ -19,6 +19,19 @@ const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants.js'
  * @apiParam (Payload) {String="ASC","DESC"} [order=ASC] - sort order
  * @apiParam (Payload) {String} [criteria] - if supplied, sort will be performed based on this field
  * @apiParam (Payload) {Object} [filter] to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
+
+ * @apiSuccess (Response) {Object[]} data - response data.
+ * @apiSuccess (Response) {String} data.id - organization id.
+ * @apiSuccess (Response) {String} data.type - response type.
+ * @apiSuccess (Response) {String} data.attributes.id - organization id.
+ * @apiSuccess (Response) {String} data.attributes.name - organization name.
+ * @apiSuccess (Response) {Boolean} data.attributes.active - organization state.
+ * @apiSuccess (Response) {Object} data.attributes.metadata - organization metadata
+ * @apiSuccess (Response) {Object} meta - response meta.
+ * @apiSuccess (Response) {Number} meta.cursor - cursor.
+ * @apiSuccess (Response) {Number} meta.page - page.
+ * @apiSuccess (Response) {Number} meta.pages - pages.
+ * @apiSuccess (Response) {Number} meta.total - total.
  */
 async function getOrganizationsList({ params }) {
   const { redis } = this;

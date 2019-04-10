@@ -12,13 +12,19 @@ const { getOrganizationMembers } = require('../../../utils/organization');
  *
  * @apiParam (Payload) {String} organizationId - organization id.
  *
- * @apiSuccess (Response) {Object[]} members - organization members.
- * @apiSuccess (Response) {String} members.username - member email.
- * @apiSuccess (Response) {String} members.firstName - member first name.
- * @apiSuccess (Response) {String} members.lastName - member last name.
- * @apiSuccess (Response) {Date} members.invited - member invite date.
- * @apiSuccess (Response) {Date} members.accepted - member accept invite date.
- * @apiSuccess (Response) {String[]} members.permissions - member permission list.
+ * @apiSuccess (Response) {Object} data - response data.
+ * @apiSuccess (Response) {Object} data.id - organization id.
+ * @apiSuccess (Response) {Object} data.type - response type.
+ * @apiSuccess (Response) {Object[]} data.attributes - organization members.
+ * @apiSuccess (Response) {String} data.attributes.id - organization member id.
+ * @apiSuccess (Response) {String} data.attributes.type - entity type.
+ * @apiSuccess (Response) {Object[]} data.attributes.attributes - organization member.
+ * @apiSuccess (Response) {String} data.attributes.attributes.username - member email.
+ * @apiSuccess (Response) {String} data.attributes.attributes.firstName - member first name.
+ * @apiSuccess (Response) {String} data.attributes.attributes.lastName - member last name.
+ * @apiSuccess (Response) {Date} data.attributes.attributes.invited - member invite date.
+ * @apiSuccess (Response) {Date} data.attributes.attributes.accepted - member accept invite date.
+ * @apiSuccess (Response) {String[]} data.attributes.attributes.permissions - member permission list.
  */
 async function organizationMembersList({ params }) {
   const { organizationId } = params;

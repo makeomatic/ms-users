@@ -1,3 +1,10 @@
+## [10.4.3](https://github.com/makeomatic/ms-users/compare/v10.4.2...v10.4.3) (2019-04-10)
+
+
+### Bug Fixes
+
+* edited organizations response ([#396](https://github.com/makeomatic/ms-users/issues/396)) ([bf11f46](https://github.com/makeomatic/ms-users/commit/bf11f46))
+
 ## [10.4.2](https://github.com/makeomatic/ms-users/compare/v10.4.1...v10.4.2) (2019-04-01)
 
 

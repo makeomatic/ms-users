@@ -35,7 +35,7 @@ exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
     .then(inspectPromise(true));
 
   this.organization = {
-    ...organization.data,
+    ...organization.data.attributes,
     ...organization.meta,
   };
   return this.organization;

@@ -24,7 +24,8 @@ async function updateOrganizationState({ params }) {
   return {
     data: {
       id: organizationId,
-      active,
+      type: 'organizationState',
+      attributes: { active },
     },
   };
 }

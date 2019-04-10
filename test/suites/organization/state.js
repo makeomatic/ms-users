@@ -31,7 +31,7 @@ describe('#switch state organization', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        assert.deepEqual({ id: this.organization.id, active: true }, response.data);
+        assert(response.data.attributes.active);
       });
   });
 

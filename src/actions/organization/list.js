@@ -55,7 +55,11 @@ async function getOrganizationsList({ params }) {
   });
 
   return {
-    data: organizations,
+    data: organizations.map(organization => ({
+      id: organization.id,
+      type: 'organization',
+      attributes: organization,
+    })),
     meta: {
       cursor: offset + limit,
       page: Math.floor(offset / limit) + 1,

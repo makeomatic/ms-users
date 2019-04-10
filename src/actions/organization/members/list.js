@@ -24,7 +24,17 @@ async function organizationMembersList({ params }) {
   const { organizationId } = params;
 
   const members = await getOrganizationMembers.call(this, organizationId);
-  return { data: { id: organizationId, members } };
+  return {
+    data: {
+      id: organizationId,
+      type: 'organizationMembers',
+      attributes: members.map(member => ({
+        id: member.username,
+        type: 'organizationMember',
+        attributes: member,
+      })),
+    },
+  };
 }
 
 organizationMembersList.allowed = checkOrganizationExists;

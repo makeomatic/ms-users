@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const redisKey = require('../../../utils/key');
-const { ErrorUserNotMember, ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS } = require('../../../constants');
+const { ErrorUserNotMember, ORGANIZATIONS_MEMBERS } = require('../../../constants');
 
 /**
  * @api {amqp} <prefix>.members.permission Sets permission levels for a given user
@@ -42,7 +42,7 @@ async function addOrganizationMember({ params }) {
     permissions = permissions.filter(item => item !== permissionItem);
   }
 
-  return redis.hset(redisKey(username, USERS_ORGANIZATIONS), organizationId, JSON.stringify(currentPermissions));
+  return redis.hset(memberKey, 'permissions', permissions.join(','));
 }
 
 addOrganizationMember.allowed = checkOrganizationExists;

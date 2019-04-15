@@ -10,7 +10,12 @@ async function getOrganizationMembers(organizationId) {
     organizationMembersJobs = organizationMembersIds.map(organizationMemberId => redis.hgetall(organizationMemberId));
   }
 
-  return Promise.all(organizationMembersJobs);
+  const members = await Promise.all(organizationMembersJobs);
+
+  return members.map(member => ({
+    ...member,
+    permissions: member.permissions === '' ? [] : member.permissions.split(','),
+  }));
 }
 
 module.exports = getOrganizationMembers;

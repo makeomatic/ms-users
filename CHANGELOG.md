@@ -1,3 +1,10 @@
+## [10.4.5](https://github.com/makeomatic/ms-users/compare/v10.4.4...v10.4.5) (2019-04-15)
+
+
+### Bug Fixes
+
+* fix edit organisation member permissions ([#399](https://github.com/makeomatic/ms-users/issues/399)) ([358907b](https://github.com/makeomatic/ms-users/commit/358907b))
+
 ## [10.4.4](https://github.com/makeomatic/ms-users/compare/v10.4.3...v10.4.4) (2019-04-15)
 
 

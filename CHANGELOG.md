@@ -1,3 +1,11 @@
+## [10.4.4](https://github.com/makeomatic/ms-users/compare/v10.4.3...v10.4.4) (2019-04-15)
+
+
+### Bug Fixes
+
+* edited response format for organization member permissions ([#398](https://github.com/makeomatic/ms-users/issues/398)) ([a0797a6](https://github.com/makeomatic/ms-users/commit/a0797a6))
+* edited responses in organization docs ([#397](https://github.com/makeomatic/ms-users/issues/397)) ([1a38517](https://github.com/makeomatic/ms-users/commit/1a38517))
+
 ## [10.4.3](https://github.com/makeomatic/ms-users/compare/v10.4.2...v10.4.3) (2019-04-10)
 
 

@@ -31,9 +31,16 @@ describe('#edit member permission', function registerSuite() {
       },
     };
 
-    return this.dispatch('users.organization.members.permission', opts)
+    await this.dispatch('users.organization.members.permission', opts)
       .reflect()
       .then(inspectPromise(true));
+
+    return this.dispatch('users.organization.members.list', { organizationId: this.organization.id })
+      .reflect()
+      .then(inspectPromise(true))
+      .then((response) => {
+        assert.deepStrictEqual(response.data.attributes[0].attributes.permissions, ['admin']);
+      });
   });
 
   it('must return organization not found error', async function test() {

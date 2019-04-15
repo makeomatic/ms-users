@@ -42,7 +42,7 @@ async function addOrganizationMember({ params }) {
     permissions = permissions.filter(item => item !== permissionItem);
   }
 
-  return redis.hset(redisKey(username, USERS_ORGANIZATIONS), organizationId, JSON.stringify(currentPermissions));
+  return redis.hset(memberKey, 'permissions', permissions.join(','));
 }
 
 addOrganizationMember.allowed = checkOrganizationExists;

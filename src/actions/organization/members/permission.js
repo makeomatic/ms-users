@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const redisKey = require('../../../utils/key');
-const { ErrorUserNotMember, ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS } = require('../../../constants');
+const { ErrorUserNotMember, ORGANIZATIONS_MEMBERS } = require('../../../constants');
 
 /**
  * @api {amqp} <prefix>.members.permission Sets permission levels for a given user

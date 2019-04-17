@@ -17,6 +17,8 @@ const {
   lockOrganization,
 } = require('../../constants');
 
+const JSONStringify = data => JSON.stringify(data);
+
 async function createOrganization(organizationName, active, lock) {
   const { redis, flake } = this;
 
@@ -31,7 +33,7 @@ async function createOrganization(organizationName, active, lock) {
       [ORGANIZATIONS_CREATED_FIELD]: Date.now(),
     };
 
-    pipeline.hmset(organizationDataKey, mapValues(basicInfo, data => JSON.stringify(data)));
+    pipeline.hmset(organizationDataKey, mapValues(basicInfo, JSONStringify));
     pipeline.hset(ORGANIZATIONS_NAME_TO_ID, normalizedOrganizationName, organizationId);
     pipeline.sadd(ORGANIZATIONS_INDEX, organizationId);
     await pipeline.exec().then(handlePipeline);

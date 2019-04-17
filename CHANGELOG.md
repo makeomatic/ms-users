@@ -1,3 +1,10 @@
+## [10.4.6](https://github.com/makeomatic/ms-users/compare/v10.4.5...v10.4.6) (2019-04-17)
+
+
+### Bug Fixes
+
+* edited remove organization name ([#400](https://github.com/makeomatic/ms-users/issues/400)) ([4009d7f](https://github.com/makeomatic/ms-users/commit/4009d7f))
+
 ## [10.4.5](https://github.com/makeomatic/ms-users/compare/v10.4.4...v10.4.5) (2019-04-15)
 
 

@@ -1,4 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
+const snakeCase = require('lodash/snakeCase');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const { checkOrganizationExists, getInternalData } = require('../../utils/organization');
@@ -44,7 +45,7 @@ async function deleteOrganization({ params }) {
     });
     pipeline.del(organizationMembersListKey);
   }
-  pipeline.hdel(ORGANIZATIONS_NAME_TO_ID, organization[ORGANIZATIONS_NAME_FIELD]);
+  pipeline.hdel(ORGANIZATIONS_NAME_TO_ID, snakeCase(organization[ORGANIZATIONS_NAME_FIELD]));
 
   return pipeline.exec().then(handlePipeline);
 }

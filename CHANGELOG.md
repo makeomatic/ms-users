@@ -1,3 +1,10 @@
+## [10.4.7](https://github.com/makeomatic/ms-users/compare/v10.4.6...v10.4.7) (2019-04-18)
+
+
+### Bug Fixes
+
+* parse organization internal data ([#401](https://github.com/makeomatic/ms-users/issues/401)) ([219b52b](https://github.com/makeomatic/ms-users/commit/219b52b))
+
 ## [10.4.6](https://github.com/makeomatic/ms-users/compare/v10.4.5...v10.4.6) (2019-04-17)
 
 

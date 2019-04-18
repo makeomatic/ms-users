@@ -39,7 +39,7 @@ describe('#create organization', function registerSuite() {
         assert(createdOrganization.metadata.description === params.metadata.description);
         assert(createdOrganization.members.length === 2);
         assert.ok(createdOrganization.id);
-        assert.ok(createdOrganization.active);
+        assert(createdOrganization.active === false);
       });
   });
 

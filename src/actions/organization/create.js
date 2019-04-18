@@ -1,5 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
 const snakeCase = require('lodash/snakeCase');
+const mapValues = require('lodash/mapValues');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipelineError');
 const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
@@ -16,6 +17,8 @@ const {
   lockOrganization,
 } = require('../../constants');
 
+const JSONStringify = data => JSON.stringify(data);
+
 async function createOrganization(organizationName, active, lock) {
   const { redis, flake } = this;
 
@@ -30,7 +33,7 @@ async function createOrganization(organizationName, active, lock) {
       [ORGANIZATIONS_CREATED_FIELD]: Date.now(),
     };
 
-    pipeline.hmset(organizationDataKey, basicInfo);
+    pipeline.hmset(organizationDataKey, mapValues(basicInfo, JSONStringify));
     pipeline.hset(ORGANIZATIONS_NAME_TO_ID, normalizedOrganizationName, organizationId);
     pipeline.sadd(ORGANIZATIONS_INDEX, organizationId);
     await pipeline.exec().then(handlePipeline);

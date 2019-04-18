@@ -20,7 +20,7 @@ function resolveData(response) {
 
   organizationData.forEach((value, index) => {
     if ((index % 2) === 0) {
-      resolvedData[value] = organizationData[index + 1];
+      resolvedData[value] = JSON.parse(organizationData[index + 1]);
     }
   });
 

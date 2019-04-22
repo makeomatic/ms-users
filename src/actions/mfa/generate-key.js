@@ -31,7 +31,7 @@ function generateKey({ auth, params }) {
 
   if (username) {
     response.uri = authenticator.keyuri(
-      encodeURIComponent(username),
+      username,
       this.config.mfa.serviceName,
       secret
     );

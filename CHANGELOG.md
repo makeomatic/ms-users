@@ -1,3 +1,10 @@
+## [10.4.8](https://github.com/makeomatic/ms-users/compare/v10.4.7...v10.4.8) (2019-04-22)
+
+
+### Bug Fixes
+
+* update deps ([#402](https://github.com/makeomatic/ms-users/issues/402)) ([2e74c99](https://github.com/makeomatic/ms-users/commit/2e74c99))
+
 ## [10.4.7](https://github.com/makeomatic/ms-users/compare/v10.4.6...v10.4.7) (2019-04-18)
 
 

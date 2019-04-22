@@ -61,6 +61,16 @@ exports.plugins = [
 exports.logger = {
   defaultLogger: process.env.NODE_ENV === 'development',
   debug: process.env.NODE_ENV === 'development',
+  options: {
+    redact: {
+      paths: [
+        'headers.cookie',
+        'headers.authentication',
+        'params.password',
+        'params.token',
+      ],
+    },
+  },
 };
 
 /**

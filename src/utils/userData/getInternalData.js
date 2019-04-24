@@ -49,7 +49,7 @@ function handleNotFound(data) {
 }
 
 function reduceData(data) {
-  return reduce(data, reducer, {});
+  return reduce(data, reducer, Object.create(null));
 }
 
 function getInternalData(userKey, fetchData = true) {

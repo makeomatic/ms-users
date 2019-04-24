@@ -46,12 +46,22 @@ describe('#ban', function banSuite() {
         includingBanned: false,
       };
 
+      // ban first
+      await this.dispatch('users.ban', { username, ban: true });
+
+      // throws
       const error = await this.dispatch('users.getMetadata', msg)
         .reflect()
         .then(inspectPromise(false));
 
       assert.equal(error.name, 'HttpStatusError');
       assert.equal(error.statusCode, 423);
+
+      // unban
+      await this.dispatch('users.ban', { username, ban: false });
+
+      // no longer throws
+      await this.dispatch('users.getMetadata', msg);
     });
 
     it('must be able to unban an existing user', async function test() {

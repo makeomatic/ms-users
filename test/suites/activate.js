@@ -6,7 +6,7 @@ const is = require('is');
 const sinon = require('sinon');
 
 describe('#activate', function activateSuite() {
-  const email = 'v@aminev.me';
+  const email = 'spa@aminev.me';
 
   beforeEach(global.startService);
   afterEach(global.clearRedis);

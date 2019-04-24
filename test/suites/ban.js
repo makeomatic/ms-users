@@ -29,7 +29,7 @@ describe('#ban', function banSuite() {
         .then(inspectPromise(false));
 
       assert.equal(error.name, 'HttpStatusError');
-      assert.equal(error.statusCode, 423);
+      assert.equal(error.statusCode, 400);
     });
 
     it('must be able to ban an existing user', async function test() {

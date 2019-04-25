@@ -62,6 +62,7 @@ module.exports = exports = {
   USERS_INVALID_TOKEN: new HttpStatusError(403, 'invalid token'),
   USERS_MALFORMED_TOKEN: new HttpStatusError(403, 'malformed token'),
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
+  ErrorAccountLocked: new HttpStatusError(423, 'Account has been locked'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
   ErrorConflictOrganizationExists: new HttpStatusError(409, 'organization already exists'),
   ErrorOrganizationNotFound: new HttpStatusError(404, 'organization not found'),

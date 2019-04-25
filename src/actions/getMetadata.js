@@ -3,7 +3,7 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const noop = require('lodash/noop');
 const identity = require('lodash/identity');
-const get = require('lodash/get');
+const get = require('../utils/get-value');
 const getMetadata = require('../utils/getMetadata');
 const { getUserId } = require('../utils/userData');
 const { USERS_ALIAS_FIELD } = require('../constants');
@@ -17,19 +17,15 @@ const { isArray } = Array;
  */
 function isPublic(audiences) {
   return (metadata, username) => {
-    let notFound = true;
-
     // iterate over passed audiences, generally we only retrieve one audience
     // so this check is cheap
-    audiences.forEach((audience) => {
-      if (notFound && get(metadata, [audience, USERS_ALIAS_FIELD]) === username) {
-        notFound = false;
+    for (const audience of Object.values(audiences)) {
+      if (get(metadata, [audience, USERS_ALIAS_FIELD]) === username) {
+        return;
       }
-    });
-
-    if (notFound) {
-      throw new Errors.HttpStatusError(404, 'username was not found');
     }
+
+    throw new Errors.HttpStatusError(404, 'username was not found');
   };
 }
 
@@ -38,13 +34,15 @@ function isPublic(audiences) {
  * @param  {String} username
  * @return {Promise}
  */
-function retrieveMetadata(username) {
-  return Promise
-    .bind(this.service, username)
-    .then(getUserId)
-    .then(userId => [userId, this.audiences, this.fields])
-    .spread(getMetadata)
-    .tap(metadata => this.filter(metadata, username));
+async function retrieveMetadata(username) {
+  const { service, audiences, fields, verifyBanned } = this;
+
+  const userId = await getUserId.call(service, username, verifyBanned);
+  const metadata = await getMetadata.call(service, userId, audiences, fields);
+
+  this.filter(metadata, username);
+
+  return metadata;
 }
 
 /**
@@ -52,9 +50,7 @@ function retrieveMetadata(username) {
  * @param  {Array} responses
  * @return {Array|Object}
  */
-function extractResponse(responses) {
-  return responses[0];
-}
+const extractResponse = responses => responses[0];
 
 /**
  * @api {amqp} <prefix>.getMetadata Retrieve Public Data
@@ -73,11 +69,12 @@ function extractResponse(responses) {
  * @apiParam (Payload) {String[]} fields.* - fields to return from a passed audience
  *
  */
-module.exports = function getMetadataAction(request) {
+async function getMetadataAction(request) {
   const {
     audience: _audience,
     username: _username,
     public: isPublicResponse,
+    includingBanned,
     fields,
   } = request.params;
 
@@ -92,13 +89,17 @@ module.exports = function getMetadataAction(request) {
     usernames,
     filter,
     fields,
+    verifyBanned: includingBanned === false,
     service: this,
   };
 
-  return Promise
+  const response = await Promise
     .bind(ctx, usernames)
-    .map(retrieveMetadata)
-    .then(unnest);
-};
+    .map(retrieveMetadata);
 
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+  return unnest(response);
+}
+
+getMetadataAction.transports = [ActionTransport.amqp, ActionTransport.internal];
+
+module.exports = getMetadataAction;

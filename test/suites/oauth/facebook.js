@@ -240,8 +240,6 @@ describe('#facebook', function oauthFacebookSuite() {
     const { token } = await getFacebookToken();
     const registered = await createAccount(token);
 
-    console.log('rrrrrrrrrrr - %j', registered);
-
     assert(registered.hasOwnProperty('jwt'));
     assert(registered.hasOwnProperty('user'));
     assert(registered.user.hasOwnProperty('metadata'));

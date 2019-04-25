@@ -3,10 +3,10 @@ const isBanned = require('../isBanned');
 
 async function getUserId(username, verifyBanned = false) {
   const internalData = await getInternalData
-    .call(this, username, verifyBanned === true);
+    .call(this, username, verifyBanned);
 
   if (verifyBanned === true) {
-    isBanned(verifyBanned);
+    isBanned(internalData);
   }
 
   return internalData.id;

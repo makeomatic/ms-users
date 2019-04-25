@@ -1,3 +1,10 @@
+# [10.5.0](https://github.com/makeomatic/ms-users/compare/v10.4.8...v10.5.0) (2019-04-25)
+
+
+### Features
+
+* verify ban status on metadata request ([#403](https://github.com/makeomatic/ms-users/issues/403)) ([4f8baa6](https://github.com/makeomatic/ms-users/commit/4f8baa6))
+
 ## [10.4.8](https://github.com/makeomatic/ms-users/compare/v10.4.7...v10.4.8) (2019-04-22)
 
 

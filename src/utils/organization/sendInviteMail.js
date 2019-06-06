@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const get = require('get-value');
 const generateEmail = require('../challenges/email/generate.js');
 const {
   INVITATIONS_INDEX,

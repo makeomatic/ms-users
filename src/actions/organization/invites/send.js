@@ -34,7 +34,11 @@ async function sendOrganizationInvite({ params }) {
 
   return sendInviteMail.call(this, {
     email: member.email,
-    ctx: { firstName: member.firstName, lastName: member.lastName, organization: organization[ORGANIZATIONS_NAME_FIELD] },
+    ctx: {
+      firstName: member.firstName,
+      lastName: member.lastName,
+      organization: organization[ORGANIZATIONS_NAME_FIELD],
+    },
   });
 }
 

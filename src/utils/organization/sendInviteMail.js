@@ -9,10 +9,9 @@ const {
 } = require('../../constants.js');
 
 module.exports = function sendInviteMail(params) {
-  const { redis, tokenManager, config } = this;
+  const { redis, tokenManager } = this;
   const { email, ctx = {} } = params;
   const now = Date.now();
-  ctx.inviteLink = get(config, 'validation.links.acceptInvite');
 
   return tokenManager
     .create({

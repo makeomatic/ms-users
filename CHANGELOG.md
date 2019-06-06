@@ -1,3 +1,10 @@
+## [10.5.1](https://github.com/makeomatic/ms-users/compare/v10.5.0...v10.5.1) (2019-06-06)
+
+
+### Bug Fixes
+
+* edited send organization invite mail ([#404](https://github.com/makeomatic/ms-users/issues/404)) ([f97cf8b](https://github.com/makeomatic/ms-users/commit/f97cf8b))
+
 # [10.5.0](https://github.com/makeomatic/ms-users/compare/v10.4.8...v10.5.0) (2019-04-25)
 
 

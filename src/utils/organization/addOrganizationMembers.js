@@ -1,9 +1,10 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const redisKey = require('../key.js');
-const generateInvite = require('../../actions/invite');
+const sendInviteMail = require('./sendInviteMail');
+const getInternalData = require('./getInternalData');
 const handlePipeline = require('../pipelineError.js');
-const { ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS } = require('../../constants.js');
+const { ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS, ORGANIZATIONS_NAME_FIELD } = require('../../constants.js');
 
 /**
  * Updates metadata on a organization object
@@ -29,14 +30,19 @@ async function addOrganizationMembers(opts) {
   });
 
   await pipe.exec().then(handlePipeline);
+  const organization = await getInternalData.call(this, organizationId, false);
 
   const membersIdsJob = [];
   for (const member of members) {
     membersIdsJob.push(
-      generateInvite.call(this, { params: {
+      sendInviteMail.call(this, {
         email: member.email,
-        ctx: { firstName: member.firstName, lastName: member.lastName },
-      } })
+        ctx: {
+          firstName: member.firstName,
+          lastName: member.lastName,
+          organization: organization[ORGANIZATIONS_NAME_FIELD],
+        },
+      })
     );
   }
 

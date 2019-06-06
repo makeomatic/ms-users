@@ -3,7 +3,7 @@ const { checkOrganizationExists } = require('../../../utils/organization');
 const {
   ErrorUserNotMember,
   ORGANIZATIONS_MEMBERS,
-  USERS_ACTION_INVITE,
+  USERS_ACTION_ORGANIZATION_INVITE,
   ErrorInvitationExpiredOrUsed,
 } = require('../../../constants');
 const redisKey = require('../../../utils/key.js');
@@ -16,7 +16,7 @@ async function verifyToken(tokenManager, params) {
   // we must ensure that token matches supplied ID
   // it can be overwritten by sending `anyUsername: true`
   const control = {
-    action: USERS_ACTION_INVITE,
+    action: USERS_ACTION_ORGANIZATION_INVITE,
     id: params.username,
   };
 

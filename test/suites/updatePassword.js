@@ -1,4 +1,5 @@
 const { inspectPromise } = require('@makeomatic/deploy');
+const Promise = require('bluebird');
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
 const simpleDispatcher = require('./../helpers/simpleDispatcher');
@@ -115,6 +116,44 @@ describe('#updatePassword', function updatePasswordSuite() {
           .then((updatePassword) => {
             expect(updatePassword).to.be.deep.eq({ success: true });
           });
+      });
+
+      it.only('must drop login counter on success', async function test() {
+        const userWithRemoteIP = { remoteip: '10.0.0.1', username, password: 'wrongPassword', audience };
+        const dispatch = simpleDispatcher(this.users.router);
+
+        // eslint-disable-next-line no-unused-vars
+        const attempt = (_, i) => dispatch(
+          'users.login',
+          // 5 attempts to local lock and 10 404s for global
+          i < 5 ? userWithRemoteIP : { ...userWithRemoteIP, username: '404' }
+        )
+          .reflect()
+          .then(inspectPromise(false));
+
+        await Promise.all(
+          Array(15).fill(0).map(attempt)
+        );
+
+        await dispatch('users.login', { ...userWithRemoteIP, password })
+          .reflect()
+          .then(inspectPromise(false))
+          .then((login) => {
+            expect(login.name).to.be.eq('HttpStatusError');
+            expect(login.statusCode).to.be.eq(429);
+          });
+
+        // it should drop counter
+        await dispatch('users.updatePassword', { resetToken: this.token, newPassword: 'vvv' })
+          .reflect()
+          .then(inspectPromise())
+          .then((updatePassword) => {
+            expect(updatePassword).to.be.deep.eq({ success: true });
+          });
+
+        await dispatch('users.login', { ...userWithRemoteIP, password })
+          .reflect()
+          .then(inspectPromise());
       });
     });
   });

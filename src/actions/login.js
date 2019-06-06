@@ -5,7 +5,6 @@ const moment = require('moment');
 const noop = require('lodash/noop');
 const is = require('is');
 const scrypt = require('../utils/scrypt');
-const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
@@ -22,6 +21,11 @@ const {
   USERS_INVALID_TOKEN,
   ErrorUserNotFound,
 } = require('../constants');
+const {
+  redisDropLoginCounter,
+  redisLocalRemoteIpKey,
+  redisGlobalRemoteIpKey,
+} = require('../utils/loginCounter');
 
 /**
  * Internal functions
@@ -31,7 +35,7 @@ const is404 = e => parseInt(e.message, 10) === 404;
 const globalLoginAttempts = async (ctx) => {
   const { config } = ctx;
   const pipeline = ctx.redis.pipeline();
-  const globalRemoteIpKey = ctx.globalRemoteIpKey = redisKey('gl!ip!ctr', ctx.remoteip);
+  const globalRemoteIpKey = ctx.globalRemoteIpKey = redisGlobalRemoteIpKey(ctx.remoteip);
 
   pipeline.incrby(globalRemoteIpKey, 1);
 
@@ -55,7 +59,7 @@ const localLoginAttempts = async (ctx, data) => {
   const { config } = ctx;
   const pipeline = ctx.redis.pipeline();
   const userId = data[USERS_ID_FIELD];
-  const remoteipKey = ctx.remoteipKey = redisKey(userId, 'ip', ctx.remoteip);
+  const remoteipKey = ctx.remoteipKey = redisLocalRemoteIpKey(userId, ctx.remoteip);
 
   pipeline.incrby(remoteipKey, 1);
 
@@ -155,8 +159,7 @@ function dropLoginCounter() {
   this.loginAttempts = 0;
   this.globalLoginAttempts = 0;
 
-  return this.redis
-    .dropLoginCounter(2, this.remoteipKey, this.globalRemoteIpKey);
+  return redisDropLoginCounter(this.redis, this.remoteip);
 }
 
 /**

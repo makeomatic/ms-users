@@ -13,6 +13,7 @@ const {
   USERS_ACTION_PASSWORD,
   USERS_ACTION_REGISTER,
   USERS_ACTION_INVITE,
+  USERS_ACTION_ORGANIZATION_INVITE,
 } = require('../../../constants.js');
 
 // will be replaced later
@@ -42,6 +43,9 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
     case USERS_ACTION_REGISTER:
       context.password = generatePassword(pwdReset.length, pwdReset.memorable);
       context.login = email;
+      break;
+
+    case USERS_ACTION_ORGANIZATION_INVITE:
       break;
 
     default:

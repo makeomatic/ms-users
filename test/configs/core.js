@@ -9,6 +9,7 @@ module.exports = {
       password: 'cpst-password',
       register: 'cpst-register',
       invite: 'rfx-invite',
+      'organization-invite': 'sl-accept-invite',
     },
   },
   registrationLimits: {

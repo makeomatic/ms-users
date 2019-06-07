@@ -11,10 +11,10 @@ function redisGlobalRemoteIpKey(remoteip) {
 /**
  * Drops login attempts counter
  */
-function redisDropLoginCounter(redis, remoteip) {
+function redisDropLoginCounter(redis, remoteip, userId) {
   return redis.dropLoginCounter(
     2,
-    redisGlobalRemoteIpKey(remoteip),
+    redisLocalRemoteIpKey(userId, remoteip),
     redisGlobalRemoteIpKey(remoteip)
   );
 }

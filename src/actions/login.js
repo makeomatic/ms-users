@@ -155,11 +155,11 @@ function getVerifyStrategy(data) {
 /**
  * Drops login attempts counter
  */
-function dropLoginCounter() {
+function dropLoginCounter(data) {
   this.loginAttempts = 0;
   this.globalLoginAttempts = 0;
 
-  return redisDropLoginCounter(this.redis, this.remoteip);
+  return redisDropLoginCounter(this.redis, this.remoteip, data[USERS_ID_FIELD]);
 }
 
 /**

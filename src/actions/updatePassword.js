@@ -1,20 +1,22 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const partialRight = require('lodash/partialRight');
+const partial = require('lodash/partial');
 const scrypt = require('../utils/scrypt');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
-const { getInternalData } = require('../utils/userData');
+const { getInternalData, getUserId } = require('../utils/userData');
 const isActive = require('../utils/isActive');
 const isBanned = require('../utils/isBanned');
 const hasPassword = require('../utils/hasPassword');
-const { getUserId } = require('../utils/userData');
 const {
   USERS_DATA,
   USERS_ACTION_RESET,
   USERS_PASSWORD_FIELD,
   USERS_ID_FIELD,
 } = require('../constants');
+const { redisDropLoginCounter } = require('../utils/loginCounter');
+
 
 // cache error
 const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
@@ -86,7 +88,7 @@ function updatePassword(request) {
         control: { action: USERS_ACTION_RESET },
       }))
       .catchThrow(Forbidden)
-      .get('id')
+      .get('id') // it is a username actually
       .bind(this);
   } else {
     promise = Promise
@@ -102,9 +104,7 @@ function updatePassword(request) {
   }
 
   if (remoteip) {
-    promise = promise.tap(function resetLock(username) {
-      return redis.del(redisKey(username, 'ip', remoteip));
-    });
+    promise = promise.tap(partial(redisDropLoginCounter, redis, remoteip));
   }
 
   return promise.return({ success: true });

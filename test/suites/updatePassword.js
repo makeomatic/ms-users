@@ -1,4 +1,5 @@
 const { inspectPromise } = require('@makeomatic/deploy');
+const assert = require('assert');
 const Promise = require('bluebird');
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
@@ -118,8 +119,9 @@ describe('#updatePassword', function updatePasswordSuite() {
           });
       });
 
-      it.only('must drop login counter on success', async function test() {
-        const userWithRemoteIP = { remoteip: '10.0.0.1', username, password: 'wrongPassword', audience };
+      it('must drop login counter after updating password', async function test() {
+        const remoteip = '10.0.0.1';
+        const userWithRemoteIP = { username, password: 'wrongPassword', remoteip, audience };
         const dispatch = simpleDispatcher(this.users.router);
 
         // eslint-disable-next-line no-unused-vars
@@ -135,25 +137,15 @@ describe('#updatePassword', function updatePasswordSuite() {
           Array(15).fill(0).map(attempt)
         );
 
-        await dispatch('users.login', { ...userWithRemoteIP, password })
-          .reflect()
-          .then(inspectPromise(false))
-          .then((login) => {
-            expect(login.name).to.be.eq('HttpStatusError');
-            expect(login.statusCode).to.be.eq(429);
-          });
-
+        const newPassword = 'vvv';
         // it should drop counter
-        await dispatch('users.updatePassword', { resetToken: this.token, newPassword: 'vvv' })
-          .reflect()
-          .then(inspectPromise())
-          .then((updatePassword) => {
-            expect(updatePassword).to.be.deep.eq({ success: true });
-          });
-
-        await dispatch('users.login', { ...userWithRemoteIP, password })
+        await dispatch('users.updatePassword', { resetToken: this.token, newPassword, remoteip })
           .reflect()
           .then(inspectPromise());
+
+        await assert.doesNotReject(
+          dispatch('users.login', { ...userWithRemoteIP, password: newPassword })
+        );
       });
     });
   });

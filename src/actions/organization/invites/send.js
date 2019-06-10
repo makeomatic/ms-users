@@ -3,7 +3,13 @@ const sendInviteMail = require('../../../utils/organization/sendInviteMail');
 const getInternalData = require('../../../utils/organization/getInternalData');
 const redisKey = require('../../../utils/key');
 const { checkOrganizationExists } = require('../../../utils/organization');
-const { ORGANIZATIONS_MEMBERS, ErrorUserNotMember, ORGANIZATIONS_NAME_FIELD } = require('../../../constants');
+const {
+  ORGANIZATIONS_MEMBERS,
+  ErrorUserNotMember,
+  ORGANIZATIONS_NAME_FIELD,
+  ORGANIZATIONS_ID_FIELD,
+  USERS_ACTION_ORGANIZATION_INVITE,
+} = require('../../../constants');
 
 /**
  * @api {amqp} <prefix>.invites.send Send invitation
@@ -30,13 +36,17 @@ async function sendOrganizationInvite({ params }) {
   if (!userInOrganization) {
     throw ErrorUserNotMember;
   }
-  const organization = await getInternalData.call(this, organizationId, false);
+  const organization = await getInternalData.call(this, organizationId);
 
   return sendInviteMail.call(this, {
     email: member.email,
+    action: USERS_ACTION_ORGANIZATION_INVITE,
     ctx: {
       firstName: member.firstName,
       lastName: member.lastName,
+      password: member.password,
+      email: member.email,
+      organizationId: organization[ORGANIZATIONS_ID_FIELD],
       organization: organization[ORGANIZATIONS_NAME_FIELD],
     },
   });

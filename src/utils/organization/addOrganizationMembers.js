@@ -1,10 +1,18 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const redisKey = require('../key.js');
+const getUserId = require('../userData/getUserId');
 const sendInviteMail = require('./sendInviteMail');
 const getInternalData = require('./getInternalData');
+const registerOrganizationMembers = require('./registerOrganizationMembers');
 const handlePipeline = require('../pipelineError.js');
-const { ORGANIZATIONS_MEMBERS, USERS_ORGANIZATIONS, ORGANIZATIONS_NAME_FIELD } = require('../../constants.js');
+const {
+  ORGANIZATIONS_MEMBERS,
+  USERS_ORGANIZATIONS,
+  ORGANIZATIONS_NAME_FIELD,
+  USERS_ACTION_ORGANIZATION_INVITE,
+  USERS_ACTION_ORGANIZATION_REGISTER,
+} = require('../../constants.js');
 
 /**
  * Updates metadata on a organization object
@@ -15,14 +23,29 @@ async function addOrganizationMembers(opts) {
   const { redis } = this;
   const { organizationId, members } = opts;
 
+  const existedMembers = [];
+  let newMembers = [];
+
+  const filterMemberByExist = members.map(async (member) => {
+    try {
+      const userId = await getUserId.call(this, member.email);
+      existedMembers.push({ ...member, id: userId });
+    } catch (e) {
+      newMembers.push(member);
+    }
+  });
+  await Promise.all(filterMemberByExist);
+
+  newMembers = await registerOrganizationMembers.call(this, newMembers);
+
   const pipe = redis.pipeline();
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
-  members.forEach((member) => {
+  [...existedMembers, ...newMembers].forEach(({ password, ...member }) => {
     const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
     const memberOrganizations = redisKey(member.email, USERS_ORGANIZATIONS);
     member.username = member.email;
     member.invited = Date.now();
-    member.accepted = null;
+    member.accepted = password ? Date.now() : null;
     member.permissions = member.permissions || [];
     pipe.hmset(memberKey, member);
     pipe.hset(memberOrganizations, organizationId, JSON.stringify(member.permissions));
@@ -33,13 +56,28 @@ async function addOrganizationMembers(opts) {
   const organization = await getInternalData.call(this, organizationId, false);
 
   const membersIdsJob = [];
-  for (const member of members) {
+  for (const member of existedMembers) {
     membersIdsJob.push(
       sendInviteMail.call(this, {
         email: member.email,
+        action: USERS_ACTION_ORGANIZATION_INVITE,
         ctx: {
           firstName: member.firstName,
           lastName: member.lastName,
+          organization: organization[ORGANIZATIONS_NAME_FIELD],
+        },
+      })
+    );
+  }
+  for (const member of newMembers) {
+    membersIdsJob.push(
+      sendInviteMail.call(this, {
+        email: member.email,
+        action: USERS_ACTION_ORGANIZATION_REGISTER,
+        ctx: {
+          firstName: member.firstName,
+          lastName: member.lastName,
+          password: member.password,
           organization: organization[ORGANIZATIONS_NAME_FIELD],
         },
       })

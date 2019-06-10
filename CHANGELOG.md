@@ -1,3 +1,10 @@
+# [10.6.0](https://github.com/makeomatic/ms-users/compare/v10.5.1...v10.6.0) (2019-06-10)
+
+
+### Features
+
+* added register new organization members ([#406](https://github.com/makeomatic/ms-users/issues/406)) ([8629369](https://github.com/makeomatic/ms-users/commit/8629369))
+
 ## [10.5.1](https://github.com/makeomatic/ms-users/compare/v10.5.0...v10.5.1) (2019-06-06)
 
 

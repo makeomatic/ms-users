@@ -40,7 +40,7 @@ async function addOrganizationMembers(opts) {
 
   const pipe = redis.pipeline();
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
-  const organizationMembers = existedMembers.concat(newMembers)
+  const organizationMembers = existedMembers.concat(newMembers);
   organizationMembers.forEach(({ password, ...member }) => {
     const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
     const memberOrganizations = redisKey(member.email, USERS_ORGANIZATIONS);

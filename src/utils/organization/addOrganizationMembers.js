@@ -23,24 +23,24 @@ async function addOrganizationMembers(opts) {
   const { redis } = this;
   const { organizationId, members } = opts;
 
-  const existedMembers = [];
-  let newMembers = [];
+  const registeredMembers = [];
+  const notRegisteredMembers = [];
 
-  const filterMemberByExist = members.map(async (member) => {
+  const filterMembersJob = members.map(async (member) => {
     try {
       const userId = await getUserId.call(this, member.email);
-      existedMembers.push({ ...member, id: userId });
+      registeredMembers.push({ ...member, id: userId });
     } catch (e) {
-      newMembers.push(member);
+      notRegisteredMembers.push(member);
     }
   });
-  await Promise.all(filterMemberByExist);
+  await Promise.all(filterMembersJob);
 
-  newMembers = await registerOrganizationMembers.call(this, newMembers);
+  const createdMembers = await registerOrganizationMembers.call(this, notRegisteredMembers);
 
   const pipe = redis.pipeline();
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
-  const organizationMembers = existedMembers.concat(newMembers);
+  const organizationMembers = registeredMembers.concat(createdMembers);
   organizationMembers.forEach(({ password, ...member }) => {
     const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
     const memberOrganizations = redisKey(member.email, USERS_ORGANIZATIONS);
@@ -54,8 +54,7 @@ async function addOrganizationMembers(opts) {
   });
 
   await pipe.exec().then(handlePipeline);
-  const organization = await getInternalData.call(this, organizationId, false);
-  console.log(organization)
+  const organization = await getInternalData.call(this, organizationId);
 
   const membersIdsJob = [];
   for (const member of organizationMembers) {

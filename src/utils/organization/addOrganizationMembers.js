@@ -12,6 +12,7 @@ const {
   ORGANIZATIONS_NAME_FIELD,
   USERS_ACTION_ORGANIZATION_INVITE,
   USERS_ACTION_ORGANIZATION_REGISTER,
+  ORGANIZATIONS_ID_FIELD,
 } = require('../../constants.js');
 
 /**
@@ -67,6 +68,7 @@ async function addOrganizationMembers(opts) {
           lastName: member.lastName,
           password: member.password,
           email: member.email,
+          organizationId: organization[ORGANIZATIONS_ID_FIELD],
           organization: organization[ORGANIZATIONS_NAME_FIELD],
         },
       })

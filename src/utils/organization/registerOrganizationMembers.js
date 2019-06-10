@@ -11,11 +11,14 @@ const {
   USERS_DATA,
   USERS_USERNAME_TO_ID,
   USERS_INDEX,
+  USERS_ID_FIELD,
 } = require('../../constants.js');
+const hashPassword = require('../register/password/hash');
+const setMetadata = require('../updateMetadata');
 
 async function registerOrganizationMember(member) {
   const { redis, config } = this;
-  const { pwdReset } = config;
+  const { pwdReset, organizations: { audience } } = config;
   const { email } = member;
 
   const userId = this.flake.next();
@@ -26,13 +29,24 @@ async function registerOrganizationMember(member) {
     [USERS_ACTIVE_FLAG]: true,
   };
   const password = generatePassword(pwdReset.length, pwdReset.memorable);
-  basicInfo[USERS_PASSWORD_FIELD] = password;
+  basicInfo[USERS_PASSWORD_FIELD] = await hashPassword.call(this, password);
 
   const userDataKey = redisKey(userId, USERS_DATA);
   pipeline.hmset(userDataKey, basicInfo);
   pipeline.hset(USERS_USERNAME_TO_ID, email, userId);
   await pipeline.exec().then(handlePipeline);
 
+  await setMetadata.call(this, {
+    userId,
+    audience,
+    metadata: [{
+      $set: {
+        [USERS_ID_FIELD]: userId,
+        [USERS_USERNAME_FIELD]: email,
+        [USERS_CREATED_FIELD]: basicInfo[USERS_CREATED_FIELD],
+      },
+    }],
+  });
   // perform instant activation
   // internal username index
   const regPipeline = redis.pipeline().sadd(USERS_INDEX, userId);

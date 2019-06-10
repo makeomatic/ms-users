@@ -55,6 +55,7 @@ async function addOrganizationMembers(opts) {
 
   await pipe.exec().then(handlePipeline);
   const organization = await getInternalData.call(this, organizationId, false);
+  console.log(organization)
 
   const membersIdsJob = [];
   for (const member of organizationMembers) {
@@ -66,6 +67,7 @@ async function addOrganizationMembers(opts) {
           firstName: member.firstName,
           lastName: member.lastName,
           password: member.password,
+          email: member.email,
           organization: organization[ORGANIZATIONS_NAME_FIELD],
         },
       })

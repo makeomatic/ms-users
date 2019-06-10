@@ -25,7 +25,7 @@ describe('#edit member permission', function registerSuite() {
   it('must be able to edit member permission', async function test() {
     const opts = {
       organizationId: this.organization.id,
-      username: this.userNames[0].username,
+      username: this.userNames[0].email,
       permission: {
         $set: ['admin'],
       },

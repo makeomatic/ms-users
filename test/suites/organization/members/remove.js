@@ -25,7 +25,7 @@ describe('#remove member from organization', function registerSuite() {
   it('must be able to remove member', async function test() {
     const opts = {
       organizationId: this.organization.id,
-      username: this.userNames[0].username,
+      username: this.userNames[0].email,
     };
 
     return this.dispatch('users.organization.members.remove', opts)

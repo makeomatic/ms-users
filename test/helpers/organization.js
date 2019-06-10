@@ -1,8 +1,9 @@
 const faker = require('faker');
+const Promise = require('bluebird');
 const times = require('lodash/times');
 const { inspectPromise } = require('@makeomatic/deploy');
 
-async function createMembers(totalUsers = 1) {
+async function createMembers(totalUsers = 1, register = false) {
   this.userNames = [];
 
   times(totalUsers, () => {
@@ -12,6 +13,11 @@ async function createMembers(totalUsers = 1) {
       lastName: faker.name.lastName(),
     });
   });
+
+  if (register) {
+    await Promise.all(this.userNames.map(({ email }) => this.users
+      .dispatch('register', { params: { username: email, password: '123', audience: '*.localhost' } })));
+  }
 }
 
 exports.createMembers = createMembers;

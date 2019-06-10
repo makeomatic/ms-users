@@ -9,8 +9,8 @@ describe('#accept invite organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return createMembers.call(this, 2); });
-  beforeEach(function () { return createOrganization.call(this, {}, 2); });
+  beforeEach(function () { return createMembers.call(this, 1, true); });
+  beforeEach(function () { return createOrganization.call(this, {}, 1); });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {

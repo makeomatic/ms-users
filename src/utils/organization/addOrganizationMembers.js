@@ -40,7 +40,8 @@ async function addOrganizationMembers(opts) {
 
   const pipe = redis.pipeline();
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
-  [...existedMembers, ...newMembers].forEach(({ password, ...member }) => {
+  const organizationMembers = existedMembers.concat(newMembers)
+  organizationMembers.forEach(({ password, ...member }) => {
     const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
     const memberOrganizations = redisKey(member.email, USERS_ORGANIZATIONS);
     member.username = member.email;
@@ -56,24 +57,11 @@ async function addOrganizationMembers(opts) {
   const organization = await getInternalData.call(this, organizationId, false);
 
   const membersIdsJob = [];
-  for (const member of existedMembers) {
+  for (const member of organizationMembers) {
     membersIdsJob.push(
       sendInviteMail.call(this, {
         email: member.email,
-        action: USERS_ACTION_ORGANIZATION_INVITE,
-        ctx: {
-          firstName: member.firstName,
-          lastName: member.lastName,
-          organization: organization[ORGANIZATIONS_NAME_FIELD],
-        },
-      })
-    );
-  }
-  for (const member of newMembers) {
-    membersIdsJob.push(
-      sendInviteMail.call(this, {
-        email: member.email,
-        action: USERS_ACTION_ORGANIZATION_REGISTER,
+        action: member.password ? USERS_ACTION_ORGANIZATION_REGISTER : USERS_ACTION_ORGANIZATION_INVITE,
         ctx: {
           firstName: member.firstName,
           lastName: member.lastName,

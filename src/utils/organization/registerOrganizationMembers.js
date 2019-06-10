@@ -44,7 +44,6 @@ async function registerOrganizationMember(member) {
     .bind(this)
     .return(['users:activate', userId])
     .spread(this.hook)
-    // login & return JWT
     .return({ ...member, id: userId, password });
 }
 

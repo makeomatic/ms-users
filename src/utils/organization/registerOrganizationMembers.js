@@ -13,7 +13,7 @@ const {
   USERS_INDEX,
   USERS_ID_FIELD,
 } = require('../../constants.js');
-const hashPassword = require('../register/password/hash');
+const scrypt = require('../scrypt');
 const setMetadata = require('../updateMetadata');
 
 async function registerOrganizationMember(member) {
@@ -29,7 +29,7 @@ async function registerOrganizationMember(member) {
     [USERS_ACTIVE_FLAG]: true,
   };
   const password = generatePassword(pwdReset.length, pwdReset.memorable);
-  basicInfo[USERS_PASSWORD_FIELD] = await hashPassword.call(this, password);
+  basicInfo[USERS_PASSWORD_FIELD] = await scrypt.hash(password);
 
   const userDataKey = redisKey(userId, USERS_DATA);
   pipeline.hmset(userDataKey, basicInfo);

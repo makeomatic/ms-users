@@ -4,7 +4,7 @@ const assert = require('assert');
 const sinon = require('sinon');
 const faker = require('faker');
 const { createMembers, createOrganization } = require('../../helpers/organization');
-const hashPassword = require('../../../src/utils/register/password/hash');
+const scrypt = require('../../../src/utils/scrypt');
 const registerOrganizationMembers = require('../../../src/utils/organization/registerOrganizationMembers');
 
 describe('#create organization', function registerSuite() {
@@ -26,7 +26,7 @@ describe('#create organization', function registerSuite() {
 
   it('must be able to create organization and register user', async function test() {
     const sendInviteMailSpy = sinon.spy(registerOrganizationMembers, 'call');
-    const generatePasswordSpy = sinon.spy(hashPassword, 'call');
+    const generatePasswordSpy = sinon.spy(scrypt, 'hash');
 
     const params = {
       name: faker.company.companyName(),
@@ -49,7 +49,7 @@ describe('#create organization', function registerSuite() {
       });
 
     const [registeredMember] = await sendInviteMailSpy.returnValues[0];
-    const registeredMemberPassword = generatePasswordSpy.firstCall.args[1];
+    const registeredMemberPassword = generatePasswordSpy.firstCall.args[0];
     const loginParams = {
       username: registeredMember.email,
       password: registeredMemberPassword,

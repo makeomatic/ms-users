@@ -1,3 +1,10 @@
+## [10.6.1](https://github.com/makeomatic/ms-users/compare/v10.6.0...v10.6.1) (2019-06-17)
+
+
+### Bug Fixes
+
+* edited generate password, send invite mail ([#407](https://github.com/makeomatic/ms-users/issues/407)) ([4312113](https://github.com/makeomatic/ms-users/commit/4312113))
+
 # [10.6.0](https://github.com/makeomatic/ms-users/compare/v10.5.1...v10.6.0) (2019-06-10)
 
 

@@ -36,7 +36,6 @@ async function addOrganizationMembers(opts) {
     }
   });
   await Promise.all(filterMembersJob);
-
   const createdMembers = await registerOrganizationMembers.call(this, notRegisteredMembers);
 
   const pipe = redis.pipeline();

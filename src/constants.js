@@ -89,6 +89,7 @@ module.exports = exports = {
 
   // invitations constants
   INVITATIONS_INDEX: 'user-invitations',
+  ORGANIZATIONS_INVITATIONS_INDEX: 'organization-invitations',
 
   // token
   TOKEN_METADATA_FIELD_METADATA: '1',

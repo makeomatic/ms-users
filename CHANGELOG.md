@@ -1,3 +1,10 @@
+## [10.6.2](https://github.com/makeomatic/ms-users/compare/v10.6.1...v10.6.2) (2019-06-17)
+
+
+### Bug Fixes
+
+* upgrade microfleet core ([#408](https://github.com/makeomatic/ms-users/issues/408)) ([df515c8](https://github.com/makeomatic/ms-users/commit/df515c8))
+
 ## [10.6.1](https://github.com/makeomatic/ms-users/compare/v10.6.0...v10.6.1) (2019-06-17)
 
 

@@ -1,3 +1,10 @@
+## [10.6.3](https://github.com/makeomatic/ms-users/compare/v10.6.2...v10.6.3) (2019-06-18)
+
+
+### Bug Fixes
+
+* edit audience for register organization members ([#409](https://github.com/makeomatic/ms-users/issues/409)) ([49099c0](https://github.com/makeomatic/ms-users/commit/49099c0))
+
 ## [10.6.2](https://github.com/makeomatic/ms-users/compare/v10.6.1...v10.6.2) (2019-06-17)
 
 

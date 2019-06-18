@@ -18,7 +18,7 @@ const setMetadata = require('../updateMetadata');
 
 async function registerOrganizationMember(member) {
   const { redis, config } = this;
-  const { pwdReset, organizations: { audience } } = config;
+  const { pwdReset, jwt: { defaultAudience: audience } } = config;
   const { email } = member;
 
   const userId = this.flake.next();

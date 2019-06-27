@@ -19,6 +19,12 @@ const autoSchema = routerExtension('validate/schemaLessAction');
 const auditLog = routerExtension('audit/log');
 
 /**
+ * Provides prometheus metrics
+ * @type {Function}
+ */
+const metrics = routerExtension('audit/metrics');
+
+/**
  * Catches errors from oauth.facebook and wraps them into HTML
  * @type {Function}
  */
@@ -37,8 +43,8 @@ exports.router = {
     enabledGenericActions: ['health'],
   },
   extensions: {
-    enabled: ['preRequest', 'postRequest', 'postValidate', 'preResponse'],
-    register: [autoSchema, preResponse, auditLog()],
+    enabled: ['preRequest', 'postRequest', 'postValidate', 'preResponse', 'postResponse'],
+    register: [autoSchema, preResponse, auditLog(), metrics()],
   },
   auth: {
     strategies: {

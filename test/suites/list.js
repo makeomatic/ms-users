@@ -85,9 +85,9 @@ describe('#list', function listSuite() {
       filter: {},
     });
 
-    expect(result.page).to.be.eq(6);
+    expect(result.page).to.be.eq(1);
     expect(result.pages).to.be.eq(11);
-    expect(result.cursor).to.be.eq(61);
+    expect(result.cursor).to.be.eq(10);
     expect(result.total).to.be.eq(totalUsers);
     expect(result.users).to.have.lengthOf(10);
 

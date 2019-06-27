@@ -1,3 +1,15 @@
+# [11.0.0](https://github.com/makeomatic/ms-users/compare/v10.6.3...v11.0.0) (2019-06-27)
+
+
+### Features
+
+* upgrade deps, move hapi to @hapi/hapi, enable oauth tests ([49cc46d](https://github.com/makeomatic/ms-users/commit/49cc46d))
+
+
+### BREAKING CHANGES
+
+* requires newer node versions, dependencies had breaking changes
+
 ## [10.6.3](https://github.com/makeomatic/ms-users/compare/v10.6.2...v10.6.3) (2019-06-18)
 
 

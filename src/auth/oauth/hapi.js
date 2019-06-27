@@ -1,6 +1,5 @@
 const is = require('is');
 const assert = require('assert');
-const forEach = require('lodash/forEach');
 const defaults = require('lodash/defaults');
 const strategies = require('./providers');
 
@@ -29,11 +28,11 @@ module.exports = function OauthHandler(server, config) {
 
   server.ext('onPreResponse', hapiOauthHandler);
 
-  forEach(config.oauth.providers, (options, name) => {
+  for (const [name, options] of Object.entries(config.oauth.providers)) {
     const strategy = strategies[name];
 
     if (options.enabled === false) {
-      return;
+      continue; // eslint-disable-line no-continue
     }
 
     if (!strategy) {
@@ -87,7 +86,7 @@ module.exports = function OauthHandler(server, config) {
       // must be specified, defaults to mf_bfb
       server.states.cookies[rest.cookie].isSameSite = rest.isSameSite;
     }
-  });
+  }
 
   return server;
 };

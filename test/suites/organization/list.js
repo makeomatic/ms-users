@@ -10,7 +10,7 @@ describe('#organizations list', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return createOrganization.call(this); });
+  beforeEach(function pretest() { return createOrganization.call(this); });
   afterEach(global.clearRedis);
 
   it('must be able to return organization lists', async function test() {

@@ -77,6 +77,33 @@ describe('#list', function listSuite() {
       });
   });
 
+  it('able to list users without any filters with default limit', async function test() {
+    const result = await this.dispatch('users.list', {
+      offset: 0,
+      order: 'ASC',
+      audience: this.audience,
+      filter: {},
+    });
+
+    expect(result.page).to.be.eq(6);
+    expect(result.pages).to.be.eq(11);
+    expect(result.cursor).to.be.eq(61);
+    expect(result.total).to.be.eq(totalUsers);
+    expect(result.users).to.have.lengthOf(10);
+
+    result.users.forEach((user) => {
+      expect(user).to.have.ownProperty('id');
+      expect(user).to.have.ownProperty('metadata');
+      expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
+      expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+    });
+
+    const copy = [].concat(result.users);
+    copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
+
+    expect(copy).to.be.deep.eq(result.users);
+  });
+
   it('able to list users without any filters: DESC', function test() {
     return this
       .dispatch('users.list', {

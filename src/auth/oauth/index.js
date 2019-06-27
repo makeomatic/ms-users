@@ -26,6 +26,7 @@ const isHTMLRedirect = ({ statusCode, source }) => statusCode === 200 && source;
 function oauthVerification(response, credentials) {
   this.service.log.debug({
     statusCode: response && response.statusCode,
+    headers: response && response.headers,
     credentials,
   }, 'service oauth verification');
 
@@ -51,6 +52,10 @@ function oauthVerification(response, credentials) {
     const { retryOnMissingPermissions, location } = this.config;
 
     if (retryOnMissingPermissions === true) {
+      this.service.log.warn({
+        location,
+        path: this.transportRequest.path,
+      }, 'sending to fb for additional data');
       return Promise.reject(new Redirect(`${location}${this.transportRequest.path}?auth_type=rerequest&scope=${missingPermissions.join(',')}`));
     }
 

@@ -22,7 +22,7 @@ async function createMembers(totalUsers = 1, register = false) {
 
 exports.createMembers = createMembers;
 
-exports.createOrganization = async function (customOpts = {}, totalUsers = 1) {
+exports.createOrganization = async function createOrganization(customOpts = {}, totalUsers = 1) {
   if (!this.userNames) {
     await createMembers.call(this, totalUsers);
   }

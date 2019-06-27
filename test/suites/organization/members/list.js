@@ -8,8 +8,8 @@ describe('#organization members list', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return createMembers.call(this, 5); });
-  beforeEach(function () { return createOrganization.call(this, {}, 5); });
+  beforeEach(function pretest() { return createMembers.call(this, 5); });
+  beforeEach(function pretest() { return createOrganization.call(this, {}, 5); });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {

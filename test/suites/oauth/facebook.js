@@ -13,7 +13,7 @@ const puppeteer = require('puppeteer');
 
 const serviceLink = 'https://ms-users.local';
 const graphApi = request.defaults({
-  baseUrl: 'https://graph.facebook.com/v2.9',
+  baseUrl: 'https://graph.facebook.com/v3.3',
   headers: {
     Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
   },
@@ -40,7 +40,6 @@ const createTestUser = (localCache = cache) => Promise.props({
   Object.assign(localCache, data);
 });
 
-
 function parseHTML(body) {
   const $ = cheerio.load(body);
   const vmScript = new vm.Script($('.no-js > body > script').html());
@@ -50,10 +49,6 @@ function parseHTML(body) {
 }
 
 describe('#facebook', function oauthFacebookSuite() {
-  before(function () {
-    this.skip();
-  });
-
   let chrome;
   let page;
   let service;
@@ -127,7 +122,12 @@ describe('#facebook', function oauthFacebookSuite() {
     // maybe this is the actual request status code
     const status = lastRequestResponse.status();
     const url = page.url();
-    const body = await page.content();
+    let body;
+    try {
+      body = await page.content();
+    } catch (e) {
+      body = e.message;
+    }
 
     console.info('%s - %s', status, url);
 
@@ -156,7 +156,7 @@ describe('#facebook', function oauthFacebookSuite() {
     }
   }
 
-  async function signInAndNavigate(waitUntil) {
+  async function signInAndNavigate(predicate) {
     await initiateAuth(cache.testUserInstalledPartial);
 
     let response;
@@ -168,10 +168,8 @@ describe('#facebook', function oauthFacebookSuite() {
       await page.click('#platformDialogForm label:nth-child(2)', { delay: 100 });
       await Promise.delay(300);
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
-      [response] = await Promise.all([
-        navigate({ waitUntil }),
-        page.click('button[name=__CONFIRM__]', { delay: 100 }),
-      ]);
+      await page.click('button[name=__CONFIRM__]', { delay: 100 });
+      response = await page.waitForResponse(predicate);
     } catch (e) {
       console.error('failed to navigate', e);
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });
@@ -200,25 +198,19 @@ describe('#facebook', function oauthFacebookSuite() {
     });
   });
 
-  afterEach('close chrome', async () => {
+  beforeEach('start', async () => {
+    service = await global.startService(this.testConfig);
+  });
+  beforeEach('create user', createTestUser);
+  afterEach(async () => {
     if (page) await page.close();
     if (chrome) await chrome.close();
+    await global.clearRedis();
   });
-
-  before('start', global.startService);
-  beforeEach('create user', createTestUser);
-  beforeEach('save ref', function saveServiceRef() {
-    service = this.users;
-  });
-
-  afterEach(function cleanRedis() {
-    global.clearRedis.call(this, true);
-  });
-  after(global.clearRedis);
 
   it('should able to retrieve faceboook profile', async () => {
     const { token, body } = await getFacebookToken();
-    console.assert(token, 'did not get token -', token, body);
+    assert(token, `did not get token - ${token} - ${body}`);
   });
 
   it('should able to handle declined authentication', async () => {
@@ -229,7 +221,7 @@ describe('#facebook', function oauthFacebookSuite() {
       await page.click('button[name=__CANCEL__]');
 
       const { status, url } = await navigate();
-      console.assert(status === 401, 'statusCode is %s, url is %s', status, url);
+      assert(status === 401, `statusCode is ${status}, url is ${url}`);
     } catch (e) {
       await page.screenshot({ fullPage: true, path: `./ss/declined-${Date.now()}.png` });
       throw e;
@@ -297,13 +289,13 @@ describe('#facebook', function oauthFacebookSuite() {
 
     const { status, url, body } = await navigate({ href: executeLink });
 
-    console.assert(status === 200, 'Page is %s and status is %s', url, status);
+    assert(status === 200, `Page is ${url} and status is ${status}`);
 
     const context = parseHTML(body);
 
-    console.assert(context.$ms_users_inj_post_message, 'post message not present:', body);
-    console.assert(context.$ms_users_inj_post_message.type === 'ms-users:attached', 'type wrong', body);
-    console.assert(Object.keys(context.$ms_users_inj_post_message.payload).length);
+    assert(context.$ms_users_inj_post_message, `post message not present: ${body}`);
+    assert(context.$ms_users_inj_post_message.type === 'ms-users:attached', `type wrong -> ${body}`);
+    assert(Object.keys(context.$ms_users_inj_post_message.payload).length);
   });
 
   it('should reject attaching already attached profile to a new user', async () => {
@@ -320,7 +312,7 @@ describe('#facebook', function oauthFacebookSuite() {
     console.info('opening %s', executeLink);
     const { status, url, body } = await navigate({ href: executeLink });
 
-    console.assert(status === 412, 'Page is %s and status is %s', url, status);
+    assert(status === 412, `Page is ${url} and status is ${status}`);
 
     const context = parseHTML(body);
 
@@ -349,10 +341,10 @@ describe('#facebook', function oauthFacebookSuite() {
 
     /* initial request for attaching account */
     const preRequest = await navigate({ href: `${executeLink}?jwt=${databag.jwt}` });
-    console.assert(preRequest.status === 200, 'attaching account failed - %s - %s', preRequest.status, preRequest.url);
+    assert(preRequest.status === 200, `attaching account failed - ${preRequest.status} - ${preRequest.url}`);
 
     const { status, url, body } = await navigate({ href: executeLink });
-    console.assert(status === 200, 'signing in failed - %s - %s', status, url);
+    assert(status === 200, `signing in failed - ${status} - ${url}`);
 
     const context = parseHTML(body);
 
@@ -423,9 +415,15 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should reject when signing in with partially returned scope and report it', async () => {
-    const { status, url, body } = await signInAndNavigate();
+    const data = await signInAndNavigate((response) => {
+      return response.url().startsWith(serviceLink) && response.status() === 401;
+    });
 
-    console.assert(status === 401, 'did not reject partial sign in - %s - %s', status, url, body);
+    const status = data.status();
+    const url = data.url();
+    const body = await data.text();
+
+    assert(status === 401, `did not reject partial sign in - ${status} - ${url} - ${body}`);
 
     const context = parseHTML(body);
     assert.ok(context.$ms_users_inj_post_message);
@@ -437,57 +435,84 @@ describe('#facebook', function oauthFacebookSuite() {
     });
   });
 
-  it('apply config: retryOnMissingPermissions=true', () => {
-    service.config.oauth.providers.facebook.retryOnMissingPermissions = true;
+  describe('should re-request partially returned scope endlessly', () => {
+    before('apply', () => {
+      this.testConfig = {
+        oauth: { providers: { facebook: { retryOnMissingPermissions: true } } },
+      };
+    });
+
+    it('should re-request partially returned scope endlessly', async () => {
+      const pageResponse = await signInAndNavigate((response) => {
+        return /dialog\/oauth\?auth_type=rerequest/.test(response.url());
+      });
+
+      const url = pageResponse.url();
+      const status = pageResponse.status();
+
+      assert(/dialog\/oauth\?auth_type=rerequest/.test(url), `failed to redirect back - ${status} - ${url}`);
+    });
+
+    after('remove', () => {
+      delete this.testConfig;
+    });
   });
 
-  it('should re-request partially returned scope endlessly', async () => {
-    const { status, url, body } = await signInAndNavigate('networkidle2');
+  describe('should login with partially returned scope and report it', () => {
+    before('apply', () => {
+      this.testConfig = {
+        oauth: { providers: { facebook: { retryOnMissingPermissions: false } } },
+      };
+    });
 
-    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url, body);
-    console.assert(/dialog\/oauth\?auth_type=rerequest/.test(url), 'failed to redirect back - %s - %s', status, url, body);
-  });
+    it('should login with partially returned scope and report it', async () => {
+      const data = await signInAndNavigate((response) => {
+        return response.url().startsWith(serviceLink) && response.status() === 200;
+      });
 
-  it('apply config: retryOnMissingPermissions=false', function test() {
-    service.config.oauth.providers.facebook.retryOnMissingPermissions = false;
-  });
+      const body = await data.text();
+      const context = parseHTML(body);
 
-  it('should login with partially returned scope and report it', async () => {
-    const { status, url, body } = await signInAndNavigate();
+      assert.ok(context.$ms_users_inj_post_message);
+      assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+      assert.equal(context.$ms_users_inj_post_message.error, false);
+      assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
+      assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
+      assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
+    });
 
-    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url, body);
+    it('should register with partially returned scope and require email verification', async () => {
+      const data = await signInAndNavigate((response) => {
+        return response.url().startsWith(serviceLink) && response.status() === 200;
+      });
 
-    const context = parseHTML(body);
+      const status = data.status();
+      const url = data.url();
+      const body = await data.text();
 
-    assert.ok(context.$ms_users_inj_post_message);
-    assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
-    assert.equal(context.$ms_users_inj_post_message.error, false);
-    assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
-    assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
-    assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
-  });
+      assert(status === 200, `failed to redirect back - ${status} - ${url} - ${body}`);
 
-  it('should register with partially returned scope and require email verification', async () => {
-    const { status, url, body } = await signInAndNavigate();
+      const context = parseHTML(body);
 
-    console.assert(status === 200, 'failed to redirect back - %s - %s', status, url, body);
+      assert.ok(context.$ms_users_inj_post_message);
+      assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
+      assert.equal(context.$ms_users_inj_post_message.error, false);
+      assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
+      assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
+      assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
 
-    const context = parseHTML(body);
+      const { requiresActivation, id } = await createAccount(
+        context.$ms_users_inj_post_message.payload.token,
+        { username: 'unverified@makeomatic.ca' }
+      );
 
-    assert.ok(context.$ms_users_inj_post_message);
-    assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
-    assert.equal(context.$ms_users_inj_post_message.error, false);
-    assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
-    assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
-    assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
+      assert.equal(requiresActivation, true);
+      assert.ok(id);
+    });
 
-    const { requiresActivation, id } = await createAccount(
-      context.$ms_users_inj_post_message.payload.token,
-      { username: 'unverified@makeomatic.ca' }
-    );
-
-    assert.equal(requiresActivation, true);
-    assert.ok(id);
+    after('remove', () => {
+      delete this.testConfig;
+    });
   });
 
   it('should be able to sign in with facebook account if mfa is enabled', async function test() {
@@ -507,10 +532,10 @@ describe('#facebook', function oauthFacebookSuite() {
 
     /* initial request for attaching account */
     const preRequest = await navigate({ href: `${executeLink}?jwt=${databag.jwt}` });
-    console.assert(preRequest.status === 200, 'attaching account failed - %s - %s', preRequest.status, preRequest.url);
+    assert(preRequest.status === 200, `attaching account failed - ${preRequest.status} - ${preRequest.url}`);
 
     const { status, url, body } = await navigate({ href: executeLink });
-    console.assert(status === 200, 'signing in failed - %s - %s', status, url);
+    assert(status === 403, `mfa was not requested - ${status} - ${url}`);
 
     const context = parseHTML(body);
 

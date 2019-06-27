@@ -11,7 +11,9 @@ describe('#create organization', function registerSuite() {
   this.timeout(50000);
 
   beforeEach(global.startService);
-  beforeEach(function () { return createMembers.call(this, 1); });
+  beforeEach(function pretest() {
+    return createMembers.call(this, 1);
+  });
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', function test() {

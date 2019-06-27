@@ -1,5 +1,5 @@
 module.exports = class Urls {
-  static DEFAULT_API_VERSION = 'v2.9';
+  static DEFAULT_API_VERSION = 'v3.3';
 
   static self = null;
 

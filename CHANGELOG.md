@@ -1,3 +1,10 @@
+# [11.1.0](https://github.com/makeomatic/ms-users/compare/v11.0.0...v11.1.0) (2019-06-28)
+
+
+### Features
+
+* reset of throttle on successful verification ([c08dcd4](https://github.com/makeomatic/ms-users/commit/c08dcd4))
+
 # [11.0.0](https://github.com/makeomatic/ms-users/compare/v10.6.3...v11.0.0) (2019-06-27)
 
 

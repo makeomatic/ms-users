@@ -1,3 +1,10 @@
+## [11.1.1](https://github.com/makeomatic/ms-users/compare/v11.1.0...v11.1.1) (2019-07-16)
+
+
+### Bug Fixes
+
+* update deps ([b2fed65](https://github.com/makeomatic/ms-users/commit/b2fed65))
+
 # [11.1.0](https://github.com/makeomatic/ms-users/compare/v11.0.0...v11.1.0) (2019-06-28)
 
 

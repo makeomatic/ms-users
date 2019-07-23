@@ -40,9 +40,13 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
       context.link = generateLink(server, paths[type]);
       break;
     case USERS_ACTION_ORGANIZATION_INVITE:
-    case USERS_ACTION_ORGANIZATION_REGISTER:
       // generate secret
       context.qs = `?q=${context.token.secret}&organizationId=${ctx.organizationId}&username=${ctx.email}`;
+      context.link = generateLink(server, paths[type]);
+      break;
+    case USERS_ACTION_ORGANIZATION_REGISTER:
+      // generate secret
+      context.qs = `?password=${ctx.password}&login=${ctx.email}`;
       context.link = generateLink(server, paths[type]);
       break;
 

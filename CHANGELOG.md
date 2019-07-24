@@ -1,3 +1,10 @@
+## [11.1.2](https://github.com/makeomatic/ms-users/compare/v11.1.1...v11.1.2) (2019-07-24)
+
+
+### Bug Fixes
+
+* edited qs in organization invite link ([#410](https://github.com/makeomatic/ms-users/issues/410)) ([f3b9c15](https://github.com/makeomatic/ms-users/commit/f3b9c15))
+
 ## [11.1.1](https://github.com/makeomatic/ms-users/compare/v11.1.0...v11.1.1) (2019-07-16)
 
 

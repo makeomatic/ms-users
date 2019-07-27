@@ -27,7 +27,7 @@ module.exports = async function checkLimits(redis, registrationLimits, ipaddress
 
   const cardinality = props[3];
   if (cardinality > times) {
-    const msg = 'You can\'t register more users from your ipaddress now';
+    const msg = `You can't register more users from your ipaddress '${ipaddress}' now`;
     throw new HttpStatusError(429, msg);
   }
 

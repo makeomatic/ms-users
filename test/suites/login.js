@@ -2,6 +2,7 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
+const moment = require('moment');
 const { expect } = require('chai');
 const { omit, times } = require('lodash');
 const sinon = require('sinon').usingPromise(Promise);
@@ -117,6 +118,9 @@ describe('#login', function loginSuite() {
     it('must lock account for authentication after 5 invalid login attemps', () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
       const promises = [];
+      const config = this.users.config.jwt;
+      const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
+      const eMsg = `You are locked from making login attempts for the next ${duration} from ipaddress '${userWithRemoteIP.remoteip}'`;
 
       times(5, () => {
         promises.push((
@@ -139,6 +143,7 @@ describe('#login', function loginSuite() {
           .then((login) => {
             expect(login.name).to.be.eq('HttpStatusError');
             expect(login.statusCode).to.be.eq(429);
+            expect(login.message).to.be.eq(eMsg);
           })
       ));
 
@@ -148,6 +153,9 @@ describe('#login', function loginSuite() {
     it('must lock ip for login completely after 15 attempts', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
       const promises = [];
+      const config = this.users.config.jwt;
+      const duration = moment().add(config.keepGlobalLoginAttempts, 'seconds').toNow(true);
+      const eMsg = `You are locked from making login attempts for the next ${duration} from ipaddress '${userWithRemoteIP.remoteip}'`;
 
       times(16, () => {
         promises.push((
@@ -164,6 +172,9 @@ describe('#login', function loginSuite() {
 
       expect(Http404.length).to.be.eq(15);
       expect(Http429.length).to.be.eq(1);
+
+      const Http429Error = Http429[0];
+      expect(Http429Error.message).to.be.eq(eMsg);
     });
 
     it('should reject signing in with bogus or expired disposable password', () => {

@@ -8,6 +8,9 @@
     "organizationId": {
       "type": "string"
     },
+    "audience": {
+      "type": "string"
+    },
     "metadata": {
       "$ref": "common.json#/definitions/metadata"
     }

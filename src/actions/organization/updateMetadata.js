@@ -21,18 +21,18 @@ const { checkOrganizationExists, getOrganizationMetadata } = require('../../util
  */
 async function updateOrganizationMetadata({ params }) {
   const { config } = this;
-  const { metadata, organizationId } = params;
-  const { audience } = config.organizations;
+  const { metadata, organizationId, audience } = params;
+  const { audience: defaultAudience } = config.organizations;
 
   if (metadata) {
     await setOrganizationMetadata.call(this, {
       organizationId,
-      audience,
+      audience: audience || defaultAudience,
       metadata,
     });
   }
 
-  const data = await getOrganizationMetadata.call(this, organizationId);
+  const data = await getOrganizationMetadata.call(this, organizationId, audience);
   return {
     data: {
       id: organizationId,

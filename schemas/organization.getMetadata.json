@@ -8,7 +8,8 @@
       "type": "string"
     },
     "audience": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     }
   }
 }

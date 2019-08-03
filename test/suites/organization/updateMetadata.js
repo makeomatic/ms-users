@@ -39,6 +39,36 @@ describe('#update metadata organization', function registerSuite() {
       });
   });
 
+  it('must be able to update and get custom audience organization metadata', async function test() {
+    const updatedOpts = {
+      organizationId: this.organization.id,
+      audience: 'test-audience',
+      metadata: {
+        $set: { address: 'test-audience' },
+      },
+    };
+
+    await this.dispatch('users.organization.updateMetadata', updatedOpts)
+      .reflect()
+      .then(inspectPromise(true))
+      .then((createdOrganization) => {
+        assert(createdOrganization.data.attributes.address === 'test-audience');
+      });
+
+    const opts = {
+      organizationId: this.organization.id,
+      audience: 'test-audience',
+    };
+
+    return this.dispatch('users.organization.getMetadata', opts)
+      .reflect()
+      .then(inspectPromise(true))
+      .then((response) => {
+        assert.ok(response.data.attributes);
+        assert(response.data.attributes.address === 'test-audience');
+      });
+  });
+
   it('must return organization not found error', async function test() {
     const opts = {
       organizationId: '1234',

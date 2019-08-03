@@ -6,6 +6,10 @@
   "properties": {
     "organizationId": {
       "type": "string"
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1
     }
   }
 }

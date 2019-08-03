@@ -8,6 +8,10 @@
     "organizationId": {
       "type": "string"
     },
+    "audience": {
+      "type": "string",
+      "minLength": 1
+    },
     "metadata": {
       "$ref": "common.json#/definitions/metadata"
     }

@@ -1,3 +1,10 @@
+# [11.2.0](https://github.com/makeomatic/ms-users/compare/v11.1.2...v11.2.0) (2019-08-04)
+
+
+### Features
+
+* added handling custom audience to organization api ([#413](https://github.com/makeomatic/ms-users/issues/413)) ([a66e97a](https://github.com/makeomatic/ms-users/commit/a66e97a))
+
 ## [11.1.2](https://github.com/makeomatic/ms-users/compare/v11.1.1...v11.1.2) (2019-07-24)
 
 

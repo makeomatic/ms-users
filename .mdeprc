@@ -1,4 +1,4 @@
 {
-  "node": "10.16.0",
+  "node": "10.16.1",
   "rebuild": ["ms-flakeless", "scrypt"]
 }

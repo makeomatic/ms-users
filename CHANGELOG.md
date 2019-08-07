@@ -1,3 +1,10 @@
+## [11.2.1](https://github.com/makeomatic/ms-users/compare/v11.2.0...v11.2.1) (2019-08-07)
+
+
+### Bug Fixes
+
+* update node to 10.16.1, chrome 76, last puppeteer ([5e548cd](https://github.com/makeomatic/ms-users/commit/5e548cd))
+
 # [11.2.0](https://github.com/makeomatic/ms-users/compare/v11.1.2...v11.2.0) (2019-08-04)
 
 

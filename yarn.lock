@@ -5476,12 +5476,12 @@ ms-conf@^5.0.0:
     lodash.uniq "^4.5.0"
     nconf "^0.10.0"
 
-ms-flakeless@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/ms-flakeless/-/ms-flakeless-4.1.1.tgz#3f9df9d87dbe44ee6a954714b4a8c990798ffa35"
-  integrity sha512-CNv3bQ76aAnMJgDPPLB41peD3nbwZlSRUNa5r3wlr383eUAH+FPul5vLuJa1GMmVTwX02TE3o0TykpQDj5mQDg==
+ms-flakeless@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/ms-flakeless/-/ms-flakeless-4.2.0.tgz#3182dc0fb9bf871e170a56c392f0bd92280424b3"
+  integrity sha512-Py7Ga/1YRb5DVuWLKrlFT7OWNnLwEKb52qR1tyuqSVPuMGdXlfRlqxcBaeG82PfDh2vC/WhcMZqA2UkaRJ6CZg==
   dependencies:
-    nan "^2.8.0"
+    nan "^2.14.0"
 
 ms-mailer-client@^8.0.1:
   version "8.0.1"
@@ -5548,7 +5548,7 @@ mv@~2:
     ncp "~2.0.0"
     rimraf "~2.4.0"
 
-nan@^2.0.8, nan@^2.10.0, nan@^2.12.1, nan@^2.8.0:
+nan@^2.0.8, nan@^2.10.0, nan@^2.12.1, nan@^2.14.0:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
   integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==

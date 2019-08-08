@@ -51,7 +51,7 @@
     "lodash": "^4.17.15",
     "moment": "^2.23.0",
     "ms-conf": "^5.0.0",
-    "ms-flakeless": "^4.1.1",
+    "ms-flakeless": "^4.2.0",
     "ms-mailer-client": "^8.0.1",
     "ms-mailer-templates": "^1.11.1",
     "ms-token": "^3.1.0",

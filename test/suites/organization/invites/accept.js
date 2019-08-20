@@ -51,7 +51,7 @@ describe('#accept invite organization', function registerSuite() {
       });
   });
 
-  it('must return user not organization member error', async function test() {
+  it('must return user not found error', async function test() {
     const acceptOpts = {
       organizationId: this.organization.id,
       username: faker.internet.email(),
@@ -63,7 +63,7 @@ describe('#accept invite organization', function registerSuite() {
       .then(inspectPromise(false))
       .then((response) => {
         assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.message, 'username not member of organization');
+        assert.ok(response.message.includes('does not exist'));
       });
   });
 });

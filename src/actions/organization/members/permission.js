@@ -19,8 +19,7 @@ const { ErrorUserNotMember, USERS_METADATA, ORGANIZATIONS_MEMBERS } = require('.
  *   supports `$set string[]`, `$remove string[]`
  */
 async function setOrganizationMemberPermission({ params }) {
-  const service = this;
-  const { redis } = service;
+  const { redis, config } = this;
   const { organizationId, username, permission } = params;
   const { audience } = config.organizations;
 
@@ -31,23 +30,22 @@ async function setOrganizationMemberPermission({ params }) {
     throw ErrorUserNotMember;
   }
 
-  let permissions = userPermissions === '' ? [] : userPermissions.split(',');
+  let permissions = userPermissions.length ? [] : userPermissions.split(',');
 
   const { $set = [], $remove = [] } = permission;
-
   for (const permissionItem of $set) {
     if (!permissions.includes(permissionItem)) {
       permissions.push(permissionItem);
     }
   }
-
   for (const permissionItem of $remove) {
     permissions = permissions.filter(item => item !== permissionItem);
   }
+  permissions = JSON.stringify(permissions);
 
   const pipeline = redis.pipeline();
-  pipeline.hset(memberMetadataKey, organizationId, JSON.stringify(permissions));
-  pipeline.hset(redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId), 'permissions', JSON.stringify(permissions));
+  pipeline.hset(memberMetadataKey, organizationId, permissions);
+  pipeline.hset(redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId), 'permissions', permissions);
 
   return pipeline.exec().then(handlePipeline);
 }

@@ -3,7 +3,7 @@ const mapValues = require('lodash/mapValues');
 const { ORGANIZATIONS_MEMBERS } = require('../../constants');
 const redisKey = require('../key');
 
-const JSONParse = (d) => JSON.parse(d);
+const JSONParse = d => JSON.parse(d);
 
 async function getOrganizationMembers(organizationId) {
   const { redis } = this;

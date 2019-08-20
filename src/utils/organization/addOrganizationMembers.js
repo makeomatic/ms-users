@@ -51,10 +51,10 @@ async function addOrganizationMembers(opts) {
     member.invited = Date.now();
     member.accepted = password ? Date.now() : null;
     member.permissions = member.permissions || [];
-    member = mapValues(member, JSONStringify);
-    pipe.hmset(memberKey, member);
-    pipe.hset(memberOrganizations, organizationId, member.permissions);
-    pipe.zadd(membersKey, member.invited, memberKey);
+    const stringifyMember = mapValues(member, JSONStringify);
+    pipe.hmset(memberKey, stringifyMember);
+    pipe.hset(memberOrganizations, organizationId, stringifyMember.permissions);
+    pipe.zadd(membersKey, stringifyMember.invited, memberKey);
   });
 
   await pipe.exec().then(handlePipeline);

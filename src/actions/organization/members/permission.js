@@ -1,7 +1,11 @@
 const { ActionTransport } = require('@microfleet/core');
+const union = require('lodash/union');
+const difference = require('lodash/difference');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const redisKey = require('../../../utils/key');
-const { ErrorUserNotMember, ORGANIZATIONS_MEMBERS } = require('../../../constants');
+const handlePipeline = require('../../../utils/pipelineError');
+const getUserId = require('../../../utils/userData/getUserId');
+const { ErrorUserNotMember, USERS_METADATA, ORGANIZATIONS_MEMBERS } = require('../../../constants');
 
 /**
  * @api {amqp} <prefix>.members.permission Sets permission levels for a given user
@@ -16,35 +20,33 @@ const { ErrorUserNotMember, ORGANIZATIONS_MEMBERS } = require('../../../constant
  * @apiParam (Payload) {Object} permission - metadata operations,
  *   supports `$set string[]`, `$remove string[]`
  */
-async function addOrganizationMember({ params }) {
-  const service = this;
-  const { redis } = service;
+async function setOrganizationMemberPermission({ params }) {
+  const { redis, config } = this;
   const { organizationId, username, permission } = params;
+  const { audience } = config.organizations;
 
-  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, username);
-  const userInOrganization = await redis.hget(memberKey, 'username');
-  if (!userInOrganization) {
+  const userId = await getUserId.call(this, username);
+  const memberMetadataKey = redisKey(userId, USERS_METADATA, audience);
+  const userPermissions = await redis.hget(memberMetadataKey, organizationId);
+  if (!userPermissions) {
     throw ErrorUserNotMember;
   }
 
-  const currentPermissions = await redis.hget(memberKey, 'permissions');
-  let permissions = currentPermissions === '' ? [] : currentPermissions.split(',');
+  let permissions = userPermissions.length ? [] : JSON.parse(userPermissions);
 
   const { $set = [], $remove = [] } = permission;
 
-  for (const permissionItem of $set) {
-    if (!permissions.includes(permissionItem)) {
-      permissions.push(permissionItem);
-    }
-  }
+  permissions = union(permissions, $set);
+  permissions = difference(permissions, $remove);
+  permissions = JSON.stringify(permissions);
 
-  for (const permissionItem of $remove) {
-    permissions = permissions.filter(item => item !== permissionItem);
-  }
+  const pipeline = redis.pipeline();
+  pipeline.hset(memberMetadataKey, organizationId, permissions);
+  pipeline.hset(redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId), 'permissions', permissions);
 
-  return redis.hset(memberKey, 'permissions', permissions.join(','));
+  return pipeline.exec().then(handlePipeline);
 }
 
-addOrganizationMember.allowed = checkOrganizationExists;
-addOrganizationMember.transports = [ActionTransport.amqp, ActionTransport.internal];
-module.exports = addOrganizationMember;
+setOrganizationMemberPermission.allowed = checkOrganizationExists;
+setOrganizationMemberPermission.transports = [ActionTransport.amqp, ActionTransport.internal];
+module.exports = setOrganizationMemberPermission;

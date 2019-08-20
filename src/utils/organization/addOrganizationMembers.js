@@ -1,5 +1,6 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
+const mapValues = require('lodash/mapValues');
 const redisKey = require('../key.js');
 const getUserId = require('../userData/getUserId');
 const sendInviteMail = require('./sendInviteMail');
@@ -8,12 +9,14 @@ const registerOrganizationMembers = require('./registerOrganizationMembers');
 const handlePipeline = require('../pipelineError.js');
 const {
   ORGANIZATIONS_MEMBERS,
-  USERS_ORGANIZATIONS,
+  USERS_METADATA,
   ORGANIZATIONS_NAME_FIELD,
   USERS_ACTION_ORGANIZATION_INVITE,
   USERS_ACTION_ORGANIZATION_REGISTER,
   ORGANIZATIONS_ID_FIELD,
 } = require('../../constants.js');
+
+const JSONStringify = data => JSON.stringify(data);
 
 /**
  * Updates metadata on a organization object
@@ -22,7 +25,7 @@ const {
  */
 async function addOrganizationMembers(opts) {
   const { redis } = this;
-  const { organizationId, members } = opts;
+  const { organizationId, members, audience } = opts;
 
   const registeredMembers = [];
   const notRegisteredMembers = [];
@@ -42,15 +45,16 @@ async function addOrganizationMembers(opts) {
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const organizationMembers = registeredMembers.concat(createdMembers);
   organizationMembers.forEach(({ password, ...member }) => {
-    const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
-    const memberOrganizations = redisKey(member.email, USERS_ORGANIZATIONS);
+    const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
+    const memberOrganizations = redisKey(member.id, USERS_METADATA, audience);
     member.username = member.email;
     member.invited = Date.now();
     member.accepted = password ? Date.now() : null;
     member.permissions = member.permissions || [];
-    pipe.hmset(memberKey, member);
-    pipe.hset(memberOrganizations, organizationId, JSON.stringify(member.permissions));
-    pipe.zadd(membersKey, member.invited, memberKey);
+    const stringifyMember = mapValues(member, JSONStringify);
+    pipe.hmset(memberKey, stringifyMember);
+    pipe.hset(memberOrganizations, organizationId, stringifyMember.permissions);
+    pipe.zadd(membersKey, stringifyMember.invited, memberKey);
   });
 
   await pipe.exec().then(handlePipeline);

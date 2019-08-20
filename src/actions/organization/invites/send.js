@@ -10,6 +10,7 @@ const {
   ORGANIZATIONS_ID_FIELD,
   USERS_ACTION_ORGANIZATION_INVITE,
 } = require('../../../constants');
+const getUserId = require('../../../utils/userData/getUserId');
 
 /**
  * @api {amqp} <prefix>.invites.send Send invitation
@@ -31,7 +32,8 @@ async function sendOrganizationInvite({ params }) {
   const service = this;
   const { member, organizationId } = params;
 
-  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
+  const userId = await getUserId.call(this, member.email);
+  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
   const userInOrganization = await service.redis.hget(memberKey, 'username');
   if (!userInOrganization) {
     throw ErrorUserNotMember;

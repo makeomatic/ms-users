@@ -1,10 +1,11 @@
 const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../../../utils/key');
+const getUserId = require('../../../utils/userData/getUserId');
 const handlePipeline = require('../../../utils/pipelineError');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const {
   ORGANIZATIONS_MEMBERS,
-  USERS_ORGANIZATIONS,
+  USERS_METADATA,
   ErrorUserNotMember,
 } = require('../../../constants');
 
@@ -20,19 +21,21 @@ const {
  * @apiParam (Payload) {String} username - member email.
  */
 async function removeMember({ params }) {
-  const { redis } = this;
+  const { redis, config } = this;
   const { organizationId, username } = params;
+  const { audience } = config.organizations;
 
-  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, username);
-  const userInOrganization = await redis.hget(memberKey, 'username');
+  const userId = await getUserId.call(this, username);
+  const memberKey = redisKey(userId, USERS_METADATA, audience);
+  const userInOrganization = await redis.hget(memberKey, organizationId);
   if (!userInOrganization) {
     throw ErrorUserNotMember;
   }
 
   const pipeline = redis.pipeline();
   pipeline.del(memberKey);
-  pipeline.hdel(redisKey(username, USERS_ORGANIZATIONS), organizationId);
   pipeline.zrem(redisKey(organizationId, ORGANIZATIONS_MEMBERS), memberKey);
+  pipeline.hdel(memberKey, organizationId);
 
   return pipeline.exec().then(handlePipeline);
 }

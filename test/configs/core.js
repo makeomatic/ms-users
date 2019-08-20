@@ -26,12 +26,12 @@ module.exports = {
     waitChallenge: true,
   },
   oauth: {
-    // enabled: true,
+    enabled: true,
     providers: {
       facebook: {
-        // enabled: true,
-        // clientId: process.env.FACEBOOK_CLIENT_ID,
-        // clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+        enabled: true,
+        clientId: process.env.FACEBOOK_CLIENT_ID,
+        clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
         location: 'https://ms-users.local',
         password: 'lB4wlZByzpp2R9mGefiLeaZUwVooUuX7G7uctaoeNgxvUs3W',
         apiVersion: 'v3.3',

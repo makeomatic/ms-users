@@ -7,6 +7,7 @@ const {
   ErrorInvitationExpiredOrUsed,
 } = require('../../../constants');
 const redisKey = require('../../../utils/key.js');
+const getUserId = require('../../../utils/userData/getUserId');
 
 /**
  * Token verification function, on top of it returns extra metadata
@@ -43,7 +44,8 @@ async function acceptOrganizationMember({ params }) {
   const { redis } = this;
   const { username, organizationId } = params;
 
-  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, username);
+  const userId = await getUserId.call(this, username);
+  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
   const userInOrganization = await redis.hget(memberKey, 'username');
   if (!userInOrganization) {
     throw ErrorUserNotMember;

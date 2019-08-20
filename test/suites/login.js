@@ -147,6 +147,46 @@ describe('#login', function loginSuite() {
       return Promise.all(promises);
     });
 
+    it('leave one attempt after 4 invalid login attemps and final success', () => {
+      const limiter = require('../../src/utils/sliding-window/limiter');
+      const key = require('../../src/utils/key');
+
+      const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
+      const userWithIPAndValidPassword = { ...userWithRemoteIP, ...userWithValidPassword };
+
+      const promises = [];
+      const { redis } = this.users;
+      const { jwt } = this.users.config;
+      const { keepLoginAttempts, lockAfterAttempts } = jwt;
+
+      times(4, () => {
+        promises.push((
+          this.users
+            .dispatch('login', { params: { ...userWithRemoteIP } })
+            .reflect()
+            .then(inspectPromise(false))
+            .then((login) => {
+              expect(login.name).to.be.eq('HttpStatusError');
+              expect(login.statusCode).to.be.eq(403);
+            })
+        ));
+      });
+
+      promises.push((
+        this.users
+          .dispatch('login', { params: userWithIPAndValidPassword })
+          .reflect()
+          .then(inspectPromise(true))
+          .then(async ({ user: loginUser }) => {
+            const localBlockKey = key(loginUser.id, 'ip', userWithRemoteIP.remoteip);
+            const checkResult = await limiter.check(redis, localBlockKey, keepLoginAttempts, lockAfterAttempts);
+            expect(checkResult.usage).to.be.eq(4);
+          })
+      ));
+
+      return Promise.all(promises);
+    });
+
     it('must lock ip for login completely after 15 attempts', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
       const promises = [];
@@ -170,6 +210,45 @@ describe('#login', function loginSuite() {
 
       const Http429Error = Http429[0];
       expect(Http429Error.message).to.be.eq(eMsg);
+    });
+
+    it('leave one attempt after 14 invalid login attemps from 1 ip and final success', () => {
+      const limiter = require('../../src/utils/sliding-window/limiter');
+      const key = require('../../src/utils/key');
+
+      const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
+      const userWithIPAndValidPassword = { ...userWithRemoteIP, ...userWithValidPassword };
+
+      const promises = [];
+      const { redis } = this.users;
+      const { jwt } = this.users.config;
+      const { keepGlobalLoginAttempts, globalLockAfterAttempts } = jwt;
+
+      times(14, () => {
+        promises.push((
+          this.users
+            .dispatch('login', { params: { ...userWithRemoteIP } })
+            .reflect()
+            .then(inspectPromise(false))
+            .then((login) => {
+              expect(login.statusCode).to.be.eq(404);
+            })
+        ));
+      });
+
+      promises.push((
+        this.users
+          .dispatch('login', { params: userWithIPAndValidPassword })
+          .reflect()
+          .then(inspectPromise(true))
+          .then(async () => {
+            const globalBlockKey = key('gl!ip!ctr', userWithRemoteIP.remoteip);
+            const checkResult = await limiter.check(redis, globalBlockKey, keepGlobalLoginAttempts, globalLockAfterAttempts);
+            expect(checkResult.usage).to.be.eq(14);
+          })
+      ));
+
+      return Promise.all(promises);
     });
 
     it('should reject signing in with bogus or expired disposable password', () => {

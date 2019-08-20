@@ -9,9 +9,11 @@ const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
-const handlePipeline = require('../utils/pipeline-error');
+
 const { checkMFA } = require('../utils/mfa');
 const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
+
+const slidingLimiter = require('../utils/sliding-window/limiter.js');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
@@ -28,49 +30,55 @@ const {
  */
 const is404 = (e) => parseInt(e.message, 10) === 404;
 
+/**
+ * Pretifies interval
+ * Returns human-readable string
+ * @param interval - milliseconds
+ * @returns {string}
+ */
+const getHMRDuration = (interval) => {
+  if (interval === 0) {
+    return 'forever';
+  }
+  const duration = moment().add(interval, 'seconds').toNow(true);
+  return `for the next ${duration}`;
+};
+
 const globalLoginAttempts = async (ctx) => {
-  const { config } = ctx;
-  const pipeline = ctx.redis.pipeline();
+  const { config, redis } = ctx;
+  const { keepGlobalLoginAttempts, globalLockAfterAttempts } = config;
   const globalRemoteIpKey = ctx.globalRemoteIpKey = redisKey('gl!ip!ctr', ctx.remoteip);
 
-  pipeline.incrby(globalRemoteIpKey, 1);
+  const { usage, reset, token } = await slidingLimiter
+    .reserve(redis, globalRemoteIpKey, keepGlobalLoginAttempts, globalLockAfterAttempts);
 
-  if (config.keepGlobalLoginAttempts > 0) {
-    pipeline.expire(globalRemoteIpKey, config.keepGlobalLoginAttempts);
-  }
-
-  const [globalAttempts] = await pipeline.exec().then(handlePipeline);
-
-  ctx.globalLoginAttempts = globalAttempts;
+  ctx.globalLoginAttempts = usage;
+  ctx.globalLoginToken = token;
 
   // globally scoped go next
-  if (globalAttempts > ctx.globalLockAfterAttempts) {
-    const duration = moment().add(config.keepGlobalLoginAttempts, 'seconds').toNow(true);
-    const msg = `You are locked from making login attempts for the next ${duration} from ipaddress '${ctx.remoteip}'`;
+  if (!token) {
+    const duration = getHMRDuration(reset);
+    const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
     throw new Errors.HttpStatusError(429, msg);
   }
 };
 
 const localLoginAttempts = async (ctx, data) => {
-  const { config } = ctx;
-  const pipeline = ctx.redis.pipeline();
+  const { config, redis } = ctx;
+  const { keepLoginAttempts, lockAfterAttempts } = config;
   const userId = data[USERS_ID_FIELD];
   const remoteipKey = ctx.remoteipKey = redisKey(userId, 'ip', ctx.remoteip);
 
-  pipeline.incrby(remoteipKey, 1);
+  const { usage, reset, token } = await slidingLimiter
+    .reserve(redis, remoteipKey, keepLoginAttempts, lockAfterAttempts);
 
-  if (config.keepLoginAttempts > 0) {
-    pipeline.expire(remoteipKey, config.keepLoginAttempts);
-  }
-
-  const [scopeAttempts] = await pipeline.exec().then(handlePipeline);
-
-  ctx.loginAttempts = scopeAttempts;
+  ctx.loginAttempts = usage;
+  ctx.localLoginToken = token;
 
   // locally scoped login attempts are prioritized
-  if (scopeAttempts > ctx.lockAfterAttempts) {
-    const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
-    const msg = `You are locked from making login attempts for the next ${duration} from ipaddress '${ctx.remoteip}'`;
+  if (!token) {
+    const duration = getHMRDuration(reset);
+    const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
     throw new Errors.HttpStatusError(429, msg);
   }
 };
@@ -149,14 +157,21 @@ function getVerifyStrategy(data) {
 }
 
 /**
- * Drops login attempts counter
+ * Drops login limiter tokens
  */
-function dropLoginCounter() {
-  this.loginAttempts = 0;
-  this.globalLoginAttempts = 0;
+async function cancelLimiterTokens() {
+  const { redis } = this;
+  const { cancel } = slidingLimiter;
+  const {
+    globalRemoteIpKey, globalLoginToken,
+    remoteipKey, localLoginToken,
+  } = this;
 
-  return this.redis
-    .dropLoginCounter(2, this.remoteipKey, this.globalRemoteIpKey);
+  const work = [
+    cancel(redis, globalRemoteIpKey, globalLoginToken),
+    cancel(redis, remoteipKey, localLoginToken),
+  ];
+  return Promise.all(work);
 }
 
 /**
@@ -221,7 +236,6 @@ function login({ params, locals }) {
     tokenManager,
     redis,
     config,
-
     // counters
     loginAttempts: 0,
     globalLoginAttempts: 0,
@@ -249,7 +263,7 @@ function login({ params, locals }) {
     // different auth strategies
     .tap(getVerifyStrategy)
     // pass-through or drop counter
-    .tap(verifyIp ? dropLoginCounter : noop)
+    .tap(verifyIp ? cancelLimiterTokens : noop)
     // do verifications on the logged in account
     .tap(isActive)
     .tap(isBanned)

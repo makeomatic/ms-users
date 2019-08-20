@@ -8,7 +8,7 @@ const {
   ORGANIZATIONS_METADATA,
   ORGANIZATIONS_MEMBERS,
   ORGANIZATIONS_NAME_TO_ID,
-  USERS_ORGANIZATIONS,
+  USERS_METADATA,
   ORGANIZATIONS_INDEX,
   ORGANIZATIONS_NAME_FIELD,
 } = require('../../constants');
@@ -41,7 +41,7 @@ async function deleteOrganization({ params }) {
   if (organizationMembersIds) {
     organizationMembersIds.forEach((memberId) => {
       pipeline.del(memberId);
-      pipeline.hdel(redisKey(memberId.split('!').pop(), USERS_ORGANIZATIONS), organizationId);
+      pipeline.hdel(redisKey(memberId.split('!').pop(), USERS_METADATA, audience), organizationId);
     });
     pipeline.del(organizationMembersListKey);
   }

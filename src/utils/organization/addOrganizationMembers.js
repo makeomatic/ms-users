@@ -8,7 +8,7 @@ const registerOrganizationMembers = require('./registerOrganizationMembers');
 const handlePipeline = require('../pipelineError.js');
 const {
   ORGANIZATIONS_MEMBERS,
-  USERS_ORGANIZATIONS,
+  USERS_METADATA,
   ORGANIZATIONS_NAME_FIELD,
   USERS_ACTION_ORGANIZATION_INVITE,
   USERS_ACTION_ORGANIZATION_REGISTER,
@@ -22,7 +22,7 @@ const {
  */
 async function addOrganizationMembers(opts) {
   const { redis } = this;
-  const { organizationId, members } = opts;
+  const { organizationId, members, audience } = opts;
 
   const registeredMembers = [];
   const notRegisteredMembers = [];
@@ -42,8 +42,8 @@ async function addOrganizationMembers(opts) {
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const organizationMembers = registeredMembers.concat(createdMembers);
   organizationMembers.forEach(({ password, ...member }) => {
-    const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.email);
-    const memberOrganizations = redisKey(member.email, USERS_ORGANIZATIONS);
+    const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
+    const memberOrganizations = redisKey(member.id, USERS_METADATA, audience);
     member.username = member.email;
     member.invited = Date.now();
     member.accepted = password ? Date.now() : null;

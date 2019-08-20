@@ -32,7 +32,7 @@ async function setOrganizationMetadata(opts) {
     }
 
     metaOps.forEach((meta, idx) => handleAudience(pipe, keys[idx], meta));
-    await pipe.exec().then(handlePipeline);
+    return pipe.exec().then(handlePipeline);
   }
 
   return true;

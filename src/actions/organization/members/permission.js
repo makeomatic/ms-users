@@ -1,4 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
+const union = require('lodash/union');
+const difference = require('lodash/difference');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const redisKey = require('../../../utils/key');
 const handlePipeline = require('../../../utils/pipelineError');
@@ -30,17 +32,12 @@ async function setOrganizationMemberPermission({ params }) {
     throw ErrorUserNotMember;
   }
 
-  let permissions = userPermissions.length ? [] : userPermissions.split(',');
+  let permissions = userPermissions.length ? [] : JSON.parse(userPermissions);
 
   const { $set = [], $remove = [] } = permission;
-  for (const permissionItem of $set) {
-    if (!permissions.includes(permissionItem)) {
-      permissions.push(permissionItem);
-    }
-  }
-  for (const permissionItem of $remove) {
-    permissions = permissions.filter(item => item !== permissionItem);
-  }
+
+  permissions = union(permissions, $set);
+  permissions = difference(permissions, $remove);
   permissions = JSON.stringify(permissions);
 
   const pipeline = redis.pipeline();

@@ -1,5 +1,6 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
+const mapValues = require('lodash/mapValues');
 const redisKey = require('../key.js');
 const getUserId = require('../userData/getUserId');
 const sendInviteMail = require('./sendInviteMail');
@@ -14,6 +15,8 @@ const {
   USERS_ACTION_ORGANIZATION_REGISTER,
   ORGANIZATIONS_ID_FIELD,
 } = require('../../constants.js');
+
+const JSONStringify = data => JSON.stringify(data);
 
 /**
  * Updates metadata on a organization object
@@ -48,8 +51,9 @@ async function addOrganizationMembers(opts) {
     member.invited = Date.now();
     member.accepted = password ? Date.now() : null;
     member.permissions = member.permissions || [];
+    member = mapValues(member, JSONStringify);
     pipe.hmset(memberKey, member);
-    pipe.hset(memberOrganizations, organizationId, JSON.stringify(member.permissions));
+    pipe.hset(memberOrganizations, organizationId, member.permissions);
     pipe.zadd(membersKey, member.invited, memberKey);
   });
 

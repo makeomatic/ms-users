@@ -1,6 +1,9 @@
 const Promise = require('bluebird');
+const mapValues = require('lodash/mapValues');
 const { ORGANIZATIONS_MEMBERS } = require('../../constants');
 const redisKey = require('../key');
+
+const JSONParse = (d) => JSON.parse(d);
 
 async function getOrganizationMembers(organizationId) {
   const { redis } = this;
@@ -11,11 +14,7 @@ async function getOrganizationMembers(organizationId) {
   }
 
   const members = await Promise.all(organizationMembersJobs);
-
-  return members.map(member => ({
-    ...member,
-    permissions: member.permissions === '' ? [] : member.permissions.split(','),
-  }));
+  return members.map(member => mapValues(member, JSONParse));
 }
 
 module.exports = getOrganizationMembers;

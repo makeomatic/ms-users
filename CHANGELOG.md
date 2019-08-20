@@ -1,3 +1,11 @@
+## [11.2.2](https://github.com/makeomatic/ms-users/compare/v11.2.1...v11.2.2) (2019-08-20)
+
+
+### Bug Fixes
+
+* move member organizations to user metadata ([#416](https://github.com/makeomatic/ms-users/issues/416)) ([9f6d257](https://github.com/makeomatic/ms-users/commit/9f6d257))
+* update flakeless, fixed deprecations ([cb37024](https://github.com/makeomatic/ms-users/commit/cb37024))
+
 ## [11.2.1](https://github.com/makeomatic/ms-users/compare/v11.2.0...v11.2.1) (2019-08-07)
 
 

@@ -26,8 +26,9 @@ async function removeMember({ params }) {
   const { audience } = config.organizations;
 
   const userId = await getUserId.call(this, username);
-  const memberKey = redisKey(userId, USERS_METADATA, audience);
-  const userInOrganization = await redis.hget(memberKey, organizationId);
+  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
+  const memberMetadataKey = redisKey(userId, USERS_METADATA, audience);
+  const userInOrganization = await redis.hget(memberMetadataKey, organizationId);
   if (!userInOrganization) {
     throw ErrorUserNotMember;
   }
@@ -35,7 +36,7 @@ async function removeMember({ params }) {
   const pipeline = redis.pipeline();
   pipeline.del(memberKey);
   pipeline.zrem(redisKey(organizationId, ORGANIZATIONS_MEMBERS), memberKey);
-  pipeline.hdel(memberKey, organizationId);
+  pipeline.hdel(memberMetadataKey, organizationId);
 
   return pipeline.exec().then(handlePipeline);
 }

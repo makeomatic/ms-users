@@ -28,9 +28,16 @@ describe('#remove member from organization', function registerSuite() {
       username: this.userNames[0].email,
     };
 
-    return this.dispatch('users.organization.members.remove', opts)
+    await this.dispatch('users.organization.members.remove', opts)
       .reflect()
       .then(inspectPromise(true));
+
+    return this.dispatch('users.organization.members.list', { organizationId: this.organization.id })
+      .reflect()
+      .then(inspectPromise(true))
+      .then((response) => {
+        assert.strictEqual(response.data.attributes.find(({ attributes }) => attributes.username === this.userNames[0].email), undefined);
+      });
   });
 
   it('must return organization not found error', async function test() {

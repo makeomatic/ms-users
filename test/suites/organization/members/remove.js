@@ -36,8 +36,6 @@ describe('#remove member from organization', function registerSuite() {
       .reflect()
       .then(inspectPromise(true))
       .then((response) => {
-        console.log(this.userNames[0].email)
-        console.log(response.data.attributes);
         assert.strictEqual(response.data.attributes.find(({ attributes }) => attributes.username === this.userNames[0].email), undefined);
       });
   });

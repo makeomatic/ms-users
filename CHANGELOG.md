@@ -1,3 +1,10 @@
+## [11.2.3](https://github.com/makeomatic/ms-users/compare/v11.2.2...v11.2.3) (2019-08-22)
+
+
+### Bug Fixes
+
+* fix remove organization member ([#417](https://github.com/makeomatic/ms-users/issues/417)) ([542ce96](https://github.com/makeomatic/ms-users/commit/542ce96))
+
 ## [11.2.2](https://github.com/makeomatic/ms-users/compare/v11.2.1...v11.2.2) (2019-08-20)
 
 

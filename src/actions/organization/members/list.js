@@ -35,7 +35,7 @@ async function organizationMembersList({ params }) {
       id: organizationId,
       type: 'organizationMembers',
       attributes: members.map(member => ({
-        id: member.username,
+        id: member.id,
         type: 'organizationMember',
         attributes: member,
       })),

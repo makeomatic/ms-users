@@ -12,6 +12,8 @@ const {
   USERS_PUBLIC_INDEX,
   USERS_ALIAS_TO_ID,
   USERS_SSO_TO_ID,
+  USERS_ACTIVATE,
+  USERS_AUDIENCE,
   USERS_USERNAME_TO_ID,
   USERS_USERNAME_FIELD,
   USERS_DATA,
@@ -91,6 +93,10 @@ async function removeUser({ params }) {
   // clean indices
   transaction.srem(USERS_PUBLIC_INDEX, userId);
   transaction.srem(USERS_INDEX, userId);
+
+  // clean audiences and delete from inactive list
+  transaction.zrem(USERS_ACTIVATE, userId);
+  transaction.hdel(USERS_AUDIENCE, userId);
 
   // remove metadata & internal data
   transaction.del(key(userId, USERS_DATA));

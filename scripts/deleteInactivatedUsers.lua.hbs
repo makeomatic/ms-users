@@ -1,0 +1,175 @@
+local usersInactiveKey = KEYS[1]
+local exTime = ARGV[1]
+
+-- #var defs
+local delimiter = '{{ KEY_SEPARATOR }}'
+local keyPrefix = '{{ keyPrefix }}'
+
+local ssoProviders = {
+    {{#each sso}}
+        "{{ this }}",
+    {{/each}}
+};
+
+local usersDataKeyTemplate = '{{ keyTemplates.USERS_DATA }}'
+local usersMetaKeyTemplate = '{{ keyTemplates.USERS_METADATA }}'
+local usersTokenKeyTemplate = '{{ keyTemplates.USERS_TOKENS }}'
+local usersAudienceKeyTemplate = '{{ keyTemplates.USERS_AUDIENCE }}'
+
+local usersOrganizationsKeyTemplate = '{{ keyTemplates.USERS_ORGANIZATIONS }}'
+local organizationsMembersKeyTemplate = '{{ keyTemplates.ORGANIZATIONS_MEMBERS }}'
+local organizationsMemberKeyTemplate = '{{ keyTemplates.ORGANIZATIONS_MEMBER }}'
+local organizationMemberTemplate = '{{ templates.ORGANIZATIONS_MEMBER }}'
+
+local usersAliasToIDKey = '{{ keys.USERS_ALIAS_TO_ID }}'
+local usersUsernameToIDKey = '{{ keys.USERS_USERNAME_TO_ID }}'
+local usersSSOToIDKey = '{{ keys.USERS_SSO_TO_ID }}'
+
+local organizationsInvitationIndex = '{{ keys.ORGANIZATIONS_INVITATIONS_INDEX }}'
+
+local usersPublicIndex = '{{ keys.USERS_PUBLIC_INDEX }}'
+local usersIndex = '{{ keys.USERS_INDEX }}'
+
+local usersThrottleKeyPrefix = '{{ keys.THROTTLE_PREFIX }}'
+
+local usersUsernameField = '{{ fields.USERS_USERNAME_FIELD }}'
+local usersAliasField = '{{ fields.USERS_ALIAS_FIELD }}'
+-- /var defs
+
+---
+--- Helper functions
+---
+local function isempty(s)
+  return s == nil or s == '' or s == false;
+end
+
+--decodes json
+local function decode(strval)
+  if type(strval) == "string" then
+    return cjson.decode(strval)
+  else
+    return {}
+  end
+end
+
+-- key generators
+local function key(...)
+  return table.concat(arg, delimiter)
+end
+
+local function makeKey(template, templateValues)
+  local str = template
+  for param, value in pairs(templateValues) do
+    str = str:gsub('{'..param..'}', value, 1)
+  end
+  return str
+end
+
+
+local function getData(key)
+  local fields = { usersUsernameField, usersAliasField, unpack(ssoProviders) }
+  local data = redis.call("HMGET", key, unpack(fields))
+
+  if #data > 0 then
+    local result = {};
+    --convert into table
+    for i = 1, #data, 1 do
+      result[fields[i]] = data[i]
+    end
+    return result;
+  end
+
+  return nil
+end
+
+local function deleteOrganizationMember(username)
+  local userOrganizationsKey = makeKey(usersOrganizationsKeyTemplate, { username = username })
+  local organizationIds = redis.call("HKEYS", userOrganizationsKey)
+
+  redis.call('SREM', organizationsInvitationIndex, username)
+
+  for _, orgId in pairs(organizationIds) do
+    local organizationMembersKey = makeKey(organizationsMembersKeyTemplate, { orgid = orgId})
+    local organizationMemberKey = makeKey(organizationsMemberKeyTemplate, { orgid = orgId, username = username })
+    local organizationMember = makeKey(organizationMemberTemplate, {orgid = orgId, username = username })
+
+    redis.call("DEL", organizationMemberKey)
+    redis.call("HDEL", userOrganizationsKey, orgId)
+    redis.call("ZREM", organizationMembersKey, organizationMember )
+  end
+
+end
+
+-- delete logic
+local function deleteUser(userID, userData)
+  local alias = userData[usersAliasField]
+  local username = userData[usersUsernameField]
+
+  if isempty(alias) == false then
+    redis.call("HDEL", usersAliasToIDKey, alias, string.lower(alias))
+  end
+
+  --almost impossible but
+  if isempty(username) == false then
+    redis.call("HDEL", usersUsernameToIDKey, username)
+    deleteOrganizationMember(username)
+  end
+
+  for k, provider in pairs(ssoProviders) do
+    local rawData = userData[provider]
+    local providerData = decode(rawData)
+    if isempty(providerData['uid']) == false then
+      redis.call("HDEL", usersSSOToIDKey, providerData['uid'])
+    end
+  end
+
+  -- clean indicies
+  redis.call("HDEL", usersPublicIndex, userID )
+  redis.call("SREM", usersIndex, userID)
+
+  -- delete user data
+  local userDataKey = makeKey(usersDataKeyTemplate, { id = userID })
+  redis.call("DEL", userDataKey)
+
+  -- delete meta
+  local usersAudienceKey = makeKey(usersAudienceKeyTemplate, { id = userID })
+  local userAudiences = redis.call("SMEMBERS", usersAudienceKey)
+
+  for k, audience in pairs(userAudiences) do
+    local metaKey = makeKey(usersMetaKeyTemplate, { id = userID, audience = audience })
+    redis.call("DEL", metaKey)
+  end
+
+  -- delete USERS_TOKENS
+  local userTokensKey = makeKey(usersTokenKeyTemplate, { id = userID })
+  redis.call("DEL", userTokensKey)
+
+  redis.call("DEL", usersAudienceKey, userID)
+
+  -- throttle constants
+  {{#each throttle_actions}}
+    redis.call("DEL", key(userThrottleKeyPrefix, {{this}}, userID))
+  {{/each}}
+
+end
+
+-- Command body
+redis.replicate_commands();
+
+local inactiveUsers = redis.call("ZRANGEBYSCORE", usersInactiveKey, '-inf', exTime)
+
+for key, userID in pairs(inactiveUsers) do
+  local internalDatakey = makeKey(usersDataKeyTemplate, { id = userID })
+  local userData = getData(internalDatakey)
+
+  if userData ~= nil then
+    deleteUser(userID, userData)
+  end
+end
+
+for _ , userID in pairs(inactiveUsers) do
+  redis.call('ZREM', usersInactiveKey, userID)
+end
+
+-- returns count of deleted users
+return #inactiveUsers

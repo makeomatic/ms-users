@@ -71,11 +71,15 @@ module.exports = class Users extends Microfleet {
     });
 
     this.on(`plugin:connect:${this.redisType}`, (redis) => {
+      const inactiveUsers = require('./utils/inactiveUsers');
       fsort.attach(redis, 'fsort');
 
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
       this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
+
+      inactiveUsers.defineCommand(redis, config.redis);
+      this.on('users:cleanup', inactiveUsers.cleanUsers);
     });
 
     this.on('plugin:start:http', (server) => {
@@ -96,6 +100,7 @@ module.exports = class Users extends Microfleet {
     this.on(`plugin:close:${this.redisType}`, () => {
       this.dlock = null;
       this.tokenManager = null;
+      this.removeListener('users:cleanup');
     });
 
     // add migration connector

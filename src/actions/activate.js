@@ -5,6 +5,7 @@ const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/getMetadata');
 const handlePipeline = require('../utils/pipelineError.js');
+const { removeFromInactiveUsers } = require('../utils/inactiveUsers');
 const {
   USERS_INDEX,
   USERS_DATA,
@@ -126,6 +127,8 @@ function activateAccount(data, metadata) {
     .persist(userKey)
     .sadd(USERS_INDEX, userId);
 
+  removeFromInactiveUsers(pipeline, userId);
+
   if (alias) {
     pipeline.sadd(USERS_PUBLIC_INDEX, userId);
   }
@@ -192,6 +195,8 @@ function activateAction({ params }) {
   };
 
   return Promise
+    .bind(this, ['users:cleanup'])
+    .spread(this.hook)
     .bind(context)
     .then(verifyRequest)
     .bind(this)

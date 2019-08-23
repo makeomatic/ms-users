@@ -6,6 +6,8 @@ module.exports = exports = {
   USERS_PUBLIC_INDEX: 'users-public',
   USERS_REFERRAL_INDEX: 'users-referral',
   ORGANIZATIONS_INDEX: 'organization-iterator-set',
+  // inactive user id's list
+  USERS_INACTIVATED: 'users-inactivated',
   // id mapping
   USERS_ALIAS_TO_ID: 'users-alias',
   USERS_SSO_TO_ID: 'users-sso-hash',
@@ -18,6 +20,7 @@ module.exports = exports = {
   // hashes
   USERS_DATA: 'data',
   USERS_METADATA: 'metadata',
+  USERS_AUDIENCE: 'users-audiences',
   USERS_TOKENS: 'tokens',
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
@@ -26,6 +29,7 @@ module.exports = exports = {
   USERS_ORGANIZATIONS: 'user-organizations',
   ORGANIZATIONS_DATA: 'data',
   ORGANIZATIONS_METADATA: 'metadata',
+  ORGANIZATIONS_AUDIENCE: 'organization-audiences',
   ORGANIZATIONS_MEMBERS: 'members',
 
   // standard JWT with TTL

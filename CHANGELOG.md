@@ -1,3 +1,10 @@
+## [11.2.4](https://github.com/makeomatic/ms-users/compare/v11.2.3...v11.2.4) (2019-08-23)
+
+
+### Bug Fixes
+
+* added expiration param to organization list json schema ([#418](https://github.com/makeomatic/ms-users/issues/418)) ([701aae5](https://github.com/makeomatic/ms-users/commit/701aae5))
+
 ## [11.2.3](https://github.com/makeomatic/ms-users/compare/v11.2.2...v11.2.3) (2019-08-22)
 
 

@@ -20,6 +20,9 @@
     "criteria": {
       "type": "string"
     },
+    "expiration": {
+      "type": "integer"
+    },
     "filter": {
       "$ref": "common.json#/definitions/filter"
     }

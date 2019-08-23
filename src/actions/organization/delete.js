@@ -46,9 +46,10 @@ async function deleteOrganization({ params }) {
     pipeline.del(organizationMembersListKey);
   }
   pipeline.hdel(ORGANIZATIONS_NAME_TO_ID, snakeCase(organization[ORGANIZATIONS_NAME_FIELD]));
-  pipeline.fsortBust(ORGANIZATIONS_INDEX, Date.now());
+  await pipeline.exec().then(handlePipeline);
+  await redis.fsortBust(ORGANIZATIONS_INDEX, Date.now());
 
-  return pipeline.exec().then(handlePipeline);
+  return [];
 }
 
 deleteOrganization.allowed = checkOrganizationExists;

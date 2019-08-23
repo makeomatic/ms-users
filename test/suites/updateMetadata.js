@@ -64,6 +64,7 @@ describe('#updateMetadata', function getMetadataSuite() {
           $incr: {
             b: 2,
           },
+          $remove: ['c'],
         },
         {
           $incr: {
@@ -104,6 +105,37 @@ describe('#updateMetadata', function getMetadataSuite() {
           `{ms-users}${this.userId}!metadata!${extra}`,
           'nom-nom',
         ]);
+      });
+  });
+
+  it('must be able to run dynamic scripts / namespace fully available', function test() {
+    const dispatch = simpleDispatcher(this.users.router);
+    const lua = `
+      local t = {}
+      table.insert(t, "foo")
+      local jsonDec = cjson.decode('{"bar": 1}')
+      local typeCheck = type(t)
+      return {jsonDec.bar, redis.call("TIME"), typeCheck, unpack(t)}
+    `;
+
+    const params = {
+      username,
+      audience: [audience],
+      script: {
+        check: {
+          lua,
+          argv: ['nom-nom'],
+        },
+      },
+    };
+
+    return dispatch('users.updateMetadata', params)
+      .reflect()
+      .then(inspectPromise())
+      .then(({ check }) => {
+        const [jsonVal, redisTime] = check;
+        expect(jsonVal).to.be.eq(1);
+        expect(redisTime).to.be.an('array');
       });
   });
 });

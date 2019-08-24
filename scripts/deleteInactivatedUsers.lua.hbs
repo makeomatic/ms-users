@@ -144,7 +144,7 @@ local function deleteUser(userID, userData)
   local userTokensKey = makeKey(usersTokenKeyTemplate, { id = userID })
   redis.call("DEL", userTokensKey)
 
-  redis.call("DEL", usersAudienceKey, userID)
+  redis.call("DEL", usersAudienceKey)
 
   -- throttle constants
   {{#each throttle_actions}}

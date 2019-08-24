@@ -1,3 +1,10 @@
+## [11.2.5](https://github.com/makeomatic/ms-users/compare/v11.2.4...v11.2.5) (2019-08-24)
+
+
+### Bug Fixes
+
+* clear cache after remove organization ([#419](https://github.com/makeomatic/ms-users/issues/419)) ([fcc4ff0](https://github.com/makeomatic/ms-users/commit/fcc4ff0))
+
 ## [11.2.4](https://github.com/makeomatic/ms-users/compare/v11.2.3...v11.2.4) (2019-08-23)
 
 

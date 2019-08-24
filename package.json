@@ -68,7 +68,8 @@
     "stdout-stream": "^1.4.1",
     "tough-cookie": "^3.0.0",
     "uuid": "^3.3.3",
-    "yargs": "^14.0.0"
+    "yargs": "^14.0.0",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.6.0",

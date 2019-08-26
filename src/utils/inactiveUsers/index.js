@@ -22,7 +22,12 @@ function removeFromInactiveUsers(redis, userId) {
   redis.zrem(USERS_INACTIVATED, userId);
 }
 
-async function cleanUsers() {
+/**
+ * Deletes users that didn't pass activation
+ * @param suppressError boolean throw or suppress error
+ * @returns {Promise<number>}
+ */
+async function cleanUsers(suppressError = true) {
   const { redis } = this;
   const { deleteInactiveAccounts } = this.config;
   let deletedUsers = 0;
@@ -30,7 +35,11 @@ async function cleanUsers() {
   try {
     deletedUsers = await deleteInactiveUsers(redis, deleteInactiveAccounts);
   } catch (e) {
-    this.log.error(e);
+    if (suppressError) {
+      this.log.error({ error: e }, e.message);
+    } else {
+      throw e;
+    }
   }
 
   return deletedUsers;

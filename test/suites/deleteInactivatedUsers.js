@@ -44,6 +44,35 @@ describe('#inactive user', function registerSuite() {
     return simpleDispatcher(this.users.router)('users.register', { ...regUserNoAlias });
   });
 
+  describe('throw suppress error', function test() {
+    const lua = 'return { foo bar }';
+
+    beforeEach(function pretest() {
+      const { redis } = this.users;
+      redis.defineCommand('deleteInactivatedUsers', { lua });
+    });
+
+    it('throws error', async function subtest() {
+      let err;
+      try {
+        await cleanUsers.call(this.users, false);
+      } catch (e) {
+        err = e;
+      }
+      expect(err).to.be.an('error');
+    });
+
+    it('suppresses error', async function subtest() {
+      let err;
+      try {
+        await cleanUsers.call(this.users);
+      } catch (e) {
+        err = e;
+      }
+      expect(err).to.be.an('undefined');
+    });
+  });
+
   it('deletes inactive user', function test() {
     return delay(() => {
       return cleanUsers.call(this.users)

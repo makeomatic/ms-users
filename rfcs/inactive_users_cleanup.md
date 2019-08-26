@@ -31,7 +31,19 @@ Record contains `userId` and `current timestamp`.
 ## Activation process
 When the user succeeds activation `userId`,the entry deleted from `inactive-users`.
 
-## `users:cleanup` hook
+## `users:cleanup` hook `cleanUsers(suppress?)`
+`suppress` parameter defines function error behavior. If parameter set, the function throws errors,
+otherwise, function calls `log.error` with `error.message` as message.
+
+Other option, is to define new config parameter as object and move `config.deleteInactiveAccounts` into it:
+```javascript
+const conf = {
+  deleteInactiveUsers: {
+    ttl: seconds, // replaces deleteInactiveAccounts
+    suppressErrors: true || false,
+  },
+}
+```
 Calls `deleteInactivatedUsers` script with TTL parameter from `service.config.deleteInactiveAccounts`.
 
 ## Redis Delete Inactive User Script

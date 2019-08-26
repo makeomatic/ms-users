@@ -1,7 +1,6 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const is = require('is');
-const ld = require('lodash');
 const { HttpStatusError } = require('common-errors');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
@@ -22,13 +21,18 @@ function callUpdateMetadataScript(redis, userId, ops) {
 // Stabilizes Lua script response
 function mapUpdateResponse(jsonStr) {
   const decodedData = JSONParse(jsonStr);
-  const result = ld.map(decodedData, (audienceProcessResult) => {
-    return ld.mapValues(audienceProcessResult, (ops) => {
-      if (ops.length === undefined) {
-        return ops;
+  const result = [];
+
+  decodedData.forEach((metaResult) => {
+    const opResult = {};
+    for (const [key, ops] of Object.entries(metaResult)) {
+      if (ops.length !== undefined && ops.length === 1) {
+        [opResult[key]] = ops;
+      } else {
+        opResult[key] = ops;
       }
-      return ops.length > 1 ? ops : ops[0];
-    });
+    }
+    result.push(opResult);
   });
 
   return result.length > 1 ? result : result[0];

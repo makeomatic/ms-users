@@ -39,9 +39,11 @@ describe('#inactive user', function registerSuite() {
 
   beforeEach(async function pretest() {
     this.users.config.deleteInactiveAccounts = 1;
+    const dispatcher = simpleDispatcher(this.users.router);
+
     await createOrganization.call(this);
-    await simpleDispatcher(this.users.router)('users.register', { ...regUser });
-    return simpleDispatcher(this.users.router)('users.register', { ...regUserNoAlias });
+    await dispatcher('users.register', { ...regUser });
+    return dispatcher('users.register', { ...regUserNoAlias });
   });
 
   describe('throw suppress error', function test() {
@@ -77,7 +79,7 @@ describe('#inactive user', function registerSuite() {
     return delay(() => {
       return cleanUsers.call(this.users)
         .then(async (res) => {
-          expect(res).to.be.eq(2);
+          expect(res.length).to.be.eq(2);
 
           const { username } = regUser;
           const dispatcher = simpleDispatcher(this.users.router);

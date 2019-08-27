@@ -2,7 +2,6 @@ const Promise = require('bluebird');
 const hbs = require('handlebars');
 const path = require('path');
 const fs = require('fs');
-const ld = require('lodash');
 
 const key = require('../key');
 const {
@@ -19,12 +18,6 @@ const {
   USERS_USERNAME_TO_ID,
   USERS_USERNAME_FIELD,
   SSO_PROVIDERS,
-  THROTTLE_PREFIX,
-  USERS_ACTION_ACTIVATE,
-  USERS_ACTION_REGISTER,
-  USERS_ACTION_PASSWORD,
-  USERS_ACTION_RESET,
-
   ORGANIZATIONS_MEMBERS,
   ORGANIZATIONS_INVITATIONS_INDEX,
 } = require('../../constants');
@@ -32,16 +25,17 @@ const {
 const templateName = 'deleteInactivatedUsers.lua.hbs';
 const KEY_SEPARATOR = '!';
 
+// keys used in script
 const keys = {
   USERS_ALIAS_TO_ID,
   USERS_SSO_TO_ID,
   USERS_USERNAME_TO_ID,
   USERS_INDEX,
   USERS_PUBLIC_INDEX,
-  THROTTLE_PREFIX,
   ORGANIZATIONS_INVITATIONS_INDEX,
 };
 
+// key templates used in script
 const keyTemplates = {
   USERS_DATA: key('{id}', USERS_DATA),
   USERS_METADATA: key('{id}', USERS_METADATA, '{audience}'),
@@ -52,21 +46,16 @@ const keyTemplates = {
   ORGANIZATIONS_MEMBER: key('{orgid}', ORGANIZATIONS_MEMBERS, '{username}'),
 };
 
+// data template, organization stores members without prefix
 const templates = {
   ORGANIZATIONS_MEMBER: key('{orgid}', ORGANIZATIONS_MEMBERS, '{username}'),
 };
 
+// fields used in script
 const fields = {
   USERS_ALIAS_FIELD,
   USERS_USERNAME_FIELD,
 };
-const throttleActions = [
-  USERS_ACTION_ACTIVATE,
-  USERS_ACTION_PASSWORD,
-  USERS_ACTION_REGISTER,
-  USERS_ACTION_RESET,
-];
-
 
 const readFile = f => Promise.fromCallback((cb) => {
   return fs.readFile(f, 'utf-8', cb);
@@ -74,9 +63,11 @@ const readFile = f => Promise.fromCallback((cb) => {
 
 const prefixify = (prefix, obj) => {
   if (prefix !== '') {
-    return ld.mapValues(obj, (value) => {
-      return `${prefix}${value}`;
-    });
+    const objEntries = Object.entries(obj);
+
+    for (const [prop, value] of objEntries) {
+      obj[prop] = `${prefix}${value}`;
+    }
   }
   return obj;
 };
@@ -109,7 +100,6 @@ function templateContext(redisOptions) {
   return {
     KEY_SEPARATOR,
     fields,
-    throttleActions,
     templates,
     keys: prefixify(keyPrefix, keys),
     keyTemplates: prefixify(keyPrefix, keyTemplates),

@@ -22,7 +22,6 @@ Every Activation and Registration request event executes  `users:cleanup`  hook.
 The Activation request executes the hook first this strategy saves from inactive
 users that hit TTL but tried to pass the activation process.
 The Registration request executes the hook after `username` exists check.
-If Error happens inside hook, it logged into a logfile and not raised.
 
 ## Registration process
 When the user succeeds registration but activation not requested, the new entry added to `inactive-users`.
@@ -34,6 +33,7 @@ When the user succeeds activation `userId`,the entry deleted from `inactive-user
 ## `users:cleanup` hook `cleanUsers(suppress?)`
 `suppress` parameter defines function error behavior. If parameter set, the function throws errors,
 otherwise, function calls `log.error` with `error.message` as message.
+Default value is `true`. IMHO User shouldn't know about our problems.
 
 Other option, is to define new config parameter as object and move `config.deleteInactiveAccounts` into it:
 ```javascript
@@ -45,11 +45,14 @@ const conf = {
 }
 ```
 Calls `deleteInactivatedUsers` script with TTL parameter from `service.config.deleteInactiveAccounts`.
+When script finished, calls TokenManager to delete Action tokens(`USER_ACTION_*`, ``). 
+*NOTE*: Should we update TokenManager to add support of pipeline?
 
 ## Redis Delete Inactive User Script
 When the service connects to the Redis server and fires event "plugin:connect:$redisType" `utils/inactive/defineCommand.js` executed.
 Function rendering `deleteInactivatedUsers.lua.hbs` and evals resulting script into IORedis.
 The Script using a dozen constants, keys, and templates, so all these values rendered inside of the template using template context.
+Returns list of deleted users.
 
 #### deleteInactivatedUsers `USERS_ACTIVATED` `TTL` as seconds
 ##### Script paramerters:
@@ -71,5 +74,4 @@ Using the username, id, alias and SSO providers fields, script checks and remove
 * User tokens.
 * Private and public id indexes
 * Links and data used in Organization assignment
-* Throttle actions (???). **THROTTLE_PREFIX constant doesn't exist in constants.js, so assuming this left for backward
- compatibility with previous version**
+

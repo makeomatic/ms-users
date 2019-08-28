@@ -15,6 +15,10 @@ Additional password validation should be added to provide better security for us
 ## General
 A possible solution is to use existing password-strength checking solution like `dropbox/zxcvbn` - provides password strength check using predefined dictionaries and pattern matching. With password ~25 char length, projected latency is ~5-25ms. In the future, we can extend included dictionaries according to our needs.
 
+## Note
+Enabling password validator is Breaking change and disabled by default.
+In the nearest future, when everything will be ready, a validator must be enabled.
+
 ## Validator Keyword
 Service validation algorithm based on the AJV validator and all validation requirements are inside schemas. All incoming requests checked. We can add additional custom validator `password` keyword for the `password` field, which performs required checks. 
 

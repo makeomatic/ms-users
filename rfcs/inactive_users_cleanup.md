@@ -54,6 +54,9 @@ Function rendering `deleteInactivatedUsers.lua.hbs` and evals resulting script i
 The Script using a dozen constants, keys, and templates, so all these values rendered inside of the template using template context.
 Returns list of deleted users.
 
+*NOTE*: Using experimental `fs.promises.readFile` API function. On `node` 10.x it's an experimental feature,
+on `node` >= 11.x function becomes stable without any changes in API.
+
 #### deleteInactivatedUsers `USERS_ACTIVATED` `TTL` as seconds
 ##### Script paramerters:
 1. KEYS[1] Sorted Set name containing the list of users that didn't pass activation.

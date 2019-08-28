@@ -1,7 +1,6 @@
-const Promise = require('bluebird');
 const hbs = require('handlebars');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;
 
 const key = require('../key');
 const {
@@ -57,10 +56,6 @@ const fields = {
   USERS_USERNAME_FIELD,
 };
 
-const readFile = f => Promise.fromCallback((cb) => {
-  return fs.readFile(f, 'utf-8', cb);
-});
-
 const prefixify = (prefix, obj) => {
   if (prefix !== '') {
     const objEntries = Object.entries(obj);
@@ -79,7 +74,7 @@ const prefixify = (prefix, obj) => {
  * @returns {Promise<void>}
  */
 async function compileTemplate(file, templateCtx) {
-  const contents = await readFile(file);
+  const contents = await fs.readFile(file, { encoding: 'utf-8' });
   const scriptTemplate = await hbs.compile(contents);
   const name = path.basename(file, '.lua.hbs');
 

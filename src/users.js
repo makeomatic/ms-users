@@ -9,6 +9,7 @@ const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
 const conf = require('./config');
 const get = require('./utils/get-value');
+const inactiveUsers = require('./utils/inactiveUsers');
 
 /**
  * @namespace Users
@@ -71,13 +72,13 @@ module.exports = class Users extends Microfleet {
     });
 
     this.on(`plugin:connect:${this.redisType}`, (redis) => {
-      const inactiveUsers = require('./utils/inactiveUsers');
       fsort.attach(redis, 'fsort');
 
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
       this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
 
+      // load deleteInactivatedUsers script from template and assign listener
       inactiveUsers.defineCommand(redis, config.redis);
       this.on('users:cleanup', inactiveUsers.cleanUsers);
     });
@@ -100,7 +101,7 @@ module.exports = class Users extends Microfleet {
     this.on(`plugin:close:${this.redisType}`, () => {
       this.dlock = null;
       this.tokenManager = null;
-      this.removeListener('users:cleanup');
+      this.removeListener('users:cleanup', inactiveUsers.cleanUsers);
     });
 
     // add migration connector

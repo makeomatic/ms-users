@@ -43,14 +43,13 @@ function cleanTokens(userIds) {
     USERS_ACTION_ORGANIZATION_INVITE, USERS_ACTION_ORGANIZATION_REGISTER,
   ];
 
-  const work = userIds.reduce((prev, id) => {
-    const delTokenActions = [];
+  const work = userIds.reduce((accum, id) => {
     for (const action of actions) {
-      delTokenActions.push(
+      accum.push(
         this.tokenManager.remove({ id, action })
       );
     }
-    return [...prev, ...delTokenActions];
+    return accum;
   }, []);
 
   return Promise.all(work);

@@ -120,7 +120,7 @@ describe('#login', function loginSuite() {
       const promises = [];
       const config = this.users.config.jwt;
       const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
-      const eMsg = `You are locked from making login attempts for the next ${duration} from ipaddress '${userWithRemoteIP.remoteip}'`;
+      const eMsg = `You are locked from making login attempts for the next ${duration} from ipaddress '10.0.0.1'`;
 
       times(5, () => {
         promises.push((
@@ -155,7 +155,7 @@ describe('#login', function loginSuite() {
       const promises = [];
       const config = this.users.config.jwt;
       const duration = moment().add(config.keepGlobalLoginAttempts, 'seconds').toNow(true);
-      const eMsg = `You are locked from making login attempts for the next ${duration} from ipaddress '${userWithRemoteIP.remoteip}'`;
+      const eMsg = `You are locked from making login attempts for the next ${duration} from ipaddress '10.0.0.1'`;
 
       times(16, () => {
         promises.push((

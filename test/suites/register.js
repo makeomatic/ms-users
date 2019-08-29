@@ -217,7 +217,7 @@ describe('#register', function registerSuite() {
         .then((failed) => {
           assert.equal(failed.name, 'HttpStatusError');
           assert.equal(failed.statusCode, 429);
-          assert.equal(failed.message, `You can't register more users from your ipaddress '${opts.ipaddress}' now`);
+          assert.equal(failed.message, 'You can\'t register more users from your ipaddress \'192.168.1.1\' now');
         });
     });
   });

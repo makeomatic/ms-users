@@ -12,6 +12,7 @@ const request = require('request-promise');
 const puppeteer = require('puppeteer');
 
 const serviceLink = 'https://ms-users.local';
+
 const graphApi = request.defaults({
   baseUrl: 'https://graph.facebook.com/v3.3',
   headers: {
@@ -20,7 +21,6 @@ const graphApi = request.defaults({
   json: true,
 });
 
-const cache = {};
 const defaultAudience = '*.localhost';
 
 const createTestUserAPI = (props = {}) => graphApi({
@@ -32,13 +32,13 @@ const createTestUserAPI = (props = {}) => graphApi({
   },
 }).promise();
 
-const createTestUser = (localCache = cache) => Promise.props({
-  testUser: createTestUserAPI(),
-  testUserInstalled: createTestUserAPI({ installed: true }),
-  testUserInstalledPartial: createTestUserAPI({ permissions: 'public_profile' }),
-}).then((data) => {
-  Object.assign(localCache, data);
-});
+const createTestUser = () => createTestUserAPI();
+const createTestUserInstalledPartial = () => createTestUserAPI({ permissions: 'public_profile' });
+
+const deleteTestUser = uid => graphApi({
+  uri: `${uid}`,
+  method: 'DELETE',
+}).promise();
 
 function parseHTML(body) {
   const $ = cheerio.load(body);
@@ -51,8 +51,10 @@ function parseHTML(body) {
 describe('#facebook', function oauthFacebookSuite() {
   let chrome;
   let page;
-  let service;
   let lastRequestResponse;
+  let service;
+  let facebookUser;
+  let facebookUserInstalledPartial;
 
   function createAccount(token, overwrite = {}) {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
@@ -72,10 +74,19 @@ describe('#facebook', function oauthFacebookSuite() {
       .then(inspectPromise(true));
   }
 
-  async function initiateAuth(_user) {
-    const user = _user || cache.testUser;
-    const executeLink = `${serviceLink}/users/oauth/facebook`;
+  async function deAuthApplication() {
+    await graphApi({
+      uri: `/${facebookUser.id}/permissions`,
+      method: 'DELETE',
+    });
+    await graphApi({
+      uri: `/${facebookUserInstalledPartial.id}/permissions`,
+      method: 'DELETE',
+    });
+  }
 
+  const initiateAuth = async (user) => {
+    const executeLink = `${serviceLink}/users/oauth/facebook`;
     try {
       await page.goto(executeLink, { waitUntil: 'networkidle2' });
       await page.screenshot({ fullPage: true, path: './ss/1.png' });
@@ -91,12 +102,10 @@ describe('#facebook', function oauthFacebookSuite() {
       await page.screenshot({ fullPage: true, path: `./ss/initiate-auth-${Date.now()}.png` });
       throw e;
     }
-  }
+  };
 
-  async function authenticate() {
-    await initiateAuth();
-    await Promise.delay(1000);
-
+  async function authenticate(user) {
+    await initiateAuth(user);
     try {
       await page.waitForSelector('button[name=__CONFIRM__]');
       await page.click('button[name=__CONFIRM__]', { delay: 100 });
@@ -134,8 +143,8 @@ describe('#facebook', function oauthFacebookSuite() {
     return { body, status, url };
   }
 
-  async function getFacebookToken() {
-    await authenticate();
+  async function getFacebookToken(user) {
+    await authenticate(user);
     await Promise.all([
       navigate(), // so that refresh works, etc
       page.waitForSelector('.no-js > body > script'),
@@ -156,8 +165,8 @@ describe('#facebook', function oauthFacebookSuite() {
     }
   }
 
-  async function signInAndNavigate(predicate) {
-    await initiateAuth(cache.testUserInstalledPartial);
+  async function signInAndNavigate(user, predicate) {
+    await initiateAuth(user);
 
     let response;
     try {
@@ -179,8 +188,11 @@ describe('#facebook', function oauthFacebookSuite() {
     return response;
   }
 
-  // need to relaunch each time for clean contexts
-  beforeEach('init Chrome', async () => {
+  beforeEach('start', async () => {
+    service = await global.startService(this.testConfig);
+  });
+
+  beforeEach('start chrome', async () => {
     chrome = await puppeteer.launch({
       executablePath: '/usr/bin/chromium-browser',
       ignoreHTTPSErrors: true,
@@ -198,23 +210,31 @@ describe('#facebook', function oauthFacebookSuite() {
     });
   });
 
-  beforeEach('start', async () => {
-    service = await global.startService(this.testConfig);
-  });
-  beforeEach('create user', createTestUser);
-  afterEach(async () => {
+  afterEach('DeAuthenticate application', deAuthApplication);
+
+  afterEach('stop chrome', async () => {
     if (page) await page.close();
     if (chrome) await chrome.close();
     await global.clearRedis();
   });
 
+  before('create test users', async () => {
+    facebookUser = await createTestUser();
+    facebookUserInstalledPartial = await createTestUserInstalledPartial();
+  });
+
+  after('delete test users', async () => {
+    await deleteTestUser(facebookUser.id);
+    await deleteTestUser(facebookUserInstalledPartial.id);
+  });
+
   it('should able to retrieve faceboook profile', async () => {
-    const { token, body } = await getFacebookToken();
+    const { token, body } = await getFacebookToken(facebookUser);
     assert(token, `did not get token - ${token} - ${body}`);
   });
 
   it('should able to handle declined authentication', async () => {
-    await initiateAuth();
+    await initiateAuth(facebookUser);
 
     try {
       await page.waitForSelector('button[name=__CANCEL__]');
@@ -229,7 +249,7 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should be able to register via facebook', async () => {
-    const { token } = await getFacebookToken();
+    const { token } = await getFacebookToken(facebookUser);
     const registered = await createAccount(token);
 
     assert(registered.hasOwnProperty('jwt'));
@@ -242,7 +262,7 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('can get info about registered fb account through getInternalData & getMetadata', async () => {
-    const { token } = await getFacebookToken();
+    const { token } = await getFacebookToken(facebookUser);
     const { user } = await createAccount(token);
     const [internalData, metadata] = await Promise
       .all([
@@ -279,9 +299,8 @@ describe('#facebook', function oauthFacebookSuite() {
 
     await globalRegisterUser(username).call(databag);
     await globalAuthUser(username).call(databag);
-
     // pre-auth user
-    await getFacebookToken();
+    await getFacebookToken(facebookUser);
     await Promise.delay(1000);
 
     const executeLink = `${serviceLink}/users/oauth/facebook?jwt=${databag.jwt}`;
@@ -302,7 +321,7 @@ describe('#facebook', function oauthFacebookSuite() {
     const username = 'facebookuser@me.com';
     const databag = { service };
 
-    const { token } = await getFacebookToken();
+    const { token } = await getFacebookToken(facebookUser);
     await createAccount(token);
     await globalRegisterUser(username).call(databag);
     await globalAuthUser(username).call(databag);
@@ -334,7 +353,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
     await globalRegisterUser(username).call(databag);
     await globalAuthUser(username).call(databag);
-    await getFacebookToken();
+    await getFacebookToken(facebookUser);
     await Promise.delay(1000);
 
     const executeLink = `${serviceLink}/users/oauth/facebook`;
@@ -363,7 +382,7 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should detach facebook profile', async () => {
-    const { token } = await getFacebookToken();
+    const { token } = await getFacebookToken(facebookUser);
     const registered = await createAccount(token);
 
     assert(registered.hasOwnProperty('jwt'));
@@ -415,7 +434,7 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   it('should reject when signing in with partially returned scope and report it', async () => {
-    const data = await signInAndNavigate((response) => {
+    const data = await signInAndNavigate(facebookUserInstalledPartial, (response) => {
       return response.url().startsWith(serviceLink) && response.status() === 401;
     });
 
@@ -443,7 +462,7 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     it('should re-request partially returned scope endlessly', async () => {
-      const pageResponse = await signInAndNavigate((response) => {
+      const pageResponse = await signInAndNavigate(facebookUserInstalledPartial, (response) => {
         return /dialog\/oauth\?auth_type=rerequest/.test(response.url());
       });
 
@@ -466,7 +485,7 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     it('should login with partially returned scope and report it', async () => {
-      const data = await signInAndNavigate((response) => {
+      const data = await signInAndNavigate(facebookUserInstalledPartial, (response) => {
         return response.url().startsWith(serviceLink) && response.status() === 200;
       });
 
@@ -482,7 +501,7 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     it('should register with partially returned scope and require email verification', async () => {
-      const data = await signInAndNavigate((response) => {
+      const data = await signInAndNavigate(facebookUserInstalledPartial, (response) => {
         return response.url().startsWith(serviceLink) && response.status() === 200;
       });
 
@@ -521,7 +540,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
     await globalRegisterUser(username).call(databag);
     await globalAuthUser(username).call(databag);
-    await getFacebookToken();
+    await getFacebookToken(facebookUser);
     await Promise.delay(1000);
 
     // enable mfa

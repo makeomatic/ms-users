@@ -81,6 +81,19 @@ Startup logic and checks for these tests is almost the same and works like:
 **`testUserPartial`** used in tests that checking partial permissions in registration/login and used as the previous scope,
 but users prop `installed` false.
 
-### Additional tests?
-Assuming that the user must have the application installed with partial permissions, `partial` tests must cover the situation, when the user already installed applications, but not provided `email` permissions.
-The `signinAndNavigate` logic not performing this scenario and no tests that check it. So should we add additional tests?
+In current partial permission tests, Facebook asks 2 permissions(public_profile, email), this indicates that
+partial `permissions` ignored on the user creation process. So we can safely deauthorize application using 'DELETE /uid/permissions' request.
+
+##### Projected Change
+If `installed` set to true then facebook tries to request access only `email` permission in all tests,
+so `signinAndNavigate` should be updated to match DOM.
+
+Revoking application permissions in this case working partially, but breaks service behavior.
+Service rejecting requests with `Missing credential` errors.
+The only solution is to recreate the partial user before every test.
+
+### Additional tests/functionality?
+`partial` tests must cover the situation, when the user already installed application, but revoked `email` permissions.
+In this condition service dropping requests with 'Missing permissions' and not trying to reRequest them.
+So should we add additional tests and functionality?
+

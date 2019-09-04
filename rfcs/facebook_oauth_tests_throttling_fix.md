@@ -36,11 +36,16 @@ this happens because of Facebook call Throttling.
 
 ### @hapi/bell error handling
 When the user declines an application to access the 500 Error returned from `@hapi/bell`.
-When application throttled the same 500 Error returned with Response as `data` field.
-To save current behavior, decided not to pass this error and wrapped with `Error.AuthenticationRequiredError` with message from `@hapi/bell` error.
+When application throttled or request `200 < statusCode > 299` the same 500 Error returned with Response as `data` field.
 
-Removed `isError` check and function  from `auth/oauth/index.js` because it's impossible to receive >= 400 response from `@hapi/bell`.
-According to current source code, only redirects and `h.unauthenticated(internal_errors)`(used to report OAuth requests errors) returned from `hapi.auth`.
+On catch block after `http.auth.test` call added additional error processing on @hapi/boom error:
+* Cleans references to `http.IncomingMessage` from error, otherwise further error serialization shows all contents of `http.IncommingMessage` class. 
+IMHO: That's weird to show Buffers and other internal stuff.
+* If error message contains information that user Rejected App access, returns Error.AuthenticationRequiredError` with `OAuth App rejected: Permissions error` . to save current behavior and return 401 StatusCode.
+* Other errors are thrown as @hapi/Bomm error.
+
+Removed `isError` check and function from `auth/oauth/index.js` because it's impossible to receive a response with statusCode other than 200 from `@hapi/bell`.
+According to current source code, only `redirects` and `h.unauthenticated(internal_errors)`(used to report OAuth request errors) thrown from `hapi.auth.test`.
 
 #### Overall Graph API over-usage
 Over-usage of Graph API request time produced by `createTestUser` API calls, this API call uses a lot of API's execution time and increments Facebook's counters fast.

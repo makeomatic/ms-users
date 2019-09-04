@@ -18,6 +18,28 @@ const is404 = ({ statusCode }) => statusCode === 404;
 const isHTMLRedirect = ({ statusCode, source }) => statusCode === 200 && source;
 
 /**
+ * Cleanup boom error and return matching error;
+ * @param @hapi/boom error
+ * @returns {error}
+ */
+function checkBoomError(error) {
+  const { data: errData } = error;
+  const { message } = error;
+
+  // can contain another Boom error
+  if (errData !== null && typeof errData === 'object') {
+    // delete reference to http.IncommingMessage
+    delete errData.data.res;
+  }
+
+  if (message.startsWith('App rejected')) {
+    return Errors.AuthenticationRequiredError(`OAuth ${error.message}`, error);
+  }
+
+  return error;
+}
+
+/**
  * Authentication handler
  * @param  {HttpClientResponse} response
  * @param  {Object} credentials
@@ -151,8 +173,9 @@ module.exports = async function authHandler({ action, transportRequest }) {
   } catch (err) {
     // No need to go further if Oauth Error happened
     if (Boom.isBoom(err)) {
-      return Promise.reject(new Errors.AuthenticationRequiredError(`OAuth ${err.message}`));
+      throw checkBoomError(err);
     }
+    // continue if redirect
     response = [err];
   }
 

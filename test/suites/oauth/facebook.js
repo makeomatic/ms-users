@@ -32,9 +32,6 @@ const createTestUserAPI = (props = {}) => graphApi({
   },
 }).promise();
 
-const createTestUser = () => createTestUserAPI();
-const createTestUserInstalledPartial = () => createTestUserAPI({ permissions: 'public_profile' });
-
 const deleteTestUser = uid => graphApi({
   uri: `${uid}`,
   method: 'DELETE',
@@ -219,8 +216,8 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   before('create test users', async () => {
-    facebookUser = await createTestUser();
-    facebookUserInstalledPartial = await createTestUserInstalledPartial();
+    facebookUser = await createTestUserAPI();
+    facebookUserInstalledPartial = await createTestUserAPI({ permissions: 'public_profile' });
   });
 
   after('delete test users', async () => {

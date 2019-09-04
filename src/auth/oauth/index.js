@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
+const Boom = require('@hapi/boom');
 
 const get = require('../../utils/get-value');
 const getUid = require('./utils/uid');
@@ -13,7 +14,6 @@ const { USERS_ID_FIELD, ErrorTotpRequired } = require('../../constants');
 
 // helpers
 const isRedirect = ({ statusCode }) => statusCode === 301 || statusCode === 302;
-const isError = ({ statusCode }) => statusCode >= 400;
 const is404 = ({ statusCode }) => statusCode === 404;
 const isHTMLRedirect = ({ statusCode, source }) => statusCode === 200 && source;
 
@@ -31,7 +31,7 @@ function oauthVerification(response, credentials) {
   }, 'service oauth verification');
 
   if (response) {
-    if (isError(response) || isHTMLRedirect(response)) {
+    if (isHTMLRedirect(response)) {
       return Promise.reject(response);
     }
 
@@ -149,6 +149,10 @@ module.exports = async function authHandler({ action, transportRequest }) {
     const { credentials } = await http.auth.test(strategy, transportRequest);
     response = [null, credentials];
   } catch (err) {
+    // No need to go further if Oauth Error happened
+    if (Boom.isBoom(err)) {
+      return Promise.reject(new Errors.AuthenticationRequiredError(`OAuth ${err.message}`));
+    }
     response = [err];
   }
 

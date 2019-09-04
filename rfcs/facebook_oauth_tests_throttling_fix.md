@@ -19,23 +19,35 @@ const XAppUsage = {
 If the value of any field becomes greater than 100 causes `throttling`.
 This header helps to determine how soon `throttling` will happen.
 
-#### Tests `Missing Credentials` Error
+### OAuth API v3.3 v4.0 Update
+Updated OAuth API. There is no braking changes and there's no additional work to upgrade version.
+API 3.3 is not available for new Applications and all requests made to this version are redirected to v4.0.
+
+### Tests `Missing Credentials` Error
 Mishandling `@hapi/boom` error causes the OAuth strategy to continue its execution but without mandatory `credentials` and this caused the random tests to fail.
 
-###### Solution
+##### Solution
 Implement additional error conversion from `@boom/error` to general `HTTPError`. 
 This return OAuth's error processing to normal behavior.
  
-#### Tests `403 - Application throttled` Error
+### Tests `403 - Application throttled` Error
 Before every test, some direct GraphApi calls made. In some `throttling` conditions requests rejected with `403` Error,
 this happens because of Facebook call Throttling. 
 
-##### Overall Graph API over-usage
+### @hapi/bell error handling
+When the user declines an application to access the 500 Error returned from `@hapi/bell`.
+When application throttled the same 500 Error returned with Response as `data` field.
+To save current behavior, decided not to pass this error and wrapped with `Error.AuthenticationRequiredError` with message from `@hapi/bell` error.
+
+Removed `isError` check and function  from `auth/oauth/index.js` because it's impossible to receive >= 400 response from `@hapi/bell`.
+According to current source code, only redirects and `h.unauthenticated(internal_errors)`(used to report OAuth requests errors) returned from `hapi.auth`.
+
+#### Overall Graph API over-usage
 Over-usage of Graph API request time produced by `createTestUser` API calls, this API call uses a lot of API's execution time and increments Facebook's counters fast.
 Before every test, we execute `createTestUser`  3*testCount times, so each suite execution performs about 39 long-running calls. 
 Facebook Graph API starts throttling requests after 4-6 suite runs.
 
-###### Solution
+##### Solution
 Exclude long-running `createTestUser` operation from tests and reuse test users.
 Attempt to reduce API call count.
  

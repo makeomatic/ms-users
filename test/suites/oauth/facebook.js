@@ -14,7 +14,7 @@ const puppeteer = require('puppeteer');
 const serviceLink = 'https://ms-users.local';
 
 const graphApi = request.defaults({
-  baseUrl: 'https://graph.facebook.com/v3.3',
+  baseUrl: 'https://graph.facebook.com/v4.0',
   headers: {
     Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
   },

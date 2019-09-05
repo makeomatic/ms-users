@@ -83,4 +83,5 @@ async function getOrganizationsList({ params }) {
 }
 
 getOrganizationsList.transports = [ActionTransport.amqp, ActionTransport.internal];
+module.exports.readonly = true;
 module.exports = getOrganizationsList;

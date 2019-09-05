@@ -161,4 +161,5 @@ module.exports = function iterateOverActiveUsers({ params }) {
     .then(keyOnly ? passThrough : fetchUserData);
 };
 
+module.exports.readonly = true;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

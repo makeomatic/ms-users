@@ -100,6 +100,7 @@ async function getMetadataAction(request) {
   return unnest(response);
 }
 
+getMetadataAction.readonly = true;
 getMetadataAction.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = getMetadataAction;

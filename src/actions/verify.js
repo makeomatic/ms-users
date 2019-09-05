@@ -84,4 +84,5 @@ function Verify({ params }) {
 
 Verify.transports = [ActionTransport.amqp, ActionTransport.internal];
 
+module.exports.readonly = true;
 module.exports = Verify;

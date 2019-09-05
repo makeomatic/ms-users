@@ -44,6 +44,7 @@ function generateKey({ auth, params }) {
   return response;
 }
 
+generateKey.readonly = true;
 generateKey.auth = 'httpBearer';
 generateKey.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
 generateKey.transportOptions = {

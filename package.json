@@ -58,6 +58,7 @@
     "otplib": "^11.0.1",
     "password-generator": "^2.2.0",
     "prom-client": "^11.5.3",
+    "qs-stringify": "^1.1.0",
     "redis-filtered-sort": "^2.3.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",

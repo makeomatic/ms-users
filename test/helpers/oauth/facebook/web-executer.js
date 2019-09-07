@@ -108,6 +108,8 @@ class WebExecuter {
    */
   async authenticate(user) {
     await this.initiateAuth(user);
+    await Promise.delay(1000);
+
     const { page } = this;
     try {
       await page.waitForSelector('button[name=__CONFIRM__]');

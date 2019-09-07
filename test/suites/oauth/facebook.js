@@ -273,6 +273,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
       it('should reject attaching already attached profile to a new user', async () => {
         await createAccount(token);
+        await Promise.delay(1000);
 
         const { status, url } = await fb.signInWithToken(dataBag.jwt);
         assert(status === 412, `Page is ${url} and status is ${status}`);
@@ -291,7 +292,7 @@ describe('#facebook', function oauthFacebookSuite() {
       });
 
       it('should attach facebook profile to existing user', async () => {
-        Promise.delay(1000);
+        await Promise.delay(1000);
         const { status, url, body } = await fb.signInWithToken(dataBag.jwt);
         assert(status === 200, `Page is ${url} and status is ${status}`);
 
@@ -303,6 +304,7 @@ describe('#facebook', function oauthFacebookSuite() {
       });
 
       it('should be able to sign in with facebook account', async () => {
+        await Promise.delay(1000);
         const executeLink = `${fb._serviceLink}/users/oauth/facebook`;
 
         /* initial request for attaching account */
@@ -323,6 +325,7 @@ describe('#facebook', function oauthFacebookSuite() {
       });
 
       it('should be able to sign in with facebook account if mfa is enabled', async function test() {
+        await Promise.delay(1000);
         /* enable mfa */
         const { secret } = await service.dispatch('mfa.generate-key', { params: { username, time: Date.now() } });
         await service.dispatch('mfa.attach', { params: { username, secret, totp: authenticator.generate(secret) } });

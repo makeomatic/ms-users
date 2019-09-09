@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const render = require('ms-mailer-templates');
 const generatePassword = require('password-generator');
-const qs = require('qs-stringify');
+const { stringify } = require('qs');
 const partial = require('lodash/partial');
 const identity = require('lodash/identity');
 const { InvalidOperationError } = require('common-errors');
@@ -42,7 +42,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
       break;
     case USERS_ACTION_ORGANIZATION_INVITE:
       // generate secret
-      context.qs = `?${qs({
+      context.qs = `?${stringify({
         q: context.token.secret,
         organizationId: ctx.organizationId,
         username: ctx.email,
@@ -51,7 +51,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
       break;
     case USERS_ACTION_ORGANIZATION_REGISTER:
       // generate secret
-      context.qs = `?${qs({
+      context.qs = `?${stringify({
         password: ctx.password,
         login: ctx.email,
       })}`;

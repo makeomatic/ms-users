@@ -101,16 +101,29 @@ but users prop `installed` false.
 In current partial permission tests, Facebook asks 2 permissions(public_profile, email), this indicates that
 partial `permissions` ignored on the user creation process. So we can safely deauthorize application using 'DELETE /uid/permissions' request.
 
-##### Projected Change
-If `installed` set to true then facebook tries to request access only `email` permission in all tests,
-so `signinAndNavigate` should be updated to match DOM.
+#### Changes:
+To make tests more readable and a bit easier to read some methods moved to separate files:
+* WebExecuter class - contains all actions performed with the Facebook page using `Puppeter`.
+* GraphApi Class - contains all calls to the Facebook Graph API.
 
-Revoking application permissions in this case working partially, but breaks service behavior.
-Service rejecting requests with `Missing credential` errors.
-The only solution is to recreate the partial user before every test.
-
+Repeating `asserts` moved outside of tests into functions.
+Tests regrouped by User type. Some duplicate actions moved into `hooks`.
+  
 ### Additional tests/functionality?
-`partial` tests must cover the situation, when the user already installed application, but revoked `email` permissions.
-In this condition service dropping requests with 'Missing permissions' and not trying to reRequest them.
-So should we add additional tests and functionality?
+Current tests cover all possible situations, even for the user with Application `installed === true` property.
+All test cases for this type of user look the same as previous tests and code duplicates because the same API used. 
+One difference in them, when the user already has some permissions provided to the application,
+'Facebook Permission Access' screen shows a smaller permission list
+and only `signInAndNavigate` method changed in 1 row(index of the checkbox to click).
 
+
+### GDPR NOTE
+In our case, GDPR not applied inside the scope of the 'Facebook Login' feature.
+Facebook is a Data Provider for us and using own privacy policy that allows us to use 
+data provided from Facebook.
+From our side, we must add `Cookie and Data collection notification` - already exists.
+
+Some changes should be made if We use Android or IOS Facebook SDK in event tracking functions. 
+For Detailed description visit [this page](https://www.facebook.com/business/m/one-sheeters/gdpr-developer-faqs)
+
+Additional info can be found [here](https://developers.facebook.com/docs/app-events/best-practices/gdpr-compliance)

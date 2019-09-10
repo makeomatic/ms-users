@@ -1,3 +1,10 @@
+## [11.2.6](https://github.com/makeomatic/ms-users/compare/v11.2.5...v11.2.6) (2019-09-10)
+
+
+### Bug Fixes
+
+* upgrade dependencies, make fb tests more reliable ([#424](https://github.com/makeomatic/ms-users/issues/424)) ([0825a6d](https://github.com/makeomatic/ms-users/commit/0825a6d))
+
 ## [11.2.5](https://github.com/makeomatic/ms-users/compare/v11.2.4...v11.2.5) (2019-08-24)
 
 

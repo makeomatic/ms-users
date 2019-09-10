@@ -1,5 +1,5 @@
-const toSeconds = val => Math.ceil(val / 1e6);
-const toMilliSec = val => val * 1000;
+const toSeconds = (val) => Math.ceil(val / 1e6);
+const toMilliSec = (val) => val * 1000;
 
 /**
  * Attempts to get 'token' in sliding window

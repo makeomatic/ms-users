@@ -26,27 +26,14 @@ end
 
 -- deletes keys, gets keys matching `pattern`, filters with `checkExpression`
 local function deleteKeys(pattern, checkExpresion)
-  local cursor = "0"
-  local done = false
+  local keys = redis.call("KEYS", pattern);
 
-  -- redis SCAN can return multiple cursors, with small amounts of data
-  repeat
-    local result = redis.call("SCAN", cursor, "MATCH", pattern)
-    local keys = result[2]
-
-    cursor = result[1]
-    for i, key in pairs(keys) do
-      -- if key matches provided pattern
-      if key:match(checkExpresion) ~= nil then
-        redis.call("DEL", key)
-      end
+  for i, key in pairs(keys) do
+    -- if key matches provided pattern
+    if key:match(checkExpresion) ~= nil then
+      redis.call("DEL", key)
     end
-
-    if cursor == "0" then
-      done = true
-    end
-
-  until done
+  end
 end
 
 -- we don't iterate all keys

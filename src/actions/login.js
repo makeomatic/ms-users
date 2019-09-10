@@ -31,7 +31,7 @@ const {
 const is404 = (e) => parseInt(e.message, 10) === 404;
 
 /**
- * Pretifies interval
+ * Prettifies interval
  * Returns human-readable string
  * @param interval - milliseconds
  * @returns {string}
@@ -161,15 +161,15 @@ function getVerifyStrategy(data) {
  */
 async function cancelLimiterTokens() {
   const { redis } = this;
-  const { cancel } = slidingLimiter;
+
   const {
     globalRemoteIpKey, globalLoginToken,
     remoteipKey, localLoginToken,
   } = this;
 
   const work = [
-    cancel(redis, globalRemoteIpKey, globalLoginToken),
-    cancel(redis, remoteipKey, localLoginToken),
+    slidingLimiter.cancel(redis, globalRemoteIpKey, globalLoginToken),
+    slidingLimiter.cancel(redis, remoteipKey, localLoginToken),
   ];
   return Promise.all(work);
 }

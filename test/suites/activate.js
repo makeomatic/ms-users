@@ -139,7 +139,7 @@ describe('#activate', function activateSuite() {
         return code;
       })
       .bind(this)
-      .then(code => this.dispatch('users.activate', { token: code, username: '79215555555' }))
+      .then((code) => this.dispatch('users.activate', { token: code, username: '79215555555' }))
       .reflect()
       .then(inspectPromise())
       .then((response) => {

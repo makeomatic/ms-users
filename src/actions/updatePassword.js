@@ -31,8 +31,8 @@ function usernamePasswordReset(username, password) {
     .tap(isActive)
     .tap(isBanned)
     .tap(hasPassword)
-    .tap(data => scrypt.verify(data.password, password))
-    .then(data => data[USERS_ID_FIELD]);
+    .tap((data) => scrypt.verify(data.password, password))
+    .then((data) => data[USERS_ID_FIELD]);
 }
 
 /**
@@ -46,7 +46,7 @@ function setPassword(_username, password) {
   return Promise
     .bind(this, _username)
     .then(getUserId)
-    .then(userId => Promise.props({
+    .then((userId) => Promise.props({
       userId,
       hash: scrypt.hash(password),
     }))

@@ -9,7 +9,7 @@ const { Redirect } = require('./utils/errors');
 const { ErrorTotpRequired } = require('../../constants');
 const { getSignedToken } = require('./utils/getSignedToken');
 
-const isOauthAttachRoute = route => route.endsWith('oauth.facebook');
+const isOauthAttachRoute = (route) => route.endsWith('oauth.facebook');
 
 module.exports = [{
   point: 'preResponse',
@@ -40,10 +40,10 @@ module.exports = [{
     let message;
     if (error && error.code === ErrorTotpRequired.code) {
       message = {
-        payload: Object.assign(
-          { userId: error.credentials.profile.userId },
-          await getSignedToken.call(this, error.credentials)
-        ),
+        payload: {
+          userId: error.credentials.profile.userId,
+          ...await getSignedToken.call(this, error.credentials),
+        },
         error: true,
         type: 'ms-users:totp_required',
         title: 'MFA required',
@@ -64,14 +64,23 @@ module.exports = [{
       this.log.warn({ error: message.payload }, 'oauth error');
     }
 
-    // erase stack, no need to push it out
-    if (error && message.payload.stack) {
-      message.payload.stack = undefined;
+    if (error) {
+      // erase stack
+      if (typeof message.payload.stack !== 'undefined') {
+        delete message.payload.stack;
+      }
+
+      // erase inner_error if its undefined
+      if (message.payload.inner_error == null) {
+        delete message.payload.inner_error;
+      }
     }
 
     let response = request.transportRequest.sendView('providerAttached', {
       targetOrigin,
-      message: serialize(message),
+      message: serialize(message, {
+        ignoreFunction: true,
+      }),
     });
 
     if (error) {

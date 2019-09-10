@@ -3,7 +3,7 @@ const { RedisError } = require('common-errors').data;
 /**
  * Selects 'message' prop from Error
  */
-const selectProp = err => err.message;
+const selectProp = (err) => err.message;
 
 /**
  * Handles ioredis pipeline.exec() error

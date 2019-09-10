@@ -40,7 +40,7 @@ function throwBasedOnStatus(status) {
 function isAccountActive(username) {
   return getInternalData
     .call(this, username)
-    .then(userData => userData[USERS_ACTIVE_FLAG])
+    .then((userData) => userData[USERS_ACTIVE_FLAG])
     .then(throwBasedOnStatus);
 }
 
@@ -87,7 +87,7 @@ function verifyRequest() {
   if (username && token) {
     return getInternalData
       .call(this.service, username)
-      .then(userData => [
+      .then((userData) => [
         { action, token, id: userData[USERS_USERNAME_FIELD] },
         { erase },
       ])
@@ -195,8 +195,8 @@ function activateAction({ params }) {
     .bind(context)
     .then(verifyRequest)
     .bind(this)
-    .then(resolvedUsername => getInternalData.call(this, resolvedUsername))
-    .then(internalData => Promise.join(
+    .then((resolvedUsername) => getInternalData.call(this, resolvedUsername))
+    .then((internalData) => Promise.join(
       internalData,
       getMetadata.call(this, internalData[USERS_ID_FIELD], audience).get(audience)
     ))
@@ -204,7 +204,7 @@ function activateAction({ params }) {
     .bind(context)
     .tap(hook)
     .bind(this)
-    .then(userId => [userId, audience])
+    .then((userId) => [userId, audience])
     .spread(jwt.login);
 }
 

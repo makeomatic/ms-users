@@ -216,7 +216,7 @@ async function performRegistration({ service, params }) {
   await setMetadata.call(service, {
     userId,
     audience,
-    metadata: audience.map(metaAudience => ({
+    metadata: audience.map((metaAudience) => ({
       $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
         [USERS_ID_FIELD]: userId,
         [USERS_USERNAME_FIELD]: username,

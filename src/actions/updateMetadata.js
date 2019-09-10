@@ -23,7 +23,7 @@ module.exports = function updateMetadataAction(request) {
   return Promise
     .bind(this, request.params.username)
     .then(getUserId)
-    .then(userId => ({ ...omit(request.params, 'username'), userId }))
+    .then((userId) => ({ ...omit(request.params, 'username'), userId }))
     .then(updateMetadata);
 };
 

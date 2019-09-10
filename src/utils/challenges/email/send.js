@@ -20,7 +20,7 @@ module.exports = exports = function definedSubjectAndSend(props, wait = false) {
   const mailSent = mailer
     .send(mailingAccount, mail)
     .return({ sent: true, context })
-    .catch(err => ({
+    .catch((err) => ({
       context,
       err,
       sent: false,

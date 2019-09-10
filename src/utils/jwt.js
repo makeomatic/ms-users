@@ -19,7 +19,7 @@ const {
 } = require('../constants');
 
 // cache this to not recreate all the time
-const mapJWT = props => ({
+const mapJWT = (props) => ({
   jwt: props.jwt,
   user: {
     [USERS_ID_FIELD]: props.userId,

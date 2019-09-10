@@ -9,7 +9,7 @@ const { USERS_REFERRAL_INDEX } = require('../constants');
 function checkIndex(userId) {
   return this.redis
     .sismember(`${USERS_REFERRAL_INDEX}:${this.referralCode}`, userId)
-    .then(yes => (yes === 1 ? userId : false));
+    .then((yes) => (yes === 1 ? userId : false));
 }
 
 /**

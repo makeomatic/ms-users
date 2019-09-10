@@ -32,7 +32,7 @@ function generateUsersIds({
   return redis
     .smembers(USERS_INDEX)
     .tap(({ length }) => log.info('Users count:', length))
-    .map(username => Promise.join(username, redis.hgetall(makeKey(username, USERS_DATA))))
+    .map((username) => Promise.join(username, redis.hgetall(makeKey(username, USERS_DATA))))
     .map(([username, userData]) => {
       const userId = flake.next();
       const oldUserDataKey = makeKey(username, USERS_DATA);

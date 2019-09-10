@@ -51,7 +51,7 @@ describe('#token.*', function activateSuite() {
         ))
         .reflect()
         .then(inspectPromise())
-        .then(tokens => tokenHolder.push(...tokens));
+        .then((tokens) => tokenHolder.push(...tokens));
     });
   });
 
@@ -102,7 +102,7 @@ describe('#token.*', function activateSuite() {
   // erase some tokens
   describe('#token.erase', function eraseTokenSuite() {
     it('removes all issued tokens but the initial one', function test() {
-      return Promise.map(tokenHolder.slice(1), token => (
+      return Promise.map(tokenHolder.slice(1), (token) => (
         this.dispatch(eraseRoute, { username, token: token.split('.')[1] })
       ))
         .reflect()
@@ -143,7 +143,7 @@ describe('#token.*', function activateSuite() {
     });
 
     it('verifies that all other tokens dont work', function test() {
-      return Promise.map(tokenHolder.slice(1), token => (
+      return Promise.map(tokenHolder.slice(1), (token) => (
         this.dispatch(verifyRoute, {
           token,
           accessToken: true,

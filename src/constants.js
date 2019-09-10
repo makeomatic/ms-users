@@ -106,9 +106,9 @@ module.exports = exports = {
   MFA_TYPE_DISABLED: Symbol('disabled'),
 
   // lock names
-  lockAlias: alias => `users:alias:${alias}`,
-  lockRegister: username => `users:register:${username}`,
-  lockOrganization: organizationName => `organizations:create:${organizationName}`,
+  lockAlias: (alias) => `users:alias:${alias}`,
+  lockRegister: (username) => `users:register:${username}`,
+  lockOrganization: (organizationName) => `organizations:create:${organizationName}`,
 };
 
 // embed error codes

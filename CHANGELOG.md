@@ -1,3 +1,10 @@
+## [11.2.7](https://github.com/makeomatic/ms-users/compare/v11.2.6...v11.2.7) (2019-09-10)
+
+
+### Bug Fixes
+
+* stringify organization invite params in mail ([#423](https://github.com/makeomatic/ms-users/issues/423)) ([81366c0](https://github.com/makeomatic/ms-users/commit/81366c0))
+
 ## [11.2.6](https://github.com/makeomatic/ms-users/compare/v11.2.5...v11.2.6) (2019-09-10)
 
 

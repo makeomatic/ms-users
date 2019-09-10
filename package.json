@@ -53,7 +53,7 @@
     "ms-conf": "^5.0.2",
     "ms-flakeless": "^4.2.0",
     "ms-mailer-client": "^8.0.1",
-    "ms-mailer-templates": "^1.11.1",
+    "ms-mailer-templates": "^1.14.1",
     "ms-token": "^3.1.0",
     "otplib": "^11.0.1",
     "password-generator": "^2.2.0",

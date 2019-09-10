@@ -3707,7 +3707,7 @@ growl@1.10.5:
   resolved "https://registry.yarnpkg.com/growl/-/growl-1.10.5.tgz#f2735dc2283674fa67478b10181059355c369e5e"
   integrity sha512-qBr4OuELkhPenW6goKVXiv47US3clb3/IbuWF9KNKEijAy9oeHxU9IgzjvJhHkUzhaj7rOUD7+YGWqUjLp5oSA==
 
-handlebars@^4.1.1, handlebars@^4.1.2, handlebars@^4.2.0:
+handlebars@^4.1.2, handlebars@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.2.0.tgz#57ce8d2175b9bbb3d8b3cf3e4217b1aec8ddcb2e"
   integrity sha512-Kb4xn5Qh1cxAKvQnzNWZ512DhABzyFNmsaJf3OAkWNa4NkaqWcNI8Tao8Tasi0/F4JD9oyG0YxuFyvyR57d+Gw==
@@ -5579,14 +5579,14 @@ ms-mailer-client@^8.0.1:
   dependencies:
     lodash.merge "^4.6.1"
 
-ms-mailer-templates@^1.11.1:
-  version "1.14.0"
-  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.14.0.tgz#582490a194f98f5a68ff38c3795210a34fa2326a"
-  integrity sha512-Rzto3y3+htJD1gVVbIqgD+fJGjZy9sK/xu23lVU9bs/N/bL8P68M67nXYI6tsgmeHdjnX4mokz+gqADiZFTtYA==
+ms-mailer-templates@^1.14.1:
+  version "1.14.1"
+  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.14.1.tgz#20e1ad13e4902a657443b615dbfb7d9c239493be"
+  integrity sha512-i942Ihc5eTQaEVjYEcG0k9ZhA3uJGGuaTKTf0PoUnZPYc6zYpTrWiD7sf+CBJr/91QyKuT0/LI7G3S8F8u9wRg==
   dependencies:
-    bluebird "^3.5.1"
+    bluebird "^3.5.5"
     common-errors "^1.0.5"
-    handlebars "^4.1.1"
+    handlebars "^4.2.0"
 
 ms-token@^3.1.0:
   version "3.1.0"
@@ -6899,6 +6899,11 @@ qrcode-terminal@^0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/qrcode-terminal/-/qrcode-terminal-0.12.0.tgz#bb5b699ef7f9f0505092a3748be4464fe71b5819"
   integrity sha512-EXtzRZmC+YGmGlDFbXKxQiMZNwCLEO6BANKXG4iCtSIM0yqc/pappSx3RIKr4r0uh5JsBckOXeKrB3Iz7mdQpQ==
+
+qs@^6.8.0:
+  version "6.8.0"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.8.0.tgz#87b763f0d37ca54200334cd57bb2ef8f68a1d081"
+  integrity sha512-tPSkj8y92PfZVbinY1n84i1Qdx75lZjMQYx9WZhnkofyxzw2r7Ho39G3/aEvSUdebxpnnM4LZJCtvE/Aq3+s9w==
 
 qs@~6.5.2:
   version "6.5.2"

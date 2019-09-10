@@ -8,7 +8,7 @@ const sha256 = require('./sha256.js');
 const handlePipeline = require('../utils/pipelineError.js');
 const { USERS_METADATA } = require('../constants.js');
 
-const JSONStringify = data => JSON.stringify(data);
+const JSONStringify = (data) => JSON.stringify(data);
 
 /**
  * Process metadata update operation for a passed audience
@@ -79,7 +79,7 @@ function mapMetaResponse(operations, responses) {
 
       return output;
     })
-    .then(ops => (ops.length > 1 ? ops : ops[0]));
+    .then((ops) => (ops.length > 1 ? ops : ops[0]));
 }
 
 /**
@@ -108,7 +108,7 @@ function updateMetadata(opts) {
   const audiences = is.array(audience) ? audience : [audience];
 
   // keys
-  const keys = audiences.map(aud => redisKey(userId, USERS_METADATA, aud));
+  const keys = audiences.map((aud) => redisKey(userId, USERS_METADATA, aud));
 
   // if we have meta, then we can
   if (metadata) {
@@ -122,7 +122,7 @@ function updateMetadata(opts) {
     const operations = metaOps.map((meta, idx) => handleAudience(pipe, keys[idx], meta));
     return pipe.exec()
       .then(handlePipeline)
-      .then(res => mapMetaResponse(operations, res));
+      .then((res) => mapMetaResponse(operations, res));
   }
 
   // dynamic scripts
@@ -137,7 +137,7 @@ function updateMetadata(opts) {
     return redis[name](keys.length, keys, argv);
   });
 
-  return Promise.all(scripts).then(res => mapScriptResponse($scriptKeys, res));
+  return Promise.all(scripts).then((res) => mapScriptResponse($scriptKeys, res));
 }
 
 updateMetadata.handleAudience = handleAudience;

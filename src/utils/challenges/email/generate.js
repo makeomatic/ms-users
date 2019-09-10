@@ -75,7 +75,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
       emailTemplate: render(templateName, context),
     })
     .bind(this)
-    .then(output => (send ? [output, wait] : [output]))
+    .then((output) => (send ? [output, wait] : [output]))
     .spread(send ? sendEmail : identity);
 }
 

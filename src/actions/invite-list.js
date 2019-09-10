@@ -42,7 +42,7 @@ module.exports = function iterateOverInvites(request) {
       }
 
       return Promise.join(
-        Promise.all(ids.map(id => tokenManager.info({ id, action: USERS_ACTION_INVITE }))),
+        Promise.all(ids.map((id) => tokenManager.info({ id, action: USERS_ACTION_INVITE }))),
         length
       );
     })

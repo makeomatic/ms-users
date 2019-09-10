@@ -4,7 +4,7 @@ const { AuthenticationRequiredError } = require('common-errors');
 const { USERS_CREDENTIALS_REQUIRED_ERROR } = require('../constants');
 
 function getAuthToken(authHeader) {
-  const [auth, token] = authHeader.trim().split(/\s+/, 2).map(str => str.trim());
+  const [auth, token] = authHeader.trim().split(/\s+/, 2).map((str) => str.trim());
 
   if (auth == null) {
     throw new AuthenticationRequiredError('Auth type must be present');

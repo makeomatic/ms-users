@@ -23,7 +23,7 @@ module.exports = function internalData({ params }) {
   return Promise
     .bind(this, params.username)
     .then(getInternalData)
-    .then(data => (
+    .then((data) => (
       fields ? pick(data, fields) : data
     ));
 };

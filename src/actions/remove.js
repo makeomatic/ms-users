@@ -39,7 +39,7 @@ function addMetadata(userData) {
   return Promise
     .bind(this, [userId, audience])
     .spread(getMetadata)
-    .then(metadata => [userData, metadata]);
+    .then((metadata) => [userData, metadata]);
 }
 
 /**

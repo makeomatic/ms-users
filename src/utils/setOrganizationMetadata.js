@@ -20,7 +20,7 @@ async function setOrganizationMetadata(opts) {
   const audiences = is.array(audience) ? audience : [audience];
 
   // keys
-  const keys = audiences.map(aud => redisKey(organizationId, ORGANIZATIONS_METADATA, aud));
+  const keys = audiences.map((aud) => redisKey(organizationId, ORGANIZATIONS_METADATA, aud));
 
   // if we have meta, then we can
   if (metadata) {

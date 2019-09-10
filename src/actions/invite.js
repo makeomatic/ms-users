@@ -50,7 +50,7 @@ module.exports = function generateInvite(request) {
         [TOKEN_METADATA_FIELD_SENDED_AT]: now,
       },
     })
-    .then(token => Promise
+    .then((token) => Promise
       .bind(this, [email, USERS_ACTION_INVITE, { ...ctx, token }, { send: true }, nodemailer])
       .spread(generateEmail)
       .tap(() => redis.sadd(INVITATIONS_INDEX, email)));

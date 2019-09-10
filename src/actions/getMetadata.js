@@ -50,7 +50,7 @@ async function retrieveMetadata(username) {
  * @param  {Array} responses
  * @return {Array|Object}
  */
-const extractResponse = responses => responses[0];
+const extractResponse = (responses) => responses[0];
 
 /**
  * @api {amqp} <prefix>.getMetadata Retrieve Public Data

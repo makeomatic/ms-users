@@ -10,7 +10,7 @@ const { USERS_MFA_FLAG } = require('../constants');
  * Internal functions
  */
 const { isArray } = Array;
-const toArray = maybeArray => (isArray(maybeArray) ? maybeArray : [maybeArray]);
+const toArray = (maybeArray) => (isArray(maybeArray) ? maybeArray : [maybeArray]);
 
 /**
  * Verifies decoded token

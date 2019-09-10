@@ -84,7 +84,7 @@ describe('#challenge', function challengeSuite() {
       return Promise
         .bind(this)
         .return([requestChallenge, requestChallenge, requestChallenge])
-        .map(it => it.call(this))
+        .map((it) => it.call(this))
         .reflect()
         .then(inspectPromise(false))
         .then((validation) => {

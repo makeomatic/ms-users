@@ -5,14 +5,14 @@ const redisKey = require('../utils/key.js');
 const { USERS_METADATA } = require('../constants.js');
 
 const { isArray } = Array;
-const JSONParse = data => JSON.parse(data);
+const JSONParse = (data) => JSON.parse(data);
 
 function getMetadata(userId, _audiences, fields = {}) {
   const { redis } = this;
   const audiences = isArray(_audiences) ? _audiences : [_audiences];
 
   return Promise
-    .map(audiences, audience => (
+    .map(audiences, (audience) => (
       redis.hgetall(redisKey(userId, USERS_METADATA, audience))
     ))
     .then(function remapAudienceData(data) {

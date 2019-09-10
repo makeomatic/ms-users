@@ -26,7 +26,7 @@ const {
 /**
  * Internal functions
  */
-const is404 = e => parseInt(e.message, 10) === 404;
+const is404 = (e) => parseInt(e.message, 10) === 404;
 
 const globalLoginAttempts = async (ctx) => {
   const { config } = ctx;

@@ -10,7 +10,7 @@ const {
 } = require('../constants.js');
 
 // helper
-const stringify = data => JSON.stringify(data);
+const stringify = (data) => JSON.stringify(data);
 
 function lockUser({
   id, reason, whom, remoteip,

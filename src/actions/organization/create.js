@@ -17,7 +17,7 @@ const {
   lockOrganization,
 } = require('../../constants');
 
-const JSONStringify = data => JSON.stringify(data);
+const JSONStringify = (data) => JSON.stringify(data);
 
 async function createOrganization(organizationName, active, lock) {
   const { redis, flake } = this;
@@ -39,8 +39,6 @@ async function createOrganization(organizationName, active, lock) {
     await pipeline.exec().then(handlePipeline);
 
     return organizationId;
-  } catch (e) {
-    throw e;
   } finally {
     if (lock !== undefined) {
       await lock.release();

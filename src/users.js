@@ -54,7 +54,7 @@ module.exports = class Users extends Microfleet {
       });
     } else if (config.plugins.includes('redisSentinel')) {
       this.redisType = 'redisSentinel';
-      redisDuplicate = redis => redis.duplicate();
+      redisDuplicate = (redis) => redis.duplicate();
     } else {
       throw new Error('must include redis family plugins');
     }

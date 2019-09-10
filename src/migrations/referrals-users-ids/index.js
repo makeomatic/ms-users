@@ -30,7 +30,7 @@ function referralsUsersIds({ redis, config, log }) {
 
   return masterNode
     .keys(`${keyPrefix}${USERS_REFERRAL_INDEX}:*`)
-    .map(key => key.replace(keyPrefix, ''))
+    .map((key) => key.replace(keyPrefix, ''))
     .map((key) => {
       const referral = key.split(':')[1];
 

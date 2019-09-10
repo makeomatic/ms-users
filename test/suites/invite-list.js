@@ -15,7 +15,7 @@ describe('#invite', function registerSuite() {
   } = require('../../src/constants.js');
 
   before(function init() {
-    return Promise.all(times(100, n => this.dispatch('users.invite', {
+    return Promise.all(times(100, (n) => this.dispatch('users.invite', {
       email: `${n}@yandex.ru`,
       ctx: {
         firstName: faker.name.firstName(),

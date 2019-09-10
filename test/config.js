@@ -61,7 +61,7 @@ async function clearRedis(doNotClose = false) {
 
   try {
     if (service.redisType === 'redisCluster') {
-      await Promise.map(service.redis.nodes('master'), node => (
+      await Promise.map(service.redis.nodes('master'), (node) => (
         node.flushdb()
       ));
     } else {

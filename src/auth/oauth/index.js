@@ -15,11 +15,12 @@ const { USERS_ID_FIELD, ErrorTotpRequired } = require('../../constants');
 // helpers
 const isRedirect = ({ statusCode }) => statusCode === 301 || statusCode === 302;
 const is404 = ({ statusCode }) => statusCode === 404;
+const isError = ({ statusCode }) => statusCode >= 400;
 const isHTMLRedirect = ({ statusCode, source }) => statusCode === 200 && source;
 
 /**
  * Cleanup boom error and return matching error;
- * @param @hapi/boom error
+ * @param {Boom} error
  * @returns {error}
  */
 function checkBoomError(error) {
@@ -41,55 +42,54 @@ function checkBoomError(error) {
 
 /**
  * Authentication handler
- * @param  {HttpClientResponse} response
- * @param  {Object} credentials
+ *
+ * @param {Object} ctx
+ * @param {HttpClientResponse} [response]
+ * @param {Object} credentials
  * @returns {Array<HttpClientResponse, Credentials>}
  */
-function oauthVerification(response, credentials) {
-  this.service.log.debug({
+async function oauthVerification({ service, transportRequest, config, strategy }, response, credentials) {
+  service.log.debug({
     statusCode: response && response.statusCode,
     headers: response && response.headers,
     credentials,
   }, 'service oauth verification');
 
   if (response) {
-    if (isHTMLRedirect(response)) {
-      return Promise.reject(response);
+    if (isError(response) || isHTMLRedirect(response)) {
+      throw response;
     }
 
     if (isRedirect(response)) {
       // set redirect uri to rewrite the response in the hapi's preResponse hook
       const redirectUri = get(response, 'headers.location');
-      return Promise.reject(new Redirect(redirectUri));
+      throw new Redirect(redirectUri);
     }
   }
 
   if (!credentials) {
-    return Promise.reject(new Errors.AuthenticationRequiredError('missed credentials'));
+    throw new Errors.AuthenticationRequiredError('missed credentials');
   }
 
   const { missingPermissions } = credentials;
   // verify missing permissions
   if (missingPermissions) {
-    const { retryOnMissingPermissions, location } = this.config;
+    const { retryOnMissingPermissions, location } = config;
 
     if (retryOnMissingPermissions === true) {
-      this.service.log.warn({
-        location,
-        path: this.transportRequest.path,
-      }, 'sending to fb for additional data');
-      return Promise.reject(new Redirect(`${location}${this.transportRequest.path}?auth_type=rerequest&scope=${missingPermissions.join(',')}`));
+      service.log.warn({ location, path: transportRequest.path }, 'sending to fb for additional data');
+      throw new Redirect(`${location}${transportRequest.path}?auth_type=rerequest&scope=${missingPermissions.join(',')}`);
     }
 
     if (retryOnMissingPermissions !== false) {
       const error = new Errors.AuthenticationRequiredError(`missing permissions - ${missingPermissions.join(',')}`);
       error.missingPermissions = missingPermissions;
-      return Promise.reject(error);
+      throw error;
     }
   }
 
   // set actual strategy for confidence
-  credentials.provider = this.strategy;
+  credentials.provider = strategy;
 
   // create uid and inject it inside account && internal data
   const uid = getUid(credentials);
@@ -100,20 +100,20 @@ function oauthVerification(response, credentials) {
   return credentials;
 }
 
-async function mserviceVerification(credentials) {
+async function mserviceVerification({ service, transportRequest }, credentials) {
   // query on initial request is recorded and is available via credentials.query
   // https://github.com/hapijs/bell/blob/63603c9e897f3607efeeca87b6ef3c02b939884b/lib/oauth.js#L261
-  const oauthConfig = this.service.config.oauth;
-  const jwt = extractJWT(this.transportRequest, oauthConfig) || credentials.query[oauthConfig.urlKey];
+  const oauthConfig = service.config.oauth;
+  const jwt = extractJWT(transportRequest, oauthConfig) || credentials.query[oauthConfig.urlKey];
 
   // validate JWT token if provided
   const checkAuth = jwt
-    ? verifyToken.call(this.service, jwt)
+    ? verifyToken.call(service, jwt)
     : false;
 
   // check if the profile is already attached to any existing credentials
   const getUserId = getInternalData
-    .call(this.service, credentials.uid)
+    .call(service, credentials.uid)
     .get(USERS_ID_FIELD)
     .catchReturn(is404, false);
 
@@ -130,8 +130,8 @@ async function mserviceVerification(credentials) {
     credentials.profile.userId = userId;
 
     try {
-      const userData = await loginAttempt.call(this.service, userId);
-      refresh.call(this.service, credentials, userData);
+      const userData = await loginAttempt.call(service, userId);
+      refresh.call(service, credentials, userData);
 
       return userData;
     } catch (error) {
@@ -179,8 +179,6 @@ module.exports = async function authHandler({ action, transportRequest }) {
     response = [err];
   }
 
-  return Promise
-    .bind(ctx, response)
-    .spread(oauthVerification)
-    .then(mserviceVerification);
+  const credentials = await oauthVerification(ctx, ...response);
+  return mserviceVerification(ctx, credentials);
 };

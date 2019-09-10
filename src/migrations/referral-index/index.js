@@ -41,7 +41,7 @@ exports.script = (service) => {
 
   return service
     .dispatch('list', request)
-    .then(key => key.slice(prefix.length))
+    .then((key) => key.slice(prefix.length))
     .then((userIdsKey) => {
       const keys = [
         USERS_INDEX,

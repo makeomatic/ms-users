@@ -42,7 +42,7 @@ module.exports = function initAccounts() {
         .dispatch('referral', { params: { id: userData.referral, referral: account.referral } })
         .return({ params: userData });
     })
-    .map(userData => Promise.bind(this, ['register', userData]).spread(this.dispatch).reflect())
+    .map((userData) => Promise.bind(this, ['register', userData]).spread(this.dispatch).reflect())
     .then((users) => {
       const totalAccounts = users.length;
       const errors = [];

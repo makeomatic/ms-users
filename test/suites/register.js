@@ -205,7 +205,7 @@ describe('#register', function registerSuite() {
     };
 
     beforeEach(function pretest() {
-      return Promise.all(times(3, n => (
+      return Promise.all(times(3, (n) => (
         this.dispatch('users.register', { ...opts, username: `${n + 1}${opts.username}` })
       )));
     });

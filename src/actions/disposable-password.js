@@ -27,7 +27,7 @@ module.exports = function disposablePassword(request) {
     .tap(isActive)
     .tap(isBanned)
     .tap(hasNotPassword)
-    .then(data => ([challengeType, {
+    .then((data) => ([challengeType, {
       id: data[USERS_USERNAME_FIELD],
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
       ...tokenOptions,

@@ -41,10 +41,10 @@ module.exports = function requestPassword(request) {
     .tap(isActive)
     .tap(isBanned)
     .tap(hasPassword)
-    .then(data => [data[USERS_ID_FIELD], defaultAudience])
+    .then((data) => [data[USERS_ID_FIELD], defaultAudience])
     .spread(getMetadata)
     .get(defaultAudience)
-    .then(meta => [
+    .then((meta) => [
       challengeType,
       {
         id: meta[USERS_USERNAME_FIELD],

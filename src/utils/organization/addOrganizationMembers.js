@@ -16,7 +16,7 @@ const {
   ORGANIZATIONS_ID_FIELD,
 } = require('../../constants.js');
 
-const JSONStringify = data => JSON.stringify(data);
+const JSONStringify = (data) => JSON.stringify(data);
 
 /**
  * Updates metadata on a organization object

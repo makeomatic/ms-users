@@ -21,7 +21,7 @@ module.exports = function sendInviteMail(params) {
         [TOKEN_METADATA_FIELD_SENDED_AT]: now,
       },
     })
-    .then(token => Promise
+    .then((token) => Promise
       .bind(this, [email, action, { ...ctx, token }, { send: true }])
       .spread(generateEmail)
       .tap(() => redis.sadd(ORGANIZATIONS_INVITATIONS_INDEX, email)));

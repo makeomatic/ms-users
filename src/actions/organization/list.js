@@ -68,7 +68,7 @@ async function getOrganizationsList({ params }) {
   });
 
   return {
-    data: organizations.map(organization => ({
+    data: organizations.map((organization) => ({
       id: organization.id,
       type: 'organization',
       attributes: organization,

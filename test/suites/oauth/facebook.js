@@ -12,7 +12,8 @@ const { GraphApi, WebExecuter } = require('../../helpers/oauth/facebook');
 
 /* Set our service url */
 WebExecuter.serviceLink = 'https://ms-users.local';
-const defaultAudience = '*.localhost';
+
+const kDefaultAudience = '*.localhost';
 
 /**
  * Checking whether user successfully logged-in or registered
@@ -22,8 +23,8 @@ function checkServiceOkResponse(payload) {
   assert(payload.hasOwnProperty('jwt'));
   assert(payload.hasOwnProperty('user'));
   assert(payload.user.hasOwnProperty('metadata'));
-  assert(payload.user.metadata.hasOwnProperty(defaultAudience));
-  assert(payload.user.metadata[defaultAudience].hasOwnProperty('facebook'));
+  assert(payload.user.metadata.hasOwnProperty(kDefaultAudience));
+  assert(payload.user.metadata[kDefaultAudience].hasOwnProperty('facebook'));
   assert.ifError(payload.user.password);
   assert.ifError(payload.user.audience);
 }
@@ -57,7 +58,7 @@ describe('#facebook', function oauthFacebookSuite() {
     const opts = {
       username: payload.email,
       password: 'mynicepassword',
-      audience: defaultAudience,
+      audience: kDefaultAudience,
       metadata: {
         service: 'craft',
       },
@@ -65,9 +66,7 @@ describe('#facebook', function oauthFacebookSuite() {
       ...overwrite,
     };
 
-    return service.dispatch('register', { params: opts })
-      .reflect()
-      .then(inspectPromise(true));
+    return service.dispatch('register', { params: opts });
   }
 
   /* Restart service before each test to achieve clean database. */
@@ -130,14 +129,20 @@ describe('#facebook', function oauthFacebookSuite() {
     describe('service register/create/detach', () => {
       let fb;
       let token;
+
       /* Should be 'before' hook, but Mocha executes it before starting our service.  */
-      beforeEach('start WebExecuter and get Facebook token', async () => {
-        if (!token || typeof token === 'undefined') {
-          fb = new WebExecuter();
-          await fb.start();
-          ({ token } = await fb.getToken(generalUser));
-          await fb.stop();
+      before('start WebExecuter', async () => {
+        fb = new WebExecuter();
+      });
+
+      beforeEach('get Facebook token', async () => {
+        if (token != null) {
+          return;
         }
+
+        await fb.start();
+        token = (await fb.getToken(generalUser)).token;
+        await fb.stop();
       });
 
       /* Cleanup App permissions for further user reuse */
@@ -152,34 +157,34 @@ describe('#facebook', function oauthFacebookSuite() {
 
       it('can get info about registered fb account through getInternalData & getMetadata', async () => {
         const { user } = await createAccount(token);
+        const { uid } = user.metadata[kDefaultAudience].facebook;
 
-        const [internalData, metadata] = await Promise
-          .all([
-            service.amqp.publishAndWait('users.getInternalData', {
-              username: user.metadata[defaultAudience].facebook.uid,
-            }),
-            service.amqp.publishAndWait('users.getMetadata', {
-              username: user.metadata[defaultAudience].facebook.uid,
-              audience: defaultAudience,
-            }),
-          ])
-          .reflect()
-          .then(inspectPromise());
+        const [internalData, metadata] = await Promise.all([
+          service.amqp.publishAndWait('users.getInternalData', {
+            username: uid,
+          }),
+          service.amqp.publishAndWait('users.getMetadata', {
+            username: uid,
+            audience: kDefaultAudience,
+          }),
+        ]);
 
         /* verify internal data */
-        assert.ok(internalData.facebook, 'facebook data not present');
-        assert.ok(internalData.facebook.id, 'fb id is not present');
-        assert.ok(internalData.facebook.email, 'fb email is not present');
-        assert.ok(internalData.facebook.token, 'fb token is not present');
-        assert.ifError(internalData.facebook.username, 'fb returned real username');
-        assert.ifError(internalData.facebook.refreshToken, 'fb returned refresh token');
+        const internalFbData = internalData.facebook;
+        assert.ok(internalFbData, 'facebook data not present');
+        assert.ok(internalFbData.id, 'fb id is not present');
+        assert.ok(internalFbData.email, 'fb email is not present');
+        assert.ok(internalFbData.token, 'fb token is not present');
+        assert.ifError(internalFbData.username, 'fb returned real username');
+        assert.ifError(internalFbData.refreshToken, 'fb returned refresh token');
 
         /* verify metadata */
-        assert.ok(metadata[defaultAudience].facebook, 'facebook profile not present');
-        assert.ok(metadata[defaultAudience].facebook.id, 'facebook scoped is not present');
-        assert.ok(metadata[defaultAudience].facebook.displayName, 'fb display name not present');
-        assert.ok(metadata[defaultAudience].facebook.name, 'fb name not present');
-        assert.ok(metadata[defaultAudience].facebook.uid, 'internal fb uid not present');
+        const fbData = metadata[kDefaultAudience].facebook;
+        assert.ok(fbData, 'facebook profile not present');
+        assert.ok(fbData.id, 'facebook scoped is not present');
+        assert.ok(fbData.displayName, 'fb display name not present');
+        assert.ok(fbData.name, 'fb name not present');
+        assert.ok(fbData.uid, 'internal fb uid not present');
       });
 
       it('should detach facebook profile', async () => {
@@ -187,32 +192,26 @@ describe('#facebook', function oauthFacebookSuite() {
 
         checkServiceOkResponse(registered);
 
-        const uid = `facebook:${registered.user.metadata[defaultAudience].facebook.id}`;
+        const uid = `facebook:${registered.user.metadata[kDefaultAudience].facebook.id}`;
         const { username } = registered.user.metadata['*.localhost'];
         let response;
 
-        response = await service
-          .dispatch('oauth.detach', {
-            params: {
-              username,
-              provider: 'facebook',
-            },
-          })
-          .reflect()
-          .then(inspectPromise(true));
+        response = await service.dispatch('oauth.detach', {
+          params: {
+            username,
+            provider: 'facebook',
+          },
+        });
 
         assert(response.success, 'werent able to detach');
 
         /* verify that related account has been pruned from metadata */
-        response = await service
-          .dispatch('getMetadata', {
-            params: {
-              username,
-              audience: Object.keys(registered.user.metadata),
-            },
-          })
-          .reflect()
-          .then(inspectPromise(true));
+        response = await service.dispatch('getMetadata', {
+          params: {
+            username,
+            audience: Object.keys(registered.user.metadata),
+          },
+        });
 
         forEach(response.metadata, (audience) => {
           assert.ifError(audience.facebook);
@@ -220,9 +219,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
         /* verify that related account has been pruned from internal data */
         response = await service
-          .dispatch('getInternalData', { params: { username } })
-          .reflect()
-          .then(inspectPromise(true));
+          .dispatch('getInternalData', { params: { username } });
 
         assert.ifError(response.facebook, 'did not detach fb');
 
@@ -328,7 +325,13 @@ describe('#facebook', function oauthFacebookSuite() {
         await Promise.delay(1000);
         /* enable mfa */
         const { secret } = await service.dispatch('mfa.generate-key', { params: { username, time: Date.now() } });
-        await service.dispatch('mfa.attach', { params: { username, secret, totp: authenticator.generate(secret) } });
+        await service.dispatch('mfa.attach', {
+          params: {
+            username,
+            secret,
+            totp: authenticator.generate(secret),
+          },
+        });
 
         const executeLink = `${fb._serviceLink}/users/oauth/facebook`;
 
@@ -349,7 +352,7 @@ describe('#facebook', function oauthFacebookSuite() {
         const login = await service.dispatch(
           'login',
           {
-            params: { username: userId, password: localToken, isOAuthFollowUp: true, audience: defaultAudience },
+            params: { username: userId, password: localToken, isOAuthFollowUp: true, audience: kDefaultAudience },
             headers: { 'x-auth-totp': authenticator.generate(secret) },
           }
         );

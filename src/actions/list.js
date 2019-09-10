@@ -13,7 +13,7 @@ const {
 } = require('../constants.js');
 
 // helper
-const JSONParse = data => JSON.parse(data);
+const JSONParse = (data) => JSON.parse(data);
 
 // fetches basic ids
 function fetchIds() {
@@ -60,14 +60,14 @@ function fetchUserData(ids) {
     userIds = Promise.resolve();
   } else {
     userIds = redis.pipeline()
-      .addBatch(ids.map(id => [
+      .addBatch(ids.map((id) => [
         'hgetall', redisKey(id, USERS_METADATA, audience),
       ]))
       .exec()
       .then(handlePipeline);
   }
 
-  return userIds.then(props => ({
+  return userIds.then((props) => ({
     users: userIdsOnly === true ? ids : ids.map(remapData, { audience, props }),
     cursor: offset + limit,
     page: Math.floor(offset / limit) + 1,

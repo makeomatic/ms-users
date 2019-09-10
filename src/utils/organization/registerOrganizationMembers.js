@@ -62,7 +62,7 @@ async function registerOrganizationMember(member) {
 }
 
 function registerOrganizationMembers(members) {
-  return Promise.all(members.map(member => registerOrganizationMember.call(this, member)));
+  return Promise.all(members.map((member) => registerOrganizationMember.call(this, member)));
 }
 
 module.exports = registerOrganizationMembers;

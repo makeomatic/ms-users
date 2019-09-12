@@ -8,8 +8,8 @@ const util = require('util');
 
 const errors = require('common-errors');
 
-const WebExecuterTimeoutError = errors.helpers.generateClass('WebExecuterError', {
-  args: ['status_code', 'message', 'url', 'inner_error'],
+const WebExecuterTimeoutError = errors.helpers.generateClass('WebExecuterTimeoutError', {
+  args: ['status_code', 'message', 'url', 'page_contents', 'inner_error'],
 });
 
 /**

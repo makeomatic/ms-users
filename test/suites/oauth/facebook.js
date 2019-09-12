@@ -88,10 +88,6 @@ describe('#facebook', function oauthFacebookSuite() {
     const Boom = require('@hapi/boom');
 
     const executeLink = `${WebExecuter.serviceLink}/users/oauth/facebook`;
-
-    const isSet = (val) => (val !== null && typeof val !== 'undefined');
-    const errorFilled = (error) => (isSet(error.serviceMessage) || isSet(error.lastResponseText));
-
     let fb;
 
     beforeEach('start WebExecuter', async () => {
@@ -111,7 +107,7 @@ describe('#facebook', function oauthFacebookSuite() {
       await fb.stop();
     });
 
-    it.skip('errors from @hapi/bell passed throught', async () => {
+    it('errors from @hapi/bell passed through', async () => {
       const { status, body } = await fb.navigatePage({ href: executeLink });
       assert(status === 500, 'Should respond with Internal error');
 
@@ -125,6 +121,9 @@ describe('#facebook', function oauthFacebookSuite() {
       assert(payload.message === 'BadError');
     });
 
+    /**
+     * Internal check. Just to be sure if Throttling Happened during test suites.
+     */
     it('WebExecuter notifies us about throttling', async () => {
       let executerError;
 
@@ -133,13 +132,13 @@ describe('#facebook', function oauthFacebookSuite() {
         // we use stubbed response so small timeout
         await fb.page.waitForSelector('input#email', { timeout: 1000 });
       } catch (error) {
-        executerError = await fb.checkPageError(error);
+        executerError = await fb.processPageError(error);
       }
 
       assert.ok(executerError, 'Should be error');
       assert(executerError instanceof WebExecuter.TimeoutError, 'Must be instance of WebExecuter.TimeoutError');
-      assert(executerError.statusCode === 500, 'Status code must be set');
-      assert.ok(errorFilled(executerError), 'Must include service message or last response');
+      assert(executerError.status_code === 500, 'Status code must be set');
+      assert.ok(executerError.page_contents, 'Must include service message or last response');
     });
   });
 

@@ -154,7 +154,8 @@ module.exports = async function authHandler({ action, transportRequest }) {
     // But cleanup should be done by serializer
     if (Boom.isBoom(err)) {
       // If user rejected our application
-      if (err.startsWith('App rejected')) {
+      const { message } = err;
+      if (message.startsWith('App rejected')) {
         throw Errors.AuthenticationRequiredError(`OAuth ${err.message}`, err);
       } else {
         throw err;

@@ -25,7 +25,7 @@ class GraphAPI {
         installed: false,
         ...props,
       },
-    }).promise();
+    });
   }
 
   /**
@@ -37,7 +37,7 @@ class GraphAPI {
     return this.graphApi({
       uri: `${userId}`,
       method: 'DELETE',
-    }).promise();
+    });
   }
 
   /**

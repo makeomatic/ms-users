@@ -4,11 +4,11 @@
 const authenticator = require('otplib/authenticator');
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
-
 const assert = require('assert');
 const forEach = require('lodash/forEach');
 
-const { GraphApi, WebExecuter } = require('../../helpers/oauth/facebook');
+const GraphApi = require('../../helpers/oauth/facebook/graph-api');
+const WebExecuter = require('../../helpers/oauth/facebook/web-executer');
 
 /* Set our service url */
 WebExecuter.serviceLink = 'https://ms-users.local';
@@ -76,6 +76,71 @@ describe('#facebook', function oauthFacebookSuite() {
 
   afterEach('stop', async () => {
     await global.clearRedis();
+  });
+
+  /**
+   * Check that service raises errors from @hapi/bell
+   * All OAuth requests are coming to one endpoint and `auth.tests` called before any action
+   * so we will test it once
+   */
+  describe('OAuth Error Handling', () => {
+    const sinon = require('sinon');
+    const Boom = require('@hapi/boom');
+
+    const executeLink = `${WebExecuter.serviceLink}/users/oauth/facebook`;
+
+    const isSet = (val) => (val !== null && typeof val !== 'undefined');
+    const errorFilled = (error) => (isSet(error.serviceMessage) || isSet(error.lastResponseText));
+
+    let fb;
+
+    beforeEach('start WebExecuter', async () => {
+      fb = new WebExecuter();
+      await fb.start();
+
+      const throttleError = Boom.forbidden('X-Throttled', {});
+      /* Stub all oauth calls with custom error */
+      sinon
+        .stub(service.http.auth, 'test')
+        /* Bell always returns InternalError with any Error in it's data */
+        /* So our error looks same */
+        .throws(() => Boom.internal('BadError', throttleError));
+    });
+
+    afterEach('stop WebExecuter', async () => {
+      await fb.stop();
+    });
+
+    it.skip('errors from @hapi/bell passed throught', async () => {
+      const { status, body } = await fb.navigatePage({ href: executeLink });
+      assert(status === 500, 'Should respond with Internal error');
+
+      const { $ms_users_inj_post_message: message } = WebExecuter.getJavascriptContext(body);
+      /* message exists and it's an error */
+      assert.ok(message);
+      assert(message.error === true);
+
+      /* error message from stubbed error */
+      const { payload } = message;
+      assert(payload.message === 'BadError');
+    });
+
+    it('WebExecuter notifies us about throttling', async () => {
+      let executerError;
+
+      try {
+        await fb.navigatePage({ href: executeLink });
+        // we use stubbed response so small timeout
+        await fb.page.waitForSelector('input#email', { timeout: 1000 });
+      } catch (error) {
+        executerError = await fb.checkPageError(error);
+      }
+
+      assert.ok(executerError, 'Should be error');
+      assert(executerError instanceof WebExecuter.TimeoutError, 'Must be instance of WebExecuter.TimeoutError');
+      assert(executerError.statusCode === 500, 'Status code must be set');
+      assert.ok(errorFilled(executerError), 'Must include service message or last response');
+    });
   });
 
   /**
@@ -376,7 +441,7 @@ describe('#facebook', function oauthFacebookSuite() {
     let fb;
     let partialUser;
 
-    before('create test users', async () => {
+    before('create test user', async () => {
       partialUser = await GraphApi.createTestUser({
         permissions: 'public_profile',
       });

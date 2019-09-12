@@ -19,28 +19,6 @@ const isError = ({ statusCode }) => statusCode >= 400;
 const isHTMLRedirect = ({ statusCode, source }) => statusCode === 200 && source;
 
 /**
- * Cleanup boom error and return matching error;
- * @param {Boom} error
- * @returns {error}
- */
-function checkBoomError(error) {
-  const { data: errData } = error;
-  const { message } = error;
-
-  // can contain another Boom error
-  if (errData !== null && typeof errData === 'object') {
-    // delete reference to http.IncommingMessage
-    delete errData.data.res;
-  }
-
-  if (message.startsWith('App rejected')) {
-    return Errors.AuthenticationRequiredError(`OAuth ${error.message}`, error);
-  }
-
-  return error;
-}
-
-/**
  * Authentication handler
  *
  * @param {Object} ctx
@@ -172,10 +150,17 @@ module.exports = async function authHandler({ action, transportRequest }) {
     response = [null, credentials];
   } catch (err) {
     // No need to go further if Oauth Error happened
+    // Error can contain some extra data
+    // But cleanup should be done by serializer
     if (Boom.isBoom(err)) {
-      throw checkBoomError(err);
+      // If user rejected our application
+      if (err.startsWith('App rejected')) {
+        throw Errors.AuthenticationRequiredError(`OAuth ${err.message}`, err);
+      } else {
+        throw err;
+      }
     }
-    // continue if redirect
+    // continue if redirect or something else
     response = [err];
   }
 

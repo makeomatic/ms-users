@@ -46,7 +46,7 @@ const globalLoginAttempts = async (ctx) => {
   // globally scoped go next
   if (globalAttempts > ctx.globalLockAfterAttempts) {
     const duration = moment().add(config.keepGlobalLoginAttempts, 'seconds').toNow(true);
-    const msg = `You are locked from making login attempts for the next ${duration}`;
+    const msg = `You are locked from making login attempts for the next ${duration} from ipaddress '${ctx.remoteip}'`;
     throw new Errors.HttpStatusError(429, msg);
   }
 };
@@ -70,7 +70,7 @@ const localLoginAttempts = async (ctx, data) => {
   // locally scoped login attempts are prioritized
   if (scopeAttempts > ctx.lockAfterAttempts) {
     const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
-    const msg = `You are locked from making login attempts for the next ${duration}`;
+    const msg = `You are locked from making login attempts for the next ${duration} from ipaddress '${ctx.remoteip}'`;
     throw new Errors.HttpStatusError(429, msg);
   }
 };

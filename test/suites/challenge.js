@@ -69,6 +69,8 @@ describe('#challenge', function challengeSuite() {
     });
 
     it('must fail to send challenge email more than once in an hour per user', function test() {
+      const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 4 hours or send us an email';
+
       return Promise.bind(this)
         .then(requestChallenge)
         .then(requestChallenge)
@@ -77,10 +79,13 @@ describe('#challenge', function challengeSuite() {
         .then((validation) => {
           expect(validation.name).to.be.eq('HttpStatusError');
           expect(validation.statusCode).to.be.eq(429);
+          expect(validation.message).to.be.eq(msg);
         });
     });
 
     it('must fail to send challeng email during race condition', function test() {
+      const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 4 hours or send us an email';
+
       return Promise
         .bind(this)
         .return([requestChallenge, requestChallenge, requestChallenge])
@@ -90,6 +95,7 @@ describe('#challenge', function challengeSuite() {
         .then((validation) => {
           expect(validation.name).to.be.eq('HttpStatusError');
           expect(validation.statusCode).to.be.eq(429);
+          expect(validation.message).to.be.eq(msg);
         });
     });
   });

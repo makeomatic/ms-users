@@ -117,6 +117,7 @@ describe('#login', function loginSuite() {
     it('must lock account for authentication after 5 invalid login attemps', () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
       const promises = [];
+      const eMsg = 'You are locked from making login attempts for the next 2 hours from ipaddress \'10.0.0.1\'';
 
       times(5, () => {
         promises.push((
@@ -139,6 +140,7 @@ describe('#login', function loginSuite() {
           .then((login) => {
             expect(login.name).to.be.eq('HttpStatusError');
             expect(login.statusCode).to.be.eq(429);
+            expect(login.message).to.be.eq(eMsg);
           })
       ));
 
@@ -148,6 +150,7 @@ describe('#login', function loginSuite() {
     it('must lock ip for login completely after 15 attempts', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
       const promises = [];
+      const eMsg = 'You are locked from making login attempts for the next 7 days from ipaddress \'10.0.0.1\'';
 
       times(16, () => {
         promises.push((
@@ -164,6 +167,9 @@ describe('#login', function loginSuite() {
 
       expect(Http404.length).to.be.eq(15);
       expect(Http429.length).to.be.eq(1);
+
+      const Http429Error = Http429[0];
+      expect(Http429Error.message).to.be.eq(eMsg);
     });
 
     it('should reject signing in with bogus or expired disposable password', () => {

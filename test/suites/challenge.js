@@ -1,7 +1,6 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const { expect } = require('chai');
-const moment = require('moment');
 
 describe('#challenge', function challengeSuite() {
   beforeEach(global.startService);
@@ -70,11 +69,7 @@ describe('#challenge', function challengeSuite() {
     });
 
     it('must fail to send challenge email more than once in an hour per user', function test() {
-      const { token } = this.users.config;
-      const { ttl } = token.email;
-
-      const duration = moment().add(ttl, 'seconds').toNow(true);
-      const msg = `We've already sent you an email, if it doesn't come - please try again in ${duration} or send us an email`;
+      const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 4 hours or send us an email';
 
       return Promise.bind(this)
         .then(requestChallenge)
@@ -89,11 +84,7 @@ describe('#challenge', function challengeSuite() {
     });
 
     it('must fail to send challeng email during race condition', function test() {
-      const { token } = this.users.config;
-      const { ttl } = token.email;
-
-      const duration = moment().add(ttl, 'seconds').toNow(true);
-      const msg = `We've already sent you an email, if it doesn't come - please try again in ${duration} or send us an email`;
+      const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 4 hours or send us an email';
 
       return Promise
         .bind(this)

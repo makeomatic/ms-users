@@ -2,7 +2,6 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
-const moment = require('moment');
 const { expect } = require('chai');
 const { omit, times } = require('lodash');
 const sinon = require('sinon').usingPromise(Promise);
@@ -118,9 +117,7 @@ describe('#login', function loginSuite() {
     it('must lock account for authentication after 5 invalid login attemps', () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
       const promises = [];
-      const config = this.users.config.jwt;
-      const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
-      const eMsg = `You are locked from making login attempts for the next ${duration} from ipaddress '10.0.0.1'`;
+      const eMsg = 'You are locked from making login attempts for the next 2 hours from ipaddress \'10.0.0.1\'';
 
       times(5, () => {
         promises.push((
@@ -153,9 +150,7 @@ describe('#login', function loginSuite() {
     it('must lock ip for login completely after 15 attempts', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
       const promises = [];
-      const config = this.users.config.jwt;
-      const duration = moment().add(config.keepGlobalLoginAttempts, 'seconds').toNow(true);
-      const eMsg = `You are locked from making login attempts for the next ${duration} from ipaddress '10.0.0.1'`;
+      const eMsg = 'You are locked from making login attempts for the next 7 days from ipaddress \'10.0.0.1\'';
 
       times(16, () => {
         promises.push((

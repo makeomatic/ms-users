@@ -94,11 +94,16 @@ describe('#facebook', function oauthFacebookSuite() {
       fb = new WebExecuter();
       await fb.start();
 
-      const throttleError = Boom.forbidden('X-Throttled', {});
+      const throttleError = Boom.forbidden('X-Throttled', {
+        i_am_very_long_body: true,
+        res: {
+          must_be_deleted: true,
+        },
+      });
       /* Stub all oauth calls with custom error */
       sinon
         .stub(service.http.auth, 'test')
-        /* Bell always returns InternalError with any Error in it's data */
+        /* Bell always returns InternalError with Error, Response or payload in it's data */
         /* So our error looks same */
         .throws(() => Boom.internal('BadError', throttleError));
     });
@@ -107,7 +112,31 @@ describe('#facebook', function oauthFacebookSuite() {
       await fb.stop();
     });
 
-    it('errors from @hapi/bell passed through', async () => {
+    it('error serialize without additional data', async () => {
+      const request = require('request-promise');
+      const util = require('util');
+      let message;
+
+      try {
+        await request({
+          url: executeLink,
+          method: 'GET',
+          strictSSL: false,
+        });
+      } catch (e) {
+        console.log(e.error);
+        ({ $ms_users_inj_post_message: message } = WebExecuter.getJavascriptContext(e.error));
+      }
+
+      console.log('message', util.inspect(message, { depth: null }));
+
+      const { res } = message.payload.inner_error.data.data;
+
+      assert(res == null, 'Res must be deleted from error');
+
+    });
+
+    it.skip('errors from @hapi/bell passed through', async () => {
       const { status, body } = await fb.navigatePage({ href: executeLink });
       assert(status === 500, 'Should respond with Internal error');
 
@@ -124,7 +153,7 @@ describe('#facebook', function oauthFacebookSuite() {
     /**
      * Internal check. Just to be sure if Throttling Happened during test suites.
      */
-    it('WebExecuter notifies us about throttling', async () => {
+    it.skip('WebExecuter notifies us about throttling', async () => {
       let executerError;
 
       try {
@@ -147,7 +176,7 @@ describe('#facebook', function oauthFacebookSuite() {
    * Application has any access to the users Facebook profile.
    * This suite don't need to recreate user for each test and we can use one AuthToken in all tests.
    */
-  describe('new user', async () => {
+  describe.skip('new user', async () => {
     let generalUser;
 
     before('create test user', async () => {
@@ -436,7 +465,7 @@ describe('#facebook', function oauthFacebookSuite() {
    * We don't need to test same behavior for user with app `installed`.
    * OAuth API endpoint behavior is same, and tests code will be copied from this suite.
    */
-  describe('partial user', async () => {
+  describe.skip('partial user', async () => {
     let fb;
     let partialUser;
 

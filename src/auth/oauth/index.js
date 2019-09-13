@@ -9,7 +9,7 @@ const extractJWT = require('./utils/extractJWT');
 const { getInternalData } = require('../../utils/userData');
 
 const { verifyToken, loginAttempt } = require('../../utils/amqp');
-const { Redirect } = require('./utils/errors');
+const { Redirect, OAuthError } = require('./utils/errors');
 const { USERS_ID_FIELD, ErrorTotpRequired } = require('../../constants');
 
 // helpers
@@ -150,18 +150,17 @@ module.exports = async function authHandler({ action, transportRequest }) {
     response = [null, credentials];
   } catch (err) {
     // No need to go further if Oauth Error happened
-    // Error can contain some extra data
-    // But cleanup should be done by serializer
-    if (Boom.isBoom(err)) {
-      // If user rejected our application
+    if (err instanceof Boom) {
       const { message } = err;
+
+      // Error thrown when user declines OAuth
       if (message.startsWith('App rejected')) {
         throw Errors.AuthenticationRequiredError(`OAuth ${err.message}`, err);
-      } else {
-        throw err;
       }
+
+      throw OAuthError(err.message, err);
     }
-    // continue if redirect or something else
+    // continue if redirect
     response = [err];
   }
 

@@ -1,3 +1,10 @@
+# [11.3.0](https://github.com/makeomatic/ms-users/compare/v11.2.7...v11.3.0) (2019-09-13)
+
+
+### Features
+
+* **ms-users:** 429 error add more info ([#412](https://github.com/makeomatic/ms-users/issues/412)) ([6f989a8](https://github.com/makeomatic/ms-users/commit/6f989a8))
+
 ## [11.2.7](https://github.com/makeomatic/ms-users/compare/v11.2.6...v11.2.7) (2019-09-10)
 
 

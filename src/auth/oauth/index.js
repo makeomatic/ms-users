@@ -149,7 +149,6 @@ module.exports = async function authHandler({ action, transportRequest }) {
     const { credentials } = await http.auth.test(strategy, transportRequest);
     response = [null, credentials];
   } catch (err) {
-    // No need to go further if Oauth Error happened
     if (err instanceof Boom) {
       const { message } = err;
 

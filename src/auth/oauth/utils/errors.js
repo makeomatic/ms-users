@@ -10,15 +10,15 @@ const OAuthError = exports.OAuthError = Errors.helpers.generateClass('OAuthError
 });
 
 /**
- * Removes `@hapi/boom` attributes and some unnecessary data if it's isResponseError
+ * Removes `@hapi/boom` attributes
  * @param error
- * @returns {*|{stack: *, data: *, name: *, message: *}|{stack: *, data: *, name: *, message: *}}
+ * @returns {*|{stack: *, data: *, name: *, message: *}}
  */
 function stripBoomAttrs(error) {
   const { message, name, stack } = error;
   let data;
 
-  // Remove http.IncomingMessage
+  /* Remove http.IncomingMessage - @hapi/wreck adds it when error is coming from response */
   if (error.isResponseError) {
     const { res, ...otherData } = error.data;
     data = otherData;
@@ -26,7 +26,7 @@ function stripBoomAttrs(error) {
     ({ data } = error);
   }
 
-  // Recursive check
+  /* Recursive check */
   if (error.data instanceof Boom) {
     data = stripBoomAttrs(error.data);
   }
@@ -40,26 +40,25 @@ function stripBoomAttrs(error) {
 }
 
 /**
- * Removes unnecessary data from inner errors
- * And returns simplified object
- * @returns {{inner_error: *}}
+ * OAuthError.toJSON custom serialization
+ * Returns simplified object
+ * @returns {*}
  */
 OAuthError.prototype.toJSON = function toJSON() {
   const { inner_error: innerError, message, name, stack } = this;
-  let innerErrorObj;
+  let innerErrorJsonObj;
 
+  /* Boom error contains additional data */
   if (innerError instanceof Boom) {
-    innerErrorObj = stripBoomAttrs(innerError);
+    innerErrorJsonObj = stripBoomAttrs(innerError);
   } else {
-    innerErrorObj = innerError;
+    innerErrorJsonObj = innerError;
   }
 
-  const errObject = {
+  return {
     message,
     name,
     stack,
-    inner_error: innerErrorObj,
+    inner_error: innerErrorJsonObj,
   };
-
-  return errObject;
 };

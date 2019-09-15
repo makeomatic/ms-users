@@ -1,22 +1,28 @@
 # Facebook OAuth Tests and Service Logic
 First version of this file was targeted only on Tests update but after some research,
-was decided to change some logic in `OAuth` handler too.
+decided to change some logic in `OAuth` handler too.
  
 General changes were intended to add additional tests for Facebook OAuth 
 and provide a better WebExecuter error handling when Facebook throttling occurs.
 
-Services OAuth handler and `preResponse` hook need to be updated.
+After some checks on OAuth endpoint logic, I found that error handling must be updated.
+Current error handling was passing a lot of extra data in response, that's shouldn't be shown to the client.
 
 ## Tests changes
-### OAuth Err raise test
-The test will Check that OAuth Errors coming from `@hapi/bell` are shown in service response.
-Test required to be sure that service performs correct serialization and handling of this error.
-Test uses stub as `http.auth.test` method with custom error and check that `service`
-returns the same results.
+### OAuth Error tests
+Tests use stub as `http.auth.test` method with custom error and check that `service`
+produces the correct response.
+
+These tests aim that OAuth Errors coming from `@hapi/bell` exist in service response:
+1. The Test checking that service responds with correct error in case of OAuth error.
+2. The Test checking that additional data do not exist in response. 
+
+Also added one integrity test checking that `WebExecuter` will throw a different error when
+`waitFor...` timeout error is thrown. This error appears in the situation when `Page` wait's for some content, but this content or response not received because of some unpredicted errors.
 
 ### WebExecuter Timeout Error
-Adding additional error processing logic into `helpers/oauth/facebook/web-executer.js` will
-provide more informative output from tests. Now if `page.waitFor...` Timeout happens, error message will
+Added Additional error processing logic to the `helpers/oauth/facebook/web-executer.js`, this will
+provide more informative output from tests. Now if `page.waitFor...` Timeout happens, the error message will
 contain last Service response or page contents.
 
 ## Service logic changes
@@ -56,17 +62,14 @@ const $ms_users_inj_post_messsge = { payload:
   meta: {} }
 ```
 
-Even if `http.IncomingMessage` deleted from error, too much data passed in response.
-Rendering of the Error is performed by `serialize-error` in Hook instead `hapi` server and this shows all error contents.
+Even if `HTTP.IncomingMessage` deleted from error, too much data passed in response.
+Rendering of the Error is performed by `serialize-error` in Hook instead `Hapi` server and this shows all error contents.
 
-This great for debug purposes but not for passing to the client, so  `preResponse` hook should delete all this data
+This great for debug purposes but not for passing to the client.
+I decided to add a new error `OAuthError` with custom `toJSON` serializer, which removes all unnecessary data
+and returns Simplified Object. This error is only for the `auth/OAuth` scope.
 
-**UPD**
-
-Added new error `OAuthError` with custom `toJSON` serializer, which removes all unnecessary data
-and returns Simplified Object. Usage of this error should be limited by `auth/OAuth` scope
-
-After this change Errors rendered in this way:
+After this change Errors render in this way:
 
 ```javascript
 const p = { 
@@ -96,7 +99,6 @@ const p = {
 - [x] WebExecuter Timeout handling
 - [x] Test checking that service return error
 - [x] `@hapi/boom` error serialization on `OAuth preResponse` hook
-
-- [ ] Clean up code
-- [ ] Cleanup docs
+- [x] Clean up code
+- [x] Cleanup docs
  

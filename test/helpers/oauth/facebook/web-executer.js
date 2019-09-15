@@ -78,7 +78,7 @@ class WebExecuter {
 
       const message = `
         ${e.message}:
-        Page contents: ${util.inspect(e.serviceMessage, { depth: null })}
+        Page contents: ${util.inspect(pageContents, { depth: null })}
       `;
 
       return new WebExecuterTimeoutError(statusCode, message, lastUrl, pageContents, e);

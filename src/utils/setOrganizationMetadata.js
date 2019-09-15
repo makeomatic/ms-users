@@ -6,7 +6,7 @@ const redisKey = require('../utils/key.js');
 const { prepareOps } = require('./updateMetadata');
 const { ORGANIZATIONS_METADATA, ORGANIZATIONS_AUDIENCE } = require('../constants.js');
 
-const JSONStringify = data => JSON.stringify(data);
+const JSONStringify = (data) => JSON.stringify(data);
 
 function callUpdateMetadataScript(redis, id, ops) {
   const audienceKeyTemplate = redisKey('{id}', ORGANIZATIONS_AUDIENCE);
@@ -35,7 +35,7 @@ async function setOrganizationMetadata(opts) {
       return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
     }
 
-    const metaOps = rawMetaOps.map(opBlock => prepareOps(opBlock));
+    const metaOps = rawMetaOps.map((opBlock) => prepareOps(opBlock));
 
     const scriptOpts = { metaOps, audiences };
     return callUpdateMetadataScript(redis, organizationId, scriptOpts);

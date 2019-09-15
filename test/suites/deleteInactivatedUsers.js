@@ -10,7 +10,7 @@ const simpleDispatcher = require('./../helpers/simpleDispatcher');
 const { cleanUsers } = require('../../src/utils/inactiveUsers');
 const { createOrganization } = require('../helpers/organization');
 
-const delay = fn => Promise.delay(1000).then(fn);
+const delay = (fn) => Promise.delay(1000).then(fn);
 
 describe('#inactive user', function registerSuite() {
   beforeEach(global.startService);

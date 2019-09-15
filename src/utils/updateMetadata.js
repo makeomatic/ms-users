@@ -7,7 +7,7 @@ const redisKey = require('../utils/key.js');
 const { USERS_METADATA, USERS_AUDIENCE } = require('../constants.js');
 
 const JSONStringify = (data) => JSON.stringify(data);
-const JSONParse = data => JSON.parse(data);
+const JSONParse = (data) => JSON.parse(data);
 const has = Object.prototype.hasOwnProperty;
 
 function callUpdateMetadataScript(redis, userId, ops) {
@@ -74,7 +74,7 @@ function updateMetadata(opts) {
       return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
     }
 
-    const metaOps = rawMetaOps.map(opBlock => prepareOps(opBlock));
+    const metaOps = rawMetaOps.map((opBlock) => prepareOps(opBlock));
 
     scriptOpts = { metaOps, ...scriptOpts };
     return callUpdateMetadataScript(redis, userId, scriptOpts)
@@ -94,7 +94,7 @@ function updateMetadata(opts) {
 
   scriptOpts = { scripts, ...scriptOpts };
   return callUpdateMetadataScript(redis, userId, scriptOpts)
-    .then(result => JSONParse(result));
+    .then((result) => JSONParse(result));
 }
 
 updateMetadata.callUpdateMetadataScript = callUpdateMetadataScript;

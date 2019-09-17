@@ -113,7 +113,7 @@ async function removeUser({ params }) {
   // clear cache
   await redis.fsortBust(USERS_INDEX, Date.now());
 
-  return removeResult
+  return removeResult;
 }
 
 removeUser.transports = [ActionTransport.amqp];

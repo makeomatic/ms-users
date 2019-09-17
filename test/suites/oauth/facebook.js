@@ -158,6 +158,17 @@ describe('#facebook', function oauthFacebookSuite() {
     describe('WebExecuter generate custom throttling error', async () => {
       let fb;
 
+      /* Simulates situation when timeout happens */
+      const simulateTimeout = async () => {
+        try {
+          await fb.navigatePage({ href: executeLink });
+          // we use stubbed response so timeout is small
+          await fb.page.waitForSelector('input#email', { timeout: 1000 });
+        } catch (e) {
+          await fb.processPageError(e);
+        }
+      };
+
       before('start WebExcuter', async () => {
         fb = new WebExecuter();
         await fb.start();
@@ -167,11 +178,9 @@ describe('#facebook', function oauthFacebookSuite() {
         let executerError;
 
         try {
-          await fb.navigatePage({ href: executeLink });
-          // we use stubbed response so timeout is small
-          await fb.page.waitForSelector('input#email', { timeout: 1000 });
+          await simulateTimeout();
         } catch (error) {
-          executerError = await fb.processPageError(error);
+          executerError = error;
         }
 
         assert.ok(executerError, 'Should be error');

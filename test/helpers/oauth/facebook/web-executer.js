@@ -81,10 +81,10 @@ class WebExecuter {
         Page contents: ${util.inspect(pageContents, { depth: null })}
       `;
 
-      return new WebExecuterTimeoutError(statusCode, message, lastUrl, pageContents, e);
+      throw new WebExecuterTimeoutError(statusCode, message, lastUrl, pageContents, e);
     }
 
-    return e;
+    throw e;
   }
 
   /**
@@ -141,7 +141,7 @@ class WebExecuter {
     } catch (e) {
       console.error('failed to signin and navigate', e);
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });
-      throw await this.processPageError(e);
+      await this.processPageError(e);
     }
 
     return response;
@@ -165,14 +165,14 @@ class WebExecuter {
     } catch (e) {
       console.error('failed to authenticate', e);
       await page.screenshot({ fullPage: true, path: `./ss/authenticate-${Date.now()}.png` });
-      throw await this.processPageError(e);
+      await this.processPageError(e);
     }
   }
 
   /**
    * Simulates situation when user declines `Application access` request form
    * @param user
-   * @returns {Promise<*>}
+   * @returns {void}
    */
   async rejectAuth(user) {
     await this.initiateAuth(user);
@@ -184,14 +184,16 @@ class WebExecuter {
     } catch (e) {
       console.error('failed to rejectAuth', e);
       await page.screenshot({ fullPage: true, path: `./ss/declined-${Date.now()}.png` });
-      throw await this.processPageError(e);
+      await this.processPageError(e);
     }
+
+    return null;
   }
 
   /**
    * Gets Results from `ms-users.oauth` endpoint after successful Facebook Login
    * @param user
-   * @returns {Promise<{body: *, token: *}>}
+   * @returns {Promise<{body: *, token: *}> | void}
    */
   async getToken(user) {
     const { page } = this;
@@ -214,8 +216,10 @@ class WebExecuter {
     } catch (e) {
       console.error('failed to getToken', e);
       await page.screenshot({ fullPage: true, path: `./ss/token-${Date.now()}.png` });
-      throw await this.processPageError(e);
+      await this.processPageError(e);
     }
+
+    return null;
   }
 
   /**

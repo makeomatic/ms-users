@@ -106,9 +106,14 @@ async function removeUser({ params }) {
   transaction.del(key(THROTTLE_PREFIX, USERS_ACTION_RESET, userId));
 
   // complete it
-  return transaction
+  const removeResult = await transaction
     .exec()
     .then(handlePipeline);
+
+  // clear cache
+  await redis.fsortBust(USERS_INDEX, Date.now());
+
+  return removeResult
 }
 
 removeUser.transports = [ActionTransport.amqp];

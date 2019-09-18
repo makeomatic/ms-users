@@ -111,8 +111,8 @@ async function removeUser({ params }) {
     .then(handlePipeline);
 
   // clear cache
-  await redis.fsortBust(USERS_INDEX, Date.now());
-  await redis.fsortBust(USERS_PUBLIC_INDEX, Date.now());
+  const now = Date.now();
+  await Promise.all([redis.fsortBust(USERS_INDEX, now), redis.fsortBust(USERS_PUBLIC_INDEX, now)]);
 
   return removeResult;
 }

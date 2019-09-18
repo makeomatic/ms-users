@@ -112,6 +112,7 @@ async function removeUser({ params }) {
 
   // clear cache
   await redis.fsortBust(USERS_INDEX, Date.now());
+  await redis.fsortBust(USERS_PUBLIC_INDEX, Date.now());
 
   return removeResult;
 }

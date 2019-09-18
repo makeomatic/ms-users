@@ -1,3 +1,10 @@
+## [11.3.1](https://github.com/makeomatic/ms-users/compare/v11.3.0...v11.3.1) (2019-09-18)
+
+
+### Bug Fixes
+
+* added clear cache after remove user ([#426](https://github.com/makeomatic/ms-users/issues/426)) ([f85d4ea](https://github.com/makeomatic/ms-users/commit/f85d4ea))
+
 # [11.3.0](https://github.com/makeomatic/ms-users/compare/v11.2.7...v11.3.0) (2019-09-13)
 
 

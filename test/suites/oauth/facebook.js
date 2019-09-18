@@ -500,7 +500,7 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     after('delete test user', async () => {
-      await GraphApi.deleteTestUser(partialUser.id);
+      await GraphApi.deleteTestUser(partialUser);
     });
 
     beforeEach('start WebExecuter', async () => {

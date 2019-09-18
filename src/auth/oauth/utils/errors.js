@@ -18,7 +18,7 @@ function stripBoomAttrs(error) {
   const { message, name, stack, data: errorData } = error;
   let data;
 
-  /* Almost impossible, but assume that 'data' not passed when Boom.error created. */
+  /* assuming that 'data' not passed or it's not and object when Boom.error created. */
   if (errorData !== null && typeof errorData === 'object') {
     /* Remove http.IncomingMessage - @hapi/wreck adds it when error is coming from response. */
     if (errorData.isResponseError) {
@@ -27,6 +27,8 @@ function stripBoomAttrs(error) {
     } else {
       ({ data } = error);
     }
+  } else {
+    data = errorData;
   }
 
   /* Recursive check */

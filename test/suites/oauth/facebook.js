@@ -96,15 +96,15 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     beforeEach('stub Errors ', async () => {
+      /* errors coming from Facebook Graph API contain http.IncomingMessage as res property */
+      /* and isResponseError property set */
       const throttleError = Boom.forbidden('X-Throttled', {
+        isResponseError: true,
         i_am_very_long_body: true,
         res: {
           must_be_deleted: true,
         },
       });
-      /* errors coming from Facebook Graph API contain http.IncomingMessage as res property */
-      /* and isResponseError property set */
-      throttleError.isResponseError = true;
 
       /* Stub all oauth calls with custom error */
       /* Bell always returns InternalError with Error, Response or payload in it's data */
@@ -208,7 +208,7 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     after('delete test user', async () => {
-      await GraphApi.deleteTestUser(generalUser.id);
+      await GraphApi.deleteTestUser(generalUser);
     });
 
     /**
@@ -223,7 +223,7 @@ describe('#facebook', function oauthFacebookSuite() {
       });
 
       afterEach('stop WebExecuter / deauth App', async () => {
-        await GraphApi.deAuthApplication(generalUser.id);
+        await GraphApi.deAuthApplication(generalUser);
         await fb.stop();
       });
 
@@ -264,7 +264,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
       /* Cleanup App permissions for further user reuse */
       after('deauth application', async () => {
-        await GraphApi.deAuthApplication(generalUser.id);
+        await GraphApi.deAuthApplication(generalUser);
       });
 
       it('should be able to register via facebook', async () => {
@@ -382,7 +382,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
       /* IF test reordering occurs this going to save us from headache */
       after('deauth application', async () => {
-        await GraphApi.deAuthApplication(generalUser.id);
+        await GraphApi.deAuthApplication(generalUser);
       });
 
       it('should reject attaching already attached profile to a new user', async () => {
@@ -509,7 +509,7 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     afterEach('stop WebExecuter', async () => {
-      await GraphApi.deAuthApplication(partialUser.id);
+      await GraphApi.deAuthApplication(partialUser);
       await fb.stop();
     });
 

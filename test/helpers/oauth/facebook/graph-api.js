@@ -29,41 +29,50 @@ class GraphAPI {
   }
 
   /**
-   * Deletes test user by id
-   * @param userId
+   * Deletes test user
+   * @param facebook user
    * @returns {*}
    */
-  static deleteTestUser(userId) {
-    return this.graphApi({
-      uri: `${userId}`,
-      method: 'DELETE',
-    });
+  static deleteTestUser(user) {
+    if (user !== null && typeof user !== 'undefined') {
+      return this.graphApi({
+        uri: `${user.id}`,
+        method: 'DELETE',
+      });
+    }
+    return null;
   }
 
   /**
    * Removes all Application permissions.
    * This only the way to De Authorize Application from user.
-   * @param userId
+   * @param facebook user
    * @returns {Promise<void>}
    */
-  static async deAuthApplication(userId) {
-    return this.graphApi({
-      uri: `/${userId}/permissions`,
-      method: 'DELETE',
-    });
+  static deAuthApplication(user) {
+    if (user !== null && typeof user !== 'undefined') {
+      return this.graphApi({
+        uri: `/${user.id}/permissions`,
+        method: 'DELETE',
+      });
+    }
+    return null;
   }
 
   /**
    * Delete any Application permission from user.
-   * @param userId
+   * @param facebook user
    * @param permission
    * @returns {Promise<void>}
    */
-  static async deletePermission(userId, permission) {
-    return this.graphApi({
-      uri: `/${userId}/permissions/${permission}`,
-      method: 'DELETE',
-    });
+  static deletePermission(user, permission) {
+    if (user !== null && typeof user !== 'undefined') {
+      return this.graphApi({
+        uri: `/${user.id}/permissions/${permission}`,
+        method: 'DELETE',
+      });
+    }
+    return null;
   }
 }
 

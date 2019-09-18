@@ -15,19 +15,22 @@ const OAuthError = exports.OAuthError = Errors.helpers.generateClass('OAuthError
  * @returns {*|{stack: *, data: *, name: *, message: *}}
  */
 function stripBoomAttrs(error) {
-  const { message, name, stack } = error;
+  const { message, name, stack, data: errorData } = error;
   let data;
 
-  /* Remove http.IncomingMessage - @hapi/wreck adds it when error is coming from response */
-  if (error.isResponseError) {
-    const { res, ...otherData } = error.data;
-    data = otherData;
-  } else {
-    ({ data } = error);
+  /* Almost impossible, but assume that 'data' not passed when Boom.error created. */
+  if (errorData !== null && typeof errorData === 'object') {
+    /* Remove http.IncomingMessage - @hapi/wreck adds it when error is coming from response. */
+    if (errorData.isResponseError) {
+      const { res, ...otherData } = errorData;
+      data = otherData;
+    } else {
+      ({ data } = error);
+    }
   }
 
   /* Recursive check */
-  if (error.data instanceof Boom) {
+  if (Boom.isBoom(error.data)) {
     data = stripBoomAttrs(error.data);
   }
 
@@ -49,7 +52,7 @@ OAuthError.prototype.toJSON = function toJSON() {
   let innerErrorJsonObj;
 
   /* Boom error contains additional data */
-  if (innerError instanceof Boom) {
+  if (Boom.isBoom(innerError)) {
     innerErrorJsonObj = stripBoomAttrs(innerError);
   } else {
     innerErrorJsonObj = innerError;

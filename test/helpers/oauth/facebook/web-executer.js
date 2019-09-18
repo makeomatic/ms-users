@@ -109,7 +109,7 @@ class WebExecuter {
     } catch (e) {
       console.error('failed to initiate auth', e);
       await page.screenshot({ fullPage: true, path: `./ss/initiate-auth-${Date.now()}.png` });
-      throw await this.processPageError(e);
+      await this.processPageError(e);
     }
   }
 

@@ -236,6 +236,13 @@ describe('#facebook', function oauthFacebookSuite() {
         await fb.start();
       });
 
+      beforeEach('stub Errors ', async () => {
+        const throttleError = Boom.forbidden('X-Throttled', {});
+        sinon
+          .stub(service.http.auth, 'test')
+          .throws(() => Boom.internal('BadError', throttleError));
+      });
+
       it('WebExecuter generate custom throttling error', async () => {
         let executerError;
 

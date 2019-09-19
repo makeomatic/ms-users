@@ -4,6 +4,14 @@ const puppeteer = require('puppeteer');
 const Promise = require('bluebird');
 const assert = require('assert');
 
+const util = require('util');
+
+const errors = require('common-errors');
+
+const WebExecuterTimeoutError = errors.helpers.generateClass('WebExecuterTimeoutError', {
+  args: ['status_code', 'message', 'url', 'page_contents', 'inner_error'],
+});
+
 /**
  * Wrap for all `puppeter` actions needed to test Facebook Login process
  */
@@ -18,8 +26,12 @@ class WebExecuter {
 
   async stop() {
     const { page, chrome } = this;
-    if (page) await page.close();
-    if (chrome) await chrome.close();
+    if (page) {
+      await page.close();
+    }
+    if (chrome) {
+      await chrome.close();
+    }
   }
 
   async start() {
@@ -38,6 +50,41 @@ class WebExecuter {
     page.on('requestfinished', (req) => {
       this.lastRequestResponse = req.response();
     });
+  }
+
+  /**
+   * Checks if page.TimeOutError, gets page contents and returns new readable error
+   * If $ms_users_inj_post_message defined shown only it's contents
+   * @param e
+   * @returns {Promise<*>}
+   */
+  async processPageError(e) {
+    if (e instanceof puppeteer.errors.TimeoutError) {
+      const { lastRequestResponse: lastResponse } = this;
+
+      const statusCode = lastResponse.status();
+      const lastUrl = lastResponse.url();
+      const responseText = await lastResponse.text();
+
+      const context = WebExecuter.getJavascriptContext(responseText);
+      const { $ms_users_inj_post_message: serviceMessage } = context;
+
+      let pageContents;
+      if (serviceMessage !== null && typeof serviceMessage === 'object') {
+        pageContents = serviceMessage;
+      } else {
+        pageContents = responseText;
+      }
+
+      const message = `
+        ${e.message}:
+        Page contents: ${util.inspect(pageContents, { depth: null })}
+      `;
+
+      throw new WebExecuterTimeoutError(statusCode, message, lastUrl, pageContents, e);
+    }
+
+    throw e;
   }
 
   /**
@@ -62,7 +109,7 @@ class WebExecuter {
     } catch (e) {
       console.error('failed to initiate auth', e);
       await page.screenshot({ fullPage: true, path: `./ss/initiate-auth-${Date.now()}.png` });
-      throw e;
+      await this.processPageError(e);
     }
   }
 
@@ -92,9 +139,9 @@ class WebExecuter {
       await page.click('button[name=__CONFIRM__]', { delay: 100 });
       response = await page.waitForResponse(predicate);
     } catch (e) {
-      console.error('failed to navigate', e);
+      console.error('failed to signin and navigate', e);
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });
-      throw e;
+      await this.processPageError(e);
     }
 
     return response;
@@ -116,15 +163,16 @@ class WebExecuter {
       await page.screenshot({ fullPage: true, path: `./ss/authenticate-accept-${Date.now()}.png` });
       await page.click('button[name=__CONFIRM__]', { delay: 100 });
     } catch (e) {
+      console.error('failed to authenticate', e);
       await page.screenshot({ fullPage: true, path: `./ss/authenticate-${Date.now()}.png` });
-      throw e;
+      await this.processPageError(e);
     }
   }
 
   /**
    * Simulates situation when user declines `Application access` request form
    * @param user
-   * @returns {Promise<*>}
+   * @returns {void}
    */
   async rejectAuth(user) {
     await this.initiateAuth(user);
@@ -134,15 +182,18 @@ class WebExecuter {
       await this.page.click('button[name=__CANCEL__]');
       return await this.navigatePage();
     } catch (e) {
+      console.error('failed to rejectAuth', e);
       await page.screenshot({ fullPage: true, path: `./ss/declined-${Date.now()}.png` });
-      throw e;
+      await this.processPageError(e);
     }
+
+    return null;
   }
 
   /**
    * Gets Results from `ms-users.oauth` endpoint after successful Facebook Login
    * @param user
-   * @returns {Promise<{body: *, token: *}>}
+   * @returns {Promise<{body: *, token: *}> | void}
    */
   async getToken(user) {
     const { page } = this;
@@ -163,9 +214,12 @@ class WebExecuter {
         token: body.payload.token,
       };
     } catch (e) {
+      console.error('failed to getToken', e);
       await page.screenshot({ fullPage: true, path: `./ss/token-${Date.now()}.png` });
-      throw e;
+      await this.processPageError(e);
     }
+
+    return null;
   }
 
   /**
@@ -235,3 +289,4 @@ class WebExecuter {
 }
 
 module.exports = WebExecuter;
+WebExecuter.TimeoutError = WebExecuterTimeoutError;

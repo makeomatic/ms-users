@@ -1,5 +1,5 @@
 const request = require('request-promise');
-
+const assert = require('assert');
 /**
  * Class wraps Facebook Graph API requests
  */
@@ -11,6 +11,15 @@ class GraphAPI {
     },
     json: true,
   });
+
+  /**
+   * Just to be sure that correct user passed
+   * @param user
+   */
+  static checkUser(user) {
+    assert(user, 'No user provided');
+    assert(user.id, 'User must have `id`');
+  }
 
   /**
    * Creates test user with passed `props`
@@ -25,43 +34,50 @@ class GraphAPI {
         installed: false,
         ...props,
       },
-    }).promise();
+    });
   }
 
   /**
-   * Deletes test user by id
-   * @param userId
-   * @returns {*}
+   * Deletes test user
+   * @param facebook user
+   * @returns {Promise<*>}
    */
-  static deleteTestUser(userId) {
+  static deleteTestUser(user) {
+    this.checkUser(user);
+
     return this.graphApi({
-      uri: `${userId}`,
+      uri: `${user.id}`,
       method: 'DELETE',
-    }).promise();
+    });
   }
 
   /**
    * Removes all Application permissions.
    * This only the way to De Authorize Application from user.
-   * @param userId
-   * @returns {Promise<void>}
+   * @param facebook user
+   * @returns {Promise<*>}
    */
-  static async deAuthApplication(userId) {
+  static deAuthApplication(user) {
+    this.checkUser(user);
+
     return this.graphApi({
-      uri: `/${userId}/permissions`,
+      uri: `/${user.id}/permissions`,
       method: 'DELETE',
     });
   }
 
   /**
    * Delete any Application permission from user.
-   * @param userId
+   * @param facebook user
    * @param permission
-   * @returns {Promise<void>}
+   * @returns {Promise<*>}
    */
-  static async deletePermission(userId, permission) {
+  static deletePermission(user, permission) {
+    this.checkUser(user);
+    assert(permission, 'No `permission` provided');
+
     return this.graphApi({
-      uri: `/${userId}/permissions/${permission}`,
+      uri: `/${user.id}/permissions/${permission}`,
       method: 'DELETE',
     });
   }

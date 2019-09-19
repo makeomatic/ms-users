@@ -9,7 +9,7 @@ const extractJWT = require('./utils/extractJWT');
 const { getInternalData } = require('../../utils/userData');
 
 const { verifyToken, loginAttempt } = require('../../utils/amqp');
-const { Redirect } = require('./utils/errors');
+const { Redirect, OAuthError } = require('./utils/errors');
 const { USERS_ID_FIELD, ErrorTotpRequired } = require('../../constants');
 
 // helpers
@@ -17,28 +17,6 @@ const isRedirect = ({ statusCode }) => statusCode === 301 || statusCode === 302;
 const is404 = ({ statusCode }) => statusCode === 404;
 const isError = ({ statusCode }) => statusCode >= 400;
 const isHTMLRedirect = ({ statusCode, source }) => statusCode === 200 && source;
-
-/**
- * Cleanup boom error and return matching error;
- * @param {Boom} error
- * @returns {error}
- */
-function checkBoomError(error) {
-  const { data: errData } = error;
-  const { message } = error;
-
-  // can contain another Boom error
-  if (errData !== null && typeof errData === 'object') {
-    // delete reference to http.IncommingMessage
-    delete errData.data.res;
-  }
-
-  if (message.startsWith('App rejected')) {
-    return Errors.AuthenticationRequiredError(`OAuth ${error.message}`, error);
-  }
-
-  return error;
-}
 
 /**
  * Authentication handler
@@ -171,9 +149,15 @@ module.exports = async function authHandler({ action, transportRequest }) {
     const { credentials } = await http.auth.test(strategy, transportRequest);
     response = [null, credentials];
   } catch (err) {
-    // No need to go further if Oauth Error happened
     if (Boom.isBoom(err)) {
-      throw checkBoomError(err);
+      const { message } = err;
+
+      // Error thrown when user declines OAuth
+      if (message.startsWith('App rejected')) {
+        throw Errors.AuthenticationRequiredError(`OAuth ${err.message}`, err);
+      }
+
+      throw OAuthError(err.message, err);
     }
     // continue if redirect
     response = [err];

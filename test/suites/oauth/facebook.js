@@ -4,11 +4,11 @@
 const authenticator = require('otplib/authenticator');
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
-
 const assert = require('assert');
 const forEach = require('lodash/forEach');
 
-const { GraphApi, WebExecuter } = require('../../helpers/oauth/facebook');
+const GraphApi = require('../../helpers/oauth/facebook/graph-api');
+const WebExecuter = require('../../helpers/oauth/facebook/web-executer');
 
 /* Set our service url */
 WebExecuter.serviceLink = 'https://ms-users.local';
@@ -79,6 +79,192 @@ describe('#facebook', function oauthFacebookSuite() {
   });
 
   /**
+   * Check that service raises errors from @hapi/bell
+   * All OAuth requests are coming to one endpoint and `auth.tests` called before any action
+   * so we will test it once
+   */
+  describe('OAuth Throttling Error Handling', () => {
+    const sinon = require('sinon');
+    const Boom = require('@hapi/boom');
+    const request = require('request-promise');
+
+    const executeLink = `${WebExecuter.serviceLink}/users/oauth/facebook`;
+    const serviceHttpRequest = request.defaults({
+      method: 'GET',
+      strictSSL: false,
+      url: executeLink,
+    });
+
+    describe('errors from @hapi/bell passed through', async () => {
+      beforeEach('stub Errors ', async () => {
+        const throttleError = Boom.forbidden('X-Throttled', {});
+
+        /* Stub all oauth calls with custom error */
+        /* Bell always returns InternalError with Error, Response or payload in it's data */
+        sinon
+          .stub(service.http.auth, 'test')
+          .throws(() => Boom.internal('BadError', throttleError));
+      });
+
+      it('errors from @hapi/bell passed through', async () => {
+        let postMessage;
+        let statusCode;
+
+        try {
+          await serviceHttpRequest();
+        } catch (e) {
+          const javascriptContext = WebExecuter.getJavascriptContext(e.error);
+          ({ statusCode } = e.response);
+          ({ $ms_users_inj_post_message: postMessage } = javascriptContext);
+        }
+
+        assert(statusCode === 500, 'Should respond with Internal error');
+        /* message exists and it's an error */
+        assert.ok(postMessage);
+        assert(postMessage.error === true);
+
+        /* error message from stubbed error */
+        const { payload } = postMessage;
+        assert(payload.message === 'BadError');
+      });
+    });
+
+    describe('service OAuth error serialization ', async () => {
+      /* errors coming from Facebook Graph API contain http.IncomingMessage as res property */
+      /* and isResponseError property set */
+      const errorWithRes = {
+        subError: Boom.forbidden('X-Throttled', {
+          isResponseError: true,
+          i_am_very_long_body: true,
+          res: {
+            must_be_deleted: true,
+          },
+        }),
+        check: (error) => {
+          const { data: { res } } = error;
+          assert(res == null, 'Res must be deleted from error');
+        },
+      };
+
+      const errorWithFirstLevelRes = {
+        subError: {
+          isResponseError: true,
+          res: {
+            must_be_deleted: true,
+          },
+        },
+        check: (error) => {
+          const { res } = error;
+          assert(res == null, 'Res must be deleted from error');
+        },
+      };
+
+      const errorWithDataString = {
+        subError: Boom.forbidden('X-Throttled', 'stringData'),
+        check: (error) => {
+          assert(error.data === 'stringData', 'Must pass string data');
+        },
+      };
+
+      const errorWithDataNull = {
+        subError: Boom.forbidden('X-Throttled'),
+        check: (error) => {
+          assert.ok(error.data == null, 'Must pass null data');
+        },
+      };
+
+      const errorWithDataObject = {
+        subError: Boom.forbidden('X-Throttled', { foo: 1, bar: 2 }),
+        check: (error) => {
+          assert.deepEqual(error.data, { foo: 1, bar: 2 }, 'Must pass full data object');
+        },
+      };
+
+      const tests = [
+        errorWithRes,
+        errorWithFirstLevelRes,
+        errorWithDataString,
+        errorWithDataNull,
+        errorWithDataObject,
+      ];
+
+      tests.forEach((test) => {
+        describe('serializes error correctly', () => {
+          beforeEach('stub Errors ', async () => {
+            sinon
+              .stub(service.http.auth, 'test')
+              .throws(() => Boom.internal('BadError', test.subError));
+          });
+
+          it('serializes error correctly', async () => {
+            let postMessage;
+
+            try {
+              await serviceHttpRequest();
+            } catch (e) {
+              const javascriptContext = WebExecuter.getJavascriptContext(e.error);
+              ({ $ms_users_inj_post_message: postMessage } = javascriptContext);
+            }
+
+            const { inner_error: innerError } = postMessage.payload;
+            test.check(innerError.data);
+          });
+        });
+      });
+    });
+
+
+    /**
+     * Internal check. Just to be sure if Throttling Happened during test suites.
+     */
+    describe('WebExecuter generate custom throttling error', async () => {
+      let fb;
+
+      /* Simulates situation when timeout happens */
+      const simulateTimeout = async () => {
+        try {
+          await fb.navigatePage({ href: executeLink });
+          // we use stubbed response so timeout is small
+          await fb.page.waitForSelector('input#email', { timeout: 1000 });
+        } catch (e) {
+          await fb.processPageError(e);
+        }
+      };
+
+      before('start WebExcuter', async () => {
+        fb = new WebExecuter();
+        await fb.start();
+      });
+
+      beforeEach('stub Errors ', async () => {
+        const throttleError = Boom.forbidden('X-Throttled', {});
+        sinon
+          .stub(service.http.auth, 'test')
+          .throws(() => Boom.internal('BadError', throttleError));
+      });
+
+      it('WebExecuter generate custom throttling error', async () => {
+        let executerError;
+
+        try {
+          await simulateTimeout();
+        } catch (error) {
+          executerError = error;
+        }
+
+        assert.ok(executerError, 'Should be error');
+        assert(executerError instanceof WebExecuter.TimeoutError, 'Must be instance of WebExecuter.TimeoutError');
+        assert(executerError.status_code === 500, 'Status code must be set');
+        assert.ok(executerError.page_contents, 'Must include service message or last response');
+      });
+
+      after('stop WebExecuter', async () => {
+        await fb.stop();
+      });
+    });
+  });
+
+  /**
    * Suite works with 'Fresh' user.
    * Application has any access to the users Facebook profile.
    * This suite don't need to recreate user for each test and we can use one AuthToken in all tests.
@@ -91,7 +277,7 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     after('delete test user', async () => {
-      await GraphApi.deleteTestUser(generalUser.id);
+      await GraphApi.deleteTestUser(generalUser);
     });
 
     /**
@@ -105,9 +291,12 @@ describe('#facebook', function oauthFacebookSuite() {
         await fb.start();
       });
 
-      afterEach('stop WebExecuter / deauth App', async () => {
-        await GraphApi.deAuthApplication(generalUser.id);
+      afterEach('stop WebExecuter', async () => {
         await fb.stop();
+      });
+
+      afterEach('deauth App', async () => {
+        await GraphApi.deAuthApplication(generalUser);
       });
 
       it('should able to handle declined authentication', async () => {
@@ -147,7 +336,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
       /* Cleanup App permissions for further user reuse */
       after('deauth application', async () => {
-        await GraphApi.deAuthApplication(generalUser.id);
+        await GraphApi.deAuthApplication(generalUser);
       });
 
       it('should be able to register via facebook', async () => {
@@ -265,7 +454,7 @@ describe('#facebook', function oauthFacebookSuite() {
 
       /* IF test reordering occurs this going to save us from headache */
       after('deauth application', async () => {
-        await GraphApi.deAuthApplication(generalUser.id);
+        await GraphApi.deAuthApplication(generalUser);
       });
 
       it('should reject attaching already attached profile to a new user', async () => {
@@ -376,14 +565,14 @@ describe('#facebook', function oauthFacebookSuite() {
     let fb;
     let partialUser;
 
-    before('create test users', async () => {
+    before('create test user', async () => {
       partialUser = await GraphApi.createTestUser({
         permissions: 'public_profile',
       });
     });
 
     after('delete test user', async () => {
-      await GraphApi.deleteTestUser(partialUser.id);
+      await GraphApi.deleteTestUser(partialUser);
     });
 
     beforeEach('start WebExecuter', async () => {
@@ -392,8 +581,11 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     afterEach('stop WebExecuter', async () => {
-      await GraphApi.deAuthApplication(partialUser.id);
       await fb.stop();
+    });
+
+    afterEach('deauth application', async () => {
+      await GraphApi.deAuthApplication(partialUser);
     });
 
     it('should reject when signing in with partially returned scope and report it', async () => {

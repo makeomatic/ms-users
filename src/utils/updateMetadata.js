@@ -1,98 +1,55 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
-const mapValues = require('lodash/mapValues');
 const is = require('is');
 const { HttpStatusError } = require('common-errors');
+const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
-const sha256 = require('./sha256.js');
-const handlePipeline = require('../utils/pipelineError.js');
-const { USERS_METADATA } = require('../constants.js');
+const { USERS_METADATA, USERS_AUDIENCE } = require('../constants.js');
 
 const JSONStringify = (data) => JSON.stringify(data);
+const JSONParse = (data) => JSON.parse(data);
+const has = Object.prototype.hasOwnProperty;
 
-/**
- * Process metadata update operation for a passed audience
- * @param  {Object} pipeline
- * @param  {String} audience
- * @param  {Object} metadata
- */
-function handleAudience(pipeline, key, metadata) {
-  const { $remove } = metadata;
-  const $removeOps = $remove && $remove.length || 0;
-  if ($removeOps > 0) {
-    pipeline.hdel(key, $remove);
-  }
+function callUpdateMetadataScript(redis, userId, ops) {
+  const audienceKeyTemplate = redisKey('{id}', USERS_AUDIENCE);
+  const metaDataTemplate = redisKey('{id}', USERS_METADATA, '{audience}');
 
-  const { $set } = metadata;
-  const $setKeys = $set && Object.keys($set);
-  const $setLength = $setKeys && $setKeys.length || 0;
-  if ($setLength > 0) {
-    pipeline.hmset(key, mapValues($set, JSONStringify));
-  }
-
-  const { $incr } = metadata;
-  const $incrFields = $incr && Object.keys($incr);
-  const $incrLength = $incrFields && $incrFields.length || 0;
-  if ($incrLength > 0) {
-    $incrFields.forEach((fieldName) => {
-      pipeline.hincrby(key, fieldName, $incr[fieldName]);
-    });
-  }
-
-  return {
-    $removeOps, $setLength, $incrLength, $incrFields,
-  };
+  return redis
+    .updateMetadata(2, audienceKeyTemplate, metaDataTemplate, userId, JSONStringify(ops));
 }
 
-/**
- * Maps updateMetadata ops
- * @param  {Array} responses
- * @param  {Array} operations
- * @return {Object|Array}
- */
-function mapMetaResponse(operations, responses) {
-  let cursor = 0;
-  return Promise
-    .map(operations, (props) => {
-      const {
-        $removeOps, $setLength, $incrLength, $incrFields,
-      } = props;
-      const output = {};
+// Stabilizes Lua script response
+function mapUpdateResponse(jsonStr) {
+  const decodedData = JSONParse(jsonStr);
+  const result = [];
 
-      if ($removeOps > 0) {
-        output.$remove = responses[cursor];
-        cursor += 1;
+  decodedData.forEach((metaResult) => {
+    const opResult = {};
+    for (const [key, ops] of Object.entries(metaResult)) {
+      if (ops.length !== undefined && ops.length === 1) {
+        [opResult[key]] = ops;
+      } else {
+        opResult[key] = ops;
       }
-
-      if ($setLength > 0) {
-        output.$set = responses[cursor];
-        cursor += 1;
-      }
-
-      if ($incrLength > 0) {
-        const $incrResponse = output.$incr = {};
-        $incrFields.forEach((fieldName) => {
-          $incrResponse[fieldName] = responses[cursor];
-          cursor += 1;
-        });
-      }
-
-      return output;
-    })
-    .then((ops) => (ops.length > 1 ? ops : ops[0]));
-}
-
-/**
- * Handle script, mutually exclusive with metadata
- * @param  {Array} scriptKeys
- * @param  {Array} responses
- */
-function mapScriptResponse(scriptKeys, responses) {
-  const output = {};
-  scriptKeys.forEach((fieldName, idx) => {
-    output[fieldName] = responses[idx];
+    }
+    result.push(opResult);
   });
-  return output;
+
+  return result.length > 1 ? result : result[0];
+}
+
+/**
+ * Encodes operation field values ito json string
+ * If encoding performed in LUA script using CJSON lib, empty arrays become empty objects.
+ * This breaks logic
+ * @param metaOps
+ * @returns {*}
+ */
+function prepareOps(ops) {
+  if (has.call(ops, '$set')) {
+    ops.$set = mapValues(ops.$set, JSONStringify);
+  }
+  return ops;
 }
 
 /**
@@ -107,38 +64,39 @@ function updateMetadata(opts) {
   } = opts;
   const audiences = is.array(audience) ? audience : [audience];
 
-  // keys
-  const keys = audiences.map((aud) => redisKey(userId, USERS_METADATA, aud));
+  let scriptOpts = {
+    audiences,
+  };
 
-  // if we have meta, then we can
   if (metadata) {
-    const pipe = redis.pipeline();
-    const metaOps = is.array(metadata) ? metadata : [metadata];
-
-    if (metaOps.length !== audiences.length) {
+    const rawMetaOps = is.array(metadata) ? metadata : [metadata];
+    if (rawMetaOps.length !== audiences.length) {
       return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
     }
 
-    const operations = metaOps.map((meta, idx) => handleAudience(pipe, keys[idx], meta));
-    return pipe.exec()
-      .then(handlePipeline)
-      .then((res) => mapMetaResponse(operations, res));
+    const metaOps = rawMetaOps.map((opBlock) => prepareOps(opBlock));
+
+    scriptOpts = { metaOps, ...scriptOpts };
+    return callUpdateMetadataScript(redis, userId, scriptOpts)
+      .then(mapUpdateResponse);
   }
 
   // dynamic scripts
   const $scriptKeys = Object.keys(script);
   const scripts = $scriptKeys.map((scriptName) => {
     const { lua, argv = [] } = script[scriptName];
-    const sha = sha256(lua);
-    const name = `ms_users_${sha}`;
-    if (!is.fn(redis[name])) {
-      redis.defineCommand(name, { lua });
-    }
-    return redis[name](keys.length, keys, argv);
+    return {
+      lua,
+      argv,
+      name: scriptName,
+    };
   });
 
-  return Promise.all(scripts).then((res) => mapScriptResponse($scriptKeys, res));
+  scriptOpts = { scripts, ...scriptOpts };
+  return callUpdateMetadataScript(redis, userId, scriptOpts)
+    .then((result) => JSONParse(result));
 }
 
-updateMetadata.handleAudience = handleAudience;
+updateMetadata.callUpdateMetadataScript = callUpdateMetadataScript;
+updateMetadata.prepareOps = prepareOps;
 module.exports = updateMetadata;

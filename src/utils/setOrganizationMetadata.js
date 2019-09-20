@@ -3,9 +3,18 @@ const Promise = require('bluebird');
 const is = require('is');
 const { HttpStatusError } = require('common-errors');
 const redisKey = require('../utils/key.js');
-const handlePipeline = require('../utils/pipelineError.js');
-const { handleAudience } = require('../utils/updateMetadata.js');
-const { ORGANIZATIONS_METADATA } = require('../constants.js');
+const { prepareOps } = require('./updateMetadata');
+const { ORGANIZATIONS_METADATA, ORGANIZATIONS_AUDIENCE } = require('../constants.js');
+
+const JSONStringify = (data) => JSON.stringify(data);
+
+function callUpdateMetadataScript(redis, id, ops) {
+  const audienceKeyTemplate = redisKey('{id}', ORGANIZATIONS_AUDIENCE);
+  const metaDataTemplate = redisKey('{id}', ORGANIZATIONS_METADATA, '{audience}');
+
+  return redis
+    .updateMetadata(2, audienceKeyTemplate, metaDataTemplate, id, JSONStringify(ops));
+}
 
 /**
  * Updates metadata on a organization object
@@ -19,20 +28,17 @@ async function setOrganizationMetadata(opts) {
   } = opts;
   const audiences = is.array(audience) ? audience : [audience];
 
-  // keys
-  const keys = audiences.map((aud) => redisKey(organizationId, ORGANIZATIONS_METADATA, aud));
-
   // if we have meta, then we can
   if (metadata) {
-    const pipe = redis.pipeline();
-    const metaOps = is.array(metadata) ? metadata : [metadata];
-
-    if (metaOps.length !== audiences.length) {
+    const rawMetaOps = is.array(metadata) ? metadata : [metadata];
+    if (rawMetaOps.length !== audiences.length) {
       return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
     }
 
-    metaOps.forEach((meta, idx) => handleAudience(pipe, keys[idx], meta));
-    return pipe.exec().then(handlePipeline);
+    const metaOps = rawMetaOps.map((opBlock) => prepareOps(opBlock));
+
+    const scriptOpts = { metaOps, audiences };
+    return callUpdateMetadataScript(redis, organizationId, scriptOpts);
   }
 
   return true;

@@ -1,6 +1,6 @@
 const find = require('lodash/find');
 const moment = require('moment');
-const setMetadata = require('../utils/update-metadata');
+const UserMetadata = require('../utils/metadata/user');
 
 /**
  * Adds metadata from billing into usermix
@@ -13,6 +13,7 @@ module.exports = function mixPlan(userId, params) {
   const { payments } = config;
   const route = [payments.prefix, payments.routes.planGet].join('.');
   const id = 'free';
+  const userMetadata = new UserMetadata(this.redis);
 
   return amqp
     .publishAndWait(route, id, { timeout: 5000 })
@@ -20,7 +21,7 @@ module.exports = function mixPlan(userId, params) {
     .then(function mix(plan) {
       const subscription = find(plan.subs, ['name', 'month']);
       const nextCycle = moment().add(1, 'month').valueOf();
-      const update = {
+      const updateParams = {
         userId,
         audience,
         metadata: {
@@ -36,6 +37,6 @@ module.exports = function mixPlan(userId, params) {
         },
       };
 
-      return setMetadata.call(this, update);
+      return userMetadata.batchUpdate(updateParams);
     });
 };

@@ -1,6 +1,6 @@
 const omit = require('lodash/omit');
 const Promise = require('bluebird');
-const updateMetadata = require('../utils/update-metadata');
+const UserMetadata = require('../utils/metadata/user');
 const { getUserId } = require('../utils/userData');
 
 /**
@@ -19,12 +19,15 @@ const { getUserId } = require('../utils/userData');
  * @apiParam (Payload) {Object} [script] - if present will be called with passed metadata keys & username, provides direct scripting access.
  *   Be careful with granting access to this function.
  */
-module.exports = function updateMetadataAction(request) {
-  return Promise
+module.exports = async function updateMetadataAction(request) {
+  const userId = await Promise
     .bind(this, request.params.username)
-    .then(getUserId)
-    .then((userId) => ({ ...omit(request.params, 'username'), userId }))
-    .then(updateMetadata);
+    .then(getUserId);
+
+  const userMetadata = new UserMetadata(this.redis);
+  const updateParams = { ...omit(request.params, 'username'), userId };
+
+  return userMetadata.batchUpdate(updateParams);
 };
 
 module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

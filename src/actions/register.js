@@ -9,7 +9,7 @@ const reduce = require('lodash/reduce');
 const last = require('lodash/last');
 
 // internal deps
-const setMetadata = require('../utils/update-metadata');
+const UserMetadata = require('../utils/metadata/user');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const isDisposable = require('../utils/is-disposable');
@@ -213,7 +213,7 @@ async function performRegistration({ service, params }) {
 
   await pipeline.exec().then(handlePipeline);
 
-  await setMetadata.call(service, {
+  await new UserMetadata(service.redis).batchUpdate({
     userId,
     audience,
     metadata: audience.map((metaAudience) => ({

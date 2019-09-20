@@ -1,13 +1,13 @@
 const get = require('lodash/get');
 const redisKey = require('../../../utils/key');
-const updateMetadata = require('../../../utils/update-metadata');
+const UserMetadata = require('../../../utils/metadata/user');
 const handlePipeline = require('../../../utils/pipeline-error');
 const {
   USERS_SSO_TO_ID,
   USERS_DATA,
 } = require('../../../constants');
 
-module.exports = function attach(account, user) {
+module.exports = async function attach(account, user) {
   const { redis, config } = this;
   const { id: userId } = user;
   const {
@@ -23,17 +23,19 @@ module.exports = function attach(account, user) {
   // link uid to user id
   pipeline.hset(USERS_SSO_TO_ID, uid, userId);
 
-  return pipeline.exec().then(handlePipeline)
-    .bind(this)
-    .return({
-      userId,
-      audience,
-      metadata: {
-        $set: {
-          [provider]: profile,
-        },
+  await pipeline.exec().then(handlePipeline);
+
+  const userMetadata = new UserMetadata(redis);
+  const updateParams = {
+    userId,
+    audience,
+    metadata: {
+      $set: {
+        [provider]: profile,
       },
-    })
-    .then(updateMetadata)
-    .return(profile);
+    },
+  };
+  await userMetadata.batchUpdate(updateParams);
+
+  return profile;
 };

@@ -1,6 +1,6 @@
 const is = require('is');
 const Promise = require('bluebird');
-const setMetadata = require('../utils/update-metadata');
+const UserMetadata = require('../utils/metadata/user');
 
 /**
  * @param  {String} username
@@ -22,10 +22,12 @@ function createRoom(userId, params, metadata) {
     name: `${metadata[audience].stationName} | ${metadata[audience].stationSchool}`,
   };
 
+  const userMetadata = new UserMetadata(this.redis);
+
   return amqp.publishAndWait(route, roomParams, { timeout: 5000 })
     .bind(this)
     .then((room) => {
-      const update = {
+      const updateParams = {
         userId,
         audience,
         metadata: {
@@ -35,7 +37,7 @@ function createRoom(userId, params, metadata) {
         },
       };
 
-      return setMetadata.call(this, update);
+      return userMetadata.batchUpdate(updateParams);
     });
 }
 

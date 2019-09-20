@@ -4,9 +4,10 @@ const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
 const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipeline-error');
+const UserMetadata = require('../utils/metadata/user');
+
 const {
-  USERS_DATA, USERS_METADATA,
-  USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
+  USERS_DATA, USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
 } = require('../constants.js');
 
 // helper
@@ -25,26 +26,30 @@ function lockUser({
       remoteip: remoteip || '',
     },
   };
+  const pipeline = redis.pipeline();
+  const userMetadata = new UserMetadata(pipeline);
 
-  return redis
-    .pipeline()
-    .hset(redisKey(id, USERS_DATA), USERS_BANNED_FLAG, 'true')
-    // set .banned on metadata for filtering & sorting users by that field
-    .hmset(redisKey(id, USERS_METADATA, defaultAudience), mapValues(data, stringify))
-    .del(redisKey(id, USERS_TOKENS))
-    .exec();
+  pipeline.hset(redisKey(id, USERS_DATA), USERS_BANNED_FLAG, 'true');
+  // set .banned on metadata for filtering & sorting users by that field
+  userMetadata.updateMulti(id, mapValues(data, stringify), defaultAudience);
+  pipeline.del(redisKey(id, USERS_TOKENS));
+
+  return pipeline.exec();
 }
 
 function unlockUser({ id }) {
   const { redis, config } = this;
   const { jwt: { defaultAudience } } = config;
+  const pipeline = redis.pipeline();
+  const userMetadata = new UserMetadata(pipeline);
 
-  return redis
-    .pipeline()
-    .hdel(redisKey(id, USERS_DATA), USERS_BANNED_FLAG)
-    // remove .banned on metadata for filtering & sorting users by that field
-    .hdel(redisKey(id, USERS_METADATA, defaultAudience), 'banned', USERS_BANNED_DATA)
-    .exec();
+  pipeline.hdel(redisKey(id, USERS_DATA), USERS_BANNED_FLAG);
+  // remove .banned on metadata for filtering & sorting users by that field
+  userMetadata.delete(id, [
+    'banned',
+    USERS_BANNED_DATA,
+  ], defaultAudience);
+  return pipeline.exec();
 }
 
 /**

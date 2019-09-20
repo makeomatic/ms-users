@@ -5,6 +5,7 @@ const { checkOrganizationExists } = require('../../../utils/organization');
 const redisKey = require('../../../utils/key');
 const handlePipeline = require('../../../utils/pipeline-error');
 const getUserId = require('../../../utils/userData/get-user-id');
+const UserMetadata = require('../../../utils/metadata/user');
 const { ErrorUserNotMember, USERS_METADATA, ORGANIZATIONS_MEMBERS } = require('../../../constants');
 
 /**
@@ -41,7 +42,9 @@ async function setOrganizationMemberPermission({ params }) {
   permissions = JSON.stringify(permissions);
 
   const pipeline = redis.pipeline();
-  pipeline.hset(memberMetadataKey, organizationId, permissions);
+  const userMetadata = new UserMetadata(pipeline);
+
+  userMetadata.update(userId, organizationId, permissions);
   pipeline.hset(redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId), 'permissions', permissions);
 
   return pipeline.exec().then(handlePipeline);

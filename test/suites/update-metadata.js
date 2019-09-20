@@ -64,6 +64,7 @@ describe('#updateMetadata', function getMetadataSuite() {
           $incr: {
             b: 2,
           },
+          $remove: ['c'],
         },
         {
           $incr: {
@@ -75,15 +76,13 @@ describe('#updateMetadata', function getMetadataSuite() {
       .then(inspectPromise())
       .then((data) => {
         const [mainData, extraData] = data;
-
         expect(mainData.$set).to.be.eq('OK');
         expect(mainData.$incr.b).to.be.eq(2);
         expect(extraData.$incr.b).to.be.eq(3);
       });
   });
 
-  it('must be able to run dynamic scripts', function test() {
-    const dispatch = simpleDispatcher(this.users.router);
+  it('must be able to run dynamic scripts', async function test() {
     const params = {
       username,
       audience: [audience, extra],
@@ -95,15 +94,68 @@ describe('#updateMetadata', function getMetadataSuite() {
       },
     };
 
-    return dispatch('users.updateMetadata', params)
-      .reflect()
-      .then(inspectPromise())
-      .then((data) => {
-        expect(data.balance).to.be.deep.eq([
-          `{ms-users}${this.userId}!metadata!${audience}`,
-          `{ms-users}${this.userId}!metadata!${extra}`,
-          'nom-nom',
-        ]);
-      });
+    const updated = await this.dispatch('users.updateMetadata', params);
+
+    expect(updated.balance).to.be.deep.eq([
+      `{ms-users}${this.userId}!metadata!${audience}`,
+      `{ms-users}${this.userId}!metadata!${extra}`,
+      'nom-nom',
+    ]);
+  });
+
+  it('tracks audienceList', async function test() {
+    const params = {
+      username,
+      audience: [
+        audience,
+        '*.extra',
+      ],
+      metadata: [
+        {
+          $set: {
+            x: 10,
+            b: 12,
+            c: 'cval',
+          },
+        }, {
+          $set: {
+            x: 20,
+            b: 22,
+            c: 'xval',
+          },
+        },
+      ],
+    };
+
+    await this.dispatch('users.updateMetadata', params);
+    const audiencesList = await this.users.redis.smembers(`${this.userId}!users-audiences`);
+    expect(audiencesList).to.include.members(['*.localhost', '*.extra']);
+  });
+
+  it('must be able to run dynamic scripts / default namespace available', async function test() {
+    const lua = `
+      local t = {}
+      table.insert(t, "foo")
+      local jsonDec = cjson.decode('{"bar": 1}')
+      local typeCheck = type(t)
+      redis.call("SET", "fookey", 777);
+      return {jsonDec.bar, redis.call("TIME"), redis.call("GET", "fookey"), typeCheck, unpack(t)}
+    `;
+
+    const params = {
+      username,
+      audience: [audience],
+      script: {
+        check: {
+          lua,
+          argv: ['nom-nom'],
+        },
+      },
+    };
+    const updated = await this.dispatch('users.updateMetadata', params);
+    const [jsonVal, redisTime, keyValue] = updated.check;
+    expect(jsonVal).to.be.eq(1);
+    expect(redisTime).to.be.an('array');
+    expect(keyValue).to.be.eq('777');
   });
 });

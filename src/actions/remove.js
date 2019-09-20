@@ -9,6 +9,7 @@ const getMetadata = require('../utils/getMetadata');
 const handlePipeline = require('../utils/pipelineError');
 const {
   USERS_INDEX,
+  USERS_INACTIVATED,
   USERS_PUBLIC_INDEX,
   USERS_ALIAS_TO_ID,
   USERS_SSO_TO_ID,
@@ -91,6 +92,9 @@ async function removeUser({ params }) {
   // clean indices
   transaction.srem(USERS_PUBLIC_INDEX, userId);
   transaction.srem(USERS_INDEX, userId);
+
+  /* Delete user from the inactive users index, if user not activated */
+  transaction.zrem(USERS_INACTIVATED, userId);
 
   // remove metadata & internal data
   transaction.del(key(userId, USERS_DATA));

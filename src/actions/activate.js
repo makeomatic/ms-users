@@ -5,6 +5,8 @@ const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/getMetadata');
 const handlePipeline = require('../utils/pipelineError.js');
+const { removeFromInactiveUsers } = require('../utils/inactiveUsers');
+
 const {
   USERS_INDEX,
   USERS_DATA,
@@ -125,6 +127,9 @@ function activateAccount(data, metadata) {
     .hset(userKey, USERS_ACTIVE_FLAG, 'true')
     .persist(userKey)
     .sadd(USERS_INDEX, userId);
+
+  /* delete user id from the inactive users index */
+  removeFromInactiveUsers(pipeline, userId);
 
   if (alias) {
     pipeline.sadd(USERS_PUBLIC_INDEX, userId);

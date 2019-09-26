@@ -3,25 +3,21 @@ const {
 } = require('../../constants');
 
 /**
- * Add user id to inacive users list
- * @param {ioredis} redis
- * @param {userId} userId
+ * NOTE: Contents of this file will be removed when `DeleteInactiveUsers` feature merged.
+ * To avoid `dlock` based locks, index cleanup and inactive user remove process will be merged into one LUA script.
  */
-function addToInactiveUsers(redis, userId) {
-  const created = Date.now();
-  redis.zadd(USERS_INACTIVATED, created, userId);
-}
 
 /**
- * Remove user id from inactive users list
- * @param {ioredis} redis
- * @param {userId} userId
+ * Cleans Inactive user index from User IDs that not activated in some period
+ * @returns {Promise<void>}
  */
-function removeFromInactiveUsers(redis, userId) {
-  redis.zrem(USERS_INACTIVATED, userId);
+async function cleanInactiveUsersIndex() {
+  const { redis } = this;
+  const { deleteInactiveAccounts } = this.config;
+  const expire = Date.now() - (deleteInactiveAccounts * 1000);
+  await redis.zremrangebyscore(USERS_INACTIVATED, '-inf', expire);
 }
 
 module.exports = {
-  addToInactiveUsers,
-  removeFromInactiveUsers,
+  cleanInactiveUsersIndex,
 };

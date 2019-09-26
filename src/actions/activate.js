@@ -5,10 +5,11 @@ const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/getMetadata');
 const handlePipeline = require('../utils/pipelineError.js');
-const { removeFromInactiveUsers } = require('../utils/inactiveUsers');
+const { cleanInactiveUsersIndex } = require('../utils/inactiveUsers');
 
 const {
   USERS_INDEX,
+  USERS_INACTIVATED,
   USERS_DATA,
   USERS_REFERRAL_INDEX,
   USERS_PUBLIC_INDEX,
@@ -129,7 +130,7 @@ function activateAccount(data, metadata) {
     .sadd(USERS_INDEX, userId);
 
   /* delete user id from the inactive users index */
-  removeFromInactiveUsers(pipeline, userId);
+  pipeline.zrem(USERS_INACTIVATED, userId);
 
   if (alias) {
     pipeline.sadd(USERS_PUBLIC_INDEX, userId);
@@ -178,7 +179,7 @@ function hook(userId) {
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
  */
-function activateAction({ params }) {
+async function activateAction({ params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
   const { token, username } = params;
@@ -195,6 +196,9 @@ function activateAction({ params }) {
     service: this,
     erase: config.token.erase,
   };
+
+  // TODO: REMOVEME: Execute `DeleteInactiveUsers` LUA script
+  await cleanInactiveUsersIndex.call(this);
 
   return Promise
     .bind(context)

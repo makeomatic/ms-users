@@ -22,12 +22,13 @@ const checkLimits = require('../utils/checkIpLimits');
 const challenge = require('../utils/challenges/challenge');
 const handlePipeline = require('../utils/pipelineError');
 const hashPassword = require('../utils/register/password/hash');
-const { addToInactiveUsers } = require('../utils/inactiveUsers');
+const { cleanInactiveUsersIndex } = require('../utils/inactiveUsers');
 
 const {
   USERS_REF,
   USERS_INDEX,
   USERS_SSO_TO_ID,
+  USERS_INACTIVATED,
   USERS_DATA,
   USERS_USERNAME_TO_ID,
   USERS_ACTIVE_FLAG,
@@ -174,6 +175,9 @@ async function performRegistration({ service, params }) {
     await verifySSO(service, params);
   }
 
+  // TODO: REMOVEME: Execute `DeleteInactiveUsers` LUA script
+  await cleanInactiveUsersIndex.call(service);
+
   const [creatorAudience] = audience;
   const defaultAudience = last(audience);
   const userId = service.flake.next();
@@ -214,7 +218,7 @@ async function performRegistration({ service, params }) {
     pipeline.expire(userDataKey, config.deleteInactiveAccounts);
 
     /* Add user id to the inactive users index */
-    addToInactiveUsers(pipeline, userId, audience);
+    redis.zadd(USERS_INACTIVATED, created, userId);
   }
 
   await pipeline.exec().then(handlePipeline);

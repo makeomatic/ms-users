@@ -1,12 +1,10 @@
 const zxcvbn = require('zxcvbn');
 const assert = require('assert');
-const {
-  NotFoundError,
-} = require('common-errors');
+const { NotFoundError } = require('common-errors');
 
 const regKeyword = 'password';
-
-const has = Object.prototype.hasOwnProperty;
+const { hasOwnProperty } = Object.prototype;
+const { isArray } = Array;
 
 /**
  * Generates readable error including some Suggestions and Reasons
@@ -22,7 +20,8 @@ function validatorError(result, dataPath) {
     if (warning !== '') {
       message = `${message}. ${warning}`;
     }
-    if (suggestions instanceof Array && suggestions.length > 0) {
+
+    if (isArray(suggestions) && suggestions.length > 0) {
       message = `${message}. ${suggestions.join(' ')}`;
     }
   }
@@ -35,21 +34,29 @@ function validatorError(result, dataPath) {
  * @param {validatorConfig} config
  */
 function getValidatorFn(config) {
-  const { forceCheckFieldName, inputFieldNames } = config;
+  // service may not have its config changed after start
+  const { forceCheckFieldName, inputFieldNames, minStrength, enabled } = config;
 
   return function validate(schema, data, parentSchema, currentPath, parentObject) {
-    const { minStrength, enabled } = config;
-    const forceValidate = has.call(parentObject, forceCheckFieldName);
-    const validatorEnabled = forceValidate || enabled;
+    let forceValidate;
+    if (Array.isArray(forceCheckFieldName) && forceCheckFieldName.length > 0) {
+      forceValidate = forceCheckFieldName.reduce((prev, fieldName) => {
+        if (prev) return prev;
+        if (parentObject[fieldName]) return true;
+        return false;
+      }, false);
+    }
 
+    const validatorEnabled = forceValidate || enabled;
     if (!validatorEnabled) {
       return true;
     }
 
     const userInput = inputFieldNames.reduce((prev, fieldName) => {
-      if (has.call(parentObject, fieldName)) {
-        return [...prev, parentObject[fieldName]];
+      if (hasOwnProperty.call(parentObject, fieldName)) {
+        prev.push(parentObject[fieldName]);
       }
+
       return prev;
     }, []);
 

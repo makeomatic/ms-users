@@ -31,8 +31,6 @@ describe('#update metadata organization', function registerSuite() {
     };
 
     return this.dispatch('users.organization.updateMetadata', updatedOpts)
-      .reflect()
-      .then(inspectPromise(true))
       .then((createdOrganization) => {
         assert(createdOrganization.data.attributes.description === undefined);
         assert(createdOrganization.data.attributes.address === 'test');
@@ -49,8 +47,6 @@ describe('#update metadata organization', function registerSuite() {
     };
 
     await this.dispatch('users.organization.updateMetadata', updatedOpts)
-      .reflect()
-      .then(inspectPromise(true))
       .then((createdOrganization) => {
         assert(createdOrganization.data.attributes.address === 'test-audience');
       });
@@ -61,8 +57,6 @@ describe('#update metadata organization', function registerSuite() {
     };
 
     return this.dispatch('users.organization.getMetadata', opts)
-      .reflect()
-      .then(inspectPromise(true))
       .then((response) => {
         assert.ok(response.data.attributes);
         assert(response.data.attributes.address === 'test-audience');

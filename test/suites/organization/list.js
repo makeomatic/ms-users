@@ -1,5 +1,4 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
 const { expect } = require('chai');
@@ -28,8 +27,6 @@ describe('#organizations list', function registerSuite() {
     await Promise.all(jobs);
 
     return this.dispatch('users.organization.list', opts)
-      .reflect()
-      .then(inspectPromise(true))
       .then(({ data, meta }) => {
         assert.equal(meta.total, organizationsLength);
         assert.equal(meta.cursor, opts.limit + opts.offset);
@@ -64,8 +61,6 @@ describe('#organizations list', function registerSuite() {
     await Promise.all(jobs);
 
     return this.dispatch('users.organization.list', opts)
-      .reflect()
-      .then(inspectPromise(true))
       .then(({ data, meta }) => {
         assert.equal(meta.total, 1);
         assert.equal(meta.cursor, 1);

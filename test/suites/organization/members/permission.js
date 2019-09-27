@@ -31,13 +31,9 @@ describe('#edit member permission', function registerSuite() {
       },
     };
 
-    await this.dispatch('users.organization.members.permission', opts)
-      .reflect()
-      .then(inspectPromise(true));
+    await this.dispatch('users.organization.members.permission', opts);
 
     return this.dispatch('users.organization.members.list', { organizationId: this.organization.id })
-      .reflect()
-      .then(inspectPromise(true))
       .then((response) => {
         assert.deepStrictEqual(response.data.attributes[0].attributes.permissions, ['admin']);
       });

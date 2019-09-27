@@ -43,7 +43,7 @@
     "flake-idgen": "^1.1.0",
     "get-stdin": "^7.0.0",
     "get-value": "^3.0.1",
-    "handlebars": "^4.3.2",
+    "handlebars": "^4.3.3",
     "ioredis": "^4.14.1",
     "is": "^3.3.0",
     "jsonwebtoken": "^8.5.1",

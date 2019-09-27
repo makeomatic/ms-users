@@ -76,7 +76,7 @@ exports.logger = {
 exports.passwordValidator = {
   enabled: false,
   minStrength: 4, // 0..4
-  forceCheckFieldName: 'checkPassword',
+  forceCheckFieldName: ['checkPassword'],
   inputFieldNames: [
     'username',
   ],

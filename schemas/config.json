@@ -291,10 +291,17 @@
         },
         "minStrength": {
           "type": "integer",
-          "default" : 4
+          "default" : 4,
+          "minimum": 0,
+          "maximum": 4
         },
         "forceCheckFieldName": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
         },
         "inputFieldNames": {
           "type": "array",

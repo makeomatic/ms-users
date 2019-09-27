@@ -28,8 +28,6 @@ describe('#organization members list', function registerSuite() {
     };
 
     return this.dispatch('users.organization.members.list', opts)
-      .reflect()
-      .then(inspectPromise(true))
       .then((response) => {
         assert.ok(response.data.attributes);
         assert.equal(response.data.attributes.length, 5);

@@ -31,9 +31,7 @@ describe('#add member to organization', function registerSuite() {
       },
     };
 
-    return this.dispatch('users.organization.members.add', opts)
-      .reflect()
-      .then(inspectPromise(true));
+    await this.dispatch('users.organization.members.add', opts);
   });
 
   it('must return organization not found error', async function test() {

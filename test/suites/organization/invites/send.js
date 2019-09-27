@@ -27,9 +27,7 @@ describe('#send invite organization', function registerSuite() {
       member: this.userNames[0],
     };
 
-    return this.dispatch('users.organization.invites.send', opts)
-      .reflect()
-      .then(inspectPromise(true));
+    await this.dispatch('users.organization.invites.send', opts);
   });
 
   it('must return organization not found error', async function test() {

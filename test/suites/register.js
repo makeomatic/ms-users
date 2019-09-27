@@ -23,6 +23,7 @@ describe('#register', function registerSuite() {
       username: 'v@makeomatic.ru',
       password: 'mynicepassword',
       audience: 'matic.ninja',
+      skipPassword: true,
       metadata: {
         service: 'craft',
       },
@@ -128,7 +129,7 @@ describe('#register', function registerSuite() {
   it('must be able to create user with validation and return success', function test() {
     const opts = {
       username: 'v@makeomatic.ru',
-      password: 'mynicepassword',
+      password: 'mynicepassword7159',
       audience: 'matic.ninja',
       activate: false,
       metadata: {
@@ -144,6 +145,99 @@ describe('#register', function registerSuite() {
         assert.ok(id);
         assert.equal(requiresActivation, true);
       });
+  });
+
+  describe('must check password strength', function suite() {
+    const weakPasswords = [
+      'hello',
+      'id1v@makeomatic.ru',
+      'niceuser',
+      'makeomatic',
+      'NiceP@ssWord',
+      'shortPwdSmpl',
+      'ghbdtn',
+      'asdf',
+      'zxcvbnqwertyuiop',
+      'asdf123Barbaz',
+      'StrongPassword9',
+      'p7a1s9a1',
+    ];
+
+    const goodPasswords = [
+      'FooBas!@#asd',
+      'p7a1s9a1levap791',
+      'asdf123BarbazWordsFooPass',
+    ];
+
+    const opts = {
+      username: 'v@makeomatic.ru',
+      password: 'mynicepassword',
+      audience: 'matic.ninja',
+      activate: true,
+      metadata: {
+        service: 'craft',
+      },
+    };
+
+    it('weak passwords', async function test() {
+      const promises = [];
+      const { config } = this.users;
+      const { passwordValidator: validatorConfig } = config;
+
+      validatorConfig.enabled = true;
+
+      weakPasswords.forEach((password, index) => {
+        const reqOpts = { ...opts, username: `id${index}${opts.username}`, password };
+        promises.push(this
+          .dispatch('users.register', reqOpts)
+          .reflect()
+          .then(inspectPromise(false)));
+      });
+
+      const result = await Promise.all(promises);
+
+      result.forEach((err) => {
+        assert.equal(err.statusCode, 400);
+      });
+    });
+
+    it('good passwords', async function test() {
+      const promises = [];
+      const { config } = this.users;
+      const { passwordValidator: validatorConfig } = config;
+
+      validatorConfig.enabled = true;
+
+      goodPasswords.forEach((password, index) => {
+        const reqOpts = { ...opts, username: `id${index}${opts.username}`, password };
+        promises.push(this
+          .dispatch('users.register', reqOpts)
+          .reflect()
+          .then(inspectPromise(true)));
+      });
+
+      const result = await Promise.all(promises);
+      result.forEach(({ user }) => {
+        assert.ok(user.id);
+      });
+    });
+  });
+
+  it('force password check', function test() {
+    const opts = {
+      username: 'v@makeomatic.ru',
+      password: '',
+      checkPassword: true,
+      audience: 'matic.ninja',
+      activate: true,
+      metadata: {
+        service: 'craft',
+      },
+    };
+
+    return this.dispatch('users.register', opts)
+      .reflect()
+      .then(inspectPromise(false));
   });
 
   it('must be able to create user with generated password', function test() {
@@ -168,7 +262,7 @@ describe('#register', function registerSuite() {
   describe('consequent registrations', function suite() {
     const opts = {
       username: 'v@makeomatic.ru',
-      password: 'mynicepassword',
+      password: 'mynicepassword7159',
       audience: 'matic.ninja',
       activate: false,
       metadata: {
@@ -195,7 +289,7 @@ describe('#register', function registerSuite() {
   describe('ipaddress limits', function suite() {
     const opts = {
       username: 'v@makeomatic.ru',
-      password: 'mynicepassword',
+      password: 'mynicepassword7159',
       audience: 'matic.ninja',
       activate: false,
       ipaddress: '192.168.1.1',
@@ -225,7 +319,7 @@ describe('#register', function registerSuite() {
   it('must reject registration for disposable email addresses', function test() {
     const opts = {
       username: 'v@mailinator.com',
-      password: 'mynicepassword',
+      password: 'mynicepassword7159',
       audience: 'matic.ninja',
       metadata: {
         service: 'craft',
@@ -245,7 +339,7 @@ describe('#register', function registerSuite() {
   it('must reject registration for a domain name, which lacks MX record', function test() {
     const opts = {
       username: 'v@aminev.co',
-      password: 'mynicepassword',
+      password: 'mynicepassword7159',
       audience: 'matic.ninja',
       metadata: {
         service: 'craft',

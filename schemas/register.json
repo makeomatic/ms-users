@@ -13,7 +13,8 @@
       "$ref": "common.json#/definitions/alias"
     },
     "password": {
-      "type": "string"
+      "type": "string",
+      "password": true
     },
     "activate": {
       "type": "boolean"

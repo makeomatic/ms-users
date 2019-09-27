@@ -125,6 +125,11 @@ module.exports = class Users extends Microfleet {
       return this.dlock;
     });
 
+    this.addConnector(ConnectorsTypes.application, () => {
+      const pValidator = require('./utils/passwordValidator.js');
+      pValidator(this);
+    });
+
     // init account seed
     this.addConnector(ConnectorsTypes.application, () => (
       this.initAdminAccounts()

@@ -1,5 +1,4 @@
 /* eslint-disable no-mixed-operators */
-const Promise = require('bluebird');
 const is = require('is');
 const { HttpStatusError } = require('common-errors');
 const mapValues = require('lodash/mapValues');
@@ -57,7 +56,7 @@ function prepareOps(ops) {
  * @param  {Object} opts
  * @return {Promise}
  */
-function updateMetadata(opts) {
+async function updateMetadata(opts) {
   const { redis } = this;
   const {
     userId, audience, metadata, script,
@@ -71,14 +70,14 @@ function updateMetadata(opts) {
   if (metadata) {
     const rawMetaOps = is.array(metadata) ? metadata : [metadata];
     if (rawMetaOps.length !== audiences.length) {
-      return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
+      throw new HttpStatusError(400, 'audiences must match metadata entries');
     }
 
     const metaOps = rawMetaOps.map((opBlock) => prepareOps(opBlock));
-
     scriptOpts = { metaOps, ...scriptOpts };
-    return callUpdateMetadataScript(redis, userId, scriptOpts)
-      .then(mapUpdateResponse);
+
+    const updateResult = await callUpdateMetadataScript(redis, userId, scriptOpts);
+    return mapUpdateResponse(updateResult);
   }
 
   // dynamic scripts
@@ -93,8 +92,8 @@ function updateMetadata(opts) {
   });
 
   scriptOpts = { scripts, ...scriptOpts };
-  return callUpdateMetadataScript(redis, userId, scriptOpts)
-    .then((result) => JSONParse(result));
+  const updateResult = await callUpdateMetadataScript(redis, userId, scriptOpts);
+  return JSONParse(updateResult);
 }
 
 updateMetadata.callUpdateMetadataScript = callUpdateMetadataScript;

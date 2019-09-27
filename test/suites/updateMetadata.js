@@ -83,8 +83,7 @@ describe('#updateMetadata', function getMetadataSuite() {
       });
   });
 
-  it('must be able to run dynamic scripts', function test() {
-    const dispatch = simpleDispatcher(this.users.router);
+  it('must be able to run dynamic scripts', async function test() {
     const params = {
       username,
       audience: [audience, extra],
@@ -96,26 +95,23 @@ describe('#updateMetadata', function getMetadataSuite() {
       },
     };
 
-    return dispatch('users.updateMetadata', params)
-      .reflect()
-      .then(inspectPromise())
-      .then((data) => {
-        expect(data.balance).to.be.deep.eq([
-          `{ms-users}${this.userId}!metadata!${audience}`,
-          `{ms-users}${this.userId}!metadata!${extra}`,
-          'nom-nom',
-        ]);
-      });
+    const updated = await this.dispatch('users.updateMetadata', params);
+
+    expect(updated.balance).to.be.deep.eq([
+      `{ms-users}${this.userId}!metadata!${audience}`,
+      `{ms-users}${this.userId}!metadata!${extra}`,
+      'nom-nom',
+    ]);
   });
 
-  it('must be able to run dynamic scripts / namespace fully available', function test() {
-    const dispatch = simpleDispatcher(this.users.router);
+  it('must be able to run dynamic scripts / default namespace available', async function test() {
     const lua = `
       local t = {}
       table.insert(t, "foo")
       local jsonDec = cjson.decode('{"bar": 1}')
       local typeCheck = type(t)
-      return {jsonDec.bar, redis.call("TIME"), typeCheck, unpack(t)}
+      redis.call("SET", "fookey", 777);
+      return {jsonDec.bar, redis.call("TIME"), redis.call("GET", "fookey"), typeCheck, unpack(t)}
     `;
 
     const params = {
@@ -128,14 +124,10 @@ describe('#updateMetadata', function getMetadataSuite() {
         },
       },
     };
-
-    return dispatch('users.updateMetadata', params)
-      .reflect()
-      .then(inspectPromise())
-      .then(({ check }) => {
-        const [jsonVal, redisTime] = check;
-        expect(jsonVal).to.be.eq(1);
-        expect(redisTime).to.be.an('array');
-      });
+    const updated = await this.dispatch('users.updateMetadata', params);
+    const [jsonVal, redisTime, keyValue] = updated.check;
+    expect(jsonVal).to.be.eq(1);
+    expect(redisTime).to.be.an('array');
+    expect(keyValue).to.be.eq('777');
   });
 });

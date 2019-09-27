@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const url = require('url');
 const is = require('is');
-const serializeError = require('serialize-error');
+const { serializeError } = require('serialize-error');
 const serialize = require('serialize-javascript');
 const { ActionTransport } = require('@microfleet/core');
 const { AuthenticationRequiredError } = require('common-errors');
@@ -21,7 +21,7 @@ module.exports = [{
     }
 
     if (error && error.constructor === Redirect) {
-      return Promise.reject(error);
+      throw error;
     }
 
     if (error && error.statusCode === 200 && error.source) {

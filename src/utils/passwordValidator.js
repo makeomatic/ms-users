@@ -30,25 +30,39 @@ function validatorError(result, dataPath) {
 }
 
 /**
+ * Checks whether any of the passed fields exist in the passed object
+ * @param object
+ * @param fields[string] list of fields
+ * @returns {boolean|*}
+ */
+function anyFieldExists(object, fields) {
+  if (Array.isArray(fields) && fields.length > 0) {
+    return fields.reduce((prev, fieldName) => {
+      if (prev) return prev;
+      if (object[fieldName]) return true;
+      return false;
+    }, false);
+  }
+  return false;
+}
+
+/**
  * Returns func for AJV validator keyword
  * @param {validatorConfig} config
  */
 function getValidatorFn(config) {
-  // service may not have its config changed after start
-  const { forceCheckFieldName, inputFieldNames, minStrength, enabled } = config;
+  const { forceCheckFieldNames, skipCheckFieldNames, inputFieldNames, minStrength, enabled } = config;
 
   return function validate(schema, data, parentSchema, currentPath, parentObject) {
-    let forceValidate;
-    if (Array.isArray(forceCheckFieldName) && forceCheckFieldName.length > 0) {
-      forceValidate = forceCheckFieldName.reduce((prev, fieldName) => {
-        if (prev) return prev;
-        if (parentObject[fieldName]) return true;
-        return false;
-      }, false);
+    // Force skip validation check
+    const skipValidate = anyFieldExists(parentObject, skipCheckFieldNames);
+    if (skipValidate) {
+      return true;
     }
 
-    const validatorEnabled = forceValidate || enabled;
-    if (!validatorEnabled) {
+    // Force validation check
+    const forceValidate = anyFieldExists(parentObject, forceCheckFieldNames);
+    if (!enabled && !forceValidate) {
       return true;
     }
 

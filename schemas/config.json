@@ -295,7 +295,15 @@
           "minimum": 0,
           "maximum": 4
         },
-        "forceCheckFieldName": {
+        "forceCheckFieldNames": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "skipCheckFieldNames": {
           "type": "array",
           "items": {
             "type": "string",

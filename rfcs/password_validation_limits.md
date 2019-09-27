@@ -19,6 +19,13 @@ A possible solution is to use existing password-strength checking solution like 
 Enabling password validator is Breaking change and disabled by default.
 In the nearest future, when everything will be ready, a validator must be enabled.
 
+## OTP and Empty Password
+The `password` field is not defined as `required` in current `schemas`.
+Validation does not happen because This field does not exist in the OTP registration request.
+When the Service performs password generation,  `skipPassword` property does not exist in the registration request, so validation not executing on generated passwords.
+
+**NOTE:** Added additional test suites just to be sure.
+
 ## Validator Keyword
 Service validation algorithm based on the AJV validator and all validation requirements are inside schemas. All incoming requests checked. We can add additional custom validator `password` keyword for the `password` field, which performs required checks.
 
@@ -56,15 +63,20 @@ When executed:
 - calls `zxcvbn` to obtain a complexity of passwords and returns whether the given password matches policy
 
 Also, we can pass user-provided data into `zxcvbn` to check whether some sensitive data used in the password.
+
 ### Sample config
-`forceCheckFieldName` and `inputFieldNames` values point to parent object field
+`skipCheckFieldName` - Allows skipping password check if any field exists.
+`forceCheckFieldName` - Allows forcing password check if any field exists.
+`inputFieldNames` - values point to parent object fields that passed into `zxcvbn`.
+
 `enabled` - disable/enable validator. Default value is false.
 ```js
 const config = {
   enabled: false,
   minStrength: 3, // Desired strength
-  forceCheckFieldName: ['checkPassword'], // force enable password to check if the object field value set..
-  inputFieldNames: [ // Linked fields list, allow filter case sensitive data in the password from the parent object.
+  skipCheckFieldNames: ['skipPassword'], // Force disable password to check if the object field value exists.
+  forceCheckFieldNames: ['checkPassword'], // Force enable password check if the object field value exists.
+  inputFieldNames: [ // Linked fields list, allow filter the sensitive data in the password from the parent object.
     'username',
     'otherfield'
   ]

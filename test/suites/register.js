@@ -257,6 +257,65 @@ describe('#register', function registerSuite() {
     });
   });
 
+  describe('password validator enabled', function testSuite() {
+    beforeEach(async function start() {
+      await global.startService.call(this, {
+        passwordValidator: { enabled: true },
+      });
+    });
+
+    afterEach(global.clearRedis);
+
+    it('must be able to create user without password validations and return user object and jwt token', function test() {
+      const opts = {
+        username: 'v@makeomatic.ru',
+        password: 'mynicepassword',
+        audience: 'matic.ninja',
+        skipPassword: true,
+        metadata: {
+          service: 'craft',
+        },
+      };
+
+      return this.dispatch('users.register', opts)
+        .then((registered) => {
+          assert(registered.hasOwnProperty('jwt'));
+          assert(registered.hasOwnProperty('user'));
+          assert.ok(registered.user.id);
+          assert(registered.user.hasOwnProperty('metadata'));
+          assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+          assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+          assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
+          assert.ifError(registered.user.password);
+          assert.ifError(registered.user.audience);
+        });
+    });
+
+    it('must be able to create user without validations and return user object and jwt token, password is auto-generated', function test() {
+      const opts = {
+        username: 'v@makeomatic.ru',
+        audience: 'matic.ninja',
+        metadata: {
+          service: 'craft',
+        },
+      };
+
+      return this.dispatch('users.register', opts)
+        .then((registered) => {
+          assert(registered.hasOwnProperty('jwt'));
+          assert(registered.hasOwnProperty('user'));
+          assert.ok(registered.user.id);
+          assert(registered.user.hasOwnProperty('metadata'));
+          assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+          assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+          assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
+          assert.ifError(registered.user.password);
+          assert.ifError(registered.user.audience);
+        });
+    });
+  });
+
+
   describe('must check password strength', function suite() {
     beforeEach(async function start() {
       await global.startService.call(this, {

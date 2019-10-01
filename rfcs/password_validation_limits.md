@@ -21,8 +21,8 @@ In the nearest future, when everything will be ready, a validator must be enable
 
 ## OTP and Empty Password
 The `password` field is not defined as `required` in current `schemas`.
-Validation does not happen because This field does not exist in the OTP registration request.
-When the Service performs password generation,  `skipPassword` property does not exist in the registration request, so validation not executing on generated passwords.
+Validation is not performed because this field does not exist in the OTP registration request.
+When the Service performs password generation, `skipPassword` property does not exist in the registration request, so validator does not check these generated passwords.
 
 **NOTE:** Added additional test suites just to be sure.
 
@@ -74,9 +74,9 @@ Also, we can pass user-provided data into `zxcvbn` to check whether some sensiti
 const config = {
   enabled: false,
   minStrength: 3, // Desired strength
-  skipCheckFieldNames: ['skipPassword'], // Force disable password to check if the object field value exists.
-  forceCheckFieldNames: ['checkPassword'], // Force enable password check if the object field value exists.
-  inputFieldNames: [ // Linked fields list, allow filter the sensitive data in the password from the parent object.
+  skipCheckFieldNames: ['skipPassword'], // Disables password check if the object field value exists.
+  forceCheckFieldNames: ['checkPassword'], // Forces password check if the object field value exists.
+  inputFieldNames: [ // Linked fields list, allows to filter the sensitive data in the password from the parent object.
     'username',
     'otherfield'
   ]

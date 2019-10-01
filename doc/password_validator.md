@@ -20,7 +20,7 @@ Allows skipping field validation:
     * Validation skipped if `Object[field]` set.
     * Validation performed if `Object[field]` not exists.
 
-Eg:
+E.g.:
 ```js
 const validatorConfig = {
   minStrength: 4,
@@ -30,31 +30,31 @@ const validatorConfig = {
 
 // Skip validation
 const dataSkipOnBool = {
-  myfield: 'fooBar', // schema "myfield":{"password": true} keyword
+  myField: 'fooBar', // schema "myField":{"password": true} keyword
   skipPassword: true,
 };
 
 // Skip validation `skipPassword` is string
 const dataSkipOnString = {
-  myfield: 'fooBar',
+  myField: 'fooBar',
   skipPassword: 'fooStringValue',
 };
 
 // Validation performed
 const dataSkipOnBoolFalse = {
-  myfield: 'fooBar',
+  myField: 'fooBar',
   skipPassword: false,
 };
 
 const data = {
-  myfield: 'fooBar',
+  myField: 'fooBar',
   skipPassword: true,
 };
 
 ```
 
 ### forceCheckFieldNames __string[]__
-Allows to force Validation event if the Validator disabled:
+Allows to force Validation event if the Validator is disabled:
 - When any of passed fields value is `boolean`:
     * Validation performed if `Object[field]` === `true`.
     * Validation skipped if `Object[field]` === `false`.
@@ -65,31 +65,31 @@ Allows to force Validation event if the Validator disabled:
 ```js
 const validatorConfig = {
   minStrength: 4,
-  enabled:false, // Will validate the `data` object anyway
-  forceCheckFieldNames: ['forceValidate'], // if `data.validate` not exists 'data.myfield' is skipped during validation
+  enabled: false, // Will validate the `data` object anyway
+  forceCheckFieldNames: ['forceValidate'],
 }
 
 // Force validation
 const data = {
-  myfield: 'fooBar', // in schema "myfield":{"password": true} keyword.
+  myField: 'fooBar', // in schema "myField":{"password": true} keyword.
   forceValidate: true,
 };
 
 // Force validation, `forceValidate` is a string.
 const dataSkipOnString = {
-  myfield: 'fooBar',
+  myField: 'fooBar',
   forceValidate: 'fooStringValue',
 };
 
 // Validation NOT performed.
 const dataSkipOnBoolFalse = {
-  myfield: 'fooBar',
+  myField: 'fooBar',
   forceValidate: false,
 };
 
 // Validation NOT performed.
 const data = {
-  myfield: 'fooBar',
+  myField: 'fooBar',
 };
 ```
 

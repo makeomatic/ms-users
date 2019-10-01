@@ -315,6 +315,101 @@ describe('#register', function registerSuite() {
     });
   });
 
+  describe('validator skip/force check & config schema', function suite() {
+    describe('skip check', function skipCheckSuite() {
+      beforeEach(async function start() {
+        await global.startService.call(this, {
+          passwordValidator: {
+            enabled: true,
+            skipCheckFieldNames: ['skipPassword'],
+          },
+        });
+      });
+
+      it('skips validation if field exists', async function test() {
+        const opts = {
+          username: 'v@makeomatic.ru',
+          password: 'mynicepassword',
+          audience: 'matic.ninja',
+          skipPassword: true,
+        };
+
+        const result = await this.dispatch('users.register', opts);
+        assert(result.hasOwnProperty('jwt'));
+      });
+
+      afterEach(global.clearRedis);
+    });
+
+    describe('config forceCheckFieldNames/skipCheckFieldNames check', function skipForceSuite() {
+      it('forceCheckFieldNames', async function test() {
+        let err;
+
+        try {
+          await global.startService.call(this, {
+            passwordValidator: {
+              enabled: true,
+              forceCheckFieldNames: null,
+            },
+          });
+        } catch (e) {
+          err = e;
+        }
+
+        assert(err.status === 400, 'Must be HttpStatusError');
+        assert(err.message.includes('config validation failed: data.passwordValidator.forceCheckFieldNames should be array'));
+      });
+
+      it('skipCheckFieldNames', async function test() {
+        let err;
+
+        try {
+          await global.startService.call(this, {
+            passwordValidator: {
+              enabled: true,
+              skipCheckFieldNames: null,
+            },
+          });
+        } catch (e) {
+          err = e;
+        }
+
+        assert(err.status === 400, 'Must be HttpStatusError');
+        assert(err.message.includes('config validation failed: data.passwordValidator.skipCheckFieldNames should be array'));
+      });
+    });
+
+    describe('force check', function forceCheckTest() {
+      beforeEach(async function start() {
+        await global.startService.call(this, {
+          passwordValidator: {
+            enabled: false,
+            forceCheckFieldNames: ['forceCheck', 'fieldIsMissing'],
+          },
+        });
+      });
+      afterEach(global.clearRedis);
+
+      it('forces validation if field exists', async function test() {
+        const opts = {
+          username: 'v@makeomatic.ru',
+          password: 'mynicepassword',
+          audience: 'matic.ninja',
+          forceCheck: true,
+        };
+        let err;
+
+        try {
+          await this.dispatch('users.register', opts);
+        } catch (e) {
+          err = e;
+        }
+
+        assert(err.status === 400, 'Must be HttpStatusError');
+        assert.equal(err.message, 'register validation failed: data.password failed complexity check');
+      });
+    });
+  });
 
   describe('must check password strength', function suite() {
     beforeEach(async function start() {

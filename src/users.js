@@ -10,6 +10,9 @@ const conf = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
 
+const LoginGlobalIpRateLimiter = require('./utils/rate-limiters/login-global-ip');
+const LoginUserIpRateLimiter = require('./utils/rate-limiters/login-user-ip');
+
 /**
  * @namespace Users
  */
@@ -70,6 +73,12 @@ module.exports = class Users extends Microfleet {
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
       this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
+
+      const { loginGlobalIp, loginUserIp } = config.rateLimiters;
+      this.rateLimiters = {
+        loginGlobalIp: new LoginGlobalIpRateLimiter(redis, loginGlobalIp.interval, loginGlobalIp.limit),
+        loginUserIp: new LoginUserIpRateLimiter(redis, loginUserIp.interval, loginUserIp.limit),
+      };
     });
 
     this.on('plugin:start:http', (server) => {

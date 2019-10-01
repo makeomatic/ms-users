@@ -5,15 +5,14 @@ const moment = require('moment');
 const noop = require('lodash/noop');
 const is = require('is');
 const scrypt = require('../utils/scrypt');
-const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
 
 const { checkMFA } = require('../utils/mfa');
 const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
+const { RateLimitError } = require('../utils/sliding-window/limiter.js');
 
-const slidingLimiter = require('../utils/sliding-window/limiter.js');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
@@ -45,42 +44,48 @@ const getHMRDuration = (interval) => {
 };
 
 const globalLoginAttempts = async (ctx) => {
-  const { config, redis } = ctx;
-  const { keepGlobalLoginAttempts, globalLockAfterAttempts } = config;
-  const globalRemoteIpKey = ctx.globalRemoteIpKey = redisKey('gl!ip!ctr', ctx.remoteip);
+  const { service } = ctx;
+  const { rateLimiters } = service;
+  const { loginGlobalIp } = rateLimiters;
+  let token;
 
-  const { usage, reset, token } = await slidingLimiter
-    .reserve(redis, globalRemoteIpKey, keepGlobalLoginAttempts, globalLockAfterAttempts);
+  try {
+    ({ token } = await loginGlobalIp.reserve(ctx.remoteip));
+  } catch (err) {
+    if (err instanceof RateLimitError) {
+      const duration = getHMRDuration(err.reset);
+      const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
+      ctx.globalLoginAttempts = err.usage;
 
-  ctx.globalLoginAttempts = usage;
-  ctx.globalLoginToken = token;
+      throw new Errors.HttpStatusError(429, msg);
+    }
 
-  // globally scoped go next
-  if (!token) {
-    const duration = getHMRDuration(reset);
-    const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
-    throw new Errors.HttpStatusError(429, msg);
+    throw err;
   }
+  ctx.globalLoginAttemptToken = token;
 };
 
 const localLoginAttempts = async (ctx, data) => {
-  const { config, redis } = ctx;
-  const { keepLoginAttempts, lockAfterAttempts } = config;
+  const { service } = ctx;
+  const { rateLimiters } = service;
+  const { loginUserIp } = rateLimiters;
   const userId = data[USERS_ID_FIELD];
-  const remoteipKey = ctx.remoteipKey = redisKey(userId, 'ip', ctx.remoteip);
+  let token;
 
-  const { usage, reset, token } = await slidingLimiter
-    .reserve(redis, remoteipKey, keepLoginAttempts, lockAfterAttempts);
-
-  ctx.loginAttempts = usage;
-  ctx.localLoginToken = token;
-
-  // locally scoped login attempts are prioritized
-  if (!token) {
-    const duration = getHMRDuration(reset);
-    const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
-    throw new Errors.HttpStatusError(429, msg);
+  try {
+    ({ token } = await loginUserIp.reserve(userId, ctx.remoteip));
+  } catch (err) {
+    if (err instanceof RateLimitError) {
+      ctx.loginAttempts = err.usage;
+      const duration = getHMRDuration(err.reset);
+      const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
+      throw new Errors.HttpStatusError(429, msg);
+    }
+    throw err;
   }
+
+  ctx.loginUserId = userId;
+  ctx.localLoginAttemptToken = token;
 };
 
 /**
@@ -159,17 +164,20 @@ function getVerifyStrategy(data) {
 /**
  * Drops login limiter tokens
  */
-async function cancelLimiterTokens() {
-  const { redis } = this;
-
+async function cancelReservedLoginAttempts() {
   const {
-    globalRemoteIpKey, globalLoginToken,
-    remoteipKey, localLoginToken,
+    service,
+    remoteip,
+    loginUserId,
+    globalLoginAttemptToken,
+    localLoginAttemptToken,
   } = this;
 
+  const { loginGlobalIp, loginUserIp } = service.rateLimiters;
+
   const work = [
-    slidingLimiter.cancel(redis, globalRemoteIpKey, globalLoginToken),
-    slidingLimiter.cancel(redis, remoteipKey, localLoginToken),
+    loginGlobalIp.cancel(remoteip, globalLoginAttemptToken),
+    loginUserId ? loginUserIp.cancel(loginUserId, remoteip, localLoginAttemptToken) : noop,
   ];
   return Promise.all(work);
 }
@@ -222,12 +230,15 @@ function verifyInternalData(data) {
  */
 function login({ params, locals }) {
   const config = this.config.jwt;
+  const rateLimiterConfig = this.config.rateLimiters;
+  const { loginGlobalIp, loginUserIp } = rateLimiterConfig;
   const { redis, tokenManager } = this;
   const { isOAuthFollowUp, isDisposablePassword, isSSO, password } = params;
-  const { lockAfterAttempts, globalLockAfterAttempts, defaultAudience } = config;
+  const { defaultAudience } = config;
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
-  const verifyIp = remoteip && lockAfterAttempts > 0;
+  const rateLimiterEnabled = loginGlobalIp.limit > 0 || loginUserIp.limit > 0;
+  const verifyIp = remoteip && rateLimiterEnabled;
 
   // build context
   const ctx = {
@@ -246,8 +257,6 @@ function login({ params, locals }) {
     isDisposablePassword,
     isSSO,
     password,
-    lockAfterAttempts,
-    globalLockAfterAttempts,
     audience,
     remoteip,
     verifyIp,
@@ -263,7 +272,7 @@ function login({ params, locals }) {
     // different auth strategies
     .tap(getVerifyStrategy)
     // pass-through or drop counter
-    .tap(verifyIp ? cancelLimiterTokens : noop)
+    .tap(verifyIp ? cancelReservedLoginAttempts : noop)
     // do verifications on the logged in account
     .tap(isActive)
     .tap(isBanned)

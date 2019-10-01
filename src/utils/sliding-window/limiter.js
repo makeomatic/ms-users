@@ -1,53 +1,62 @@
-const toSeconds = (val) => Math.ceil(val / 1e6);
-const toMilliSec = (val) => val * 1000;
+const Errors = require('common-errors');
+const assert = require('assert');
+
+const { strictEqual } = require('assert');
+const assertInteger = require('../asserts/integer');
+const assertStringNotEmpty = require('../asserts/string-not-empty');
+
+const errorHelpers = Errors.helpers;
+const RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
 
 /**
- * Attempts to get 'token' in sliding window
- * Null result.token means that use limit for 'key' is exceeded
- * @param {ioredis} redis
- * @param {string} key
- * @param {int} interval - sliding window size in seconds
- * @param {int} limit - number of attempts/tokens available in 'interval'
- * @returns {Promise<{token? string, usage: int, reset?: int}>}
+ * Wrapper for redis sliding window script.
  */
-async function reserve(redis, key, interval, limit) {
-  const [token, usage, reset] = await redis.sWindowReserve(1, key, toMilliSec(interval), limit);
-  return {
-    token,
-    usage,
-    reset: toSeconds(reset),
-  };
+class SlidingWindowLimiter {
+  constructor(redis, interval, limit) {
+    assert.ok(redis, '`redis` required');
+
+    assertInteger(interval, '`interval` is invalid');
+    strictEqual(interval >= 0, true, '`interval` is invalid');
+
+    assertInteger(limit, '`limit` is invalid');
+    strictEqual(limit > 0, true, '`limit` is invalid');
+
+
+    this.redis = redis;
+    this.interval = interval * 1000;
+    this.limit = limit;
+  }
+
+  async reserve(key) {
+    assertStringNotEmpty(key, '`key` is invalid');
+    const { redis, interval, limit } = this;
+    const [usage, reset, token] = await redis.sWindowReserve(1, key, interval, limit);
+
+    if (!token || typeof token === 'undefined') {
+      throw new RateLimitError(reset, limit);
+    }
+
+    return { token, usage, limit };
+  }
+
+  async check(key) {
+    assertStringNotEmpty(key, '`key` is invalid');
+
+    const { redis } = this;
+    const { interval, limit } = this;
+    const [usage] = await redis.sWindowReserve(1, key, interval, limit, true);
+
+    return { usage, limit };
+  }
+
+  async cancel(key, token) {
+    assertStringNotEmpty(key, '`key` is invalid');
+    assertInteger(token, '`token` is invalid');
+
+    const { redis } = this;
+    return redis.sWindowCancel(1, key, token);
+  }
 }
 
-/**
- * Returns {usage:int, reset:int} for provided 'key'
- * @param {ioredis} redis
- * @param {string} key
- * @param {int} interval - sliding window size in seconds
- * @param {int} limit - number of attempts/tokens available in 'interval'
- * @returns {Promise<{usage: int, reset?: int}>}
- */
-async function check(redis, key, interval, limit) {
-  const [usage, reset] = await redis.sWindowCheck(1, key, toMilliSec(interval), limit);
-  return {
-    usage,
-    reset: toSeconds(reset),
-  };
-}
-
-/**
- * Removes token/attempt from sliding window 'key'
- * @param {ioredis} redis
- * @param {string} key
- * @param {string} token
- * @returns {Promise<*>}
- */
-async function cancel(redis, key, token) {
-  return redis.sWindowCancel(1, key, token);
-}
-
-module.exports = {
-  reserve,
-  check,
-  cancel,
-};
+SlidingWindowLimiter.RateLimitError = RateLimitError;
+module.exports = SlidingWindowLimiter;

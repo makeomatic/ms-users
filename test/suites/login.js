@@ -148,16 +148,11 @@ describe('#login', function loginSuite() {
     });
 
     it('leave one attempt after 4 invalid login attemps and final success', () => {
-      const limiter = require('../../src/utils/sliding-window/limiter');
-      const key = require('../../src/utils/key');
-
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
       const userWithIPAndValidPassword = { ...userWithRemoteIP, ...userWithValidPassword };
 
       const promises = [];
-      const { redis } = this.users;
-      const { jwt } = this.users.config;
-      const { keepLoginAttempts, lockAfterAttempts } = jwt;
+      const { rateLimiters } = this.users;
 
       times(4, () => {
         promises.push((
@@ -178,8 +173,7 @@ describe('#login', function loginSuite() {
           .reflect()
           .then(inspectPromise(true))
           .then(async ({ user: loginUser }) => {
-            const localBlockKey = key(loginUser.id, 'ip', userWithRemoteIP.remoteip);
-            const checkResult = await limiter.check(redis, localBlockKey, keepLoginAttempts, lockAfterAttempts);
+            const checkResult = await rateLimiters.loginUserIp.check(loginUser.id, userWithRemoteIP.remoteip);
             expect(checkResult.usage).to.be.eq(4);
           })
       ));
@@ -213,16 +207,11 @@ describe('#login', function loginSuite() {
     });
 
     it('leave one attempt after 14 invalid login attemps from 1 ip and final success', () => {
-      const limiter = require('../../src/utils/sliding-window/limiter');
-      const key = require('../../src/utils/key');
-
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
       const userWithIPAndValidPassword = { ...userWithRemoteIP, ...userWithValidPassword };
 
       const promises = [];
-      const { redis } = this.users;
-      const { jwt } = this.users.config;
-      const { keepGlobalLoginAttempts, globalLockAfterAttempts } = jwt;
+      const { rateLimiters } = this.users;
 
       times(14, () => {
         promises.push((
@@ -242,8 +231,7 @@ describe('#login', function loginSuite() {
           .reflect()
           .then(inspectPromise(true))
           .then(async () => {
-            const globalBlockKey = key('gl!ip!ctr', userWithRemoteIP.remoteip);
-            const checkResult = await limiter.check(redis, globalBlockKey, keepGlobalLoginAttempts, globalLockAfterAttempts);
+            const checkResult = await rateLimiters.loginGlobalIp.check(userWithRemoteIP.remoteip);
             expect(checkResult.usage).to.be.eq(14);
           })
       ));

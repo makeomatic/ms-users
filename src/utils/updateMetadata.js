@@ -1,15 +1,16 @@
 /* eslint-disable no-mixed-operators */
-const is = require('is');
 const { HttpStatusError } = require('common-errors');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
+
 const { USERS_METADATA, USERS_AUDIENCE } = require('../constants.js');
 
 const JSONStringify = (data) => JSON.stringify(data);
 const JSONParse = (data) => JSON.parse(data);
 const has = Object.prototype.hasOwnProperty;
 
-function callUpdateMetadataScript(redis, userId, ops) {
+function updateMetadataScript(userId, ops) {
+  const { redis } = this;
   const audienceKeyTemplate = redisKey('{id}', USERS_AUDIENCE);
   const metaDataTemplate = redisKey('{id}', USERS_METADATA, '{audience}');
 
@@ -20,18 +21,17 @@ function callUpdateMetadataScript(redis, userId, ops) {
 // Stabilizes Lua script response
 function mapUpdateResponse(jsonStr) {
   const decodedData = JSONParse(jsonStr);
-  const result = [];
 
-  decodedData.forEach((metaResult) => {
+  const result = decodedData.map((metaResult) => {
     const opResult = {};
     for (const [key, ops] of Object.entries(metaResult)) {
-      if (ops.length !== undefined && ops.length === 1) {
+      if (Array.isArray(ops) && ops.length === 1) {
         [opResult[key]] = ops;
       } else {
         opResult[key] = ops;
       }
     }
-    result.push(opResult);
+    return opResult;
   });
 
   return result.length > 1 ? result : result[0];
@@ -57,18 +57,17 @@ function prepareOps(ops) {
  * @return {Promise}
  */
 async function updateMetadata(opts) {
-  const { redis } = this;
   const {
     userId, audience, metadata, script,
   } = opts;
-  const audiences = is.array(audience) ? audience : [audience];
+  const audiences = Array.isArray(audience) ? audience : [audience];
 
   let scriptOpts = {
     audiences,
   };
 
   if (metadata) {
-    const rawMetaOps = is.array(metadata) ? metadata : [metadata];
+    const rawMetaOps = Array.isArray(metadata) ? metadata : [metadata];
     if (rawMetaOps.length !== audiences.length) {
       throw new HttpStatusError(400, 'audiences must match metadata entries');
     }
@@ -76,7 +75,7 @@ async function updateMetadata(opts) {
     const metaOps = rawMetaOps.map((opBlock) => prepareOps(opBlock));
     scriptOpts = { metaOps, ...scriptOpts };
 
-    const updateResult = await callUpdateMetadataScript(redis, userId, scriptOpts);
+    const updateResult = await updateMetadataScript.call(this, userId, scriptOpts);
     return mapUpdateResponse(updateResult);
   }
 
@@ -92,10 +91,9 @@ async function updateMetadata(opts) {
   });
 
   scriptOpts = { scripts, ...scriptOpts };
-  const updateResult = await callUpdateMetadataScript(redis, userId, scriptOpts);
+  const updateResult = await updateMetadataScript.call(this, userId, scriptOpts);
   return JSONParse(updateResult);
 }
 
-updateMetadata.callUpdateMetadataScript = callUpdateMetadataScript;
 updateMetadata.prepareOps = prepareOps;
 module.exports = updateMetadata;

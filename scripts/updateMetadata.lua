@@ -1,22 +1,38 @@
+-- script replicates commands instead of own body
+-- call of HMSET command is determined as 'non deterministic command'
+-- and redis refuses to run it without this.
+redis.replicate_commands()
+
 local audienceKeyTemplate = KEYS[1]
 local metaDataTemplate = KEYS[2]
 local Id = ARGV[1]
 local updateOptsJson = ARGV[2]
 
-redis.replicate_commands()
+local function isValidString(val)
+  if type(val) == 'string' and string.len(val) > 0 then
+    return true
+  end
+  return false
+end
+
+assert(isValidString(audienceKeyTemplate), 'incorrect `audienceKeyTemplate` key')
+assert(isValidString(metaDataTemplate), 'incorrect `metaDataTemplate` key')
+assert(isValidString(Id), 'incorrect `id` argument')
+assert(isValidString(updateOptsJson), 'incorrect `updateJson` argument')
 
 local updateOpts = cjson.decode(updateOptsJson)
 
 local function loadScript(code, environment)
   if setfenv and loadstring then
     local f = assert(loadstring(code))
-    setfenv(f,environment)
+    setfenv(f, environment)
     return f
   else
-    return assert(load(code, nil,"t",environment))
+    return assert(load(code, nil, "t", environment))
   end
 end
 
+-- creates array with unique items from passed arrays
 local function tablesUniqueItems(...)
   local args = {...}
   local tableWithUniqueItems = {}
@@ -28,6 +44,7 @@ local function tablesUniqueItems(...)
   return tableWithUniqueItems
 end
 
+-- create key from passed template, id and audience
 local function makeKey (template, id, audience)
   local str = template:gsub('{id}', id, 1)
   if audience ~= nil then
@@ -39,6 +56,9 @@ end
 --
 -- available ops definition
 --
+
+-- $set: { field: value, field2: value, field3: value }
+-- { HMSETResponse }
 local function opSet(metaKey, args)
   local setArgs = {}
   local result = {}
@@ -53,14 +73,18 @@ local function opSet(metaKey, args)
   return result
 end
 
+-- $remove: [ 'field', 'field2' ]
+-- { deletedFieldsCount } - if no fields deleted or there was no such fields counter not incrementing
 local function opRemove(metaKey, args)
   local result = 0;
-  for i, field in pairs(args) do
+  for _, field in pairs(args) do
     result = result + redis.call("HDEL", metaKey, field)
   end
   return result
 end
 
+-- $incr: { field: incrValue, field2: incrValue }
+-- { field: newValue }
 local function opIncr(metaKey, args)
   local result = {}
   for field, incrVal in pairs(args) do
@@ -81,61 +105,91 @@ local metaOps = {
 --
 local scriptResult = {}
 
+-- get list of keys to update
+-- generate them from passed audiences and metaData key template
 local keysToProcess = {};
-for i, audience in ipairs(updateOpts.audiences) do
+for index, audience in ipairs(updateOpts.audiences) do
   local key = makeKey(metaDataTemplate, Id, audience)
-  table.insert(keysToProcess, i, key);
+  table.insert(keysToProcess, index, key);
 end
 
+-- process meta update operations
 if updateOpts.metaOps then
-  for i, op in ipairs(updateOpts.metaOps) do
-    local targetOpKey = keysToProcess[i]
+  -- iterate over metadata hash field
+  for index, op in ipairs(updateOpts.metaOps) do
+    local targetOpKey = keysToProcess[index]
     local metaProcessResult = {};
 
+    -- iterate over commands and apply them
     for opName, opArg in pairs(op) do
       local processFn = metaOps[opName];
 
       if processFn == nil then
         return redis.error_reply("Unsupported command:" .. opName)
       end
+
       if type(opArg) ~= "table" then
-        return redis.error_reply("Args for ".. opName .." must be and array")
+        return redis.error_reply("Args for " .. opName .. " must be and array")
       end
 
+      -- store command execution result
       metaProcessResult[opName] = processFn(targetOpKey, opArg)
     end
+
+    -- store execution result of commands block
     table.insert(scriptResult, metaProcessResult)
   end
 
+-- process passed scripts
 elseif updateOpts.scripts then
-  local env = {};
-  -- allow read access to this script scope
-  setmetatable(env,{__index=_G})
+  -- iterate over scripts and execute them in sandbox
+  for _, script in pairs(updateOpts.scripts) do
+    local env = {};
 
-  for i, script in pairs(updateOpts.scripts) do
+    -- allow read access to this script scope
+    -- env recreated for each script to avoid scope mixing
+    setmetatable(env, { __index=_G })
+
+    -- override params to be sure that script works like it was executed like from `redis.eval` command
     env.ARGV = script.argv
     env.KEYS = keysToProcess
+
+    -- evaluate script and bind to custom env
     local fn = loadScript(script.lua, env)
+    -- run script and save result
     scriptResult[script.name] = fn()
   end
 
 end
 
+--
+-- Audience tracking
+--
+
 local audienceKey = makeKey(audienceKeyTemplate, Id)
+-- get saved audience list
 local audiences = redis.call("SMEMBERS", audienceKey)
-local processedAudiences = updateOpts.audiences
-local uniqueAudiences = tablesUniqueItems(audiences, processedAudiences)
 
+-- create list containing saved and possibly new audiences
+local uniqueAudiences = tablesUniqueItems(audiences, updateOpts.audiences)
+
+-- iterate over final audience list
 for _, audience in pairs(uniqueAudiences) do
+  -- get size of metaKey
   local metaKey = makeKey(metaDataTemplate, Id, audience)
-  local dataLen = redis.call("HLEN", metaKey)
+  local keyLen = redis.call("HLEN", metaKey)
 
-  if (dataLen > 0) then
+  -- if key has data add it to the audience set
+  -- set members unique, so duplicates not appear
+
+  -- if key empty or not exists (HLEN will return 0)
+  -- delete audience from list
+  if (keyLen > 0) then
     redis.call("SADD", audienceKey, audience)
   else
     redis.call("SREM", audienceKey, audience)
   end
 end
 
-
+-- respond with json encoded string
 return cjson.encode(scriptResult)

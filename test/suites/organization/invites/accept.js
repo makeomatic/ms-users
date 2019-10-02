@@ -30,9 +30,7 @@ describe('#accept invite organization', function registerSuite() {
       inviteToken: this.organization.invites[0].context.token.secret,
     };
 
-    await this.dispatch('users.organization.invites.accept', opts)
-      .reflect()
-      .then(inspectPromise(true));
+    await this.dispatch('users.organization.invites.accept', opts);
   });
 
   it('must return organization not found error', async function test() {

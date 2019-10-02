@@ -9,6 +9,7 @@ const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
 const conf = require('./config');
 const get = require('./utils/get-value');
+const attachPasswordKeyword = require('./utils/passwordValidator.js');
 
 /**
  * @namespace Users
@@ -123,6 +124,10 @@ module.exports = class Users extends Microfleet {
       });
 
       return this.dlock;
+    });
+
+    this.addConnector(ConnectorsTypes.essential, () => {
+      attachPasswordKeyword(this);
     });
 
     // init account seed

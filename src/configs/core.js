@@ -73,6 +73,16 @@ exports.logger = {
   },
 };
 
+exports.passwordValidator = {
+  enabled: false,
+  minStrength: 4, // 0..4
+  forceCheckFieldNames: ['checkPassword'],
+  skipCheckFieldNames: ['skipPassword'],
+  inputFieldNames: [
+    'username',
+  ],
+};
+
 /**
  * Local schemas for validation
  * @type {Array}

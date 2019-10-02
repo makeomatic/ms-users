@@ -29,8 +29,6 @@ describe('#organization members metadata', function registerSuite() {
     };
 
     return this.dispatch('users.organization.getMetadata', opts)
-      .reflect()
-      .then(inspectPromise(true))
       .then((response) => {
         assert.ok(response.data.attributes);
         assert.deepEqual(response.data.attributes, this.organization.metadata);

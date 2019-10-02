@@ -7,6 +7,7 @@
     "deleteInactiveAccounts",
     "jwt",
     "validation",
+    "passwordValidator",
     "server",
     "mailer",
     "pwdReset",
@@ -273,6 +274,50 @@
               "type": "object"
             }
           ]
+        }
+      }
+    },
+    "passwordValidator": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "minStrength",
+        "inputFieldNames"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "minStrength": {
+          "type": "integer",
+          "default" : 4,
+          "minimum": 0,
+          "maximum": 4
+        },
+        "forceCheckFieldNames": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "skipCheckFieldNames": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "inputFieldNames": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
         }
       }
     },

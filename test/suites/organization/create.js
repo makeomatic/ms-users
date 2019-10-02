@@ -38,17 +38,14 @@ describe('#create organization', function registerSuite() {
       members: this.userNames.slice(0, 2),
     };
 
-    await this.dispatch('users.organization.create', params)
-      .reflect()
-      .then(inspectPromise(true))
-      .then((response) => {
-        const createdOrganization = response.data.attributes;
-        assert(createdOrganization.name === params.name);
-        assert(createdOrganization.metadata.description === params.metadata.description);
-        assert(createdOrganization.members.length === 1);
-        assert.ok(createdOrganization.id);
-        assert(createdOrganization.active === false);
-      });
+    const response = await this.dispatch('users.organization.create', params);
+
+    const createdOrganization = response.data.attributes;
+    assert(createdOrganization.name === params.name);
+    assert(createdOrganization.metadata.description === params.metadata.description);
+    assert(createdOrganization.members.length === 1);
+    assert.ok(createdOrganization.id);
+    assert(createdOrganization.active === false);
 
     const [registeredMember] = await sendInviteMailSpy.returnValues[0];
     const registeredMemberPassword = generatePasswordSpy.firstCall.args[0];

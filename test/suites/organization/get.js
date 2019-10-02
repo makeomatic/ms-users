@@ -26,8 +26,6 @@ describe('#get organization', function registerSuite() {
   it('must be able to get organization', async function test() {
     const { invites, ...organization } = this.organization;
     return this.dispatch('users.organization.get', { organizationId: this.organization.id })
-      .reflect()
-      .then(inspectPromise(true))
       .then((response) => {
         assert.deepEqual(response.data.attributes, organization);
       });

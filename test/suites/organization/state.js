@@ -28,8 +28,6 @@ describe('#switch state organization', function registerSuite() {
     };
 
     return this.dispatch('users.organization.state', { ...opts, active: true })
-      .reflect()
-      .then(inspectPromise(true))
       .then((response) => {
         assert(response.data.attributes.active);
       });

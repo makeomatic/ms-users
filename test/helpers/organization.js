@@ -1,7 +1,6 @@
 const faker = require('faker');
 const Promise = require('bluebird');
 const times = require('lodash/times');
-const { inspectPromise } = require('@makeomatic/deploy');
 
 async function createMembers(totalUsers = 1, register = false) {
   this.userNames = [];
@@ -36,9 +35,8 @@ exports.createOrganization = async function createOrganization(customOpts = {}, 
     members: this.userNames.slice(0, totalUsers),
     ...customOpts,
   };
-  const organization = await this.dispatch('users.organization.create', params)
-    .reflect()
-    .then(inspectPromise(true));
+
+  const organization = await this.dispatch('users.organization.create', params);
 
   this.organization = {
     ...organization.data.attributes,

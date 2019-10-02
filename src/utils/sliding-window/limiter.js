@@ -8,6 +8,13 @@ const assertStringNotEmpty = require('../asserts/string-not-empty');
 const errorHelpers = Errors.helpers;
 const RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
 
+const getHiresTimestamp = () => {
+  const hrtime = process.hrtime();
+  const microTimestamp = (new Date()).getTime() * 1e3;
+  const hrTime = Math.ceil(hrtime[1] * 1e-3);
+  return microTimestamp + hrTime;
+};
+
 /**
  * Wrapper for redis sliding window script.
  */
@@ -30,7 +37,7 @@ class SlidingWindowLimiter {
   async reserve(key) {
     assertStringNotEmpty(key, '`key` is invalid');
     const { redis, interval, limit } = this;
-    const [usage, reset, token] = await redis.sWindowReserve(1, key, interval, limit);
+    const [usage, reset, token] = await redis.sWindowReserve(1, key, getHiresTimestamp(), interval, limit);
 
     if (!token || typeof token === 'undefined') {
       throw new RateLimitError(reset, limit);
@@ -44,7 +51,7 @@ class SlidingWindowLimiter {
 
     const { redis } = this;
     const { interval, limit } = this;
-    const [usage, reset] = await redis.sWindowReserve(1, key, interval, limit, true);
+    const [usage, reset] = await redis.sWindowReserve(1, key, getHiresTimestamp(), interval, limit, true);
 
     return { usage, limit, reset };
   }

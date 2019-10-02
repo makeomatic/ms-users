@@ -1,35 +1,37 @@
--- requires Redis >= 3.2
-redis.replicate_commands()
-
 local key = KEYS[1]
 
-local interval = tonumber(ARGV[1]) -- milliseconds
-local limit = tonumber(ARGV[2]) -- number
-local check = ARGV[3]
+local currentTime = tonumber(ARGV[1]) -- microseconds
+local interval = tonumber(ARGV[2]) -- milliseconds
+local limit = tonumber(ARGV[3]) -- number
+local check = ARGV[4]
+
+local function isValidNumber(val)
+  if (type(val) == 'number' and val >= 0) then
+    return true
+  end
+  return false
+end
 
 assert(type(key) == 'string' and string.len(key) > 0, 'incorrect `key` argument')
-assert(type(interval) == 'number' and interval >= 0, 'incorrect `interval` argument')
-assert(type(limit) == 'number' and limit >= 0, 'incorrect `limit` argument')
+assert(isValidNumber(currentTime), 'incorrect `currentTime` argument')
+assert(isValidNumber(interval), 'incorrect `interval` argument')
+assert(isValidNumber(limit), 'incorrect `limit` argument')
 
 local keyType = redis.call('TYPE', key).ok
 assert(keyType == 'none' or keyType == 'zset', 'key ' .. key .. ' should be ZSET or none')
 
-local redisTime = redis.call("TIME")
-
--- work with microtimestamp
-local microInterval = interval * 1e3;
-local now = redisTime[1] * 1e6 + redisTime[2]
-local slidingWindowStart = now - microInterval
+local microInterval = interval * 1000
+local slidingWindowStart = currentTime - microInterval
 
 local function getInfoWithValue(usage, additionalValue)
-  local oldest = tonumber(redis.call("ZRANGEBYSCORE", key, slidingWindowStart, "+inf", "LIMIT", limit - usage, 1)[1]) or 0
+  local oldest = tonumber(redis.call("ZRANGEBYSCORE", key, slidingWindowStart, "+inf", "LIMIT", 1, 1)[1]) or 0
 
   if oldest > 0 then
-    local reset = oldest + microInterval - now
+    local reset = oldest + microInterval - currentTime
     if reset < 0 then
       reset = 0
     end
-    return {usage, math.ceil(reset/1e6), additionalValue}
+    return {usage, math.ceil(reset / 1e3), additionalValue}
   end
 
   return {usage, 0, additionalValue}
@@ -48,8 +50,8 @@ if usage >= limit then
   return getInfoWithValue(usage, 0)
 end
 
-redis.call("ZADD", key, "NX", now, now)
+redis.call("ZADD", key, "NX", currentTime, currentTime)
 redis.call("PEXPIRE", key, interval)
 
 -- return `now` as token and usage information
-return getInfoWithValue(usage+1, now)
+return getInfoWithValue(usage+1, currentTime)

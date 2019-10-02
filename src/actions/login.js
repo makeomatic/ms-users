@@ -39,7 +39,7 @@ const getHMRDuration = (interval) => {
   if (interval === 0) {
     return 'forever';
   }
-  const duration = moment().add(interval, 'seconds').toNow(true);
+  const duration = moment().add(interval, 'milliseconds').toNow(true);
   return `for the next ${duration}`;
 };
 

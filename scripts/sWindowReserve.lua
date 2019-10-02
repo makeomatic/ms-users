@@ -7,7 +7,7 @@ local interval = tonumber(ARGV[1]) -- milliseconds
 local limit = tonumber(ARGV[2]) -- number
 local check = ARGV[3]
 
-assert(type(key) == 'string', 'incorrect `key` argument')
+assert(type(key) == 'string' and string.len(key) > 0, 'incorrect `key` argument')
 assert(type(interval) == 'number' and interval >= 0, 'incorrect `interval` argument')
 assert(type(limit) == 'number' and limit >= 0, 'incorrect `limit` argument')
 

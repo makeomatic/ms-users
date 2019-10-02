@@ -19,7 +19,7 @@ class SlidingWindowLimiter {
     strictEqual(interval >= 0, true, '`interval` is invalid');
 
     assertInteger(limit, '`limit` is invalid');
-    strictEqual(limit > 0, true, '`limit` is invalid');
+    strictEqual(limit >= 0, true, '`limit` is invalid');
 
 
     this.redis = redis;
@@ -44,9 +44,9 @@ class SlidingWindowLimiter {
 
     const { redis } = this;
     const { interval, limit } = this;
-    const [usage] = await redis.sWindowReserve(1, key, interval, limit, true);
+    const [usage, reset] = await redis.sWindowReserve(1, key, interval, limit, true);
 
-    return { usage, limit };
+    return { usage, limit, reset };
   }
 
   async cancel(key, token) {

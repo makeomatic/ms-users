@@ -1,3 +1,15 @@
+# [11.4.0](https://github.com/makeomatic/ms-users/compare/v11.3.1...v11.4.0) (2019-10-03)
+
+
+### Bug Fixes
+
+* upgrade deps, ensure schemas are valid ([5b29710](https://github.com/makeomatic/ms-users/commit/5b29710))
+
+
+### Features
+
+* optional password strength checks ([#429](https://github.com/makeomatic/ms-users/issues/429)) ([63d8ffb](https://github.com/makeomatic/ms-users/commit/63d8ffb))
+
 ## [11.3.1](https://github.com/makeomatic/ms-users/compare/v11.3.0...v11.3.1) (2019-09-18)
 
 

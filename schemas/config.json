@@ -73,8 +73,8 @@
       "properties": {
         "length": {
           "type": "integer",
-          "min": 6,
-          "max": 30
+          "minimum": 6,
+          "maximum": 30
         },
         "memorable": {
           "type": "boolean"
@@ -500,15 +500,24 @@
           "default": false
         },
         "token": {
-          "hashingFunction": {
-            "type": "string"
-          },
-          "secret": {
-            "type": "string"
-          },
-          "issuer": {
-            "type": "string",
-            "minLength": 1
+          "type": "object",
+          "required": [
+            "hashingFunction",
+            "secret",
+            "issuer"
+          ],
+          "properties": {
+            "hashingFunction": {
+              "type": "string"
+            },
+            "secret": {
+              "type": "string"
+            },
+            "issuer": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
           }
         },
         "providers": {

@@ -83,3 +83,5 @@ Each of the classes will take a separate configuration from `config.rateLimiters
 * Add Sliding Window Utility tests
 * Alternate current `login` tests to support new configurations and check some additional cases.
 
+## BTW Migrations rename
+Decided to rename migration files into format: `$migrationFinalVer_$migrationName` for easier navigation.

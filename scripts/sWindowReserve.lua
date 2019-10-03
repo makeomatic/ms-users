@@ -12,13 +12,9 @@ local function isValidNumber(val)
   return false
 end
 
-assert(type(key) == 'string' and string.len(key) > 0, 'incorrect `key` argument')
 assert(isValidNumber(currentTime), 'incorrect `currentTime` argument')
 assert(isValidNumber(interval), 'incorrect `interval` argument')
 assert(isValidNumber(limit), 'incorrect `limit` argument')
-
-local keyType = redis.call('TYPE', key).ok
-assert(keyType == 'none' or keyType == 'zset', 'key ' .. key .. ' should be ZSET or none')
 
 local microInterval = interval * 1000
 local slidingWindowStart = currentTime - microInterval

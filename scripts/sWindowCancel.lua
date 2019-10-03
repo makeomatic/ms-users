@@ -8,7 +8,6 @@ local function isValidString(val)
   return false
 end
 
-assert(isValidString(key), 'incorrect `key` key')
 assert(isValidString(token), 'incorrect `token` argument')
 
 local keyType = redis.call('TYPE', key).ok

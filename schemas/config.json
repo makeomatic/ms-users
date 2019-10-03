@@ -13,7 +13,8 @@
     "pwdReset",
     "hooks",
     "token",
-    "phone"
+    "phone",
+    "rateLimiters"
   ],
   "properties": {
     "deleteInactiveAccounts": {
@@ -77,35 +78,61 @@
       "properties": {
         "loginUserIp": {
           "type": "object",
-          "required": [
-            "limit", "interval"
-          ],
           "properties": {
+            "if": {
+              "properties": { "enabled": {
+                "const": true
+              }}
+            },
+            "then": {
+              "required": [ "enabled", "limit", "interval" ]
+            },
+            "else": {
+              "required": [
+                "enabled"
+              ]
+            },
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
             "limit": {
               "type": "integer",
-              "min": 0,
-              "default": 0
+              "min": 1
             },
             "interval": {
               "type": "integer",
-              "min": 0,
-              "default": 0
+              "min": 1
             }
           }
         },
         "loginGlobalIp": {
           "type": "object",
-          "required": [
-            "limit", "interval"
-          ],
           "properties": {
+            "if": {
+              "properties": { "enabled": {
+                "const": true
+              }}
+            },
+            "then": {
+              "required": [ "enabled", "limit", "interval" ]
+            },
+            "else": {
+              "required": [
+                "enabled"
+              ]
+            },
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
             "limit": {
               "type": "integer",
-              "min": 0
+              "min": 1
             },
             "interval": {
               "type": "integer",
-              "min": 0
+              "min": 1
             }
           }
         }

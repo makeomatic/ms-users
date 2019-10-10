@@ -15,8 +15,6 @@ local function isValidString(val)
   return false
 end
 
-assert(isValidString(audienceKeyTemplate), 'incorrect `audienceKeyTemplate` key')
-assert(isValidString(metaDataTemplate), 'incorrect `metaDataTemplate` key')
 assert(isValidString(Id), 'incorrect `id` argument')
 assert(isValidString(updateOptsJson), 'incorrect `updateJson` argument')
 

@@ -95,7 +95,7 @@ Decided to rename migration files into format: `$migrationFinalVer_$migrationNam
 * Удалять все попытки для UserId со всех IP и пары userid-ip
 * Должна брать во внимание MFA попытки входа.
 
-До созвона 09.09.09 было получено [тз](./login_block_sliding_window/tz.md) От Саши
+До созвона 09.09.09 было получено [тз](login_block_sliding_window/tz.md) От Саши
 
 После созвона с Сашей было решено:
 * Изменить алгоритм плавающего окна

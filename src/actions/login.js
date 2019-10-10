@@ -10,7 +10,9 @@ const isBanned = require('../utils/is-banned');
 
 const { checkMFA } = require('../utils/mfa');
 const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
-const { RateLimitError } = require('../utils/sliding-window/limiter.js');
+
+const UserIpRateLimiter = require('../utils/rate-limiters/user-ip-rate-limiter');
+const { RateLimitError } = require('../utils/sliding-window/redis/limiter');
 
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
@@ -42,71 +44,29 @@ const getHMRDuration = (interval) => {
   return `for the next ${duration}`;
 };
 
-const globalLoginAttempts = async (ctx) => {
-  const { service } = ctx;
-  const { rateLimiters } = service;
-  const { loginGlobalIp } = rateLimiters;
+async function checkLoginAttempts(data) {
+  const { loginIpRateLimiter, remoteip } = this;
 
-  const { token } = await loginGlobalIp
-    .reserve(ctx.remoteip)
-    .catch((err) => {
-      if (err instanceof RateLimitError) {
-        const duration = getHMRDuration(err.reset);
-        const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
-
-        ctx.globalLoginAttempts = err.usage;
-        throw new Errors.HttpStatusError(429, msg);
-      }
-
-      throw err;
-    });
-
-  ctx.globalLoginAttemptToken = token;
-};
-
-const localLoginAttempts = async (ctx, data) => {
-  const { service } = ctx;
-  const { rateLimiters } = service;
-  const { loginUserIp } = rateLimiters;
   const userId = data[USERS_ID_FIELD];
 
-  const { token } = await loginUserIp
-    .reserve(userId, ctx.remoteip)
-    .catch((err) => {
-      if (err instanceof RateLimitError) {
-        const duration = getHMRDuration(err.reset);
-        const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
+  if (remoteip) {
+    const { token } = await loginIpRateLimiter
+      .reserveForUserIp(userId, this.remoteip)
+      .catch((err) => {
+        if (err instanceof RateLimitError) {
+          const duration = getHMRDuration(err.reset);
+          const msg = `You are locked from making login attempts ${duration} from ipaddress '${this.remoteip}'`;
 
-        ctx.loginAttempts = err.usage;
-        throw new Errors.HttpStatusError(429, msg);
-      }
+          this.loginAttempts = err.usage;
+          throw new Errors.HttpStatusError(429, msg);
+        }
 
-      throw err;
-    });
+        throw err;
+      });
 
-  ctx.loginUserId = userId;
-  ctx.localLoginAttemptToken = token;
-};
-
-/**
- * Checks if login attempts from remote ip have exceeded allowed
- * limits
- */
-async function checkLoginAttempts(dataOrError) {
-  const { globalVerifyIp, localVerifyIp } = this;
-  const promises = [];
-
-  // if global rate limiter enabled
-  if (globalVerifyIp) {
-    promises.push(globalLoginAttempts(this));
+    this.loginUserId = userId;
+    this.localLoginAttemptToken = token;
   }
-
-  // if local rate limiter enabled
-  if (localVerifyIp && ((dataOrError instanceof Error) === false)) {
-    promises.push(localLoginAttempts(this, dataOrError));
-  }
-
-  await Promise.all(promises);
 }
 
 /**
@@ -171,27 +131,21 @@ function getVerifyStrategy(data) {
 /**
  * Drops login limiter tokens
  */
-async function cancelReservedLoginAttempts() {
+async function cleanupRateLimits() {
   const {
-    service,
     remoteip,
     loginUserId,
-    globalVerifyIp,
-    localVerifyIp,
+    loginIpRateLimiter,
   } = this;
-
-  const { loginGlobalIp, loginUserIp } = service.rateLimiters;
 
   const work = [];
 
-  if (globalVerifyIp) {
-    const { globalLoginAttemptToken } = this;
-    work.push(loginGlobalIp.cancel(remoteip, globalLoginAttemptToken));
-  }
+  if (remoteip) {
+    work.push(loginIpRateLimiter.cleanupForIp(remoteip));
 
-  if (localVerifyIp && (loginUserId != null && typeof loginUserId !== 'undefined')) {
-    const { localLoginAttemptToken } = this;
-    work.push(loginUserIp.cancel(loginUserId, remoteip, localLoginAttemptToken));
+    if ((loginUserId != null && typeof loginUserId !== 'undefined')) {
+      work.push(loginIpRateLimiter.cleanupForUserIp(loginUserId, remoteip));
+    }
   }
 
   return Promise.all(work);
@@ -243,18 +197,17 @@ function verifyInternalData(data) {
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
-function login({ params, locals }) {
+async function login({ params, locals }) {
   const config = this.config.jwt;
+
   const rateLimiterConfig = this.config.rateLimiters;
-  const { loginGlobalIp, loginUserIp } = rateLimiterConfig;
   const { redis, tokenManager } = this;
   const { isOAuthFollowUp, isDisposablePassword, isSSO, password } = params;
   const { defaultAudience } = config;
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
 
-  const globalVerifyIp = remoteip && loginGlobalIp.enabled;
-  const localVerifyIp = remoteip && loginUserIp.enabled;
+  const loginIpRateLimiter = new UserIpRateLimiter(this.redis, rateLimiterConfig.loginGlobalIp, rateLimiterConfig.loginUserIp)
 
   // build context
   const ctx = {
@@ -266,6 +219,7 @@ function login({ params, locals }) {
     // counters
     loginAttempts: 0,
     globalLoginAttempts: 0,
+    loginIpRateLimiter,
 
     // business logic params
     params,
@@ -275,21 +229,34 @@ function login({ params, locals }) {
     password,
     audience,
     remoteip,
-    globalVerifyIp,
-    localVerifyIp,
   };
+
+  if (remoteip) {
+    await loginIpRateLimiter
+      .reserveForIp(remoteip)
+      .catch((err) => {
+        if (err instanceof RateLimitError) {
+          const duration = getHMRDuration(err.reset);
+          const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
+
+          ctx.globalLoginAttempts = err.usage;
+          throw new Errors.HttpStatusError(429, msg);
+        }
+
+        throw err;
+      });
+  }
 
   return Promise
     .bind(ctx, locals.internalData)
     // verify that locals.internalData exists
     .tap(verifyInternalData)
-    // record global login attempt even on 404
-    .tapCatch(checkLoginAttempts)
+    // check login attempts
     .tap(checkLoginAttempts)
     // different auth strategies
     .tap(getVerifyStrategy)
     // pass-through or drop counter
-    .tap(cancelReservedLoginAttempts)
+    .tap(cleanupRateLimits)
     // do verifications on the logged in account
     .tap(isActive)
     .tap(isBanned)

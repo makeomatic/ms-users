@@ -13,104 +13,93 @@ describe('#sliding-window-limiter', function suite() {
 
   after(global.clearRedis);
 
-  describe.skip('lua param validation', function luaSuite() {
-    describe('currentTime', function luaParamCurrentTimeSuite() {
-      const tests = [
-        {
-          name: 'empty',
-          args: [1, 'foo'],
-        }, {
-          name: 'negative',
-          args: [1, 'foo', -1],
-
-        }, {
-          name: 'not a number',
-          args: [1, 'foo', 'notANum'],
-        },
-      ];
-
-      tests.forEach((testParam) => {
+  describe('lua param validation', function luaSuite() {
+    const testScript = (argName) => {
+      return (testParam) => {
         it(`check ${testParam.name}`, async function test() {
           const service = this.users;
           const { redis } = service;
           let error;
+
           try {
-            await redis.sWindowReserve(...testParam.args);
+            await redis.slidingWindowReserve(1, 'testKEY', ...testParam.args);
           } catch (e) {
             error = e;
           }
+
           assert.ok(error);
-          assert(error.message.includes('incorrect `currentTime` argument'));
+          assert(error.message.includes(`invalid \`${argName}\` argument`));
         });
-      });
+      };
+    };
+
+    describe('microCurrentTime', function luaParamCurrentTimeSuite() {
+      const tests = [
+        {
+          name: 'empty',
+          args: [null, 10, 10, true, 'mytoken', 10],
+        }, {
+          name: 'negative',
+          args: [-1, 10, 10, true, 'mytoken', 10],
+
+        }, {
+          name: 'not a number',
+          args: ['notAnum', 10, 10, true, 'mytoken', 10],
+        },
+      ];
+
+      tests.forEach(testScript('currentTime'));
     });
 
     describe('interval', function luaParamIntervalSuite() {
       const tests = [
         {
           name: 'empty',
-          args: [1, 'foo', 1],
+          args: [Date.now(), null, 10, true, 'mytoken', 10],
         }, {
           name: 'negative',
-          args: [1, 'foo', 1, -1],
-
+          args: [7777, -1, 10, true, 'mytoken', 10],
         }, {
           name: 'not a number',
-          args: [1, 'foo', 1, 'notANum'],
+          args: [7777, 'notanum', 10, true, 'mytoken', 10],
         },
       ];
 
-      tests.forEach((testParam) => {
-        it(`check ${testParam.name}`, async function test() {
-          const service = this.users;
-          const { redis } = service;
-          let error;
-          try {
-            await redis.sWindowReserve(...testParam.args);
-          } catch (e) {
-            error = e;
-          }
-          assert.ok(error);
-          assert(error.message.includes('incorrect `interval` argument'));
-        });
-      });
+      tests.forEach(testScript('interval'));
     });
 
-    describe('limit', function luaParamIntervalSuite() {
+    describe('limit', function luaParamLimitSuite() {
       const tests = [
         {
           name: 'empty',
-          args: [1, 'foo', 1, 1],
+          args: [Date.now(), 10, null, true, 'mytoken', 10],
         }, {
           name: 'negative',
-          args: [1, 'foo', 1, 1, -1],
-
+          args: [Date.now(), 10, -1, true, 'mytoken', 10],
         }, {
           name: 'not a number',
-          args: [1, 'foo', 1, 1, 'notANum'],
+          args: [Date.now(), 10, 'notanumber', true, 'mytoken', 10],
         },
       ];
 
-      tests.forEach((testParam) => {
-        it(`check ${testParam.name}`, async function test() {
-          const service = this.users;
-          const { redis } = service;
-          let error;
-          try {
-            await redis.sWindowReserve(...testParam.args);
-          } catch (e) {
-            error = e;
-          }
-          assert.ok(error);
-          assert(error.message.includes('incorrect `limit` argument'));
-        });
-      });
+      tests.forEach(testScript('limit'));
+    });
+
+    describe('token', function luaParamTokenSuite() {
+      const tests = [
+        {
+          name: 'empty but reserveToken true',
+          args: [Date.now(), 10, 10, true, '', 10],
+        },
+      ];
+
+      tests.forEach(testScript('token'));
     });
   });
 
   describe('util tests', function utilSuite() {
     const SlidingWindowLimiter = require('../../../../src/utils/sliding-window/redis/limiter');
-
+    const { RateLimitError } = require('../../../../src/utils/sliding-window/rate-limiter');
     describe('internals', function internalChecks() {
       const rateLimiterConfig = {
         limit: 10,
@@ -203,30 +192,25 @@ describe('#sliding-window-limiter', function suite() {
         const tokenPromises = Bluebird.mapSeries(new Array(5), async (_, index) => {
           clock.tick(5000);
           const { token } = await limiter.reserve('myKey', `fooToken${index}`);
-          console.log('time', Date.now());
           return token;
         });
 
         await tokenPromises;
 
         let usageResult = await limiter.check('myKey');
-        console.log(usageResult);
         assert(usageResult.reset === 120000);
 
         clock.tick(5000);
         usageResult = await limiter.check('myKey');
-        console.log(usageResult);
         assert(usageResult.reset === 115000);
 
         clock.tick(10000);
         usageResult = await limiter.check('myKey');
-        console.log(usageResult);
         assert(usageResult.reset === 105000);
 
         // end block period
         clock.tick(120003);
         usageResult = await limiter.check('myKey');
-        console.log(usageResult);
         assert(usageResult.reset === 0);
         assert(usageResult.usage === 0, 'should delete some records');
       });
@@ -248,8 +232,7 @@ describe('#sliding-window-limiter', function suite() {
           error = e;
         }
 
-        console.log(error);
-        assert(error instanceof SlidingWindowLimiter.RateLimitError, 'should throw error when limit reached');
+        assert(error instanceof RateLimitError, 'should throw error when limit reached');
       });
     });
   });

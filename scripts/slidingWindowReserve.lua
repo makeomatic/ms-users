@@ -1,9 +1,9 @@
 local tokenDbKey = KEYS[1]
 
-local microCurrentTime = ARGV[1]
+local microCurrentTime = tonumber(ARGV[1])
 local interval = tonumber(ARGV[2])
 local limit = tonumber(ARGV[3])
-local reserveToken = ARGV[4] == 'true'
+local reserveToken = (ARGV[4] == 'true')
 local token = ARGV[5]
 local blockInterval = tonumber(ARGV[6])
 
@@ -14,16 +14,16 @@ local function isStringNotEmpty(val)
   return false
 end
 
-if type(microCurrentTime) == 'number' and microCurrentTime <= 0 then
+if type(microCurrentTime) ~= 'number' or microCurrentTime <= 0 then
  return redis.error_reply('invalid `currentTime` argument')
 end
 
-if type(interval) == 'number' and interval <= 0 then
+if type(interval) ~= 'number' or interval < 0 then
   return redis.error_reply('invalid `interval` argument')
 end
 
-if type(limit) == 'number' and limit < 0 then
-  return redis.error_reply('invalid `interval` argument')
+if type(limit) ~= 'number' or limit <= 0 then
+  return redis.error_reply('invalid `limit` argument')
 end
 
 -- this params will exist if token reserve requested
@@ -34,7 +34,7 @@ if reserveToken == true then
 end
 
 -- if block interval incorrect or emtpy set it as interval
-if blockInterval <= 0 then
+if type(blockInterval) ~= 'number' or blockInterval < 0 then
   blockInterval = interval
 end
 
@@ -44,12 +44,7 @@ local intervalMaxScore = microCurrentTime
 
 local lastTokenReserve = redis.call('ZREVRANGEBYSCORE', tokenDbKey, microCurrentTime, '-inf', 'WITHSCORES','limit', 0, 1)
 
-for k,v in pairs(lastTokenReserve) do
-  redis.log(redis.LOG_WARNING, 'key ' .. k .. ' v' .. v);
-end
-
 if #lastTokenReserve > 0 then
-  redis.log(redis.LOG_WARNING, 'assign max score' .. type(lastTokenReserve))
   intervalMaxScore = lastTokenReserve[2]
 end
 
@@ -57,8 +52,6 @@ end
 if interval == 0 then
   intervalMinScore = '-inf'
 end
-
-redis.log(redis.LOG_WARNING, 'count ' .. tokenDbKey .. ' ' .. intervalMinScore .. ' ' .. intervalMaxScore )
 
 local tokenCount = redis.call("ZCOUNT", tokenDbKey, intervalMinScore, intervalMaxScore)
 local millisToReset
@@ -71,19 +64,18 @@ if blockInterval > 0 then
 end
 
 if tokenCount >= limit then
-  redis.log(redis.LOG_WARNING, 'limit reach' .. tokenCount)
+  -- nil will break array structure
   return { tokenCount, limit, 0, millisToReset }
 end
 
 if reserveToken == true then
-  redis.log(redis.LOG_WARNING, 'reserve token')
   redis.call('ZADD', tokenDbKey, microCurrentTime, token)
   redis.call('PEXPIRE', tokenDbKey, blockInterval)
+
   tokenCount = tokenCount + 1
   millisToReset = 0
 end
 
-redis.log(redis.LOG_WARNING, 'return result ' .. tokenCount .. ':' .. limit .. ':' .. token )
 return { tokenCount, limit, token, millisToReset }
 
 

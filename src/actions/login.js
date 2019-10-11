@@ -12,7 +12,7 @@ const { checkMFA } = require('../utils/mfa');
 const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
 
 const UserIpRateLimiter = require('../utils/rate-limiters/user-ip-rate-limiter');
-const { RateLimitError } = require('../utils/sliding-window/redis/limiter');
+const { RateLimitError, STATUS_FOREVER } = require('../utils/sliding-window/rate-limiter');
 
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
@@ -30,42 +30,36 @@ const {
  */
 const is404 = (e) => parseInt(e.message, 10) === 404;
 
-/**
- * Prettifies interval
- * Returns human-readable string
- * @param interval - milliseconds
- * @returns {string}
- */
-const getHMRDuration = (interval) => {
-  if (interval === 0) {
-    return 'forever';
+function newRateLimitHTTPError(error, ip) {
+  let message;
+
+  if (error.reset === STATUS_FOREVER) {
+    message = `You are locked from making login attempts forever from ipaddress '${ip}'`;
+  } else {
+    const duration = moment().add(error.reset, 'milliseconds').toNow(true);
+    message = `You are locked from making login attempts for the next ${duration} from ipaddress '${ip}'`;
   }
-  const duration = moment().add(interval, 'milliseconds').toNow(true);
-  return `for the next ${duration}`;
-};
+
+  throw new Errors.HttpStatusError(429, message);
+}
 
 async function checkLoginAttempts(data) {
   const { loginIpRateLimiter, remoteip } = this;
 
   const userId = data[USERS_ID_FIELD];
 
-  if (remoteip) {
-    const { token } = await loginIpRateLimiter
-      .reserveForUserIp(userId, this.remoteip)
+  if (remoteip && loginIpRateLimiter.isUserIpRateLimiterEnabled()) {
+    await loginIpRateLimiter
+      .reserveForUserIp(userId, remoteip)
       .catch((err) => {
         if (err instanceof RateLimitError) {
-          const duration = getHMRDuration(err.reset);
-          const msg = `You are locked from making login attempts ${duration} from ipaddress '${this.remoteip}'`;
-
           this.loginAttempts = err.usage;
-          throw new Errors.HttpStatusError(429, msg);
+          throw newRateLimitHTTPError(err, remoteip);
         }
-
         throw err;
       });
 
     this.loginUserId = userId;
-    this.localLoginAttemptToken = token;
   }
 }
 
@@ -140,9 +134,11 @@ async function cleanupRateLimits() {
 
   const work = [];
 
-  if (remoteip) {
+  if (remoteip && loginIpRateLimiter.isIpRateLimiterEnabled()) {
     work.push(loginIpRateLimiter.cleanupForIp(remoteip));
+  }
 
+  if (remoteip && loginIpRateLimiter.isUserIpRateLimiterEnabled()) {
     if ((loginUserId != null && typeof loginUserId !== 'undefined')) {
       work.push(loginIpRateLimiter.cleanupForUserIp(loginUserId, remoteip));
     }
@@ -199,7 +195,6 @@ function verifyInternalData(data) {
  */
 async function login({ params, locals }) {
   const config = this.config.jwt;
-
   const rateLimiterConfig = this.config.rateLimiters;
   const { redis, tokenManager } = this;
   const { isOAuthFollowUp, isDisposablePassword, isSSO, password } = params;
@@ -207,7 +202,7 @@ async function login({ params, locals }) {
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
 
-  const loginIpRateLimiter = new UserIpRateLimiter(this.redis, rateLimiterConfig.loginGlobalIp, rateLimiterConfig.loginUserIp)
+  const loginIpRateLimiter = new UserIpRateLimiter(this.redis, rateLimiterConfig.userLogin);
 
   // build context
   const ctx = {
@@ -231,18 +226,14 @@ async function login({ params, locals }) {
     remoteip,
   };
 
-  if (remoteip) {
+  if (remoteip && loginIpRateLimiter.isIpRateLimiterEnabled()) {
     await loginIpRateLimiter
       .reserveForIp(remoteip)
       .catch((err) => {
         if (err instanceof RateLimitError) {
-          const duration = getHMRDuration(err.reset);
-          const msg = `You are locked from making login attempts ${duration} from ipaddress '${ctx.remoteip}'`;
-
           ctx.globalLoginAttempts = err.usage;
-          throw new Errors.HttpStatusError(429, msg);
+          throw newRateLimitHTTPError(err, remoteip);
         }
-
         throw err;
       });
   }

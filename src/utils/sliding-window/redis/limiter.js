@@ -1,12 +1,10 @@
-const Errors = require('common-errors');
 const assert = require('assert');
 
 const { strictEqual } = require('assert');
 const assertInteger = require('../../asserts/integer');
 const assertStringNotEmpty = require('../../asserts/string-not-empty');
 
-const errorHelpers = Errors.helpers;
-const RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
+const { RateLimitError } = require('../rate-limiter');
 
 const getHiresTimestamp = () => {
   const hrtime = process.hrtime();
@@ -16,95 +14,112 @@ const getHiresTimestamp = () => {
 };
 
 /**
- * Wrapper for redis sliding window script.
+ * Class providing sliding window based blocks using Redis database as storage.
  */
 class SlidingWindowRedisBackend {
+  /**
+   * Create Sliding Window Redis Backend
+   * @param {ioredis} redis - Redis Database connection
+   * @param {object} config - Ratelimiter configuration
+   */
   constructor(redis, config) {
     assert.ok(redis, '`redis` required');
     assert.ok(config, '`config` required');
 
-    this.emptyResponse = {
-      token: null,
-      usage: 0,
-      limit: 0,
-    };
-
-    this.enabled = config.enabled;
-    if (!config.enabled) return;
-
     assertInteger(config.interval, '`interval` is invalid');
     strictEqual(config.interval >= 0, true, '`interval` is invalid');
-
     assertInteger(config.limit, '`limit` is invalid');
     strictEqual(config.limit > 0, true, '`limit` is invalid');
 
     this.redis = redis;
 
-    this.interval = config.interval * 1000;
-    this.blockInterval = config.blockInterval || 0 * 1000;
-    this.limit = config.limit;
+    const { interval, blockInterval, ...restConfig } = config;
+    /* Convert interval to milliseconds */
+    this.config = {
+      interval: interval * 1000,
+      blockInterval: (blockInterval || interval) * 1000,
+      ...restConfig,
+    };
   }
 
-
+  /**
+   * Tries to reserve provided token.
+   * @param {string} key - Redis ZSET key
+   * @param {string} tokenToReserve
+   * @throws {RateLimitError}
+   * @returns {Promise<{usage: number, limit: number, token: null}|*|{usage: *, limit: *, token: *}>}
+   */
   async reserve(key, tokenToReserve) {
     assertStringNotEmpty(key, '`key` is invalid');
     assertStringNotEmpty(tokenToReserve, '`token` invalid');
 
-    if (!this.enabled) return this.emptyResponse;
+    const { redis, config } = this;
+    const [usage, limit, token, reset] = await redis
+      .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, true, tokenToReserve, config.blockInterval);
 
-    const { redis } = this;
-    const res = await redis
-      .slidingWindowReserve(1, key, getHiresTimestamp(), this.interval, this.limit, true, tokenToReserve, this.blockInterval);
-
-    // TODO CLEANUP
-    console.log('reserve', res);
-
-    const [usage, limit, token, reset] = res;
-
-    if (!token) {
+    if (reset) {
       throw new RateLimitError(reset, limit);
     }
 
-    return { token, usage, limit };
+    return {
+      token,
+      usage,
+      limit,
+    };
   }
 
+  /**
+   * Checks whether token reservation is possible.
+   * @param {string} key - Redis ZSET key
+   * @returns {Promise<{usage: *, limit: *, reset: *}>}
+   */
   async check(key) {
     assertStringNotEmpty(key, '`key` is invalid');
 
-    if (!this.enabled) return this.emptyResponse;
+    const { redis, config } = this;
+    const [usage, limit, , reset] = await redis
+      .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, false, '', config.blockInterval);
 
-    const { redis } = this;
-    const res = await redis
-      .slidingWindowReserve(1, key, getHiresTimestamp(), this.interval, this.limit, false, '', this.blockInterval);
-
-    // TODO CLEANUP
-    console.log('check', res);
-    const [usage, limit, , reset] = res;
-
-    return { usage, limit, reset };
+    return {
+      usage,
+      limit,
+      reset,
+    };
   }
 
+  /**
+   * Cancels token reservation.
+   * @param {string} key - Redis ZSET key
+   * @param {string} token
+   * @returns {Promise<void>}
+   */
   async cancel(key, token) {
     assertStringNotEmpty(key, '`key` is invalid');
     assertStringNotEmpty(token, '`token` is invalid');
-
-    if (!this.enabled) return this.emptyResponse;
 
     const { redis } = this;
     return redis.slidingWindowCancel(1, key, token);
   }
 
+  /**
+   * Deletes all entries from provided `key`.
+   * Deletes records taken from `key` if they exists in `extrakeys[]`.
+   * @param {string} key
+   * @param {string[]} extraKeys
+   * @returns {Promise<void>}
+   */
   async cleanup(key, ...extraKeys) {
     assertStringNotEmpty(key, '`key` is invalid');
-
-    if (!this.enabled) return this.emptyResponse;
 
     const { redis } = this;
     const keyCount = 1 + extraKeys.length;
 
     return redis.slidingWindowCleanup(keyCount, key, ...extraKeys);
   }
+
+  isEnabled() {
+    return this.config.enabled;
+  }
 }
 
-SlidingWindowRedisBackend.RateLimitError = RateLimitError;
 module.exports = SlidingWindowRedisBackend;

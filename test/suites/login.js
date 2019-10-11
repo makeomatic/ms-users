@@ -12,8 +12,10 @@ describe('#login', function loginSuite() {
 
   before(startService.bind(this, {
     rateLimiters: {
-      loginUserIp: { enabled: false },
-      loginGlobalIp: { enabled: false },
+      userLogin: {
+        ipLimitEnabled: false,
+        userIpLimitEnabled: false,
+      },
     },
   }));
 

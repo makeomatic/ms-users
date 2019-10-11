@@ -15,21 +15,23 @@ describe('#login-rate-limits', function loginSuite() {
 
     before(async () => {
       const rateLimiterConfigs = {
-        loginGlobalIp: {
-          enabled: true,
-          limit: 15,
-          interval: 7 * 24 * 60 * 60,
-        },
-        loginUserIp: {
-          enabled: false,
-        },
+        // IP
+        ipLimitEnabled: true,
+        ipLimitInterval: 7 * 24 * 60 * 60,
+        ipLimitAttemptsCount: 15,
+        ipBlockInterval: 7 * 24 * 60 * 60,
+
+        // User + IP
+        userIpLimitEnabled: false,
       };
 
       await startService.call(this, {
-        rateLimiters: rateLimiterConfigs,
+        rateLimiters: {
+          userLogin: rateLimiterConfigs,
+        },
       });
 
-      rateLimiter = new UserIpRateLimiter(this.users.redis, rateLimiterConfigs.loginGlobalIp, rateLimiterConfigs.loginUserIp);
+      rateLimiter = new UserIpRateLimiter(this.users.redis, rateLimiterConfigs);
     });
 
     after(clearRedis.bind(this));
@@ -105,21 +107,23 @@ describe('#login-rate-limits', function loginSuite() {
 
     before(async () => {
       const rateLimiterConfigs = {
-        loginUserIp: {
-          enabled: true,
-          interval: 2 * 60 * 60,
-          limit: 5,
-        },
-        loginGlobalIp: {
-          enabled: false,
-        },
+        // IP
+        ipLimitEnabled: false,
+
+        // User + IP
+        userIpLimitEnabled: true,
+        userIpLimitInterval: 2 * 60 * 60,
+        userIpLimitAttemptsCount: 5,
+        userIpBlockInterval: 2 * 60 * 60,
       };
 
       await startService.call(this, {
-        rateLimiters: rateLimiterConfigs,
+        rateLimiters: {
+          loginAction: rateLimiterConfigs,
+        },
       });
 
-      rateLimiter = new UserIpRateLimiter(this.users.redis, rateLimiterConfigs.loginGlobalIp, rateLimiterConfigs.loginUserIp);
+      rateLimiter = new UserIpRateLimiter(this.users.redis, rateLimiterConfigs);
     });
 
     after(clearRedis.bind(this));

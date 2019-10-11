@@ -41,6 +41,7 @@ end
 local intervalMinScore = microCurrentTime - interval * 1e3
 -- if no tokens interval ends on current time
 local intervalMaxScore = microCurrentTime
+local millisToReset = 0
 
 local lastTokenReserve = redis.call('ZREVRANGEBYSCORE', tokenDbKey, microCurrentTime, '-inf', 'WITHSCORES','limit', 0, 1)
 
@@ -54,7 +55,6 @@ if interval == 0 then
 end
 
 local tokenCount = redis.call("ZCOUNT", tokenDbKey, intervalMinScore, intervalMaxScore)
-local millisToReset
 
 if blockInterval > 0 then
   millisToReset = intervalMaxScore * 1e-3 - microCurrentTime * 1e-3 + blockInterval
@@ -70,7 +70,10 @@ end
 
 if reserveToken == true then
   redis.call('ZADD', tokenDbKey, microCurrentTime, token)
-  redis.call('PEXPIRE', tokenDbKey, blockInterval)
+  -- pexpire deletes key if ttl is 0
+  if (blockInterval > 0) then
+    redis.call('PEXPIRE', tokenDbKey, blockInterval)
+  end
 
   tokenCount = tokenCount + 1
   millisToReset = 0

@@ -44,11 +44,11 @@ function newRateLimitHTTPError(error, ip) {
 }
 
 async function checkLoginAttempts(data) {
-  const { loginIpRateLimiter, remoteip } = this;
+  const { loginIpRateLimiter, remoteip, checkUserLoginRateLimit } = this;
 
   const userId = data[USERS_ID_FIELD];
 
-  if (remoteip && loginIpRateLimiter.isUserIpRateLimiterEnabled()) {
+  if (checkUserLoginRateLimit) {
     await loginIpRateLimiter
       .reserveForUserIp(userId, remoteip)
       .catch((err) => {
@@ -130,15 +130,17 @@ async function cleanupRateLimits() {
     remoteip,
     loginUserId,
     loginIpRateLimiter,
+    checkIpLoginRateLimit,
+    checkUserLoginRateLimit,
   } = this;
 
   const work = [];
 
-  if (remoteip && loginIpRateLimiter.isIpRateLimiterEnabled()) {
+  if (checkIpLoginRateLimit) {
     work.push(loginIpRateLimiter.cleanupForIp(remoteip));
   }
 
-  if (remoteip && loginIpRateLimiter.isUserIpRateLimiterEnabled()) {
+  if (checkUserLoginRateLimit) {
     if ((loginUserId != null && typeof loginUserId !== 'undefined')) {
       work.push(loginIpRateLimiter.cleanupForUserIp(loginUserId, remoteip));
     }
@@ -194,15 +196,20 @@ function verifyInternalData(data) {
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
 async function login({ params, locals }) {
-  const config = this.config.jwt;
-  const rateLimiterConfig = this.config.rateLimiters;
   const { redis, tokenManager } = this;
-  const { isOAuthFollowUp, isDisposablePassword, isSSO, password } = params;
+  const config = this.config.jwt;
   const { defaultAudience } = config;
+  const rateLimiterConfig = this.config.rateLimiters;
+
+  const { isOAuthFollowUp, isDisposablePassword, isSSO, password } = params;
+
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
 
   const loginIpRateLimiter = new UserIpRateLimiter(this.redis, rateLimiterConfig.userLogin);
+
+  const checkUserLoginRateLimit = remoteip && loginIpRateLimiter.isUserIpRateLimiterEnabled();
+  const checkIpLoginRateLimit = remoteip && loginIpRateLimiter.isIpRateLimiterEnabled();
 
   // build context
   const ctx = {
@@ -224,9 +231,11 @@ async function login({ params, locals }) {
     password,
     audience,
     remoteip,
+    checkIpLoginRateLimit,
+    checkUserLoginRateLimit,
   };
 
-  if (remoteip && loginIpRateLimiter.isIpRateLimiterEnabled()) {
+  if (checkIpLoginRateLimit) {
     await loginIpRateLimiter
       .reserveForIp(remoteip)
       .catch((err) => {

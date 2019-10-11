@@ -57,7 +57,8 @@ class SlidingWindowRedisBackend {
     const [usage, limit, token, reset] = await redis
       .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, true, tokenToReserve, config.blockInterval);
 
-    if (reset) {
+    /* reset becomes 0 if blocking forever */
+    if (!token) {
       throw new RateLimitError(reset, limit);
     }
 

@@ -5,10 +5,30 @@ const SlidingWindowRedisBackend = require('../sliding-window/redis/limiter');
 const redisKey = require('../key');
 const assertStringNotEmpty = require('../asserts/string-not-empty');
 
+const { USER_LOGIN_IPS } = require('../../constants');
+
+/* Key for IP tokens  */
+function makeIpKey(ip) {
+  assertStringNotEmpty(ip, '`ip` is invalid');
+  return redisKey('gl!ip!ctr', ip);
+}
+
+/* Key for UserID-IP tokens */
+function makeUserKey(user, ip) {
+  assertStringNotEmpty(user, '`user` is invalid');
+  assertStringNotEmpty(ip, '`ip` is invalid');
+  return redisKey(user, 'ip', ip);
+}
+
+function makeUserIPsKey(user) {
+  assertStringNotEmpty(user, '`user` is invalid');
+  return redisKey(USER_LOGIN_IPS, user);
+}
+
 /**
  * Class controls rate limits on User Login attempts
  * */
-class UserIpRateLimiter {
+class UserLoginRateLimiter {
   /**
    * Create Login Action Rate Limiter
    * @param {ioredis} redis
@@ -18,7 +38,8 @@ class UserIpRateLimiter {
     assert.ok(redis, '`redis` required');
     assert.ok(config, '`config` required');
 
-    this.config = { keyPrefix: '', ...config };
+    this.redis = redis;
+    this.config = config;
     this.token = uuid();
 
     const { ipLimitEnabled, userIpLimitEnabled } = config;
@@ -39,17 +60,9 @@ class UserIpRateLimiter {
     }
   }
 
-  /* Key for IP tokens  */
-  makeIpKey(ip) {
-    assertStringNotEmpty(ip, '`ip` is invalid');
-    return redisKey(this.config.keyPrefix, 'gl!ip!ctr', ip);
-  }
-
-  /* Key for UserID-IP tokens */
-  makeUserKey(user, ip) {
-    assertStringNotEmpty(user, '`user` is invalid');
-    assertStringNotEmpty(ip, '`ip` is invalid');
-    return redisKey(this.config.keyPrefix, user, 'ip', ip);
+  async getUserIPs(user) {
+    const userIPsKey = makeUserIPsKey(user);
+    return this.redis.smembers(userIPsKey);
   }
 
   /**
@@ -58,7 +71,7 @@ class UserIpRateLimiter {
    * @returns {Promise<{usage: number, limit: number, token: null}|{usage: *, limit: *, token: *}>}
    */
   async reserveForIp(ip) {
-    const key = this.makeIpKey(ip);
+    const key = makeIpKey(ip);
     return this.ipLimiter.reserve(key, this.token);
   }
 
@@ -69,8 +82,13 @@ class UserIpRateLimiter {
    * @returns {Promise<{usage: number, limit: number, token: null}|{usage: *, limit: *, token: *}>}
    */
   async reserveForUserIp(user, ip) {
-    const key = this.makeUserKey(user, ip);
-    return this.loginIpLimiter.reserve(key, this.token);
+    const key = makeUserKey(user, ip);
+    const userIPsKey = makeUserIPsKey(user);
+
+    const result = this.loginIpLimiter.reserve(key, this.token);
+    await this.redis.sadd(userIPsKey, ip);
+
+    return result;
   }
 
   /**
@@ -79,7 +97,7 @@ class UserIpRateLimiter {
    * @returns {Promise<{usage: *, limit: *, reset: *}>}
    */
   async checkForIp(ip) {
-    const key = this.makeIpKey(ip);
+    const key = makeIpKey(ip);
     return this.ipLimiter.check(key);
   }
 
@@ -90,7 +108,7 @@ class UserIpRateLimiter {
    * @returns {Promise<{usage: *, limit: *, reset: *}>}
    */
   async checkForUserIp(user, ip) {
-    const key = this.makeUserKey(user, ip);
+    const key = makeUserKey(user, ip);
     return this.loginIpLimiter.check(key);
   }
 
@@ -100,7 +118,7 @@ class UserIpRateLimiter {
    * @returns {Promise<void>}
    */
   async cleanupForIp(ip) {
-    const key = this.makeIpKey(ip);
+    const key = makeIpKey(ip);
     return this.ipLimiter.cleanup(key);
   }
 
@@ -111,8 +129,18 @@ class UserIpRateLimiter {
    * @returns {Promise<void>}
    */
   async cleanupForUserIp(user, ip) {
-    const key = this.makeUserKey(user, ip);
-    return this.loginIpLimiter.cleanup(key);
+    const key = makeUserKey(user, ip);
+    const userIPsKey = redisKey(USER_LOGIN_IPS, user);
+
+    const ipKeysToClean = [];
+    const userIPs = await this.getUserIPs(user);
+
+    for (const userIP of userIPs) {
+      ipKeysToClean.push(makeIpKey(userIP));
+    }
+
+    await this.redis.del(userIPsKey);
+    return this.loginIpLimiter.cleanup(key, ...ipKeysToClean);
   }
 
   isIpRateLimiterEnabled() {
@@ -124,4 +152,4 @@ class UserIpRateLimiter {
   }
 }
 
-module.exports = UserIpRateLimiter;
+module.exports = UserLoginRateLimiter;

@@ -11,7 +11,7 @@ const isBanned = require('../utils/is-banned');
 const { checkMFA } = require('../utils/mfa');
 const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
 
-const UserIpRateLimiter = require('../utils/rate-limiters/user-ip-rate-limiter');
+const UserIpRateLimiter = require('../utils/rate-limiters/user-login-rate-limiter');
 const { RateLimitError, STATUS_FOREVER } = require('../utils/sliding-window/rate-limiter');
 
 const {

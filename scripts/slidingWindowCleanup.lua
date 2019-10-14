@@ -1,9 +1,9 @@
 local tokenDbKey = KEYS[1]
-local extraKeys = unpack(KEYS, 2, #KEYS)
+local extraKeys = {unpack(KEYS, 2, #KEYS)}
 
 local dbRecords = redis.call('ZRANGEBYSCORE', tokenDbKey, '-inf', '+inf')
 
-if type(extraKeys) == 'table' then
+if #extraKeys > 0 then
   for _, token in pairs(dbRecords) do
     for _, key in pairs(extraKeys) do
       redis.call('ZREM', key, token)

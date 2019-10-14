@@ -179,6 +179,30 @@ describe('#sliding-window-limiter', function suite() {
         const afterClean = await redis.zrange('myKey', 0, -1);
         assert.deepStrictEqual(afterClean, [], 'should not contain tokens');
       });
+
+      it('cleanup extra keys', async function testCancelToken() {
+        const service = this.users;
+        const { redis } = service;
+        const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
+
+        const tokenPromises = Bluebird.mapSeries(new Array(5), async (_, index) => {
+          const { token } = await limiter.reserve('myKey', `fooToken${index}`);
+          return token;
+        });
+
+        const extraKeyTokenPromises = Bluebird.mapSeries(new Array(5), async (_, index) => {
+          const { token } = await limiter.reserve('myKey_extrainfo', `fooToken${index}`);
+          return token;
+        });
+
+        await tokenPromises;
+        await extraKeyTokenPromises;
+
+        await limiter.cleanup('myKey', 'myKey_extrainfo');
+
+        const afterClean = await redis.zrange('myKey_extrainfo', 0, -1);
+        assert.deepStrictEqual(afterClean, [], 'should not contain tokens');
+      });
     });
 
     describe('clock tick', function clockTicks() {

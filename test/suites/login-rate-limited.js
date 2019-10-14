@@ -5,7 +5,7 @@ const { expect } = require('chai');
 const { times } = require('lodash');
 
 describe('#login-rate-limits', function loginSuite() {
-  const UserIpRateLimiter = require('../../src/utils/rate-limiters/user-ip-rate-limiter');
+  const UserIpRateLimiter = require('../../src/utils/rate-limiters/user-login-rate-limiter');
 
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
@@ -68,37 +68,26 @@ describe('#login-rate-limits', function loginSuite() {
       expect(Http429Error.message).to.be.eq(eMsg);
     });
 
-    it('resets attempts after final success login', () => {
+    it('resets attempts after final success login', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
       const userWithIPAndValidPassword = { ...userWithRemoteIP, ...userWithValidPassword };
 
       const promises = [];
 
       times(14, () => {
-        promises.push((
+        promises.push(
           this.users
             .dispatch('login', { params: { ...userWithRemoteIP } })
             .reflect()
-            .then(inspectPromise(false))
-            .then((login) => {
-              expect(login.statusCode).to.be.eq(404);
-            })
-        ));
+        );
       });
 
-      promises.push((
-        this.users
-          .dispatch('login', { params: userWithIPAndValidPassword })
-          .reflect()
-          .then(inspectPromise(true))
-          .then(async () => {
-            const checkResult = await rateLimiter.checkForIp(userWithRemoteIP.remoteip);
-            console.log(checkResult);
-            expect(checkResult.usage).to.be.eq(0);
-          })
-      ));
+      await Promise.all(promises);
+      await this.users.dispatch('login', { params: userWithIPAndValidPassword });
 
-      return Promise.all(promises);
+      const checkResult = await rateLimiter.checkForIp(userWithRemoteIP.remoteip);
+
+      expect(checkResult.usage).to.be.eq(0);
     });
   });
 
@@ -190,7 +179,7 @@ describe('#login-rate-limits', function loginSuite() {
 
     afterEach(clearRedis.bind(this, true));
 
-    it('must lock account for authentication after 5 invalid login attemps', () => {
+    it('must lock account for authentication after 5 invalid login attemps', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
       const promises = [];
       const eMsg = 'You are locked from making login attempts for the next 2 hours from ipaddress \'10.0.0.1\'';
@@ -208,52 +197,38 @@ describe('#login-rate-limits', function loginSuite() {
         ));
       });
 
-      promises.push((
-        this.users
-          .dispatch('login', { params: { ...userWithRemoteIP } })
-          .reflect()
-          .then(inspectPromise(false))
-          .then((login) => {
-            expect(login.name).to.be.eq('HttpStatusError');
-            expect(login.statusCode).to.be.eq(429);
-            expect(login.message).to.be.eq(eMsg);
-          })
-      ));
+      await Promise.all(promises);
 
-      return Promise.all(promises);
+      await this.users
+        .dispatch('login', { params: { ...userWithRemoteIP } })
+        .reflect()
+        .then(inspectPromise(false))
+        .then((login) => {
+          expect(login.name).to.be.eq('HttpStatusError');
+          expect(login.statusCode).to.be.eq(429);
+          expect(login.message).to.be.eq(eMsg);
+        });
     });
 
-    it('resets attempts after final success login', () => {
+    it('resets attempts after final success login', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
       const userWithIPAndValidPassword = { ...userWithRemoteIP, ...userWithValidPassword };
 
       const promises = [];
 
-      times(4, () => {
-        promises.push((
+      times(4, (index) => {
+        promises.push(
           this.users
-            .dispatch('login', { params: { ...userWithRemoteIP } })
+            .dispatch('login', { params: { ...userWithRemoteIP, remoteip: `10.0.0.${index}` } })
             .reflect()
-            .then(inspectPromise(false))
-            .then((login) => {
-              expect(login.name).to.be.eq('HttpStatusError');
-              expect(login.statusCode).to.be.eq(403);
-            })
-        ));
+        );
       });
+      await Promise.all(promises);
 
-      promises.push((
-        this.users
-          .dispatch('login', { params: userWithIPAndValidPassword })
-          .reflect()
-          .then(inspectPromise(true))
-          .then(async ({ user: loginUser }) => {
-            const checkResult = await rateLimiter.checkForUserIp(loginUser.id, userWithRemoteIP.remoteip);
-            expect(checkResult.usage).to.be.eq(0);
-          })
-      ));
+      const { user: loginUser } = await this.users.dispatch('login', { params: userWithIPAndValidPassword });
 
-      return Promise.all(promises);
+      const checkResult = await rateLimiter.checkForUserIp(loginUser.id, userWithRemoteIP.remoteip);
+      expect(checkResult.usage).to.be.eq(0);
     });
   });
 
@@ -286,7 +261,7 @@ describe('#login-rate-limits', function loginSuite() {
 
     afterEach(clearRedis.bind(this, true));
 
-    it('must lock account for authentication after 5 invalid login attemps', () => {
+    it('must lock account for authentication after 5 invalid login attemps', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
       const promises = [];
       const eMsg = 'You are locked from making login attempts forever from ipaddress \'10.0.0.1\'';
@@ -304,17 +279,17 @@ describe('#login-rate-limits', function loginSuite() {
         ));
       });
 
-      promises.push((
-        this.users
-          .dispatch('login', { params: { ...userWithRemoteIP } })
-          .reflect()
-          .then(inspectPromise(false))
-          .then((login) => {
-            expect(login.name).to.be.eq('HttpStatusError');
-            expect(login.statusCode).to.be.eq(429);
-            expect(login.message).to.be.eq(eMsg);
-          })
-      ));
+      await Promise.all(promises);
+
+      await this.users
+        .dispatch('login', { params: { ...userWithRemoteIP } })
+        .reflect()
+        .then(inspectPromise(false))
+        .then((login) => {
+          expect(login.name).to.be.eq('HttpStatusError');
+          expect(login.statusCode).to.be.eq(429);
+          expect(login.message).to.be.eq(eMsg);
+        });
 
       return Promise.all(promises);
     });

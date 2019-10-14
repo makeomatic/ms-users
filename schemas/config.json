@@ -16,6 +16,47 @@
     "phone",
     "rateLimiters"
   ],
+  "definitions": {
+    "userIpRateLimiterConfig": {
+      "type": "object",
+      "required": [
+        "ipLimitEnabled",
+        "userIpLimitEnabled"
+      ],
+      "properties":{
+        "ipLimitEnabled": {
+          "type": "boolean"
+        },
+        "userIpLimitEnabled": {
+          "type": "boolean"
+        },
+        "ipLimitInterval": {
+          "type": "integer",
+          "min": 0
+        },
+        "ipLimitAttemptsCount": {
+          "type": "integer",
+          "min": 1
+        },
+        "ipBlockInterval": {
+          "type": "integer",
+          "min": 0
+        },
+        "userIpLimitInterval": {
+          "type": "integer",
+          "min": 0
+        },
+        "userIpLimitAttemptsCount": {
+          "type": "integer",
+          "min": 1
+        },
+        "userIpBlockInterval": {
+          "type": "integer",
+          "min": 0
+        }
+      }
+    }
+  },
   "properties": {
     "deleteInactiveAccounts": {
       "type": "integer",
@@ -614,6 +655,17 @@
               }
             }
           }
+        }
+      }
+    },
+    "rateLimiters": {
+      "type": "object",
+      "required": [
+        "userLogin"
+      ],
+      "properties": {
+        "userLogin" : {
+          "$ref": "config#/definitions/userIpRateLimiterConfig"
         }
       }
     }

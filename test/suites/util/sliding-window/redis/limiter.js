@@ -98,8 +98,8 @@ describe('#sliding-window-limiter', function suite() {
   });
 
   describe('util tests', function utilSuite() {
-    const SlidingWindowLimiter = require('../../../../src/utils/sliding-window/redis/limiter');
-    const { RateLimitError } = require('../../../../src/utils/sliding-window/rate-limiter');
+    const SlidingWindowLimiter = require('../../../../../src/utils/sliding-window/redis/limiter');
+    const { RateLimitError } = require('../../../../../src/utils/sliding-window/rate-limiter');
     describe('internals', function internalChecks() {
       const rateLimiterConfig = {
         limit: 10,
@@ -120,7 +120,7 @@ describe('#sliding-window-limiter', function suite() {
         assert.deepStrictEqual(keyContents, [`${token}`], 'should contain $token');
       });
 
-      it('sets key ttl', async function testKeyTTl() {
+      it('sets key ttl from blockInterval', async function testKeyTTl() {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
@@ -129,6 +129,20 @@ describe('#sliding-window-limiter', function suite() {
 
         const keyTTL = await redis.ttl('myKey');
         assert(keyTTL === 12, 'ttl must be set');
+      });
+
+      it('sets key ttl from interval', async function testKeyTTl() {
+        const service = this.users;
+        const { redis } = service;
+        const limiter = new SlidingWindowLimiter(redis, {
+          limit: 10,
+          interval: 1000,
+        });
+
+        await limiter.reserve('myKey2', 'barToken');
+
+        const keyTTL = await redis.ttl('myKey2');
+        assert(keyTTL === 1000, 'ttl must be set');
       });
 
       it('cancel token', async function testCancelToken() {

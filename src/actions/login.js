@@ -11,7 +11,7 @@ const isBanned = require('../utils/is-banned');
 const { checkMFA } = require('../utils/mfa');
 const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
 
-const UserIpRateLimiter = require('../utils/rate-limiters/user-login-rate-limiter');
+const UserLoginRateLimiter = require('../utils/rate-limiters/user-login-rate-limiter');
 const { RateLimitError, STATUS_FOREVER } = require('../utils/sliding-window/redis/limiter');
 
 const {
@@ -49,12 +49,12 @@ function checkIfRateLimitError(error) {
 }
 
 async function checkLoginAttempts(data) {
-  const { userIpRateLimiter, remoteip } = this;
+  const { loginRateLimiter, remoteip } = this;
 
   const userId = data[USERS_ID_FIELD];
 
-  if (remoteip && userIpRateLimiter.isUserIpRateLimiterEnabled()) {
-    await userIpRateLimiter
+  if (remoteip && loginRateLimiter.isUserIpRateLimiterEnabled()) {
+    await loginRateLimiter
       .reserveForUserIp(userId, remoteip)
       .catch(checkIfRateLimitError.bind(this));
 
@@ -191,7 +191,7 @@ async function login({ params, locals }) {
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
 
-  const loginRateLimiter = new UserIpRateLimiter(this.redis, rateLimiterConfig.userLogin);
+  const loginRateLimiter = new UserLoginRateLimiter(this.redis, rateLimiterConfig.userLogin);
 
   // build context
   const ctx = {

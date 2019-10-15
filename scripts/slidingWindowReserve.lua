@@ -45,7 +45,7 @@ if isNonNegativeNumber(blockInterval) == false then
   blockInterval = interval
 end
 
-local intervalMinScore = microCurrentTime - interval * 1e3
+local intervalMinScore = microCurrentTime - blockInterval * 1e3
 local intervalMaxScore = microCurrentTime
 
 local millisToReset = 0

@@ -90,6 +90,3 @@ if reserveToken == 1 then
 end
 
 return { tokenCount, limit, token, millisToReset }
-
-
-

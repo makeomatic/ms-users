@@ -10,4 +10,3 @@ if #extraKeys > 0 then
 end
 
 redis.call("DEL", tokenDbKey)
-

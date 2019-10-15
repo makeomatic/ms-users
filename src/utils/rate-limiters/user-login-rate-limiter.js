@@ -5,25 +5,7 @@ const SlidingWindowRedisBackend = require('../sliding-window/redis/limiter');
 const redisKey = require('../key');
 const assertStringNotEmpty = require('../asserts/string-not-empty');
 
-const { USER_LOGIN_IPS } = require('../../constants');
-
-/* Key for IP tokens  */
-function makeIpKey(ip) {
-  assertStringNotEmpty(ip, '`ip` is invalid');
-  return redisKey('gl!ip!ctr', ip);
-}
-
-/* Key for UserID-IP tokens */
-function makeUserKey(user, ip) {
-  assertStringNotEmpty(user, '`user` is invalid');
-  assertStringNotEmpty(ip, '`ip` is invalid');
-  return redisKey(user, 'ip', ip);
-}
-
-function makeUserIPsKey(user) {
-  assertStringNotEmpty(user, '`user` is invalid');
-  return redisKey(USER_LOGIN_IPS, user);
-}
+const UserIpManager = require('../user-ip-manager');
 
 /**
  * Class controls rate limits on User Login attempts
@@ -41,6 +23,7 @@ class UserLoginRateLimiter {
     this.redis = redis;
     this.config = config;
     this.token = uuid();
+    this.ipManager = new UserIpManager(redis);
 
     const { ipLimitEnabled, userIpLimitEnabled } = config;
 
@@ -60,9 +43,17 @@ class UserLoginRateLimiter {
     }
   }
 
-  async getUserIPs(user) {
-    const userIPsKey = makeUserIPsKey(user);
-    return this.redis.smembers(userIPsKey);
+  /* Key for IP tokens  */
+  static makeIpKey(ip) {
+    assertStringNotEmpty(ip, '`ip` is invalid');
+    return redisKey('gl!ip!ctr', ip);
+  }
+
+  /* Key for UserID-IP tokens */
+  static makeUserKey(user, ip) {
+    assertStringNotEmpty(user, '`user` is invalid');
+    assertStringNotEmpty(ip, '`ip` is invalid');
+    return redisKey(user, 'ip', ip);
   }
 
   /**
@@ -71,7 +62,7 @@ class UserLoginRateLimiter {
    * @returns {Promise<{usage: number, limit: number, token: null}|{usage: *, limit: *, token: *}>}
    */
   async reserveForIp(ip) {
-    const key = makeIpKey(ip);
+    const key = UserLoginRateLimiter.makeIpKey(ip);
     return this.ipLimiter.reserve(key, this.token);
   }
 
@@ -82,12 +73,9 @@ class UserLoginRateLimiter {
    * @returns {Promise<{usage: number, limit: number, token: null}|{usage: *, limit: *, token: *}>}
    */
   async reserveForUserIp(user, ip) {
-    const key = makeUserKey(user, ip);
-    const userIPsKey = makeUserIPsKey(user);
-
-    const result = this.loginIpLimiter.reserve(key, this.token);
-    await this.redis.sadd(userIPsKey, ip);
-
+    const key = UserLoginRateLimiter.makeUserKey(user, ip);
+    const result = await this.loginIpLimiter.reserve(key, this.token);
+    await this.ipManager.addIp(user, ip);
     return result;
   }
 
@@ -97,7 +85,7 @@ class UserLoginRateLimiter {
    * @returns {Promise<{usage: *, limit: *, reset: *}>}
    */
   async checkForIp(ip) {
-    const key = makeIpKey(ip);
+    const key = UserLoginRateLimiter.makeIpKey(ip);
     return this.ipLimiter.check(key);
   }
 
@@ -108,7 +96,7 @@ class UserLoginRateLimiter {
    * @returns {Promise<{usage: *, limit: *, reset: *}>}
    */
   async checkForUserIp(user, ip) {
-    const key = makeUserKey(user, ip);
+    const key = UserLoginRateLimiter.makeUserKey(user, ip);
     return this.loginIpLimiter.check(key);
   }
 
@@ -118,7 +106,7 @@ class UserLoginRateLimiter {
    * @returns {Promise<void>}
    */
   async cleanupForIp(ip) {
-    const key = makeIpKey(ip);
+    const key = UserLoginRateLimiter.makeIpKey(ip);
     return this.ipLimiter.cleanup(key);
   }
 
@@ -129,17 +117,15 @@ class UserLoginRateLimiter {
    * @returns {Promise<void>}
    */
   async cleanupForUserIp(user, ip) {
-    const key = makeUserKey(user, ip);
-    const userIPsKey = redisKey(USER_LOGIN_IPS, user);
-
     const ipKeysToClean = [];
-    const userIPs = await this.getUserIPs(user);
+    const key = UserLoginRateLimiter.makeUserKey(user, ip);
+    const userIPs = await this.ipManager.getIps(user);
 
     for (const userIP of userIPs) {
-      ipKeysToClean.push(makeIpKey(userIP));
+      ipKeysToClean.push(UserLoginRateLimiter.makeIpKey(userIP));
     }
 
-    await this.redis.del(userIPsKey);
+    await this.ipManager.cleanIps(user);
     return this.loginIpLimiter.cleanup(key, ...ipKeysToClean);
   }
 

@@ -4,13 +4,13 @@ const { times } = require('lodash');
 const assert = require('assert');
 
 describe('#login-rate-limiter', function loginSuite() {
-  const UserLoginRateLimiter = require('../../../../src/utils/rate-limiters/user-login-rate-limiter');
+  const UserIpManager = require('../../../../src/utils/user-ip-manager');
 
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
 
   describe('extra data cleanup', () => {
-    let rateLimiter;
+    let userIpManager;
     let userId;
 
     before(async () => {
@@ -35,7 +35,7 @@ describe('#login-rate-limiter', function loginSuite() {
         },
       });
 
-      rateLimiter = new UserLoginRateLimiter(this.users.redis, rateLimiterConfigs);
+      userIpManager = new UserIpManager(this.users.redis);
     });
 
     after(clearRedis.bind(this));
@@ -48,7 +48,9 @@ describe('#login-rate-limiter', function loginSuite() {
         });
     });
 
-    afterEach(clearRedis.bind(this, true));
+    afterEach(async () => {
+      await clearRedis.bind(this, true);
+    });
 
     it('saves user ips and deletes associated global locks', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
@@ -56,7 +58,7 @@ describe('#login-rate-limiter', function loginSuite() {
 
       const promises = [];
       const ips = [];
-      times(4, (index) => {
+      times(10, (index) => {
         ips.push(`10.0.0.${index}`);
         promises.push(
           this.users
@@ -67,19 +69,13 @@ describe('#login-rate-limiter', function loginSuite() {
 
       await Promise.all(promises);
 
-      const userIps = await rateLimiter.getUserIPs(userId);
-
-      assert(userIps.length === 4, 'should contain user ips');
+      const userIps = await userIpManager.getIps(userId);
+      assert(userIps.length === 10, 'should contain user ips');
 
       await this.users.dispatch('login', { params: userWithIPAndValidPassword });
 
-      const userIpsAfter = await rateLimiter.getUserIPs(userId);
+      const userIpsAfter = await userIpManager.getIps(userId);
       assert(userIpsAfter.length === 0, 'should not contain user ips');
-
-      const globIpKeyPattern = 'gl!ip!ctr!*';
-
-      const redisKeys = await this.users.redis.keys(`{ms-users}${globIpKeyPattern}`);
-      assert(redisKeys.length === 3, 'should delete one key');
     });
   });
 });

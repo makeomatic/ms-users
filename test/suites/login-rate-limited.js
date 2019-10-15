@@ -60,7 +60,6 @@ describe('#login-rate-limits', function loginSuite() {
       const errors = await Promise.all(promises);
       const Http404 = errors.filter((x) => x.statusCode === 404 && x.name === 'HttpStatusError');
       const Http429 = errors.filter((x) => x.statusCode === 429 && x.name === 'HttpStatusError');
-
       expect(Http404.length).to.be.eq(15);
       expect(Http429.length).to.be.eq(1);
 

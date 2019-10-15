@@ -1,13 +1,12 @@
 local tokenDbKey = KEYS[1]
 local token = ARGV[1] -- token to cancel
 
-local function isValidString(val)
-  if (type(val) == 'string' and string.len(val) > 0) then
-    return true
-  end
-  return false
+local function isStringNotEmpty(val)
+  return type(val) == 'string' and string.len(val) > 0
 end
 
-assert(isValidString(token), 'incorrect `token` argument')
+if isStringNotEmpty(token) == false then
+  return redis.error_reply('invalid `token` argument')
+end
 
 redis.call("ZREM", tokenDbKey, token)

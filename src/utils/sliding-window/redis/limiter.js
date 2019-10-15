@@ -1,11 +1,11 @@
 const assert = require('assert');
+const Errors = require('common-errors');
 
 const { strictEqual } = require('assert');
 const assertInteger = require('../../asserts/integer');
 const assertStringNotEmpty = require('../../asserts/string-not-empty');
 
-const { RateLimitError } = require('../rate-limiter');
-
+const errorHelpers = Errors.helpers;
 const getHiresTimestamp = () => {
   const hrtime = process.hrtime();
   const microTimestamp = (new Date()).getTime() * 1e3;
@@ -42,6 +42,10 @@ class SlidingWindowRedisBackend {
     };
   }
 
+  static STATUS_FOREVER = 0;
+
+  static RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
+
   /**
    * Tries to reserve provided token.
    * @param {string} key - Redis ZSET key
@@ -55,11 +59,11 @@ class SlidingWindowRedisBackend {
 
     const { redis, config } = this;
     const [usage, limit, token, reset] = await redis
-      .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, true, tokenToReserve, config.blockInterval);
+      .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, 1, tokenToReserve, config.blockInterval);
 
     /* reset becomes 0 if blocking forever */
     if (!token) {
-      throw new RateLimitError(reset, limit);
+      throw SlidingWindowRedisBackend.RateLimitError(reset, limit);
     }
 
     return {
@@ -79,7 +83,7 @@ class SlidingWindowRedisBackend {
 
     const { redis, config } = this;
     const [usage, limit, , reset] = await redis
-      .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, false, '', config.blockInterval);
+      .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, 0, '', config.blockInterval);
 
     return {
       usage,
@@ -116,10 +120,6 @@ class SlidingWindowRedisBackend {
     const keyCount = 1 + extraKeys.length;
 
     return redis.slidingWindowCleanup(keyCount, key, ...extraKeys);
-  }
-
-  isEnabled() {
-    return this.config.enabled;
   }
 }
 

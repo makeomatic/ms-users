@@ -12,7 +12,7 @@ const { checkMFA } = require('../utils/mfa');
 const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
 
 const UserIpRateLimiter = require('../utils/rate-limiters/user-login-rate-limiter');
-const { RateLimitError, STATUS_FOREVER } = require('../utils/sliding-window/rate-limiter');
+const { RateLimitError, STATUS_FOREVER } = require('../utils/sliding-window/redis/limiter');
 
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
@@ -30,34 +30,33 @@ const {
  */
 const is404 = (e) => parseInt(e.message, 10) === 404;
 
-function newRateLimitHTTPError(error, ip) {
+function checkIfRateLimitError(error) {
+  const { remoteip } = this;
   let message;
 
-  if (error.reset === STATUS_FOREVER) {
-    message = `You are locked from making login attempts forever from ipaddress '${ip}'`;
-  } else {
-    const duration = moment().add(error.reset, 'milliseconds').toNow(true);
-    message = `You are locked from making login attempts for the next ${duration} from ipaddress '${ip}'`;
+  if (error instanceof RateLimitError) {
+    if (error.reset === STATUS_FOREVER) {
+      message = `You are locked from making login attempts forever from ipaddress '${remoteip}'`;
+    } else {
+      const duration = moment().add(error.reset, 'milliseconds').toNow(true);
+      message = `You are locked from making login attempts for the next ${duration} from ipaddress '${remoteip}'`;
+    }
+
+    throw new Errors.HttpStatusError(429, message);
   }
 
-  throw new Errors.HttpStatusError(429, message);
+  throw error;
 }
 
 async function checkLoginAttempts(data) {
-  const { loginIpRateLimiter, remoteip, checkUserLoginRateLimit } = this;
+  const { userIpRateLimiter, remoteip } = this;
 
   const userId = data[USERS_ID_FIELD];
 
-  if (checkUserLoginRateLimit) {
-    await loginIpRateLimiter
+  if (remoteip && userIpRateLimiter.isUserIpRateLimiterEnabled()) {
+    await userIpRateLimiter
       .reserveForUserIp(userId, remoteip)
-      .catch((err) => {
-        if (err instanceof RateLimitError) {
-          this.loginAttempts = err.usage;
-          throw newRateLimitHTTPError(err, remoteip);
-        }
-        throw err;
-      });
+      .catch(checkIfRateLimitError.bind(this));
 
     this.loginUserId = userId;
   }
@@ -129,20 +128,18 @@ async function cleanupRateLimits() {
   const {
     remoteip,
     loginUserId,
-    loginIpRateLimiter,
-    checkIpLoginRateLimit,
-    checkUserLoginRateLimit,
+    userIpRateLimiter,
   } = this;
 
   const work = [];
 
-  if (checkIpLoginRateLimit) {
-    work.push(loginIpRateLimiter.cleanupForIp(remoteip));
+  if (remoteip && userIpRateLimiter.isIpRateLimiterEnabled()) {
+    work.push(userIpRateLimiter.cleanupForIp(remoteip));
   }
 
-  if (checkUserLoginRateLimit) {
+  if (remoteip && userIpRateLimiter.isUserIpRateLimiterEnabled()) {
     if ((loginUserId != null && typeof loginUserId !== 'undefined')) {
-      work.push(loginIpRateLimiter.cleanupForUserIp(loginUserId, remoteip));
+      work.push(userIpRateLimiter.cleanupForUserIp(loginUserId, remoteip));
     }
   }
 
@@ -161,18 +158,6 @@ async function getUserInfo(internalData) {
   datum.mfa = !!internalData[USERS_MFA_FLAG];
 
   return datum;
-}
-
-/**
- * Enriches error with amount of login attempts
- */
-function enrichError(err) {
-  if (this.remoteip) {
-    err.loginAttempts = this.loginAttempts;
-    err.globalLoginAttempts = this.globalLoginAttempts;
-  }
-
-  throw err;
 }
 
 function verifyInternalData(data) {
@@ -206,10 +191,7 @@ async function login({ params, locals }) {
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
 
-  const loginIpRateLimiter = new UserIpRateLimiter(this.redis, rateLimiterConfig.userLogin);
-
-  const checkUserLoginRateLimit = remoteip && loginIpRateLimiter.isUserIpRateLimiterEnabled();
-  const checkIpLoginRateLimit = remoteip && loginIpRateLimiter.isIpRateLimiterEnabled();
+  const userIpRateLimiter = new UserIpRateLimiter(this.redis, rateLimiterConfig.userLogin);
 
   // build context
   const ctx = {
@@ -218,10 +200,7 @@ async function login({ params, locals }) {
     tokenManager,
     redis,
     config,
-    // counters
-    loginAttempts: 0,
-    globalLoginAttempts: 0,
-    loginIpRateLimiter,
+    userIpRateLimiter,
 
     // business logic params
     params,
@@ -231,20 +210,12 @@ async function login({ params, locals }) {
     password,
     audience,
     remoteip,
-    checkIpLoginRateLimit,
-    checkUserLoginRateLimit,
   };
 
-  if (checkIpLoginRateLimit) {
-    await loginIpRateLimiter
+  if (remoteip && userIpRateLimiter.isIpRateLimiterEnabled()) {
+    await userIpRateLimiter
       .reserveForIp(remoteip)
-      .catch((err) => {
-        if (err instanceof RateLimitError) {
-          ctx.globalLoginAttempts = err.usage;
-          throw newRateLimitHTTPError(err, remoteip);
-        }
-        throw err;
-      });
+      .catch(checkIfRateLimitError.bind(ctx));
   }
 
   return Promise
@@ -261,9 +232,7 @@ async function login({ params, locals }) {
     .tap(isActive)
     .tap(isBanned)
     // fetch final user information
-    .then(getUserInfo)
-    // enriches and rethrows
-    .catch(enrichError);
+    .then(getUserInfo);
 }
 
 login.mfa = MFA_TYPE_OPTIONAL;

@@ -13,6 +13,23 @@ describe('#sliding-window-limiter', function suite() {
 
   after(global.clearRedis);
 
+  describe('lua cancel param validation', function luaCancelSuite() {
+    it('check token', async function test() {
+      const service = this.users;
+      const { redis } = service;
+      let error;
+
+      try {
+        await redis.slidingWindowCancel(1, 'testKEY', '');
+      } catch (e) {
+        error = e;
+      }
+
+      assert.ok(error);
+      assert(error.message.includes('invalid `token` argument'));
+    });
+  });
+
   describe('lua param validation', function luaSuite() {
     const testScript = (argName) => {
       return (testParam) => {
@@ -37,14 +54,14 @@ describe('#sliding-window-limiter', function suite() {
       const tests = [
         {
           name: 'empty',
-          args: [null, 10, 10, true, 'mytoken', 10],
+          args: [null, 10, 10, 1, 'mytoken', 10],
         }, {
           name: 'negative',
-          args: [-1, 10, 10, true, 'mytoken', 10],
+          args: [-1, 10, 10, 1, 'mytoken', 10],
 
         }, {
           name: 'not a number',
-          args: ['notAnum', 10, 10, true, 'mytoken', 10],
+          args: ['notAnum', 10, 10, 1, 'mytoken', 10],
         },
       ];
 
@@ -55,13 +72,13 @@ describe('#sliding-window-limiter', function suite() {
       const tests = [
         {
           name: 'empty',
-          args: [Date.now(), null, 10, true, 'mytoken', 10],
+          args: [Date.now(), null, 10, 1, 'mytoken', 10],
         }, {
           name: 'negative',
-          args: [7777, -1, 10, true, 'mytoken', 10],
+          args: [7777, -1, 10, 1, 'mytoken', 10],
         }, {
           name: 'not a number',
-          args: [7777, 'notanum', 10, true, 'mytoken', 10],
+          args: [7777, 'notanum', 10, 1, 'mytoken', 10],
         },
       ];
 
@@ -72,24 +89,42 @@ describe('#sliding-window-limiter', function suite() {
       const tests = [
         {
           name: 'empty',
-          args: [Date.now(), 10, null, true, 'mytoken', 10],
+          args: [Date.now(), 10, null, 1, 'mytoken', 10],
         }, {
           name: 'negative',
-          args: [Date.now(), 10, -1, true, 'mytoken', 10],
+          args: [Date.now(), 10, -1, 1, 'mytoken', 10],
         }, {
           name: 'not a number',
-          args: [Date.now(), 10, 'notanumber', true, 'mytoken', 10],
+          args: [Date.now(), 10, 'notanumber', 1, 'mytoken', 10],
         },
       ];
 
       tests.forEach(testScript('limit'));
     });
 
+    describe('reserveToken', function luaParamLimitSuite() {
+      const tests = [
+        {
+          name: 'empty',
+          args: [Date.now(), 10, 10, null, 'mytoken', 10],
+        }, {
+          name: 'negative',
+          args: [Date.now(), 10, 10, -1, 'mytoken', 10],
+        }, {
+          name: 'not a number',
+          args: [Date.now(), 10, 10, 'notanumber', 'mytoken', 10],
+        },
+      ];
+
+      tests.forEach(testScript('reserveToken'));
+    });
+
+
     describe('token', function luaParamTokenSuite() {
       const tests = [
         {
           name: 'empty but reserveToken true',
-          args: [Date.now(), 10, 10, true, '', 10],
+          args: [Date.now(), 10, 10, 1, '', 10],
         },
       ];
 
@@ -99,7 +134,7 @@ describe('#sliding-window-limiter', function suite() {
 
   describe('util tests', function utilSuite() {
     const SlidingWindowLimiter = require('../../../../../src/utils/sliding-window/redis/limiter');
-    const { RateLimitError } = require('../../../../../src/utils/sliding-window/rate-limiter');
+    const { RateLimitError } = SlidingWindowLimiter;
     describe('internals', function internalChecks() {
       const rateLimiterConfig = {
         limit: 10,
@@ -251,6 +286,75 @@ describe('#sliding-window-limiter', function suite() {
         usageResult = await limiter.check('myKey');
         assert(usageResult.reset === 0);
         assert(usageResult.usage === 0, 'should delete some records');
+      });
+
+      it('limit reach', async function testLimit() {
+        const service = this.users;
+        const { redis } = service;
+        const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
+
+        const tokenPromises = Bluebird.mapSeries(new Array(11), async (_, index) => {
+          clock.tick(1000);
+          await limiter.reserve('myKey', `bazToken${index}`);
+        });
+
+        let error;
+        try {
+          await tokenPromises;
+        } catch (e) {
+          error = e;
+        }
+
+        assert(error instanceof RateLimitError, 'should throw error when limit reached');
+      });
+    });
+
+    describe('clock tick and forever block', function clockTicksForeverBlock() {
+      let clock;
+
+      const rateLimiterConfig = {
+        limit: 10,
+        interval: 0,
+      };
+
+      beforeEach(function replaceClock() {
+        clock = sinon.useFakeTimers(200000);
+      });
+
+      afterEach(function restoreClock() {
+        clock.restore();
+      });
+
+      it('reset is always 0 if interval or blockForever === 0', async function testUsageDrops() {
+        const service = this.users;
+        const { redis } = service;
+        const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
+
+        const tokenPromises = Bluebird.mapSeries(new Array(5), async (_, index) => {
+          clock.tick(5000);
+          const { token } = await limiter.reserve('myKeyForever', `fooToken${index}`);
+          return token;
+        });
+
+        await tokenPromises;
+
+        let usageResult = await limiter.check('myKeyForever');
+        assert(usageResult.reset === 0);
+
+        clock.tick(5000);
+        usageResult = await limiter.check('myKeyForever');
+        assert(usageResult.reset === 0);
+
+        clock.tick(10000);
+        usageResult = await limiter.check('myKeyForever');
+        assert(usageResult.reset === 0);
+
+        // end block period
+        clock.tick(120003);
+        usageResult = await limiter.check('myKeyForever');
+
+        assert(usageResult.reset === 0);
+        assert(usageResult.usage === 5, 'should not delete some records');
       });
 
       it('limit reach', async function testLimit() {

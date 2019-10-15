@@ -12,9 +12,6 @@ module.exports = exports = {
   USERS_USERNAME_TO_ID: 'users-username',
   ORGANIZATIONS_NAME_TO_ID: 'organization-name',
 
-  // User login IP tracking
-  USER_LOGIN_IPS: 'user-login-ips',
-
   // referral tracking
   USERS_REF: 'users-ref',
 

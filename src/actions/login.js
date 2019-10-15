@@ -128,18 +128,18 @@ async function cleanupRateLimits() {
   const {
     remoteip,
     loginUserId,
-    userIpRateLimiter,
+    loginRateLimiter,
   } = this;
 
   const work = [];
 
-  if (remoteip && userIpRateLimiter.isIpRateLimiterEnabled()) {
-    work.push(userIpRateLimiter.cleanupForIp(remoteip));
+  if (remoteip && loginRateLimiter.isIpRateLimiterEnabled()) {
+    work.push(loginRateLimiter.cleanupForIp(remoteip));
   }
 
-  if (remoteip && userIpRateLimiter.isUserIpRateLimiterEnabled()) {
+  if (remoteip && loginRateLimiter.isUserIpRateLimiterEnabled()) {
     if ((loginUserId != null && typeof loginUserId !== 'undefined')) {
-      work.push(userIpRateLimiter.cleanupForUserIp(loginUserId, remoteip));
+      work.push(loginRateLimiter.cleanupForUserIp(loginUserId, remoteip));
     }
   }
 
@@ -191,7 +191,7 @@ async function login({ params, locals }) {
   const audience = params.audience || defaultAudience;
   const remoteip = params.remoteip || false;
 
-  const userIpRateLimiter = new UserIpRateLimiter(this.redis, rateLimiterConfig.userLogin);
+  const loginRateLimiter = new UserIpRateLimiter(this.redis, rateLimiterConfig.userLogin);
 
   // build context
   const ctx = {
@@ -200,7 +200,7 @@ async function login({ params, locals }) {
     tokenManager,
     redis,
     config,
-    userIpRateLimiter,
+    loginRateLimiter,
 
     // business logic params
     params,
@@ -212,8 +212,8 @@ async function login({ params, locals }) {
     remoteip,
   };
 
-  if (remoteip && userIpRateLimiter.isIpRateLimiterEnabled()) {
-    await userIpRateLimiter
+  if (remoteip && loginRateLimiter.isIpRateLimiterEnabled()) {
+    await loginRateLimiter
       .reserveForIp(remoteip)
       .catch(checkIfRateLimitError.bind(ctx));
   }

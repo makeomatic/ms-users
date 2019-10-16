@@ -3,7 +3,7 @@ const assert = require('assert');
 
 const UserIp = require('../../../src/utils/user-ip');
 
-describe('#user-ip-manager', function loginSuite() {
+describe('#user-ip', function userIpSuite() {
   let userIp;
   const userId = '123123123';
 

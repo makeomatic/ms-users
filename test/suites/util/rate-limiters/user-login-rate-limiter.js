@@ -4,7 +4,7 @@ const { times } = require('lodash');
 const assert = require('assert');
 const UserLoginRateLimiter = require('../../../../src/utils/rate-limiters/user-login-rate-limiter');
 
-describe('#login-rate-limiter', function loginSuite() {
+describe('#login-rate-limiter', function rateLimiterSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
 

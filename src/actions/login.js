@@ -57,7 +57,6 @@ async function checkLoginAttempts(data) {
 
   if (loginRateLimiter.isEnabled()) {
     const pipeline = redis.pipeline();
-
     const userIp = new UserIp(pipeline);
     const loginAttempt = new LoginAttempt(pipeline);
 
@@ -65,7 +64,6 @@ async function checkLoginAttempts(data) {
     loginAttempt.addAttempt(userId, loginRateLimiter.token);
 
     await pipeline.exec();
-
     await loginRateLimiter
       .reserveForUserIp(userId, remoteip)
       .catch(handleRateLimitError);

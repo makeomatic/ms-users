@@ -44,7 +44,9 @@ describe('#login-rate-limits', function loginSuite() {
         .dispatch('register', { params: userWithValidPassword });
     });
 
-    afterEach(clearRedis.bind(this, true));
+    afterEach(async () => {
+      await clearRedis.call(this, true);
+    });
 
     it('must lock ip for login completely after 15 attempts', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
@@ -101,13 +103,21 @@ describe('#login-rate-limits', function loginSuite() {
         });
     });
 
-    it('resets attempts after final success login', async () => {
-      const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };
+    it('resets attempts for user after final success login', async () => {
+      const userWithRemoteIP = { remoteip: '10.0.0.1', ...user };
       const userWithIPAndValidPassword = { ...userWithRemoteIP, ...userWithValidPassword };
 
       const promises = [];
 
-      times(10, () => {
+      times(2, () => {
+        promises.push(
+          this.users
+            .dispatch('login', { params: { ...userWithRemoteIP, username: 'notme' } })
+            .reflect()
+        );
+      });
+
+      times(3, () => {
         promises.push(
           this.users
             .dispatch('login', { params: { ...userWithRemoteIP } })
@@ -119,7 +129,7 @@ describe('#login-rate-limits', function loginSuite() {
       await this.users.dispatch('login', { params: userWithIPAndValidPassword });
 
       const checkResult = await rateLimiter.checkForIp(userWithRemoteIP.remoteip);
-      expect(checkResult.usage).to.be.eq(0);
+      expect(checkResult.usage).to.be.eq(2);
     });
   });
 

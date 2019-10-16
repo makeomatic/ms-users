@@ -12,34 +12,49 @@ Attempts that do not fall within the specified range will be “forgotten”.
 
 This algorithm allows you to get a smoother service load and softer locks for the end-user.
 
-## Sliding window rate limiting Util
-Additional JavaScript class and set of Lua scripts that provide Sliding Algorithm.
-Attempt registry will use Redis ZSET.
+### Login Rate limiter specs
+* Should rate limit access from IP.
+* Should rate limit access for UserId and IP pair
+* On successful login must remove all logged attempts from User and all IPs that were used by the user.
+* Block interval is calculated from the last attempt.
 
-### LuaScripts
-Solution provides `sWindowReserve.lua` and `sWindowCancel.lua` scripts.
+### Sliding window rate limiting Util
+Additional JavaScript class and set of Lua scripts that provide rate-limiting logic.
 
-#### sWindowReserve.lua
-The Script accepts the high-resolution timestamp as scores in sorted SET to avoid some timestamp collision conditions.
-Deletes outdated entries from provided sorted SET within the current sliding `interval`.
-Gets count of members in SET, if members count is greater than `limit` returns `reset` milliseconds(interval to next execution available).
-Assigns TTL for the `key` value `interval`.
-When `interval` is 0 value of `reset` may become negative, in this case, `reset` return 0.
+#### LuaScripts
+Solution provides `slidingWindowReserve.lua`, `slidingWindowCleanup.lua` and `slidingWindowCancel.lua` scripts.
 
-#### sWindowCancel.lua
+##### slidingWindowReserve.lua
+* The Script accepts the timestamp as scores in sorted SET to avoid some timestamp collision conditions.
+* Gets count of the members from ZSET in `lastReservedToken - interval`.
+    - If there is no `lastReservedToken`, `timestamp` is used.
+* Checks If count is greater than `limit`, returns `reset` milliseconds(interval to next execution available). `reset` calculated as `timestamp - lastReservedToken + (blockInterval || interval)`
+* If count is lower than `limit` returns `token` and some internal information.
+* Assigns TTL for the `key` value `interval` or `blockInterval`.
+
+##### slidingWindowCancel.lua
 Removes provided token from ZSET, and this will allow to `reserve` new slot.
 
-### SlidingWindowLimiter
+##### slidingWindowCleanup.lua
+* Accepts key list as arguments. 
+* Gets contents from the first key and deletes them from other provided keys
+
+#### JavaScript classes
+##### SlidingWindowLimiter
 Utility class wrapping all calls to LUA scripts.
 
 E.g.:
 ```javascript
-const SlidingWindowlimiter = require('util/sliding-window/limiter');
+const SlidingWindowlimiter = require('util/sliding-window/redis/limiter');
 const { RateLimitError } = SlidingWindowLimiter;
 
-const myLimiter = new SlidingWindoLimiter(redis, 10 * 60, 15);
+const myLimiter = new SlidingWindowLimiter(redis, {
+  interval: 15 * 60, // 15 minutes.
+  blockInterval: 60 * 60, // 1 hour.
+  attempts: 15,
+});
 
-// Try to allocate span in `now()-interval` seconds with max 10 slots/tokens
+// Try to allocate span in `(lastAttempt || now())-interval` seconds with max 10 slots/tokens.
 try {
   const {usage, token, reset} = await myLimiter.reserve("myKey");
 } catch (e) {
@@ -48,73 +63,51 @@ try {
   }
 }
 
-// Token/span assigned
-// We can proceed our work
+// Token/span assigned.
+// We can proceed our work.
 
-// Get RateLimit usage information
+// Get RateLimit usage information.
 const usageResult = myLimiter.check('myKey');
 
 // Free used span/token.
 await limiter.cancel(token);
 ```
 
-# BREAKING CHANGES
-It was decided to add two separate classes to control the local and global number for login attempts.
-So some configuration options will be moved into a separate object.
+#### UserLoginLimiter
+Class controls login action rate-limiting logic.
 
-## Login Rate Limiters
-1. Create classes that use `SlidingWindowLimiter`: `LoginLocalIp` and `LoginGlobalIp`.
-Each of the classes will take a separate configuration from `config.rateLimiters.$rateLimiterName` in the format:
+Class will use configuration from `config.rateLimiters.userLogin` in the format:
+
   ```javascript
-  const config={
-    enabled: true || false, // default false
-    interval: 10, // seconds
-    limit: 1, // number
-  }
+exports.rateLimiters = {
+  userLogin: {
+    enabled: false,
+    forIp: {
+      interval: 60 * 60 * 24, // 24 hours
+      attempts: 15,
+      blockInterval: 60 * 60 * 24 * 7, // 7 days
+    },
+    forUserIp: {
+      interval: 60 * 60 * 24, // 24 hours
+      attempts: 5,
+      blockInterval: 60 * 60 * 24, // 1 day
+    },
+  },
+};
   ```
 
-2. Remove unnecessary options `lockAfterAttempts`, `globalLockAfterAttempts`, `keepGlobalLoginAttempts` and `keepLoginAttempts` from `config.jwt`.
+#### Additional data handling classes:
+##### UserIp
+Class controls the list of the IP addresses from user tried to login.
+Data from this class is used in `loginRateLimiter.cleanup` to form UserIp redis keys.
 
-3. Add new validation schemas to match `config.rateLimiters` section.
-4. Change `actions/login.js` to use new `LoginRateLimiter` classes.
-5. Add `clean-login-blocks` migration to remove previous data.
-
-## CHANGES
-* Add Sliding Window Utility tests
-* Alternate current `login` tests to support new configurations and check some additional cases.
+##### LoginAttempt
+Class controls user login attempt tokens. Data from this class is used in `loginRateLimiter.cleanup` to remove tokens stored in IP rate-limiters.
 
 ## BTW Migrations rename
 Decided to rename migration files into format: `$migrationFinalVer_$migrationName` for easier navigation.
 
 
-# Последние обновления 10.09.2019
-В общем, после общего ревью оказалось, что задача была выполнена не правильо и требовала другого функционала.
-В Итоге блокировка  должна была быть:
-* Привязанная к IP
-* Привязанная к паре UserId и IP
-* Удалять все попытки для UserId со всех IP и пары userid-ip
-* Должна брать во внимание MFA попытки входа.
-
-До созвона 09.09.09 было получено [тз](login_block_sliding_window/tz.md) От Саши
-
-После созвона с Сашей было решено:
-* Изменить алгоритм плавающего окна
-* Не удалять попытки для других ip для этого логина - Не есть безопасное решение
-* Пока не трогать MFA.
-
-## Алгоритм
-Изменения касающиеся алгоритма. 
-
-Блокировка должна позволять определенное количество попыток в интервале времени.
-Интервал Времени высчитывается не от текущего времени, а от времени последей попытки:
- 1. Если пользователь за определенный период времени совершил 10 попыток и привысил лимит, то он попадает под блокировку на заданный период времени.
- 2. Блокировка будет снята только по прошествии заданного времени и ключ содержащий попытки будет удаленю
- 3. После удачного входа вычищать ключи содержащие попытки пользователя и его ip.
-
-## TODO
-* [ ] Дописать тесты
-* [ ] Перепроверить реализацию
-* [ ] Привести в порядок код
-* [ ] Решить судьбу блокировки MFA
-
-
+## Updates
+* Received additional information and [document](login_block_sliding_window/tz.md)
+* Changed Microseconds to Milliseconds as scores. Dont' know why, but Redis messes with them ((((

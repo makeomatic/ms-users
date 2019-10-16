@@ -7,7 +7,7 @@
 -- tokenDbKey - ZSET storing tokens.
 --
 -- ARGS:
--- {integer} microCurrentTime - high resolution timestamp.
+-- {integer} currentTime - timestamp.
 -- {integer} interval - milliseconds. Lowest interval boundary from last reserved token or currentTime.
 -- {integer} limit - maximum possible amount of tokens in sliding interval.
 -- {integer} reserveToken - 1 to reserve token, 0 to return usage information.
@@ -25,7 +25,7 @@
 -- If token reserve is not successful: [10, 10, 0, 1200000].
 local tokenDbKey = KEYS[1]
 
-local microCurrentTime = tonumber(ARGV[1])
+local currentTime = tonumber(ARGV[1])
 local interval = tonumber(ARGV[2])
 local limit = tonumber(ARGV[3])
 local reserveToken = tonumber(ARGV[4])
@@ -44,7 +44,7 @@ local function isNonNegativeNumber(val)
   return type(val) == 'number' and val >= 0
 end
 
-if isPositiveNumber(microCurrentTime) == false then
+if isPositiveNumber(currentTime) == false then
  return redis.error_reply('invalid `currentTime` argument')
 end
 
@@ -70,8 +70,8 @@ if isNonNegativeNumber(blockInterval) == false then
   blockInterval = interval
 end
 
-local intervalMinScore = microCurrentTime - blockInterval * 1e3
-local intervalMaxScore = microCurrentTime
+local intervalMinScore = currentTime - blockInterval
+local intervalMaxScore = currentTime
 
 local millisToReset = 0
 
@@ -79,7 +79,7 @@ local lastTokenReserve = redis.call('ZREVRANGEBYSCORE', tokenDbKey, intervalMaxS
 
 if #lastTokenReserve > 0 then
   intervalMaxScore = lastTokenReserve[2]
-  intervalMinScore = intervalMaxScore - interval * 1e3
+  intervalMinScore = intervalMaxScore - interval
 end
 
 -- lover bound is -inf if blocking forever
@@ -90,7 +90,7 @@ end
 local tokenCount = redis.call("ZCOUNT", tokenDbKey, intervalMinScore, intervalMaxScore)
 
 if blockInterval > 0 and tokenCount >= limit then
-  millisToReset = (intervalMaxScore * 1e-3 + blockInterval) - microCurrentTime * 1e-3
+  millisToReset = (intervalMaxScore + blockInterval) - currentTime
 end
 
 -- Script returns response as array: [windowUseCount, windowUseLimit, token, reset]
@@ -100,7 +100,7 @@ if tokenCount >= limit then
 end
 
 if reserveToken == 1 then
-  redis.call('ZADD', tokenDbKey, microCurrentTime, token)
+  redis.call('ZADD', tokenDbKey, currentTime, token)
 
   -- pexpire deletes key if ttl is 0
   if (blockInterval > 0) then

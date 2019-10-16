@@ -17,7 +17,7 @@ class LoginAttempt {
   }
 
   addAttempt(user, token) {
-    return this.redis.sadd(LoginAttempt.getRedisKey(user), token, 1);
+    return this.redis.sadd(LoginAttempt.getRedisKey(user), token);
   }
 
   deleteAttempt(user, token) {

@@ -21,7 +21,7 @@ class UserIp {
    */
   static makeRedisKey(user) {
     assertStringNotEmpty(user, '`user` is invalid');
-    return redisKey(UserIp.USER_IPS, user);
+    return redisKey(user, UserIp.USER_IPS);
   }
 
   /**

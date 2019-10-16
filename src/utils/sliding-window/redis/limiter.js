@@ -3,13 +3,6 @@ const { strictEqual } = require('assert');
 const assertInteger = require('../../asserts/integer');
 const assertStringNotEmpty = require('../../asserts/string-not-empty');
 
-const getHiresTimestamp = () => {
-  const hrtime = process.hrtime();
-  const microTimestamp = (new Date()).getTime() * 1e3;
-  const hrTime = Math.ceil(hrtime[1] * 1e-3);
-  return microTimestamp + hrTime;
-};
-
 /**
  * Class providing sliding window based blocks using Redis database as storage.
  */
@@ -53,7 +46,7 @@ class SlidingWindowRedisBackend {
 
     const { redis, config } = this;
     const [usage, limit, token, reset] = await redis
-      .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, 1, tokenToReserve, config.blockInterval);
+      .slidingWindowReserve(1, key, Date.now(), config.interval, config.limit, 1, tokenToReserve, config.blockInterval);
 
     /* reset becomes 0 if blocking forever */
     if (!token) {
@@ -73,7 +66,7 @@ class SlidingWindowRedisBackend {
 
     const { redis, config } = this;
     const [usage, limit, , reset] = await redis
-      .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, 0, '', config.blockInterval);
+      .slidingWindowReserve(1, key, Date.now(), config.interval, config.limit, 0, '', config.blockInterval);
 
     return { usage, limit, reset };
   }

@@ -1,11 +1,8 @@
-const assert = require('assert');
-const Errors = require('common-errors');
-
+const { helpers: errorHelpers } = require('common-errors');
 const { strictEqual } = require('assert');
 const assertInteger = require('../../asserts/integer');
 const assertStringNotEmpty = require('../../asserts/string-not-empty');
 
-const errorHelpers = Errors.helpers;
 const getHiresTimestamp = () => {
   const hrtime = process.hrtime();
   const microTimestamp = (new Date()).getTime() * 1e3;
@@ -23,22 +20,19 @@ class SlidingWindowRedisBackend {
    * @param {object} config - Ratelimiter configuration
    */
   constructor(redis, config) {
-    assert.ok(redis, '`redis` required');
-    assert.ok(config, '`config` required');
-
     assertInteger(config.interval, '`interval` is invalid');
     strictEqual(config.interval >= 0, true, '`interval` is invalid');
-    assertInteger(config.limit, '`limit` is invalid');
-    strictEqual(config.limit > 0, true, '`limit` is invalid');
+    assertInteger(config.attempts, '`attempts` is invalid');
+    strictEqual(config.attempts > 0, true, '`attempts` is invalid');
 
     this.redis = redis;
 
-    const { interval, blockInterval, ...restConfig } = config;
+    const { interval, blockInterval } = config;
     /* Convert interval to milliseconds */
     this.config = {
       interval: interval * 1000,
       blockInterval: (blockInterval || interval) * 1000,
-      ...restConfig,
+      limit: config.attempts,
     };
   }
 
@@ -66,11 +60,7 @@ class SlidingWindowRedisBackend {
       throw SlidingWindowRedisBackend.RateLimitError(reset, limit);
     }
 
-    return {
-      token,
-      usage,
-      limit,
-    };
+    return { token, usage, limit };
   }
 
   /**
@@ -85,11 +75,7 @@ class SlidingWindowRedisBackend {
     const [usage, limit, , reset] = await redis
       .slidingWindowReserve(1, key, getHiresTimestamp(), config.interval, config.limit, 0, '', config.blockInterval);
 
-    return {
-      usage,
-      limit,
-      reset,
-    };
+    return { usage, limit, reset };
   }
 
   /**

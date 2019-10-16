@@ -10,14 +10,7 @@ describe('#login', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
 
-  before(startService.bind(this, {
-    rateLimiters: {
-      userLogin: {
-        ipLimitEnabled: false,
-        userIpLimitEnabled: false,
-      },
-    },
-  }));
+  before(startService.bind(this));
 
   after(clearRedis.bind(this));
   afterEach(clearRedis.bind(this, true));

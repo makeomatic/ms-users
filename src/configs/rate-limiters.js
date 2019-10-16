@@ -1,19 +1,15 @@
-const twoHours = 2 * 60 * 60;
-const sevenDays = 7 * 24 * 60 * 60;
 exports.rateLimiters = {
   userLogin: {
-    keyPrefix: 'act-login',
-
-    // IP
-    ipLimitEnabled: true,
-    ipLimitInterval: sevenDays,
-    ipLimitAttemptsCount: 15,
-    ipBlockInterval: sevenDays,
-
-    // User + IP
-    userIpLimitEnabled: true,
-    userIpLimitInterval: twoHours,
-    userIpLimitAttemptsCount: 5,
-    userIpBlockInterval: twoHours,
+    enabled: false,
+    forIp: {
+      interval: 60 * 60 * 24, // 24 hours
+      attempts: 15,
+      blockInterval: 60 * 60 * 24 * 7, // 7 days
+    },
+    forUserIp: {
+      interval: 60 * 60 * 24, // 24 hours
+      attempts: 5,
+      blockInterval: 60 * 60 * 24, // 1 day
+    },
   },
 };

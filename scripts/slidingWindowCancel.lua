@@ -1,3 +1,4 @@
+-- Script removes provided `token` from `tokenDbKey` set.
 local tokenDbKey = KEYS[1]
 local token = ARGV[1] -- token to cancel
 

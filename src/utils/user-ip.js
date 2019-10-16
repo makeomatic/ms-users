@@ -1,31 +1,27 @@
-const assert = require('assert');
 const assertStringNotEmpty = require('./asserts/string-not-empty');
 const redisKey = require('./key');
 
 /**
  * Class handles User2Ip Binding Index
  */
-class UserIpManger {
+class UserIp {
   /**
    * @param {ioredis} redis
-   * @param {string} prefix - Key prefix
    */
-  constructor(redis, prefix = '') {
-    assert.ok(redis, 'invalid `redis` argument');
-    this.prefix = prefix;
+  constructor(redis) {
     this.redis = redis;
   }
 
   /* User login IP tracking */
-  static USER_IPS = 'user-login-ips';
+  static USER_IPS = 'user-ips';
 
   /**
    * @param user
    * @returns {String}
    */
-  makeUserIPsKey(user) {
+  static makeRedisKey(user) {
     assertStringNotEmpty(user, '`user` is invalid');
-    return redisKey(this.prefix, UserIpManger.USER_IPS, user);
+    return redisKey(UserIp.USER_IPS, user);
   }
 
   /**
@@ -34,8 +30,8 @@ class UserIpManger {
    * @param {string} ip
    * @returns {Promise<*>}
    */
-  async addIp(user, ip) {
-    const userIPsKey = this.makeUserIPsKey(user);
+  addIp(user, ip) {
+    const userIPsKey = UserIp.makeRedisKey(user);
     return this.redis.sadd(userIPsKey, ip);
   }
 
@@ -45,7 +41,7 @@ class UserIpManger {
    * @returns {Promise<*>}
    */
   async getIps(user) {
-    const userIPsKey = this.makeUserIPsKey(user);
+    const userIPsKey = UserIp.makeRedisKey(user);
     return this.redis.smembers(userIPsKey);
   }
 
@@ -55,9 +51,9 @@ class UserIpManger {
    * @returns {Promise<*>}
    */
   async cleanIps(user) {
-    const userIPsKey = this.makeUserIPsKey(user);
+    const userIPsKey = UserIp.makeRedisKey(user);
     return this.redis.del(userIPsKey);
   }
 }
 
-module.exports = UserIpManger;
+module.exports = UserIp;

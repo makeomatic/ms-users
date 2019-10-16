@@ -17,42 +17,42 @@
     "rateLimiters"
   ],
   "definitions": {
-    "userIpRateLimiterConfig": {
+    "rateLimiterConfig": {
       "type": "object",
       "required": [
-        "ipLimitEnabled",
-        "userIpLimitEnabled"
+        "interval",
+        "attempts",
+        "blockInterval"
+      ],
+      "properties": {
+        "interval": {
+          "type": "integer"
+        },
+        "blockInterval": {
+          "type": "integer"
+        },
+        "attempts": {
+          "type": "integer",
+          "min": 0
+        }
+      }
+    },
+    "userLoginRateLimiterConfig": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "forIp",
+        "forUserIp"
       ],
       "properties":{
-        "ipLimitEnabled": {
+        "enabled": {
           "type": "boolean"
         },
-        "userIpLimitEnabled": {
-          "type": "boolean"
+        "forIp": {
+          "$ref": "config#/definitions/rateLimiterConfig"
         },
-        "ipLimitInterval": {
-          "type": "integer",
-          "min": 0
-        },
-        "ipLimitAttemptsCount": {
-          "type": "integer",
-          "min": 1
-        },
-        "ipBlockInterval": {
-          "type": "integer",
-          "min": 0
-        },
-        "userIpLimitInterval": {
-          "type": "integer",
-          "min": 0
-        },
-        "userIpLimitAttemptsCount": {
-          "type": "integer",
-          "min": 1
-        },
-        "userIpBlockInterval": {
-          "type": "integer",
-          "min": 0
+        "forUserIp": {
+          "$ref": "config#/definitions/rateLimiterConfig"
         }
       }
     }
@@ -665,7 +665,7 @@
       ],
       "properties": {
         "userLogin" : {
-          "$ref": "config#/definitions/userIpRateLimiterConfig"
+          "$ref": "config#/definitions/userLoginRateLimiterConfig"
         }
       }
     }

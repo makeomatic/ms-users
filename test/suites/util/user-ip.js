@@ -1,15 +1,15 @@
 /* global startService, clearRedis */
 const assert = require('assert');
 
-const UserIpManager = require('../../../src/utils/user-ip-manager');
+const UserIp = require('../../../src/utils/user-ip');
 
 describe('#user-ip-manager', function loginSuite() {
-  let userIpManager;
+  let userIp;
   const userId = '123123123';
 
   before(async () => {
     await startService.call(this);
-    userIpManager = new UserIpManager(this.users.redis, 'testIpRegistry');
+    userIp = new UserIp(this.users.redis, 'testIpRegistry');
   });
 
   after(clearRedis.bind(this));
@@ -17,18 +17,18 @@ describe('#user-ip-manager', function loginSuite() {
   afterEach(clearRedis.bind(this, true));
 
   it('saves user ips ', async () => {
-    await userIpManager.addIp(userId, '10.1.1.1');
+    await userIp.addIp(userId, '10.1.1.1');
 
-    const userIps = await userIpManager.getIps(userId);
+    const userIps = await userIp.getIps(userId);
     assert.deepStrictEqual(userIps, ['10.1.1.1']);
   });
 
   it('removes user ips ', async () => {
-    await userIpManager.addIp(userId, '10.1.1.1');
+    await userIp.addIp(userId, '10.1.1.1');
 
-    await userIpManager.cleanIps(userId);
+    await userIp.cleanIps(userId);
 
-    const userIps = await userIpManager.getIps(userId);
+    const userIps = await userIp.getIps(userId);
     assert.deepStrictEqual(userIps, []);
   });
 });

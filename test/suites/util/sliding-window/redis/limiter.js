@@ -137,7 +137,7 @@ describe('#sliding-window-limiter', function suite() {
     const { RateLimitError } = SlidingWindowLimiter;
     describe('internals', function internalChecks() {
       const rateLimiterConfig = {
-        limit: 10,
+        attempts: 10,
         interval: 1000,
         blockInterval: 12,
       };
@@ -170,7 +170,7 @@ describe('#sliding-window-limiter', function suite() {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, {
-          limit: 10,
+          attempts: 10,
           interval: 1000,
         });
 
@@ -244,7 +244,7 @@ describe('#sliding-window-limiter', function suite() {
       let clock;
 
       const rateLimiterConfig = {
-        limit: 10,
+        attempts: 10,
         interval: 100,
         blockInterval: 120,
       };
@@ -262,7 +262,7 @@ describe('#sliding-window-limiter', function suite() {
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
 
-        const tokenPromises = Bluebird.mapSeries(new Array(5), async (_, index) => {
+        const tokenPromises = Bluebird.mapSeries(new Array(10), async (_, index) => {
           clock.tick(5000);
           const { token } = await limiter.reserve('myKey', `fooToken${index}`);
           return token;
@@ -313,7 +313,7 @@ describe('#sliding-window-limiter', function suite() {
       let clock;
 
       const rateLimiterConfig = {
-        limit: 10,
+        attempts: 10,
         interval: 0,
       };
 

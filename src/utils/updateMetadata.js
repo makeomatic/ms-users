@@ -1,6 +1,8 @@
 /* eslint-disable no-mixed-operators */
 const { HttpStatusError } = require('common-errors');
 const mapValues = require('lodash/mapValues');
+const { RedisError } = require('common-errors').data;
+
 const redisKey = require('../utils/key.js');
 
 const { USERS_METADATA, USERS_AUDIENCE } = require('../constants.js');
@@ -19,10 +21,17 @@ function updateMetadataScript(userId, ops) {
 }
 
 // Stabilizes Lua script response
-function mapUpdateResponse(jsonStr) {
+function processUpdateScriptResponse(jsonStr) {
   const decodedData = JSONParse(jsonStr);
 
-  const result = decodedData.map((metaResult) => {
+  if (decodedData.err !== undefined) {
+    const errors = Object.entries(decodedData.err);
+    const message = errors.map(([, error]) => error.err).join('; ');
+
+    throw new RedisError(message, decodedData.err);
+  }
+
+  const result = decodedData.ok.map((metaResult) => {
     const opResult = {};
     for (const [key, ops] of Object.entries(metaResult)) {
       if (Array.isArray(ops) && ops.length === 1) {
@@ -35,6 +44,18 @@ function mapUpdateResponse(jsonStr) {
   });
 
   return result.length > 1 ? result : result[0];
+}
+
+function processUpdateScriptLuaResponse(jsonStr) {
+  const decodedData = JSONParse(jsonStr);
+
+  if (decodedData.err !== undefined) {
+    const errors = Object.entries(decodedData.err);
+    const message = errors.map(([, error]) => `Script: ${error.script} Failed with error: ${error.err}`).join('; ');
+    throw new RedisError(message, decodedData.err);
+  }
+
+  return decodedData.ok;
 }
 
 /**
@@ -76,7 +97,7 @@ async function updateMetadata(opts) {
     scriptOpts = { metaOps, ...scriptOpts };
 
     const updateResult = await updateMetadataScript.call(this, userId, scriptOpts);
-    return mapUpdateResponse(updateResult);
+    return processUpdateScriptResponse(updateResult);
   }
 
   // dynamic scripts
@@ -92,7 +113,8 @@ async function updateMetadata(opts) {
 
   scriptOpts = { scripts, ...scriptOpts };
   const updateResult = await updateMetadataScript.call(this, userId, scriptOpts);
-  return JSONParse(updateResult);
+
+  return processUpdateScriptLuaResponse(updateResult);
 }
 
 updateMetadata.prepareOps = prepareOps;

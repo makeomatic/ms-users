@@ -8,6 +8,8 @@ local metaDataTemplate = KEYS[2]
 local Id = ARGV[1]
 local updateOptsJson = ARGV[2]
 
+local scriptResult = { err = nil, ok = {}}
+
 local function isValidString(val)
   if type(val) == 'string' and string.len(val) > 0 then
     return true
@@ -31,7 +33,7 @@ local function loadScript(code, environment)
 end
 
 -- creates array with unique items from passed arrays
-local function tablesUniqueItems(...)
+local function getUniqueItemsFromTables(...)
   local args = {...}
   local tableWithUniqueItems = {}
   for _, passedTable in pairs(args) do
@@ -51,6 +53,27 @@ local function makeKey (template, id, audience)
   return str
 end
 
+local function isCommandError(resultOrError)
+  return (type(resultOrError) == 'table' and resultOrError['err'] ~= nil)
+end
+
+local function checkForCommandError(result, command, args)
+  if isCommandError(result) == true then
+    if (scriptResult['err'] == nil) then
+      scriptResult['err'] = {}
+    end
+    table.insert(scriptResult['err'], {
+      err = result['err'],
+      command = {
+        name = command,
+        args = args
+      }
+    })
+    return nil
+  end
+  return result
+end
+
 --
 -- available ops definition
 --
@@ -59,16 +82,19 @@ end
 -- { HMSETResponse }
 local function opSet(metaKey, args)
   local setArgs = {}
-  local result = {}
 
   for field, value in pairs(args) do
     table.insert(setArgs, field)
     table.insert(setArgs, value)
   end
 
-  local callResult = redis.call("HMSET", metaKey, unpack(setArgs))
-  result[1] = callResult.ok
-  return result
+  local cmdResult = redis.pcall("HMSET", metaKey, unpack(setArgs))
+  cmdResult = checkForCommandError(cmdResult, "HMSET", setArgs)
+  if cmdResult ~= nil then
+    return cmdResult.ok
+  end
+
+  return cmdResult
 end
 
 -- $remove: [ 'field', 'field2' ]
@@ -76,7 +102,8 @@ end
 local function opRemove(metaKey, args)
   local result = 0;
   for _, field in pairs(args) do
-    result = result + redis.call("HDEL", metaKey, field)
+    local cmdResult = redis.pcall("HDEL", metaKey, field)
+    result = result + checkForCommandError(cmdResult, "HDEL", { metaKey, field })
   end
   return result
 end
@@ -86,9 +113,17 @@ end
 local function opIncr(metaKey, args)
   local result = {}
   for field, incrVal in pairs(args) do
-    result[field] = redis.call("HINCRBY", metaKey, field, incrVal)
+    -- TODO fix err
+    local cmdResult  = redis.pcall("HINCRBY", metaKey, field, incrVal)
+    cmdResult = checkForCommandError(cmdResult, "HINCRBY", { metaKey, field, incrVal })
+    result[field] = cmdResult
   end
-  return result
+--  if #result > 0 then
+--    return result
+--  end
+--
+--  return nil
+  return result;
 end
 
 -- operations index
@@ -101,7 +136,6 @@ local metaOps = {
 --
 -- Script body
 --
-local scriptResult = {}
 
 -- get list of keys to update
 -- generate them from passed audiences and metaData key template
@@ -122,20 +156,14 @@ if updateOpts.metaOps then
     for opName, opArg in pairs(op) do
       local processFn = metaOps[opName];
 
-      if processFn == nil then
-        return redis.error_reply("Unsupported command:" .. opName)
+      if processFn ~= nil then
+        -- store command execution result
+        metaProcessResult[opName] = processFn(targetOpKey, opArg)
       end
-
-      if type(opArg) ~= "table" then
-        return redis.error_reply("Args for " .. opName .. " must be and array")
-      end
-
-      -- store command execution result
-      metaProcessResult[opName] = processFn(targetOpKey, opArg)
     end
 
     -- store execution result of commands block
-    table.insert(scriptResult, metaProcessResult)
+    table.insert(scriptResult['ok'], metaProcessResult)
   end
 
 -- process passed scripts
@@ -154,8 +182,23 @@ elseif updateOpts.scripts then
 
     -- evaluate script and bind to custom env
     local fn = loadScript(script.lua, env)
+
     -- run script and save result
-    scriptResult[script.name] = fn()
+    local status, result  = pcall(fn)
+    if status == true then
+      scriptResult['ok'][script.name] = result;
+    else
+      if (scriptResult['err'] == nil) then
+        scriptResult['err'] = {}
+      end
+      table.insert(scriptResult['err'], {
+        err = result,
+        script = script.name,
+        keys = keysToProcess,
+        args = script.args,
+      })
+    end
+
   end
 
 end
@@ -169,7 +212,7 @@ local audienceKey = makeKey(audienceKeyTemplate, Id)
 local audiences = redis.call("SMEMBERS", audienceKey)
 
 -- create list containing saved and possibly new audiences
-local uniqueAudiences = tablesUniqueItems(audiences, updateOpts.audiences)
+local uniqueAudiences = getUniqueItemsFromTables(audiences, updateOpts.audiences)
 
 -- iterate over final audience list
 for _, audience in pairs(uniqueAudiences) do

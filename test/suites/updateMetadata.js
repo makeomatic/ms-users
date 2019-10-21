@@ -36,6 +36,7 @@ describe('#updateMetadata', function getMetadataSuite() {
       .reflect()
       .then(inspectPromise())
       .then((data) => {
+        console.log(data);
         expect(data.$remove).to.be.eq(0);
       });
   });
@@ -76,7 +77,7 @@ describe('#updateMetadata', function getMetadataSuite() {
       .then(inspectPromise())
       .then((data) => {
         const [mainData, extraData] = data;
-
+        console.log(data);
         expect(mainData.$set).to.be.eq('OK');
         expect(mainData.$incr.b).to.be.eq(2);
         expect(extraData.$incr.b).to.be.eq(3);
@@ -130,4 +131,114 @@ describe('#updateMetadata', function getMetadataSuite() {
     expect(redisTime).to.be.an('array');
     expect(keyValue).to.be.eq('777');
   });
+
+  // direct access test suite. Validator doesn't allow us to use incorrect arguments
+  describe('it must behave like js updateMetadata', function mimicTest() {
+    const util = require('util');
+    const { RedisError } = require('common-errors').data;
+    let updateMetadata;
+
+    beforeEach('setUserProps', async function setUserProps() {
+      const params = {
+        userId: this.userId,
+        audience: [
+          audience,
+        ],
+        metadata: [
+          {
+            $set: {
+              x: 10,
+              b: 12,
+              c: 'cval',
+            },
+          },
+        ],
+      };
+
+      updateMetadata = require('../../src/utils/updateMetadata.js').bind(this.users);
+      await updateMetadata(params);
+    });
+
+    // should  error if one of the commands failed to run
+    // BUT other commands must be executed
+    it('update using changesets behaves like pipeline', async function test() {
+      const params = {
+        userId: this.userId,
+        audience: [
+          audience,
+        ],
+        metadata: [
+          {
+            $set: {
+              x: 10,
+              y: null,
+            },
+            $incr: {
+              b: 2,
+              d: 'asf',
+            },
+            $remove: ['c'],
+          },
+        ],
+      };
+
+      let updateError;
+      try {
+        await updateMetadata(params);
+      } catch (e) {
+        updateError = e;
+      }
+      console.log(util.inspect(updateError, { depth: null }));
+
+      expect(updateError).to.be.an.instanceof(RedisError, 'should throw error');
+
+      const redisUserMetaKey = `${this.userId}!metadata!${audience}`;
+      const userData = await this.users.redis.hgetall(redisUserMetaKey);
+
+      expect(userData).to.include({
+        x: '10',
+        b: '14',
+      });
+
+      expect(userData).to.not.include({
+        c: 'cval',
+      });
+    });
+
+    it('update executes all LUA scripts despite on the script error', async function test() {
+      const luaScript = `
+        redis.call("SET", '{ms-users}myTestKey', 777)
+        return ARGV[1]
+      `;
+
+      const params = {
+        userId: this.userId,
+        audience: [audience],
+        script: {
+          firstScript: {
+            lua: 'return foo',
+          },
+          secondScript: {
+            lua: luaScript,
+            argv: ['777'],
+          },
+        },
+      };
+
+      let updateError;
+
+      try {
+        await updateMetadata(params);
+      } catch (e) {
+        updateError = e;
+      }
+      console.log(util.inspect(updateError, { depth: null }));
+
+      expect(updateError).to.be.an.instanceof(RedisError, 'should throw error');
+
+      const testKeyContents = await this.users.redis.get('myTestKey');
+      expect(testKeyContents).to.be.equal('777');
+    });
+  });
+
 });

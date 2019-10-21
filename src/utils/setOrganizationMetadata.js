@@ -1,22 +1,9 @@
 /* eslint-disable no-mixed-operators */
-const Promise = require('bluebird');
-const { HttpStatusError } = require('common-errors');
+const MetaUpdate = require('../utils/metadata/redis/update-metadata');
 const redisKey = require('../utils/key.js');
-const { prepareOps } = require('./updateMetadata');
 
 const { ORGANIZATIONS_METADATA, ORGANIZATIONS_AUDIENCE } = require('../constants.js');
 
-const JSONStringify = (data) => JSON.stringify(data);
-
-function updateMetadataScript(id, ops) {
-  const { redis } = this;
-
-  const audienceKeyTemplate = redisKey('{id}', ORGANIZATIONS_AUDIENCE);
-  const metaDataTemplate = redisKey('{id}', ORGANIZATIONS_METADATA, '{audience}');
-
-  return redis
-    .updateMetadata(2, audienceKeyTemplate, metaDataTemplate, id, JSONStringify(ops));
-}
 
 /**
  * Updates metadata on a organization object
@@ -24,25 +11,11 @@ function updateMetadataScript(id, ops) {
  * @return {Promise}
  */
 async function setOrganizationMetadata(opts) {
-  const {
-    organizationId, audience, metadata,
-  } = opts;
-  const audiences = Array.isArray(audience) ? audience : [audience];
-
-  // if we have meta, then we can
-  if (metadata) {
-    const rawMetaOps = Array.isArray(metadata) ? metadata : [metadata];
-    if (rawMetaOps.length !== audiences.length) {
-      return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
-    }
-
-    const metaOps = rawMetaOps.map((opBlock) => prepareOps(opBlock));
-
-    const scriptOpts = { metaOps, audiences };
-    return updateMetadataScript.call(this, organizationId, scriptOpts);
-  }
-
-  return true;
+  const audienceKeyTemplate = redisKey('{id}', ORGANIZATIONS_AUDIENCE);
+  const metaDataTemplate = redisKey('{id}', ORGANIZATIONS_METADATA, '{audience}');
+  const metaUpdater = new MetaUpdate(this.redis, metaDataTemplate, audienceKeyTemplate);
+  const { organizationId, ...restOpts } = opts;
+  return metaUpdater.update({ id: organizationId, ...restOpts });
 }
 
 module.exports = setOrganizationMetadata;

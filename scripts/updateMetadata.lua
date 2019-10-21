@@ -1,3 +1,11 @@
+-- Script performs User/Organization metadata update and tracks used audiences
+-- KEYS[1] = Audience Key template in format `{id}someExtraText{audience}` - Key stores currently used audiences associated with metadata
+-- KEYS[2] = Metadata Key template in format `{id}myAvesomeMEtaKey{audience}` - Key stores metadata
+-- `{id}` and `{audience}` will be replaced with real values on script runtime
+
+-- ARGV[1] = Id of the User/Organization which is going to be updated
+-- ARGV[2] = JsonString with list of operations to execute on the metadata of the provided Id
+
 -- script replicates commands instead of own body
 -- call of HMSET command is determined as 'non deterministic command'
 -- and redis refuses to run it without this.
@@ -10,6 +18,9 @@ local updateOptsJson = ARGV[2]
 
 local scriptResult = { err = nil, ok = {}}
 
+--
+-- Param Validation
+--
 local function isValidString(val)
   if type(val) == 'string' and string.len(val) > 0 then
     return true
@@ -22,7 +33,12 @@ assert(isValidString(updateOptsJson), 'incorrect `updateJson` argument')
 
 local updateOpts = cjson.decode(updateOptsJson)
 
-local function loadScript(code, environment)
+--
+-- Internal functions
+--
+
+-- evaluates provided script
+local function evalLuaScript(code, environment)
   if setfenv and loadstring then
     local f = assert(loadstring(code))
     setfenv(f, environment)
@@ -45,7 +61,7 @@ local function getUniqueItemsFromTables(...)
 end
 
 -- create key from passed template, id and audience
-local function makeKey (template, id, audience)
+local function makeRedisKey (template, id, audience)
   local str = template:gsub('{id}', id, 1)
   if audience ~= nil then
     str = str:gsub('{audience}', audience, 1)
@@ -53,12 +69,8 @@ local function makeKey (template, id, audience)
   return str
 end
 
-local function isCommandError(resultOrError)
-  return (type(resultOrError) == 'table' and resultOrError['err'] ~= nil)
-end
-
-local function checkForCommandError(result, command, args)
-  if isCommandError(result) == true then
+local function getResultOrSaveError(result, command, args)
+  if type(result) == 'table' and result['err'] ~= nil then
     if (scriptResult['err'] == nil) then
       scriptResult['err'] = {}
     end
@@ -75,7 +87,7 @@ local function checkForCommandError(result, command, args)
 end
 
 --
--- available ops definition
+-- available Meta Operations definition
 --
 
 -- $set: { field: value, field2: value, field3: value }
@@ -89,7 +101,7 @@ local function opSet(metaKey, args)
   end
 
   local cmdResult = redis.pcall("HMSET", metaKey, unpack(setArgs))
-  cmdResult = checkForCommandError(cmdResult, "HMSET", setArgs)
+  cmdResult = getResultOrSaveError(cmdResult, "HMSET", setArgs)
   if cmdResult ~= nil then
     return cmdResult.ok
   end
@@ -103,7 +115,7 @@ local function opRemove(metaKey, args)
   local result = 0;
   for _, field in pairs(args) do
     local cmdResult = redis.pcall("HDEL", metaKey, field)
-    result = result + checkForCommandError(cmdResult, "HDEL", { metaKey, field })
+    result = result + getResultOrSaveError(cmdResult, "HDEL", { metaKey, field })
   end
   return result
 end
@@ -115,7 +127,7 @@ local function opIncr(metaKey, args)
   for field, incrVal in pairs(args) do
     -- TODO fix err
     local cmdResult  = redis.pcall("HINCRBY", metaKey, field, incrVal)
-    cmdResult = checkForCommandError(cmdResult, "HINCRBY", { metaKey, field, incrVal })
+    cmdResult = getResultOrSaveError(cmdResult, "HINCRBY", { metaKey, field, incrVal })
     result[field] = cmdResult
   end
 --  if #result > 0 then
@@ -141,7 +153,7 @@ local metaOps = {
 -- generate them from passed audiences and metaData key template
 local keysToProcess = {};
 for index, audience in ipairs(updateOpts.audiences) do
-  local key = makeKey(metaDataTemplate, Id, audience)
+  local key = makeRedisKey(metaDataTemplate, Id, audience)
   table.insert(keysToProcess, index, key);
 end
 
@@ -181,7 +193,7 @@ elseif updateOpts.scripts then
     env.KEYS = keysToProcess
 
     -- evaluate script and bind to custom env
-    local fn = loadScript(script.lua, env)
+    local fn = evalLuaScript(script.lua, env)
 
     -- run script and save result
     local status, result  = pcall(fn)
@@ -207,7 +219,7 @@ end
 -- Audience tracking
 --
 
-local audienceKey = makeKey(audienceKeyTemplate, Id)
+local audienceKey = makeRedisKey(audienceKeyTemplate, Id)
 -- get saved audience list
 local audiences = redis.call("SMEMBERS", audienceKey)
 
@@ -217,7 +229,7 @@ local uniqueAudiences = getUniqueItemsFromTables(audiences, updateOpts.audiences
 -- iterate over final audience list
 for _, audience in pairs(uniqueAudiences) do
   -- get size of metaKey
-  local metaKey = makeKey(metaDataTemplate, Id, audience)
+  local metaKey = makeRedisKey(metaDataTemplate, Id, audience)
   local keyLen = redis.call("HLEN", metaKey)
 
   -- if key has data add it to the audience set

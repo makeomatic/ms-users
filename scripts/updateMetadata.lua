@@ -1,5 +1,5 @@
 -- Script performs User/Organization metadata update and tracks used audiences
--- KEYS[1] = Audience Key template in format `{id}someExtraText{audience}` - Key stores currently used audiences associated with metadata
+-- KEYS[1] = Audience Key template in format `{id}someExtraText` - Key stores currently used audiences associated with metadata
 -- KEYS[2] = Metadata Key template in format `{id}myAvesomeMEtaKey{audience}` - Key stores metadata
 -- `{id}` and `{audience}` will be replaced with real values on script runtime
 
@@ -98,6 +98,10 @@ local function opSet(metaKey, args)
   for field, value in pairs(args) do
     table.insert(setArgs, field)
     table.insert(setArgs, value)
+  end
+
+  if #setArgs < 1 then
+    return nil
   end
 
   local cmdResult = redis.pcall("HMSET", metaKey, unpack(setArgs))

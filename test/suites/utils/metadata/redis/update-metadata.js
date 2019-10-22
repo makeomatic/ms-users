@@ -43,15 +43,15 @@ describe('#updateMetadata LUA script', function updateMetadataLuaSuite() {
   it('sets meta', async () => {
     const redisUserMetaKey = `${id}:testMeta:${audience}`;
     const userDataAudience = await this.users.redis.hgetall(redisUserMetaKey);
-    expect(userDataAudience).to.be.deep.equal({ x: '10', c: '"cval"', b: '12' });
+    expect(userDataAudience).to.include({ x: '10', c: '"cval"', b: '12' });
 
     const userDataExtraAudience = await this.users.redis.hgetall(`${id}:testMeta:*.extra`);
-    expect(userDataExtraAudience).to.be.deep.equal({ x: '20', c: '"xval"', b: '22' });
+    expect(userDataExtraAudience).to.include({ x: '20', c: '"xval"', b: '22' });
   });
 
   it('tracks audienceList', async () => {
     const audiencesList = await this.users.redis.smembers(`${id}:audience`);
-    expect(audiencesList).to.be.deep.equal(['*.localhost', '*.extra']);
+    expect(audiencesList).to.include.members(['*.localhost', '*.extra']);
   });
 
   it('tracks audienceList after remove', async () => {

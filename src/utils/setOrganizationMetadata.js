@@ -1,9 +1,5 @@
 /* eslint-disable no-mixed-operators */
-const MetaUpdate = require('../utils/metadata/redis/update-metadata');
-const redisKey = require('../utils/key.js');
-
-const { ORGANIZATIONS_METADATA, ORGANIZATIONS_AUDIENCE } = require('../constants.js');
-
+const OrganizationMetadata = require('../utils/metadata/organization');
 
 /**
  * Updates metadata on a organization object
@@ -11,11 +7,7 @@ const { ORGANIZATIONS_METADATA, ORGANIZATIONS_AUDIENCE } = require('../constants
  * @return {Promise}
  */
 async function setOrganizationMetadata(opts) {
-  const audienceKeyTemplate = redisKey('{id}', ORGANIZATIONS_AUDIENCE);
-  const metaDataTemplate = redisKey('{id}', ORGANIZATIONS_METADATA, '{audience}');
-  const metaUpdater = new MetaUpdate(this.redis, metaDataTemplate, audienceKeyTemplate);
-  const { organizationId, ...restOpts } = opts;
-  return metaUpdater.update({ id: organizationId, ...restOpts });
+  return new OrganizationMetadata(this.redis).update(opts);
 }
 
 module.exports = setOrganizationMetadata;

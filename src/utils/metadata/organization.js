@@ -3,7 +3,7 @@ const redisKey = require('../key');
 const MetaUpdate = require('./redis/update-metadata');
 const { ORGANIZATIONS_METADATA, ORGANIZATIONS_AUDIENCE } = require('../../constants');
 
-class UpdateOrganizationMetadata {
+class Organization {
   constructor(redis) {
     this.redis = redis;
     const audienceKeyTemplate = redisKey('{id}', ORGANIZATIONS_AUDIENCE);
@@ -22,4 +22,4 @@ class UpdateOrganizationMetadata {
   }
 }
 
-module.exports = UpdateOrganizationMetadata;
+module.exports = Organization;

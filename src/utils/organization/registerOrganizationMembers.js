@@ -14,7 +14,7 @@ const {
   USERS_ID_FIELD,
 } = require('../../constants.js');
 const scrypt = require('../scrypt');
-const UpdateUserMetadata = require('../metadata/update-user-metadata');
+const UserMetadata = require('../metadata/user');
 
 async function registerOrganizationMember(member) {
   const { redis, config } = this;
@@ -36,8 +36,8 @@ async function registerOrganizationMember(member) {
   pipeline.hset(USERS_USERNAME_TO_ID, email, userId);
   await pipeline.exec().then(handlePipeline);
 
-  const updateUserMetadata = new UpdateUserMetadata(redis);
-  await updateUserMetadata.update({
+  const userMetadata = new UserMetadata(redis);
+  await userMetadata.update({
     userId,
     audience,
     metadata: [{

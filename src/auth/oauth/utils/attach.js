@@ -1,6 +1,6 @@
 const get = require('lodash/get');
 const redisKey = require('../../../utils/key');
-const UpdateUserMetadata = require('../../../utils/metadata/update-user-metadata');
+const UserMetadata = require('../../../utils/metadata/user');
 const handlePipeline = require('../../../utils/pipelineError');
 const {
   USERS_SSO_TO_ID,
@@ -25,7 +25,7 @@ module.exports = async function attach(account, user) {
 
   await pipeline.exec().then(handlePipeline);
 
-  const updateMetadata = new UpdateUserMetadata(redis);
+  const userMetadata = new UserMetadata(redis);
   const updateParams = {
     userId,
     audience,
@@ -35,7 +35,7 @@ module.exports = async function attach(account, user) {
       },
     },
   };
-  await updateMetadata.update(updateParams);
+  await userMetadata.update(updateParams);
 
   return profile;
 };

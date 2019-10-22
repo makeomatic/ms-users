@@ -45,9 +45,7 @@ class UpdateMetadata {
 
       const metaOps = rawMetaOps.map((opBlock) => UpdateMetadata.prepareOperations(opBlock));
       scriptOpts = { metaOps, ...scriptOpts };
-
       const updateJsonResult = await this.callLuaScript(id, scriptOpts);
-      console.log(updateJsonResult, scriptOpts);
       return UpdateMetadata.processOpUpdateResponse(updateJsonResult);
     }
 

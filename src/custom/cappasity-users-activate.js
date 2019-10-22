@@ -1,6 +1,6 @@
 const find = require('lodash/find');
 const moment = require('moment');
-const UpdateUserMetadata = require('../utils/metadata/update-user-metadata');
+const UserMetadata = require('../utils/metadata/user');
 
 /**
  * Adds metadata from billing into usermix
@@ -13,7 +13,7 @@ module.exports = function mixPlan(userId, params) {
   const { payments } = config;
   const route = [payments.prefix, payments.routes.planGet].join('.');
   const id = 'free';
-  const updateMetadata = new UpdateUserMetadata(this.redis);
+  const userMetadata = new UserMetadata(this.redis);
 
   return amqp
     .publishAndWait(route, id, { timeout: 5000 })
@@ -37,6 +37,6 @@ module.exports = function mixPlan(userId, params) {
         },
       };
 
-      return updateMetadata.update(updateParams);
+      return userMetadata.update(updateParams);
     });
 };

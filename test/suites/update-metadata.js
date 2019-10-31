@@ -1,6 +1,6 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const simpleDispatcher = require('./../helpers/simple-dispatcher');
 
 describe('#updateMetadata', function getMetadataSuite() {
   const username = 'v@makeomatic.ru';

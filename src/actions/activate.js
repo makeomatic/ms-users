@@ -3,8 +3,8 @@ const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
-const getMetadata = require('../utils/getMetadata');
-const handlePipeline = require('../utils/pipelineError.js');
+const getMetadata = require('../utils/get-metadata');
+const handlePipeline = require('../utils/pipeline-error.js');
 const {
   USERS_INDEX,
   USERS_DATA,

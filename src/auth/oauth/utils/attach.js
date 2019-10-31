@@ -1,7 +1,7 @@
 const get = require('lodash/get');
 const redisKey = require('../../../utils/key');
-const updateMetadata = require('../../../utils/updateMetadata');
-const handlePipeline = require('../../../utils/pipelineError');
+const updateMetadata = require('../../../utils/update-metadata');
+const handlePipeline = require('../../../utils/pipeline-error');
 const {
   USERS_SSO_TO_ID,
   USERS_DATA,

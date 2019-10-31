@@ -1,6 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
-const { checkOrganizationExists } = require('../../../utils/organization');
-const { getOrganizationMembers } = require('../../../utils/organization');
+const { checkOrganizationExists, getOrganizationMembers } = require('../../../utils/organization');
 
 /**
  * @api {amqp} <prefix>.members.list Get organization members

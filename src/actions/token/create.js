@@ -3,7 +3,7 @@ const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
 const { sign } = require('../../utils/signatures');
 const redisKey = require('../../utils/key');
-const handlePipelineError = require('../../utils/pipelineError');
+const handlePipelineError = require('../../utils/pipeline-error');
 const { getUserId } = require('../../utils/userData');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, BEARER_USERNAME_FIELD } = require('../../constants');
 

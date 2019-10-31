@@ -9,18 +9,18 @@ const reduce = require('lodash/reduce');
 const last = require('lodash/last');
 
 // internal deps
-const setMetadata = require('../utils/updateMetadata');
+const setMetadata = require('../utils/update-metadata');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
-const isDisposable = require('../utils/isDisposable');
-const mxExists = require('../utils/mxExists');
-const checkCaptcha = require('../utils/checkCaptcha');
+const isDisposable = require('../utils/is-disposable');
+const mxExists = require('../utils/mx-exists');
+const checkCaptcha = require('../utils/check-captcha');
 const { getUserId } = require('../utils/userData');
-const aliasExists = require('../utils/aliasExists');
+const aliasExists = require('../utils/alias-exists');
 const assignAlias = require('./alias');
-const checkLimits = require('../utils/checkIpLimits');
+const checkLimits = require('../utils/check-ip-limits');
 const challenge = require('../utils/challenges/challenge');
-const handlePipeline = require('../utils/pipelineError');
+const handlePipeline = require('../utils/pipeline-error');
 const hashPassword = require('../utils/register/password/hash');
 const {
   USERS_REF,

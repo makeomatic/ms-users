@@ -2,10 +2,10 @@
 const Promise = require('bluebird');
 const is = require('is');
 const { HttpStatusError } = require('common-errors');
-const redisKey = require('../utils/key.js');
-const handlePipeline = require('../utils/pipelineError.js');
-const { handleAudience } = require('../utils/updateMetadata.js');
-const { ORGANIZATIONS_METADATA } = require('../constants.js');
+const redisKey = require('../utils/key');
+const handlePipeline = require('../utils/pipeline-error');
+const { handleAudience } = require('../utils/update-metadata');
+const { ORGANIZATIONS_METADATA } = require('../constants');
 
 /**
  * Updates metadata on a organization object

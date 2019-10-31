@@ -2,11 +2,11 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../key.js');
-const getUserId = require('../userData/getUserId');
-const sendInviteMail = require('./sendInviteMail');
-const getInternalData = require('./getInternalData');
-const registerOrganizationMembers = require('./registerOrganizationMembers');
-const handlePipeline = require('../pipelineError.js');
+const getUserId = require('../userData/get-user-id');
+const sendInviteMail = require('./send-invite-email');
+const getInternalData = require('./get-internal-data');
+const registerOrganizationMembers = require('./register-organization-members');
+const handlePipeline = require('../pipeline-error');
 const {
   ORGANIZATIONS_MEMBERS,
   USERS_METADATA,

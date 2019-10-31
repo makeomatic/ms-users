@@ -4,7 +4,7 @@ const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 // internal modules
 const redisKey = require('./key');
-const getMetadata = require('../utils/getMetadata');
+const getMetadata = require('../utils/get-metadata');
 const { verify: verifyHMAC } = require('./signatures');
 const {
   USERS_TOKENS,

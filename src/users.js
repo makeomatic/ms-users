@@ -9,7 +9,7 @@ const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
 const conf = require('./config');
 const get = require('./utils/get-value');
-const attachPasswordKeyword = require('./utils/passwordValidator.js');
+const attachPasswordKeyword = require('./utils/password-validator');
 
 /**
  * @namespace Users

@@ -2,7 +2,7 @@
 const Promise = require('bluebird');
 const generatePassword = require('password-generator');
 const redisKey = require('../key.js');
-const handlePipeline = require('../pipelineError.js');
+const handlePipeline = require('../pipeline-error');
 const {
   USERS_CREATED_FIELD,
   USERS_USERNAME_FIELD,
@@ -14,7 +14,7 @@ const {
   USERS_ID_FIELD,
 } = require('../../constants.js');
 const scrypt = require('../scrypt');
-const setMetadata = require('../updateMetadata');
+const setMetadata = require('../update-metadata');
 
 async function registerOrganizationMember(member) {
   const { redis, config } = this;

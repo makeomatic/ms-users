@@ -3,7 +3,7 @@ const { ActionTransport } = require('@microfleet/core');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../utils/key.js');
 const { getInternalData } = require('../utils/userData');
-const handlePipeline = require('../utils/pipelineError.js');
+const handlePipeline = require('../utils/pipeline-error');
 const {
   USERS_DATA, USERS_METADATA,
   USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,

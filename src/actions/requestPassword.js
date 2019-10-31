@@ -1,9 +1,9 @@
 const Promise = require('bluebird');
 const { getInternalData } = require('../utils/userData');
-const isActive = require('../utils/isActive.js');
-const isBanned = require('../utils/isBanned.js');
-const hasPassword = require('../utils/hasPassword.js');
-const getMetadata = require('../utils/getMetadata.js');
+const isActive = require('../utils/is-active');
+const isBanned = require('../utils/is-banned');
+const hasPassword = require('../utils/has-password');
+const getMetadata = require('../utils/get-metadata');
 const challenge = require('../utils/challenges/challenge');
 const {
   USERS_ACTION_PASSWORD,

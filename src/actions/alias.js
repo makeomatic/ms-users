@@ -2,10 +2,10 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../utils/userData');
-const isActive = require('../utils/isActive');
-const isBanned = require('../utils/isBanned');
+const isActive = require('../utils/is-active');
+const isBanned = require('../utils/is-banned');
 const key = require('../utils/key');
-const handlePipeline = require('../utils/pipelineError');
+const handlePipeline = require('../utils/pipeline-error');
 const {
   USERS_DATA,
   USERS_METADATA,

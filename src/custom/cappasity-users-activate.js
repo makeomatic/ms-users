@@ -1,6 +1,6 @@
 const find = require('lodash/find');
 const moment = require('moment');
-const setMetadata = require('../utils/updateMetadata.js');
+const setMetadata = require('../utils/update-metadata');
 
 /**
  * Adds metadata from billing into usermix

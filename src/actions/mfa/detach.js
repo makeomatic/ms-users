@@ -1,8 +1,8 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
-const handlePipeline = require('../../utils/pipelineError');
-const { checkMFA } = require('../../utils/mfa.js');
+const handlePipeline = require('../../utils/pipeline-error');
+const { checkMFA } = require('../../utils/mfa');
 const {
   USERS_DATA,
   USERS_MFA_FLAG,

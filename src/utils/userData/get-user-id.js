@@ -1,5 +1,5 @@
-const getInternalData = require('./getInternalData');
-const isBanned = require('../isBanned');
+const getInternalData = require('./get-internal-data');
+const isBanned = require('../is-banned');
 
 async function getUserId(username, verifyBanned = false) {
   const internalData = await getInternalData

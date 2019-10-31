@@ -1,10 +1,10 @@
-const getOrganizationId = require('./getOrganizationId');
-const resolveOrganizationData = require('./resolveOrganizationData');
-const getInternalData = require('./getInternalData');
-const getOrganizationMetadataAndMembers = require('./getOrganizationMetadataAndMembers');
-const getOrganizationMembers = require('./getOrganizationMembers');
-const getOrganizationMetadata = require('./getOrganizationMetadata');
-const checkOrganizationExists = require('./checkOrganizationExists');
+const getOrganizationId = require('./get-organization-id');
+const resolveOrganizationData = require('./resolve-organization-data');
+const getInternalData = require('./get-internal-data');
+const getOrganizationMetadataAndMembers = require('./get-organization-metadata-and-members');
+const getOrganizationMembers = require('./get-organization-members');
+const getOrganizationMetadata = require('./get-organization-metadata');
+const checkOrganizationExists = require('./check-organization-exists');
 
 module.exports = {
   getOrganizationId,

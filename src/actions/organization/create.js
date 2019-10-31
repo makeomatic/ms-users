@@ -2,9 +2,9 @@ const { ActionTransport } = require('@microfleet/core');
 const snakeCase = require('lodash/snakeCase');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../../utils/key');
-const handlePipeline = require('../../utils/pipelineError');
-const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
-const addOrganizationMembers = require('../../utils/organization/addOrganizationMembers');
+const handlePipeline = require('../../utils/pipeline-error');
+const setOrganizationMetadata = require('../../utils/set-organization-metadata');
+const addOrganizationMembers = require('../../utils/organization/add-organization-members');
 const { getOrganizationId, getOrganizationMetadataAndMembers } = require('../../utils/organization');
 const {
   ErrorConflictOrganizationExists,

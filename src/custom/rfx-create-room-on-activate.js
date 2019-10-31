@@ -1,6 +1,6 @@
 const is = require('is');
 const Promise = require('bluebird');
-const setMetadata = require('../utils/updateMetadata.js');
+const setMetadata = require('../utils/update-metadata');
 
 /**
  * @param  {String} username

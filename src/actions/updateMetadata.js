@@ -1,6 +1,6 @@
 const omit = require('lodash/omit');
 const Promise = require('bluebird');
-const updateMetadata = require('../utils/updateMetadata.js');
+const updateMetadata = require('../utils/update-metadata');
 const { getUserId } = require('../utils/userData');
 
 /**

@@ -5,9 +5,9 @@ const scrypt = require('../utils/scrypt');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const { getInternalData } = require('../utils/userData');
-const isActive = require('../utils/isActive');
-const isBanned = require('../utils/isBanned');
-const hasPassword = require('../utils/hasPassword');
+const isActive = require('../utils/is-active');
+const isBanned = require('../utils/is-banned');
+const hasPassword = require('../utils/has-password');
 const { getUserId } = require('../utils/userData');
 const {
   USERS_DATA,

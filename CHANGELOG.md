@@ -1,3 +1,15 @@
+# [12.0.0](https://github.com/makeomatic/ms-users/compare/v11.4.0...v12.0.0) (2019-10-31)
+
+
+### Features
+
+* upgrade deps for node 12.13.0 ([#432](https://github.com/makeomatic/ms-users/issues/432)) ([d092478](https://github.com/makeomatic/ms-users/commit/d0924786a9274d655f19393033af26c369bf4115))
+
+
+### BREAKING CHANGES
+
+* removes scrypt for built-in crypto implementation, while API remains the same the underlaying library is slightly different. Node has changed a major version, too
+
 # [11.4.0](https://github.com/makeomatic/ms-users/compare/v11.3.1...v11.4.0) (2019-10-03)
 
 

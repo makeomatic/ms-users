@@ -1,57 +1,103 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const assert = require('assert');
-const { Pipeline } = require('ioredis');
 const { HttpStatusError } = require('common-errors');
-const handlePipeline = require('../../pipelineError');
+const handlePipeline = require('../../pipeline-error');
 const sha256 = require('../../sha256');
+const { isRedis, isRedisPipeline } = require('../../asserts/redis');
+const isNotEmptyString = require('../../asserts/string-not-empty');
+const isValidId = require('../../asserts/id');
 
 const JSONStringify = (data) => JSON.stringify(data);
 
 /**
- * Class wraps User/Organization metadata update using atomic LUA script
+ * Class handling metadata update operations using Redis backend
  */
 class UpdateMetadata {
   /**
-   * @param redis
-   * @param metadataKeyTemplate
-   * @param audienceKeyTemplate
+   * @param {ioredis} redis or pipeline instance
+   * @param metadataKeyTemplate template base for Metadata key
    */
   constructor(redis, metadataKeyBase) {
+    assert(isRedis(redis), 'must be ioredis instance');
+    assert(isNotEmptyString(metadataKeyBase), 'must be not empty string');
     this.redis = redis;
     this.metadataKeyBase = metadataKeyBase;
   }
 
+  /**
+   * Generates Redis key
+   * Template `{id}!{metadataKeyBase}!{audience}`
+   * @param {String|integer} id
+   * @param {String} audience
+   * @returns {String}
+   */
   getMetadataKey(id, audience) {
+    assert(isValidId(id), 'must be valid Id');
+    assert(isNotEmptyString(audience), 'must be not empty string');
     return `${id}!${this.metadataKeyBase}!${audience}`;
   }
 
+  /**
+   * Updates metadata hash key
+   * @param {String} id
+   * @param {String} audience
+   * @param {String} key - Hash key
+   * @param {*} value
+   * @param {ioredis} [redis]
+   * @returns {Promise|Pipeline}
+   */
   update(id, audience, key, value, redis = this.redis) {
+    assert(isNotEmptyString(key), 'must be not empty string');
+    assert(isRedis(redis), 'must be ioredis instance');
+    assert(value, 'must not be empty');
+
     return redis.hset(this.getMetadataKey(id, audience), key, value);
   }
 
+  /**
+   * Updates metadata hash keys
+   * @param {String} id
+   * @param {String} audience
+   * @param {Object} values - Object with keys and values
+   * @param {ioredis} [redis]
+   * @returns {Promise|Pipeline}
+   */
   updateMulti(id, audience, values, redis = this.redis) {
+    assert(values !== null && typeof values === 'object', 'must be an object');
     return redis.hmset(this.getMetadataKey(id, audience), values);
   }
 
+  /**
+   * Deletes metadata hash keys
+   * @param {String} id
+   * @param {String} audience
+   * @param {String} key - Hash key
+   * @param {ioredis} [redis]
+   * @returns {Promise|Pipeline}
+   */
   delete(id, audience, key, redis = this.redis) {
+    assert(isNotEmptyString(key) || Array.isArray(key), 'must be not empty string or Array');
+    assert(isRedis(redis), 'must be ioredis instance');
     return redis.hdel(this.getMetadataKey(id, audience), key);
   }
 
   /**
-   * Updates metadata on a user object
+   * Updates metadata hash on provided Id
    * @param  {Object} opts
-   * @return {Promise}
+   * @return {*}
    */
   async batchUpdate(opts) {
     const { redis } = this;
-    assert(!(redis instanceof Pipeline), 'impossible to use with pipeline');
     const {
       id, audience, metadata, script,
     } = opts;
-    const audiences = Array.isArray(audience) ? audience : [audience];
 
-    // keys
+    // we use own pipeline or Promise here
+    assert(!isRedisPipeline(redis), 'impossible to use with pipeline');
+    assert(isValidId(id), 'must be valid id');
+
+    const audiences = Array.isArray(audience) ? audience : [audience];
     const keys = audiences.map((aud) => this.getMetadataKey(id, aud));
 
     // if we have meta, then we can
@@ -64,9 +110,9 @@ class UpdateMetadata {
       }
 
       const operations = metaOps.map((meta, idx) => UpdateMetadata.handleAudience(pipe, keys[idx], meta));
-      return pipe.exec()
-        .then(handlePipeline)
-        .then((res) => UpdateMetadata.mapMetaResponse(operations, res));
+      const result = handlePipeline(await pipe.exec());
+
+      return UpdateMetadata.mapMetaResponse(operations, result);
     }
 
     // dynamic scripts
@@ -81,7 +127,9 @@ class UpdateMetadata {
       return redis[name](keys.length, keys, argv);
     });
 
-    return Promise.all(scripts).then((res) => UpdateMetadata.mapScriptResponse($scriptKeys, res));
+    const result = await Promise.all(scripts);
+
+    return UpdateMetadata.mapScriptResponse($scriptKeys, result);
   }
 
   /**

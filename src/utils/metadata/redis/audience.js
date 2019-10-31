@@ -1,28 +1,57 @@
+const assert = require('assert');
+const { isRedis } = require('../../asserts/redis');
+const isNotEmptyString = require('../../asserts/string-not-empty');
+const isValidId = require('../../asserts/id');
+
+/**
+ * Class handling Audience tracking using Redis backend
+ */
 class Audience {
+  /**
+   * @param {ioredis|Pipeline} redis
+   * @param {string} audienceKeyBase
+   */
   constructor(redis, audienceKeyBase) {
+    assert(isRedis(redis), 'must be ioredis instance');
+    assert(isNotEmptyString(audienceKeyBase), 'must be not empty string');
     this.redis = redis;
     this.audienceKeyBase = audienceKeyBase;
   }
 
+  /**
+   * Generates Redis key
+   * Template `{id}!{metadataKeyBase}`
+   * @param {String|Number} id
+   * @returns {string}
+   */
   getAudienceKey(id) {
+    assert(isValidId(id), 'must be valid Id');
     return `${id}!${this.audienceKeyBase}`;
   }
 
+  /**
+   * Adds audience
+   * @param {String|Number} id
+   * @param {String|Array} audience
+   * @param {ioredis|Pipeline} [redis]
+   * @returns {Promise|Pipeline}
+   */
   add(id, audience, redis = this.redis) {
+    assert(isRedis(redis), 'must be ioredis instance');
+    assert(isNotEmptyString(audience) || Array.isArray(audience), 'must be not empty string or Array');
     return redis.sadd(this.getAudienceKey(id), audience);
   }
 
-  batchAdd(id, audiences, redis = this.redis) {
-    const audienceWork = [];
-    for (const audience of Array.isArray(audiences) ? audiences : [audiences]) {
-      audienceWork.push(
-        redis.sadd(this.getAudienceKey(id), audience)
-      );
-    }
-    return audienceWork;
-  }
-
+  /**
+   * Deletes audience
+   * @param {String|Number} id
+   * @param {String} audience
+   * @param {ioredis|Pipeline} [redis]
+   * @returns {Promise|Pipeline}
+   */
   delete(id, audience, redis = this.redis) {
+    assert(isRedis(redis), 'must be ioredis instance');
+    assert(isNotEmptyString(audience) || Array.isArray(audience), 'must be not empty string or Array');
     return redis.srem(this.getAudienceKey(id), audience);
   }
 }

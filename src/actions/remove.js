@@ -7,6 +7,7 @@ const key = require('../utils/key');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const handlePipeline = require('../utils/pipeline-error');
+const UserMetadata = require('../utils/metadata/user');
 const {
   USERS_INDEX,
   USERS_PUBLIC_INDEX,
@@ -69,6 +70,7 @@ async function removeUser({ params }) {
   }
 
   const transaction = redis.pipeline();
+  const userMetadata = new UserMetadata(transaction);
   const alias = internal[USERS_ALIAS_FIELD];
   const userId = internal[USERS_ID_FIELD];
   const resolvedUsername = internal[USERS_USERNAME_FIELD];
@@ -94,7 +96,9 @@ async function removeUser({ params }) {
 
   // remove metadata & internal data
   transaction.del(key(userId, USERS_DATA));
+  // TODO fix if user has multiple audiences some data will remain
   transaction.del(key(userId, USERS_METADATA, audience));
+  transaction.del(userMetadata.audience.getAudienceKey(userId));
 
   // remove auth tokens
   transaction.del(key(userId, USERS_TOKENS));

@@ -1,30 +1,24 @@
-# User/Organization metadata update rework
+# User/Organization metadata update
 ## Overview and Motivation
-When user or organization metadata needs to be updated, the Service uses the Redis pipeline javascript code.
-For each assigned meta hash always exists a single `audience`, but there is no list of `audiences` assigned to the user or company.
-To achieve easier audience tracking and a combined metadata update, I advise using a Lua based script.
+When user or organization metadata is updated, the Service should track audiences with assigned metadata.
+For each assigned meta hash always exists a single `audience`, but there is no list of `audiences` assigned to the user or organization.
+
+To achieve this ability, I advise these updates: 
 
 ## Audience lists
-Audiences stored in sets formed from `USERS_AUDIENCE` or `ORGANISATION_AUDIENCE` constants and `Id`
-(eg: `{ms-users}10110110111!audiences`). Both keys contain `audience` names that are currently have assigned values.
+Audiences stored in sets with names created from `USERS_AUDIENCE` or `ORGANISATION_AUDIENCE` constants and `Id`
+(e.g.: `{ms-users}10110110111!audiences`). Both keys contain `audience` names that are currently have assigned values.
 
-## DEL utils/updateMetadata.js
-All logic from this file moved to separate class `utils/metadata/redis/update-metadata.js`.
+The `audience` list will be updated on each update of the metadata.
 
-## utils/metadata/{user|organization}.js
-Classes that perform user or organization metadata update and
-audience list tracking.
+## Metadata Handling classes
+Service logic is updated to use 2 specific classes that will perform all CRUD operations on User or Organization metadata.
 
-Available methods:
-  * update 
-  * updateMulti
-  * batchUpdate
-  * delete
+* Classes located in: `utils/metadata/{user|organization}.js`.
+* Both classes use same [Redis backend](#redis-metadata-backend-class).
 
-**TODO** Fill up
+## Redis Metadata Backend class
+The class performs all work on metadata using Redis DB as a backend.
 
-
-## global updates
-`ms-users` source code now use new `UserMetadata` when any update operation happens.
-
-
+## Notice
+* All User or Organization metadata operations should be performed using Provided classes otherwise, audiences won't be tracked.

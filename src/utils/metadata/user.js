@@ -5,7 +5,13 @@ const Audience = require('./redis/audience');
 
 const { USERS_METADATA, USERS_AUDIENCE } = require('../../constants');
 
-class User {
+/**
+ * Class handles User metadata operations
+ */
+class UserMetadata {
+  /**
+   * @param {ioredis|Pipeline} redis
+   */
   constructor(redis) {
     this.pipeline = redis instanceof Pipeline;
     this.redis = redis;
@@ -14,12 +20,11 @@ class User {
   }
 
   /**
-   *
-   * @param id - User id
-   * @param hashKey - Key in metadata
-   * @param value
-   * @param audience
-   * @returns {Promise<void>}
+   * Updates metadata field on a user object
+   * @param {String|Number} id
+   * @param {Object} values
+   * @param {String} audience
+   * @returns {Promise|void}
    */
   update(id, hashKey, value, audience) {
     const work = [
@@ -29,6 +34,13 @@ class User {
     return this.pipeline ? Promise.all(work) : work;
   }
 
+  /**
+   * Updates metadata on a user object using fields and values from provided Object
+   * @param {String|Number} id
+   * @param {Object} values
+   * @param {String} audience
+   * @returns {Promise|void}
+   */
   updateMulti(id, values, audience) {
     const work = [
       this.audience.add(id, audience),
@@ -37,6 +49,13 @@ class User {
     return this.pipeline ? Promise.all(work) : work;
   }
 
+  /**
+   * Deletes key from user metadata object
+   * @param {String|Number} id
+   * @param {String} hashKey
+   * @param {String} audience
+   * @returns {Promise|void}
+   */
   delete(id, hashKey, audience) {
     return this.metadata.delete(id, audience, hashKey);
   }
@@ -48,11 +67,9 @@ class User {
    */
   async batchUpdate(opts) {
     const { userId, ...restOpts } = opts;
-    const audienceWork = this.audience.batchAdd(userId, restOpts.audience);
-
-    await Promise.all(audienceWork);
+    await this.audience.add(userId, restOpts.audience);
     return this.metadata.batchUpdate({ id: userId, ...restOpts });
   }
 }
 
-module.exports = User;
+module.exports = UserMetadata;

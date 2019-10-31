@@ -44,7 +44,7 @@ async function setOrganizationMemberPermission({ params }) {
   const pipeline = redis.pipeline();
   const userMetadata = new UserMetadata(pipeline);
 
-  userMetadata.update(userId, organizationId, permissions);
+  userMetadata.update(userId, organizationId, permissions, audience);
   pipeline.hset(redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId), 'permissions', permissions);
 
   return pipeline.exec().then(handlePipeline);

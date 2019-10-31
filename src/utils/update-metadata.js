@@ -3,10 +3,10 @@ const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const is = require('is');
 const { HttpStatusError } = require('common-errors');
-const redisKey = require('../utils/key.js');
-const sha256 = require('./sha256.js');
-const handlePipeline = require('../utils/pipelineError.js');
-const { USERS_METADATA } = require('../constants.js');
+const redisKey = require('../utils/key');
+const sha256 = require('./sha256');
+const handlePipeline = require('../utils/pipeline-error');
+const { USERS_METADATA } = require('../constants');
 
 const JSONStringify = (data) => JSON.stringify(data);
 

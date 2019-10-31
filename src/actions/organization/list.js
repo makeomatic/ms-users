@@ -3,7 +3,7 @@ const Promise = require('bluebird');
 const fsort = require('redis-filtered-sort');
 const redisKey = require('../../utils/key');
 const { getOrganizationMetadata, getInternalData } = require('../../utils/organization');
-const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants.js');
+const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
 
 /**
  * @api {amqp} <prefix>.list Retrieve Organizations list

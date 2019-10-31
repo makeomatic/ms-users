@@ -1,7 +1,7 @@
 const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const simpleDispatcher = require('./../helpers/simple-dispatcher');
 
 describe('#verify', function verifySuite() {
   beforeEach(global.startService);

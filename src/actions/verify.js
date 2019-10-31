@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const { HttpStatusError } = require('common-errors');
 const { ActionTransport } = require('@microfleet/core');
 const jwt = require('../utils/jwt');
-const getMetadata = require('../utils/getMetadata');
+const getMetadata = require('../utils/get-metadata');
 const { getInternalData } = require('../utils/userData');
 const { USERS_MFA_FLAG } = require('../constants');
 

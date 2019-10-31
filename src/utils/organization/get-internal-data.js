@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const resolveOrganizationData = require('./resolveOrganizationData');
+const resolveOrganizationData = require('./resolve-organization-data');
 const { ORGANIZATIONS_ID_FIELD, ErrorOrganizationNotFound } = require('../../constants');
 
 const { hasOwnProperty } = Object.prototype;

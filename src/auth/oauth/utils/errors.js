@@ -3,6 +3,9 @@ const Boom = require('@hapi/boom');
 
 exports.Redirect = Errors.helpers.generateClass('Redirect', {
   args: ['redirectUri'],
+  generateMessage() {
+    return `${this.name}: ${this.redirectUri}`;
+  },
 });
 
 const OAuthError = exports.OAuthError = Errors.helpers.generateClass('OAuthError', {

@@ -7,7 +7,7 @@ const { ActionTransport } = require('@microfleet/core');
 const { AuthenticationRequiredError } = require('common-errors');
 const { Redirect } = require('./utils/errors');
 const { ErrorTotpRequired } = require('../../constants');
-const { getSignedToken } = require('./utils/getSignedToken');
+const { getSignedToken } = require('./utils/get-signed-token');
 
 const isOauthAttachRoute = (route) => route.endsWith('oauth.facebook');
 

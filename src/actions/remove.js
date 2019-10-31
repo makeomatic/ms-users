@@ -5,8 +5,8 @@ const intersection = require('lodash/intersection');
 const get = require('../utils/get-value');
 const key = require('../utils/key');
 const { getInternalData } = require('../utils/userData');
-const getMetadata = require('../utils/getMetadata');
-const handlePipeline = require('../utils/pipelineError');
+const getMetadata = require('../utils/get-metadata');
+const handlePipeline = require('../utils/pipeline-error');
 const {
   USERS_INDEX,
   USERS_PUBLIC_INDEX,

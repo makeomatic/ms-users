@@ -5,7 +5,7 @@ const Boom = require('@hapi/boom');
 const get = require('../../utils/get-value');
 const getUid = require('./utils/uid');
 const refresh = require('./utils/refresh');
-const extractJWT = require('./utils/extractJWT');
+const extractJWT = require('./utils/extract-jwt');
 const { getInternalData } = require('../../utils/userData');
 
 const { verifyToken, loginAttempt } = require('../../utils/amqp');

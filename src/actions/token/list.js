@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
-const handlePipelineError = require('../../utils/pipelineError');
+const handlePipelineError = require('../../utils/pipeline-error');
 const { USERS_API_TOKENS_ZSET, USERS_API_TOKENS } = require('../../constants');
 const { getUserId } = require('../../utils/userData');
 

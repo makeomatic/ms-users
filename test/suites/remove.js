@@ -2,7 +2,7 @@
 const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
 const { USERS_ADMIN_ROLE } = require('../../src/constants');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const simpleDispatcher = require('./../helpers/simple-dispatcher');
 
 describe('#remove', function registerSuite() {
   beforeEach(global.startService);

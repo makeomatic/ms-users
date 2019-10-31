@@ -4,7 +4,7 @@ const Errors = require('common-errors');
 const noop = require('lodash/noop');
 const identity = require('lodash/identity');
 const get = require('../utils/get-value');
-const getMetadata = require('../utils/getMetadata');
+const getMetadata = require('../utils/get-metadata');
 const { getUserId } = require('../utils/userData');
 const { USERS_ALIAS_FIELD } = require('../constants');
 

@@ -1,7 +1,7 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
 const redisKey = require('../../src/utils/key.js');
-const simpleDispatcher = require('./../helpers/simpleDispatcher');
+const simpleDispatcher = require('./../helpers/simple-dispatcher');
 
 describe('#updatePassword', function updatePasswordSuite() {
   const challenge = require('../../src/utils/challenges/challenge.js');

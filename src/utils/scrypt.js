@@ -1,43 +1,38 @@
-const Errors = require('common-errors');
-const Promise = require('bluebird');
-const scrypt = Promise.promisifyAll(require('scrypt'));
-const bytes = require('bytes');
+const { HttpStatusError } = require('common-errors');
+const Scrypt = require('scrypt-kdf');
 const assert = require('assert');
+const bytes = require('bytes');
 const { USERS_INCORRECT_PASSWORD } = require('../constants');
 
-// setup scrypt
-const scryptParams = scrypt.paramsSync(0.1, bytes('32mb'));
-const kUnacceptableVerificationMethod = new Errors.HttpStatusError(423, 'unacceptable verification method');
+const scryptParams = Scrypt.pickParams(0.1, bytes('32mb'));
+const kUnacceptableVerificationMethod = new HttpStatusError(423, 'unacceptable verification method');
+const kInvalidPasswordPassedError = new HttpStatusError(500, 'invalid password passed');
 
-exports.hash = function hashPassword(password) {
+exports.hash = async function hashPassword(password) {
   if (!password) {
-    throw new Errors.HttpStatusError(500, 'invalid password passed');
+    throw kInvalidPasswordPassedError;
   }
 
-  return scrypt.kdfAsync(Buffer.from(password), scryptParams);
+  return Scrypt.kdf(password, scryptParams);
 };
 
-exports.verify = function verifyPassword(hash, password) {
+exports.verify = async function verifyPassword(hash, password) {
   if (Buffer.isBuffer(hash) === false) {
-    return Promise.reject(kUnacceptableVerificationMethod);
+    throw kUnacceptableVerificationMethod;
   }
 
-  return Promise
-    .try(() => {
-      assert.ok(password, 'password arg must be present');
-      return [hash, Buffer.from(password)];
-    })
-    .spread(scrypt.verifyKdfAsync)
-    .catch(function scryptError(err) {
-      throw new Errors.HttpStatusError(403, err.message || err.scrypt_err_message);
-    })
-    .then(function verifyResult(result) {
-      if (result !== true) {
-        throw USERS_INCORRECT_PASSWORD;
-      }
+  assert(password, 'password arg must be present');
 
-      return result;
-    });
+  let isValid = false;
+  try {
+    isValid = await Scrypt.verify(hash, password);
+  } catch (err) {
+    throw new HttpStatusError(403, err.message || err.scrypt_err_message);
+  }
+
+  if (isValid !== true) {
+    throw USERS_INCORRECT_PASSWORD;
+  }
+
+  return isValid;
 };
-
-exports.scrypt = scrypt;

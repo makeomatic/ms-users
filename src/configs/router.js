@@ -28,7 +28,7 @@ const metrics = routerExtension('audit/metrics');
  * Catches errors from oauth.facebook and wraps them into HTML
  * @type {Function}
  */
-const preResponse = require('../auth/oauth/preResponse');
+const preResponse = require('../auth/oauth/pre-response');
 
 
 /**

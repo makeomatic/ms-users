@@ -3,7 +3,7 @@ const request = require('request-promise');
 const defaults = require('lodash/defaults');
 const pick = require('lodash/pick');
 const fmt = require('util').format;
-const handlePipeline = require('../utils/pipelineError.js');
+const handlePipeline = require('../utils/pipeline-error');
 
 /**
  * Performs captcha check, returns thukn

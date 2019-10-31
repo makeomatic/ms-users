@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
-const sendInviteMail = require('../../../utils/organization/sendInviteMail');
-const getInternalData = require('../../../utils/organization/getInternalData');
+const sendInviteMail = require('../../../utils/organization/send-invite-email');
+const getInternalData = require('../../../utils/organization/get-internal-data');
 const redisKey = require('../../../utils/key');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const {
@@ -10,7 +10,7 @@ const {
   ORGANIZATIONS_ID_FIELD,
   USERS_ACTION_ORGANIZATION_INVITE,
 } = require('../../../constants');
-const getUserId = require('../../../utils/userData/getUserId');
+const getUserId = require('../../../utils/userData/get-user-id');
 
 /**
  * @api {amqp} <prefix>.invites.send Send invitation

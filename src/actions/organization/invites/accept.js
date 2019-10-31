@@ -6,8 +6,8 @@ const {
   USERS_ACTION_ORGANIZATION_INVITE,
   ErrorInvitationExpiredOrUsed,
 } = require('../../../constants');
-const redisKey = require('../../../utils/key.js');
-const getUserId = require('../../../utils/userData/getUserId');
+const redisKey = require('../../../utils/key');
+const getUserId = require('../../../utils/userData/get-user-id');
 
 /**
  * Token verification function, on top of it returns extra metadata

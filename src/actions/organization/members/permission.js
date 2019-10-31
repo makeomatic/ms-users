@@ -3,8 +3,8 @@ const union = require('lodash/union');
 const difference = require('lodash/difference');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const redisKey = require('../../../utils/key');
-const handlePipeline = require('../../../utils/pipelineError');
-const getUserId = require('../../../utils/userData/getUserId');
+const handlePipeline = require('../../../utils/pipeline-error');
+const getUserId = require('../../../utils/userData/get-user-id');
 const { ErrorUserNotMember, USERS_METADATA, ORGANIZATIONS_MEMBERS } = require('../../../constants');
 
 /**

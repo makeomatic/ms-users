@@ -95,7 +95,7 @@ class UserMetadata {
     return updateResult;
   }
 
-  static for(userId, audience, redis) {
+  static using(userId, audience, redis) {
     return new UserMetadata(redis, userId, audience);
   }
 }

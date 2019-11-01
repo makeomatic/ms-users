@@ -31,7 +31,7 @@ function lockUser({
   pipeline.hset(redisKey(id, USERS_DATA), USERS_BANNED_FLAG, 'true');
   // set .banned on metadata for filtering & sorting users by that field
   UserMetadata
-    .for(id, defaultAudience, pipeline)
+    .using(id, defaultAudience, pipeline)
     .updateMulti(mapValues(data, stringify));
   pipeline.del(redisKey(id, USERS_TOKENS));
 
@@ -46,7 +46,7 @@ function unlockUser({ id }) {
   pipeline.hdel(redisKey(id, USERS_DATA), USERS_BANNED_FLAG);
   // remove .banned on metadata for filtering & sorting users by that field
   UserMetadata
-    .for(id, defaultAudience, pipeline)
+    .using(id, defaultAudience, pipeline)
     .delete([
       'banned',
       USERS_BANNED_DATA,

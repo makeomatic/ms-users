@@ -38,7 +38,7 @@ async function removeMember({ params }) {
   pipeline.del(memberKey);
   pipeline.zrem(redisKey(organizationId, ORGANIZATIONS_MEMBERS), memberKey);
   UserMetadata
-    .for(userId, audience, pipeline)
+    .using(userId, audience, pipeline)
     .delete(organizationId);
 
   return pipeline.exec().then(handlePipeline);

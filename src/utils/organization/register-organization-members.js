@@ -37,7 +37,7 @@ async function registerOrganizationMember(member) {
   await pipeline.exec().then(handlePipeline);
 
   await UserMetadata
-    .for(userId, audience, redis)
+    .using(userId, audience, redis)
     .batchUpdate({
       metadata: [{
         $set: {

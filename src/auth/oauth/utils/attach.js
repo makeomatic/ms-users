@@ -33,7 +33,7 @@ module.exports = async function attach(account, user) {
     },
   };
   await UserMetadata
-    .for(userId, audience, redis)
+    .using(userId, audience, redis)
     .batchUpdate(updateParams);
 
   return profile;

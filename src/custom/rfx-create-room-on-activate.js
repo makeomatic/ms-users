@@ -36,7 +36,7 @@ function createRoom(userId, params, metadata) {
       };
 
       return UserMetadata
-        .for(userId, audience, this.redis)
+        .using(userId, audience, this.redis)
         .batchUpdate(updateParams);
     });
 }

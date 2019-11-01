@@ -213,7 +213,7 @@ async function performRegistration({ service, params }) {
 
   await pipeline.exec().then(handlePipeline);
   await UserMetadata
-    .for(userId, audience, service.redis)
+    .using(userId, audience, service.redis)
     .batchUpdate({
       metadata: audience.map((metaAudience) => ({
         $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {

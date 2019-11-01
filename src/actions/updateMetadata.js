@@ -25,7 +25,7 @@ module.exports = async function updateMetadataAction(request) {
     .then(getUserId);
 
   return UserMetadata
-    .for(userId, audience, this.redis)
+    .using(userId, audience, this.redis)
     .batchUpdate(updateParams);
 };
 

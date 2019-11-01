@@ -39,6 +39,6 @@ module.exports = async function detach(provider, userData) {
   };
 
   return UserMetadata
-    .for(userId, audience, redis)
+    .using(userId, audience, redis)
     .batchUpdate(updateParams);
 };

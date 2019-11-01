@@ -35,7 +35,7 @@ module.exports = function mixPlan(userId, params) {
       };
 
       return UserMetadata
-        .for(userId, audience, this.redis)
+        .using(userId, audience, this.redis)
         .batchUpdate(updateParams);
     });
 };

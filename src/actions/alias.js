@@ -74,7 +74,7 @@ async function assignAlias({ params }) {
 
     pipeline.hset(key(userId, USERS_DATA), USERS_ALIAS_FIELD, alias);
     UserMetadata
-      .for(userId, defaultAudience, pipeline)
+      .using(userId, defaultAudience, pipeline)
       .update(USERS_ALIAS_FIELD, JSON.stringify(alias));
 
     if (activeUser) {

@@ -54,7 +54,7 @@ async function addOrganizationMembers(opts) {
     const stringifyMember = mapValues(member, JSONStringify);
     pipe.hmset(memberKey, stringifyMember);
     UserMetadata
-      .for(member.id, audience, pipe)
+      .using(member.id, audience, pipe)
       .update(organizationId, stringifyMember.permissions);
     pipe.zadd(membersKey, stringifyMember.invited, memberKey);
   });

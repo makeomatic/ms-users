@@ -25,17 +25,16 @@ module.exports = async function attach(account, user) {
 
   await pipeline.exec().then(handlePipeline);
 
-  const userMetadata = new UserMetadata(redis);
   const updateParams = {
-    userId,
-    audience,
     metadata: {
       $set: {
         [provider]: profile,
       },
     },
   };
-  await userMetadata.batchUpdate(updateParams);
+  await UserMetadata
+    .for(userId, audience, redis)
+    .batchUpdate(updateParams);
 
   return profile;
 };

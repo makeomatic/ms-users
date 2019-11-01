@@ -43,7 +43,6 @@ async function addOrganizationMembers(opts) {
   const createdMembers = await registerOrganizationMembers.call(this, notRegisteredMembers);
 
   const pipe = redis.pipeline();
-  const userMetadata = new UserMetadata(pipe);
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const organizationMembers = registeredMembers.concat(createdMembers);
   organizationMembers.forEach(({ password, ...member }) => {
@@ -54,7 +53,9 @@ async function addOrganizationMembers(opts) {
     member.permissions = member.permissions || [];
     const stringifyMember = mapValues(member, JSONStringify);
     pipe.hmset(memberKey, stringifyMember);
-    userMetadata.update(member.id, organizationId, stringifyMember.permissions, audience);
+    UserMetadata
+      .for(member.id, audience, pipe)
+      .update(organizationId, stringifyMember.permissions);
     pipe.zadd(membersKey, stringifyMember.invited, memberKey);
   });
 

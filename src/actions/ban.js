@@ -27,11 +27,12 @@ function lockUser({
     },
   };
   const pipeline = redis.pipeline();
-  const userMetadata = new UserMetadata(pipeline);
 
   pipeline.hset(redisKey(id, USERS_DATA), USERS_BANNED_FLAG, 'true');
   // set .banned on metadata for filtering & sorting users by that field
-  userMetadata.updateMulti(id, mapValues(data, stringify), defaultAudience);
+  UserMetadata
+    .for(id, defaultAudience, pipeline)
+    .updateMulti(mapValues(data, stringify));
   pipeline.del(redisKey(id, USERS_TOKENS));
 
   return pipeline.exec();
@@ -41,14 +42,15 @@ function unlockUser({ id }) {
   const { redis, config } = this;
   const { jwt: { defaultAudience } } = config;
   const pipeline = redis.pipeline();
-  const userMetadata = new UserMetadata(pipeline);
 
   pipeline.hdel(redisKey(id, USERS_DATA), USERS_BANNED_FLAG);
   // remove .banned on metadata for filtering & sorting users by that field
-  userMetadata.delete(id, [
-    'banned',
-    USERS_BANNED_DATA,
-  ], defaultAudience);
+  UserMetadata
+    .for(id, defaultAudience, pipeline)
+    .delete([
+      'banned',
+      USERS_BANNED_DATA,
+    ]);
   return pipeline.exec();
 }
 

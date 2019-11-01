@@ -212,18 +212,17 @@ async function performRegistration({ service, params }) {
   }
 
   await pipeline.exec().then(handlePipeline);
-
-  await new UserMetadata(service.redis).batchUpdate({
-    userId,
-    audience,
-    metadata: audience.map((metaAudience) => ({
-      $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
-        [USERS_ID_FIELD]: userId,
-        [USERS_USERNAME_FIELD]: username,
-        [USERS_CREATED_FIELD]: created,
-      }),
-    })),
-  });
+  await UserMetadata
+    .for(userId, audience, service.redis)
+    .batchUpdate({
+      metadata: audience.map((metaAudience) => ({
+        $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
+          [USERS_ID_FIELD]: userId,
+          [USERS_USERNAME_FIELD]: username,
+          [USERS_CREATED_FIELD]: created,
+        }),
+      })),
+    });
 
   // assign alias
   if (alias) {

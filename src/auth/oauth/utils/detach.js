@@ -30,10 +30,7 @@ module.exports = async function detach(provider, userData) {
 
   await pipeline.exec().then(handlePipeline);
 
-  const userMetadata = new UserMetadata(redis);
   const updateParams = {
-    userId,
-    audience,
     metadata: {
       $remove: [
         provider,
@@ -41,5 +38,7 @@ module.exports = async function detach(provider, userData) {
     },
   };
 
-  return userMetadata.batchUpdate(updateParams);
+  return UserMetadata
+    .for(userId, audience, redis)
+    .batchUpdate(updateParams);
 };

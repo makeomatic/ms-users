@@ -35,10 +35,11 @@ async function removeMember({ params }) {
   }
 
   const pipeline = redis.pipeline();
-  const userMetadata = new UserMetadata(pipeline);
   pipeline.del(memberKey);
   pipeline.zrem(redisKey(organizationId, ORGANIZATIONS_MEMBERS), memberKey);
-  userMetadata.delete(userId, organizationId, audience);
+  UserMetadata
+    .for(userId, audience, pipeline)
+    .delete(organizationId);
 
   return pipeline.exec().then(handlePipeline);
 }

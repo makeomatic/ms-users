@@ -22,8 +22,6 @@ function createRoom(userId, params, metadata) {
     name: `${metadata[audience].stationName} | ${metadata[audience].stationSchool}`,
   };
 
-  const userMetadata = new UserMetadata(this.redis);
-
   return amqp.publishAndWait(route, roomParams, { timeout: 5000 })
     .bind(this)
     .then((room) => {
@@ -37,7 +35,9 @@ function createRoom(userId, params, metadata) {
         },
       };
 
-      return userMetadata.batchUpdate(updateParams);
+      return UserMetadata
+        .for(userId, audience, this.redis)
+        .batchUpdate(updateParams);
     });
 }
 

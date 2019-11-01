@@ -13,7 +13,6 @@ module.exports = function mixPlan(userId, params) {
   const { payments } = config;
   const route = [payments.prefix, payments.routes.planGet].join('.');
   const id = 'free';
-  const userMetadata = new UserMetadata(this.redis);
 
   return amqp
     .publishAndWait(route, id, { timeout: 5000 })
@@ -22,8 +21,6 @@ module.exports = function mixPlan(userId, params) {
       const subscription = find(plan.subs, ['name', 'month']);
       const nextCycle = moment().add(1, 'month').valueOf();
       const updateParams = {
-        userId,
-        audience,
         metadata: {
           $set: {
             plan: id,
@@ -37,6 +34,8 @@ module.exports = function mixPlan(userId, params) {
         },
       };
 
-      return userMetadata.batchUpdate(updateParams);
+      return UserMetadata
+        .for(userId, audience, this.redis)
+        .batchUpdate(updateParams);
     });
 };

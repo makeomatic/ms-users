@@ -70,7 +70,7 @@ async function removeUser({ params }) {
   }
 
   const transaction = redis.pipeline();
-  const userMetadata = new UserMetadata(transaction);
+  const userMetadata = new UserMetadata(redis);
   const alias = internal[USERS_ALIAS_FIELD];
   const userId = internal[USERS_ID_FIELD];
   const resolvedUsername = internal[USERS_USERNAME_FIELD];

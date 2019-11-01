@@ -11,8 +11,13 @@ class OrganizationMetadata {
    */
   constructor(redis) {
     this.redis = redis;
-    this.meta = new MetaUpdate(this.redis, ORGANIZATIONS_METADATA);
+    this.metadata = new MetaUpdate(this.redis, ORGANIZATIONS_METADATA);
     this.audience = new Audience(this.redis, ORGANIZATIONS_AUDIENCE);
+  }
+
+  async syncAudience(organizationId) {
+    const metaKeyTemplate = this.metadata.getMetadataKey('{{ID}}', '{{AUDIENCE}}');
+    return this.audience.resyncSet(organizationId, metaKeyTemplate);
   }
 
   /**
@@ -23,7 +28,13 @@ class OrganizationMetadata {
   async batchUpdate(opts) {
     const { organizationId, ...restOpts } = opts;
     await this.audience.add(organizationId, restOpts.audience);
-    return this.meta.batchUpdate({ id: organizationId, ...restOpts });
+    const updateResult = await this.metadata
+      .batchUpdate({
+        id: organizationId,
+        ...opts,
+      });
+    await this.syncAudience(organizationId);
+    return updateResult;
   }
 }
 

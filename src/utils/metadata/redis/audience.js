@@ -54,6 +54,30 @@ class Audience {
     assert(isNotEmptyString(audience) || Array.isArray(audience), 'must be not empty string or Array');
     return redis.srem(this.getAudienceKey(id), audience);
   }
+
+  /**
+   * Synchronizes audience list with currently available metadata
+   * @param id
+   * @param metadataKeyTemplate - format '{{ID}}!yourMetadataClass!{{AUDIENCE}}'
+   * @param redis
+   * @returns {*}
+   */
+  resyncSet(id, metadataKeyTemplate, redis = this.redis) {
+    assert(isRedis(this.redis), 'must be ioredis instance');
+    assert(isNotEmptyString(metadataKeyTemplate), 'must be not empty string');
+    const luaScript = `
+      local audiences = redis.call("SMEMBERS", KEYS[1])
+      for _, audience in pairs(audiences) do
+        local metaKey = string.gsub(KEYS[2], '{{ID}}', '${id}')
+        metaKey = string.gsub(metaKey, '{{AUDIENCE}}', audience)
+        local keyLen = redis.call("HLEN", metaKey)
+        if (keyLen < 1) then
+          redis.call('SREM', KEYS[1], audience)
+        end
+      end
+    `;
+    return redis.eval(luaScript, 2, this.getAudienceKey(id), metadataKeyTemplate);
+  }
 }
 
 module.exports = Audience;

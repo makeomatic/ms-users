@@ -71,10 +71,11 @@ async function assignAlias({ params }) {
     }
 
     const pipeline = redis.pipeline();
-    const userMetaData = new UserMetadata(pipeline);
 
     pipeline.hset(key(userId, USERS_DATA), USERS_ALIAS_FIELD, alias);
-    userMetaData.update(userId, USERS_ALIAS_FIELD, JSON.stringify(alias), defaultAudience);
+    UserMetadata
+      .for(userId, defaultAudience, pipeline)
+      .update(USERS_ALIAS_FIELD, JSON.stringify(alias));
 
     if (activeUser) {
       pipeline.sadd(USERS_PUBLIC_INDEX, username);

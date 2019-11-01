@@ -1,4 +1,3 @@
-const omit = require('lodash/omit');
 const Promise = require('bluebird');
 const UserMetadata = require('../utils/metadata/user');
 const { getUserId } = require('../utils/userData');
@@ -20,14 +19,14 @@ const { getUserId } = require('../utils/userData');
  *   Be careful with granting access to this function.
  */
 module.exports = async function updateMetadataAction(request) {
+  const { username: _, audience, ...updateParams } = request.params;
   const userId = await Promise
     .bind(this, request.params.username)
     .then(getUserId);
 
-  const userMetadata = new UserMetadata(this.redis);
-  const updateParams = { ...omit(request.params, 'username'), userId };
-
-  return userMetadata.batchUpdate(updateParams);
+  return UserMetadata
+    .for(userId, audience, this.redis)
+    .batchUpdate(updateParams);
 };
 
 module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

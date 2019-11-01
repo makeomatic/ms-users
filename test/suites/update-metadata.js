@@ -103,59 +103,51 @@ describe('#updateMetadata', function getMetadataSuite() {
     ]);
   });
 
-  it('tracks audienceList', async function test() {
-    const params = {
-      username,
-      audience: [
-        audience,
-        '*.extra',
-      ],
-      metadata: [
-        {
-          $set: {
-            x: 10,
-            b: 12,
-            c: 'cval',
+  describe('tracks audienceList', function audienceTrackSuite() {
+    beforeEach(async function updateUser() {
+      const params = {
+        username,
+        audience: [
+          audience,
+          '*.extra',
+        ],
+        metadata: [
+          {
+            $set: {
+              x: 10,
+              b: 12,
+              c: 'cval',
+            },
+          }, {
+            $set: {
+              x: 20,
+              b: 22,
+              c: 'xval',
+            },
           },
-        }, {
-          $set: {
-            x: 20,
-            b: 22,
-            c: 'xval',
+        ],
+      };
+
+      await this.dispatch('users.updateMetadata', params);
+    });
+    it('adds audience', async function test() {
+      const audiencesList = await this.users.redis.smembers(`${this.userId}!users-audiences`);
+      expect(audiencesList).to.include.members(['*.localhost', '*.extra']);
+    });
+
+    it('deletes audience when no metadata left', async function test() {
+      const deleteParams = {
+        username,
+        audience: ['*.extra'],
+        metadata: [
+          {
+            $rem: ['x', 'b', 'c'],
           },
-        },
-      ],
-    };
-
-    await this.dispatch('users.updateMetadata', params);
-    const audiencesList = await this.users.redis.smembers(`${this.userId}!users-audiences`);
-    expect(audiencesList).to.include.members(['*.localhost', '*.extra']);
-  });
-
-  it('must be able to run dynamic scripts / default namespace available', async function test() {
-    const lua = `
-      local t = {}
-      table.insert(t, "foo")
-      local jsonDec = cjson.decode('{"bar": 1}')
-      local typeCheck = type(t)
-      redis.call("SET", "fookey", 777);
-      return {jsonDec.bar, redis.call("TIME"), redis.call("GET", "fookey"), typeCheck, unpack(t)}
-    `;
-
-    const params = {
-      username,
-      audience: [audience],
-      script: {
-        check: {
-          lua,
-          argv: ['nom-nom'],
-        },
-      },
-    };
-    const updated = await this.dispatch('users.updateMetadata', params);
-    const [jsonVal, redisTime, keyValue] = updated.check;
-    expect(jsonVal).to.be.eq(1);
-    expect(redisTime).to.be.an('array');
-    expect(keyValue).to.be.eq('777');
+        ],
+      };
+      await this.dispatch('users.updateMetadata', deleteParams);
+      const audiencesList = await this.users.redis.smembers(`${this.userId}!users-audiences`);
+      expect(audiencesList).to.include.members(['*.localhost']);
+    });
   });
 });

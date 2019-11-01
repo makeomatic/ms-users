@@ -36,18 +36,17 @@ async function registerOrganizationMember(member) {
   pipeline.hset(USERS_USERNAME_TO_ID, email, userId);
   await pipeline.exec().then(handlePipeline);
 
-  const userMetadata = new UserMetadata(redis);
-  await userMetadata.batchUpdate({
-    userId,
-    audience,
-    metadata: [{
-      $set: {
-        [USERS_ID_FIELD]: userId,
-        [USERS_USERNAME_FIELD]: email,
-        [USERS_CREATED_FIELD]: basicInfo[USERS_CREATED_FIELD],
-      },
-    }],
-  });
+  await UserMetadata
+    .for(userId, audience, redis)
+    .batchUpdate({
+      metadata: [{
+        $set: {
+          [USERS_ID_FIELD]: userId,
+          [USERS_USERNAME_FIELD]: email,
+          [USERS_CREATED_FIELD]: basicInfo[USERS_CREATED_FIELD],
+        },
+      }],
+    });
   // perform instant activation
   // internal username index
   const regPipeline = redis.pipeline().sadd(USERS_INDEX, userId);

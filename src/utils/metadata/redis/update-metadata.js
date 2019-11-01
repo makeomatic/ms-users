@@ -90,7 +90,7 @@ class UpdateMetadata {
   async batchUpdate(opts) {
     const { redis } = this;
     const {
-      id, audience, metadata, script,
+      id, metadata, audience, script,
     } = opts;
 
     // we use own pipeline or Promise here

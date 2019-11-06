@@ -56,6 +56,16 @@ class Audience {
   }
 
   /**
+   * Get list of assigned audiences
+   * @param {String|Number} id
+   * @param {ioredis|Pipeline}redis
+   * @returns {Promise|Pipeline}
+   */
+  get(id, redis = this.redis) {
+    return redis.smembers(this.getAudienceKey(id));
+  }
+
+  /**
    * Synchronizes audience list with currently available metadata
    * @param id
    * @param metadataKeyTemplate - format '{{ID}}!yourMetadataClass!{{AUDIENCE}}'

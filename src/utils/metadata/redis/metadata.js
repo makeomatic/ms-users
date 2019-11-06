@@ -11,12 +11,12 @@ const isValidId = require('../../asserts/id');
 const JSONStringify = (data) => JSON.stringify(data);
 
 /**
- * Class handling metadata update operations using Redis backend
+ * Class handling metadata operations using Redis backend
  */
-class UpdateMetadata {
+class Metadata {
   /**
    * @param {ioredis} redis or pipeline instance
-   * @param metadataKeyTemplate template base for Metadata key
+   * @param metadataKeyBase template base for Metadata key
    */
   constructor(redis, metadataKeyBase) {
     assert(isRedis(redis), 'must be ioredis instance');
@@ -83,6 +83,19 @@ class UpdateMetadata {
   }
 
   /**
+   * Deletes metadata key
+   * @param id
+   * @param audience
+   * @param redis
+   * @returns {void|request.Request}
+   */
+  deleteKey(id, audience, redis = this.redis) {
+    assert(isValidId(id), 'must be valid id');
+    assert(isRedis(redis), 'must be ioredis instance');
+    return redis.del(this.getMetadataKey(id, audience));
+  }
+
+  /**
    * Updates metadata hash on provided Id
    * @param  {Object} opts
    * @return {*}
@@ -109,10 +122,10 @@ class UpdateMetadata {
         return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
       }
 
-      const operations = metaOps.map((meta, idx) => UpdateMetadata.handleAudience(pipe, keys[idx], meta));
+      const operations = metaOps.map((meta, idx) => Metadata.handleAudience(pipe, keys[idx], meta));
       const result = handlePipeline(await pipe.exec());
 
-      return UpdateMetadata.mapMetaResponse(operations, result);
+      return Metadata.mapMetaResponse(operations, result);
     }
 
     // dynamic scripts
@@ -129,13 +142,13 @@ class UpdateMetadata {
 
     const result = await Promise.all(scripts);
 
-    return UpdateMetadata.mapScriptResponse($scriptKeys, result);
+    return Metadata.mapScriptResponse($scriptKeys, result);
   }
 
   /**
    * Process metadata update operation for a passed audience
    * @param  {Object} pipeline
-   * @param  {String} audience
+   * @param  {String} key
    * @param  {Object} metadata
    */
   static handleAudience(pipeline, key, metadata) {
@@ -218,4 +231,4 @@ class UpdateMetadata {
   }
 }
 
-module.exports = UpdateMetadata;
+module.exports = Metadata;

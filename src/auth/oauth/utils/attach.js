@@ -23,7 +23,7 @@ module.exports = async function attach(account, user) {
   // link uid to user id
   pipeline.hset(USERS_SSO_TO_ID, uid, userId);
 
-  await pipeline.exec().then(handlePipeline);
+  handlePipeline(await pipeline.exec());
 
   const updateParams = {
     metadata: {

@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const { Pipeline } = require('ioredis');
-const MetaUpdate = require('./redis/update-metadata');
+const Metadata = require('./redis/metadata');
 const Audience = require('./redis/audience');
 
 const { USERS_METADATA, USERS_AUDIENCE } = require('../../constants');
@@ -19,7 +19,7 @@ class UserMetadata {
     this.redis = redis;
     this.userAudience = audience;
     this.userId = userId;
-    this.metadata = new MetaUpdate(this.redis, USERS_METADATA);
+    this.metadata = new Metadata(this.redis, USERS_METADATA);
     this.audience = new Audience(this.redis, USERS_AUDIENCE);
   }
 
@@ -71,6 +71,26 @@ class UserMetadata {
     const result = await this.metadata.delete(this.userId, audience, hashKey);
     await this.syncAudience();
     return result;
+  }
+
+  /**
+   * Deletes user metadata for passed audience
+   * @param {String} Audience
+   */
+  deleteMetadata(audience) {
+    const work = [
+      this.audience.delete(this.userId, audience),
+      this.metadata.deleteKey(this.userId, audience),
+    ];
+    return this.pipeline ? work : Promise.all(work);
+  }
+
+  /**
+   * Gets all audiences assigned
+   * @returns {*}
+   */
+  getAudience() {
+    return this.audience.get(this.userId);
   }
 
   async syncAudience() {

@@ -34,7 +34,7 @@ async function registerOrganizationMember(member) {
   const userDataKey = redisKey(userId, USERS_DATA);
   pipeline.hmset(userDataKey, basicInfo);
   pipeline.hset(USERS_USERNAME_TO_ID, email, userId);
-  await pipeline.exec().then(handlePipeline);
+  handlePipeline(await pipeline.exec());
 
   await UserMetadata
     .using(userId, audience, redis)

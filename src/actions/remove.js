@@ -16,7 +16,6 @@ const {
   USERS_USERNAME_TO_ID,
   USERS_USERNAME_FIELD,
   USERS_DATA,
-  USERS_METADATA,
   USERS_TOKENS,
   USERS_ID_FIELD,
   USERS_ALIAS_FIELD,
@@ -70,10 +69,11 @@ async function removeUser({ params }) {
   }
 
   const transaction = redis.pipeline();
-  const userMetadata = new UserMetadata(redis);
   const alias = internal[USERS_ALIAS_FIELD];
   const userId = internal[USERS_ID_FIELD];
   const resolvedUsername = internal[USERS_USERNAME_FIELD];
+  const metaAudiences = await UserMetadata.using(userId, null, redis).getAudience();
+  const userMetadata = UserMetadata.using(userId, null, transaction);
 
   if (alias) {
     transaction.hdel(USERS_ALIAS_TO_ID, alias.toLowerCase(), alias);
@@ -96,9 +96,9 @@ async function removeUser({ params }) {
 
   // remove metadata & internal data
   transaction.del(key(userId, USERS_DATA));
-  // TODO fix if user has multiple audiences some data will remain
-  transaction.del(key(userId, USERS_METADATA, audience));
-  transaction.del(userMetadata.audience.getAudienceKey(userId));
+  for (const metaAudience of metaAudiences) {
+    userMetadata.deleteMetadata(metaAudience);
+  }
 
   // remove auth tokens
   transaction.del(key(userId, USERS_TOKENS));

@@ -1,5 +1,5 @@
 const Audience = require('./redis/audience');
-const MetaUpdate = require('./redis/update-metadata');
+const Metadata = require('./redis/metadata');
 const { ORGANIZATIONS_METADATA, ORGANIZATIONS_AUDIENCE } = require('../../constants');
 
 /**
@@ -11,7 +11,7 @@ class OrganizationMetadata {
    */
   constructor(redis) {
     this.redis = redis;
-    this.metadata = new MetaUpdate(this.redis, ORGANIZATIONS_METADATA);
+    this.metadata = new Metadata(this.redis, ORGANIZATIONS_METADATA);
     this.audience = new Audience(this.redis, ORGANIZATIONS_AUDIENCE);
   }
 

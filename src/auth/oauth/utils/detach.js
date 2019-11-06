@@ -28,7 +28,7 @@ module.exports = async function detach(provider, userData) {
   // delete account reference
   pipeline.hdel(USERS_SSO_TO_ID, uid);
 
-  await pipeline.exec().then(handlePipeline);
+  handlePipeline(await pipeline.exec());
 
   const updateParams = {
     metadata: {

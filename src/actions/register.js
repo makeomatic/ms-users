@@ -22,6 +22,8 @@ const checkLimits = require('../utils/check-ip-limits');
 const challenge = require('../utils/challenges/challenge');
 const handlePipeline = require('../utils/pipeline-error');
 const hashPassword = require('../utils/register/password/hash');
+const InactiveUser = require('../utils/inactive-user/inactive-user');
+
 const {
   USERS_REF,
   USERS_INDEX,
@@ -172,6 +174,9 @@ async function performRegistration({ service, params }) {
     await verifySSO(service, params);
   }
 
+  const inactiveUsers = new InactiveUser(service);
+  await inactiveUsers.deleteInactive(config.deleteInactiveAccounts);
+
   const [creatorAudience] = audience;
   const defaultAudience = last(audience);
   const userId = service.flake.next();
@@ -208,7 +213,7 @@ async function performRegistration({ service, params }) {
   pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
 
   if (activate === false && config.deleteInactiveAccounts >= 0) {
-    pipeline.expire(userDataKey, config.deleteInactiveAccounts);
+    inactiveUsers.add(userId, created, pipeline);
   }
 
   await pipeline.exec().then(handlePipeline);

@@ -78,8 +78,7 @@ class Audience {
     const luaScript = `
       local audiences = redis.call("SMEMBERS", KEYS[1])
       for _, audience in pairs(audiences) do
-        local metaKey = string.gsub(KEYS[2], '{{ID}}', '${id}')
-        metaKey = string.gsub(metaKey, '{{AUDIENCE}}', audience)
+        local metaKey = string.gsub(KEYS[2], '{{AUDIENCE}}', audience)
         local keyLen = redis.call("HLEN", metaKey)
         if (keyLen < 1) then
           redis.call('SREM', KEYS[1], audience)

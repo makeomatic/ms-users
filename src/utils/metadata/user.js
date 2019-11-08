@@ -94,7 +94,7 @@ class UserMetadata {
   }
 
   async syncAudience() {
-    const metaKeyTemplate = this.metadata.getMetadataKey('{{ID}}', '{{AUDIENCE}}');
+    const metaKeyTemplate = this.metadata.getMetadataKey(this.userId, '{{AUDIENCE}}');
     return this.audience.resyncSet(this.userId, metaKeyTemplate);
   }
 

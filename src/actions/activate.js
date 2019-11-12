@@ -5,7 +5,7 @@ const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const handlePipeline = require('../utils/pipeline-error.js');
-const InactiveUser = require('../utils/inactive-user/inactive-user');
+const InactiveUser = require('../utils/user/inactive-user');
 const User = require('../utils/user/user');
 
 const {
@@ -206,7 +206,7 @@ async function activateAction({ params }) {
   };
 
   const inactiveUsers = new InactiveUser(this);
-  await inactiveUsers.deleteInactive(config.deleteInactiveAccounts);
+  await inactiveUsers.cleanUsersOnce(config.deleteInactiveAccounts);
 
   return Promise
     .bind(context)

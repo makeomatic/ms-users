@@ -22,7 +22,7 @@ const checkLimits = require('../utils/check-ip-limits');
 const challenge = require('../utils/challenges/challenge');
 const handlePipeline = require('../utils/pipeline-error');
 const hashPassword = require('../utils/register/password/hash');
-const InactiveUser = require('../utils/inactive-user/inactive-user');
+const InactiveUser = require('../utils/user/inactive-user');
 
 const {
   USERS_REF,
@@ -175,7 +175,7 @@ async function performRegistration({ service, params }) {
   }
 
   const inactiveUsers = new InactiveUser(service);
-  await inactiveUsers.deleteInactive(config.deleteInactiveAccounts);
+  await inactiveUsers.cleanUsersOnce(config.deleteInactiveAccounts);
 
   const [creatorAudience] = audience;
   const defaultAudience = last(audience);

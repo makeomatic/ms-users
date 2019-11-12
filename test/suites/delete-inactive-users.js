@@ -1,8 +1,10 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
-
-const InactiveUsers = require('../../src/utils/inactive-user/inactive-user');
+const faker = require('faker');
+const ld = require('lodash');
+const { expect } = require('chai');
+const InactiveUsers = require('../../src/utils/user/inactive-user');
 const { createOrganization } = require('../helpers/organization');
 
 describe('#inactive user', function registerSuite() {
@@ -31,8 +33,6 @@ describe('#inactive user', function registerSuite() {
   };
 
   beforeEach(async () => {
-    this.users.config.deleteInactiveAccounts = 1;
-
     await createOrganization.call(this);
     await this.dispatch('users.register', { ...regUser });
     await this.dispatch('users.register', { ...regUserNoAlias });
@@ -42,11 +42,39 @@ describe('#inactive user', function registerSuite() {
     const inactiveUsers = new InactiveUsers(this.users);
     await Promise.delay(1000);
 
-    await inactiveUsers.deleteInactive(1);
+    await inactiveUsers.cleanUsers(1);
 
     const { username } = regUser;
     await this.dispatch('users.getInternalData', { username })
       .reflect()
       .then(inspectPromise(false));
+  });
+
+  it('removes org member if user not passed activation', async () => {
+    const opts = {
+      organizationId: this.organization.id,
+      member: {
+        email: regUser.username,
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+      },
+    };
+
+    const reqOpts = {
+      organizationId: this.organization.id,
+    };
+
+    await this.dispatch('users.organization.members.add', opts);
+    const inactiveUsers = new InactiveUsers(this.users);
+    await Promise.delay(1200);
+
+    await inactiveUsers.cleanUsers(1);
+
+    const members = await this.dispatch('users.organization.members.list', reqOpts);
+    const { attributes } = members.data;
+    const membersWithUsername = ld.filter(attributes, (record) => {
+      return record.id === regUser.username;
+    });
+    expect(membersWithUsername.length).to.be.eq(0);
   });
 });

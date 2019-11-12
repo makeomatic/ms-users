@@ -53,7 +53,6 @@ class UserMetadata {
 
   /**
    * Deletes key from user metadata object
-   * @param {String|Number} id
    * @param {String} hashKey
    * @param {String} [audience]
    * @returns {Promise|void}
@@ -91,6 +90,21 @@ class UserMetadata {
    */
   getAudience() {
     return this.audience.get(this.userId);
+  }
+
+  /**
+   * Gets metadata for assigned audiences
+   * @param audiences
+   * @param fields
+   * @returns {Promise<any[]>}
+   */
+  async getMetadata(audiences = this.userAudience, fields = {}) {
+    const _audiences = Array.isArray(audiences) ? audiences : [audiences];
+    const data = await Promise.map(_audiences, (a) => this.metadata.get(this.userId, a));
+    const output = _audiences.map((audience, idx) => {
+      return Metadata.parse(data[idx], fields[audience]);
+    });
+    return _audiences.length === 1 ? output[0] : output;
   }
 
   async syncAudience() {

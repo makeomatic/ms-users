@@ -5,7 +5,7 @@ const intersection = require('lodash/intersection');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const User = require('../utils/user/user');
-const InactiveUser = require('../utils/inactive-user/inactive-user');
+const InactiveUser = require('../utils/user/inactive-user');
 const {
   USERS_ID_FIELD,
   USERS_ADMIN_ROLE,

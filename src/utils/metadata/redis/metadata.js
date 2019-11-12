@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
+const pick = require('lodash/pick');
 const assert = require('assert');
 const { HttpStatusError } = require('common-errors');
 const handlePipeline = require('../../pipeline-error');
@@ -36,6 +37,16 @@ class Metadata {
     assert(isValidId(id), 'must be valid Id');
     assert(isNotEmptyString(audience), 'must be not empty string');
     return `${id}!${this.metadataKeyBase}!${audience}`;
+  }
+
+  /**
+   * Gets metadata
+   * @param id
+   * @param audience
+   * @returns {*}
+   */
+  get(id, audience) {
+    return this.redis.hgetall(this.getMetadataKey(id, audience));
   }
 
   /**
@@ -228,6 +239,14 @@ class Metadata {
       output[fieldName] = responses[idx];
     });
     return output;
+  }
+
+  static parse(data, fields) {
+    const parsedData = mapValues(data, JSON.parse);
+    if (fields) {
+      return pick(parsedData, fields);
+    }
+    return parsedData;
   }
 }
 

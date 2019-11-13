@@ -73,7 +73,7 @@ class User {
    * @returns {Promise<null>}
    */
   async delete(user, throwError = true) {
-    const { id, username, alias, ...restData } = typeof user === 'object' || await this.getData(user);
+    const { id, username, alias, ...restData } = typeof user === 'object' ? user : await this.getData(user);
     const lock = await this.acquireLock(`delete-user-${id}`);
 
     if (lock === null) {

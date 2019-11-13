@@ -2,8 +2,8 @@ const Promise = require('bluebird');
 const passThrough = require('lodash/identity');
 const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../utils/userData');
-const getMetadata = require('../utils/getMetadata');
-const isActive = require('../utils/isActive');
+const getMetadata = require('../utils/get-metadata');
+const isActive = require('../utils/is-active');
 const challenge = require('../utils/challenges/challenge');
 const {
   USERS_ACTION_ACTIVATE,

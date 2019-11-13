@@ -6,7 +6,7 @@ const partial = require('lodash/partial');
 const identity = require('lodash/identity');
 const { InvalidOperationError } = require('common-errors');
 const sendEmail = require('./send');
-const generateLink = require('../../generateBacklink');
+const generateLink = require('../../generate-backlink');
 const { updatePassword } = require('../../../actions/updatePassword');
 const {
   USERS_ACTION_ACTIVATE,

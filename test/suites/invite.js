@@ -83,7 +83,7 @@ describe('#invite', function registerSuite() {
       .reflect()
       .then(inspectPromise(false))
       .then((err) => {
-        assert.equal(err.name, 'AssertionError [ERR_ASSERTION]');
+        assert.equal(err.name, 'AssertionError');
         assert.equal(err.message, `Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "${email}"`);
       });
   });

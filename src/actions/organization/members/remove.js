@@ -1,8 +1,9 @@
 const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../../../utils/key');
-const getUserId = require('../../../utils/userData/getUserId');
-const handlePipeline = require('../../../utils/pipelineError');
+const getUserId = require('../../../utils/userData/get-user-id');
+const handlePipeline = require('../../../utils/pipeline-error');
 const { checkOrganizationExists } = require('../../../utils/organization');
+const UserMetadata = require('../../../utils/metadata/user');
 const {
   ORGANIZATIONS_MEMBERS,
   USERS_METADATA,
@@ -36,7 +37,9 @@ async function removeMember({ params }) {
   const pipeline = redis.pipeline();
   pipeline.del(memberKey);
   pipeline.zrem(redisKey(organizationId, ORGANIZATIONS_MEMBERS), memberKey);
-  pipeline.hdel(memberMetadataKey, organizationId);
+  UserMetadata
+    .using(userId, audience, pipeline)
+    .delete(organizationId);
 
   return pipeline.exec().then(handlePipeline);
 }

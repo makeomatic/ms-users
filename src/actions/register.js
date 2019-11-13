@@ -9,19 +9,21 @@ const reduce = require('lodash/reduce');
 const last = require('lodash/last');
 
 // internal deps
-const setMetadata = require('../utils/updateMetadata');
+const UserMetadata = require('../utils/metadata/user');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
-const isDisposable = require('../utils/isDisposable');
-const mxExists = require('../utils/mxExists');
-const checkCaptcha = require('../utils/checkCaptcha');
+const isDisposable = require('../utils/is-disposable');
+const mxExists = require('../utils/mx-exists');
+const checkCaptcha = require('../utils/check-captcha');
 const { getUserId } = require('../utils/userData');
-const aliasExists = require('../utils/aliasExists');
+const aliasExists = require('../utils/alias-exists');
 const assignAlias = require('./alias');
-const checkLimits = require('../utils/checkIpLimits');
+const checkLimits = require('../utils/check-ip-limits');
 const challenge = require('../utils/challenges/challenge');
-const handlePipeline = require('../utils/pipelineError');
+const handlePipeline = require('../utils/pipeline-error');
 const hashPassword = require('../utils/register/password/hash');
+const InactiveUser = require('../utils/user/inactive-user');
+
 const {
   USERS_REF,
   USERS_INDEX,
@@ -172,6 +174,9 @@ async function performRegistration({ service, params }) {
     await verifySSO(service, params);
   }
 
+  const inactiveUsers = new InactiveUser(service);
+  await inactiveUsers.cleanUsersOnce(config.deleteInactiveAccounts);
+
   const [creatorAudience] = audience;
   const defaultAudience = last(audience);
   const userId = service.flake.next();
@@ -208,22 +213,21 @@ async function performRegistration({ service, params }) {
   pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
 
   if (activate === false && config.deleteInactiveAccounts >= 0) {
-    pipeline.expire(userDataKey, config.deleteInactiveAccounts);
+    inactiveUsers.add(userId, created, pipeline);
   }
 
   await pipeline.exec().then(handlePipeline);
-
-  await setMetadata.call(service, {
-    userId,
-    audience,
-    metadata: audience.map((metaAudience) => ({
-      $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
-        [USERS_ID_FIELD]: userId,
-        [USERS_USERNAME_FIELD]: username,
-        [USERS_CREATED_FIELD]: created,
-      }),
-    })),
-  });
+  await UserMetadata
+    .using(userId, audience, service.redis)
+    .batchUpdate({
+      metadata: audience.map((metaAudience) => ({
+        $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
+          [USERS_ID_FIELD]: userId,
+          [USERS_USERNAME_FIELD]: username,
+          [USERS_CREATED_FIELD]: created,
+        }),
+      })),
+    });
 
   // assign alias
   if (alias) {

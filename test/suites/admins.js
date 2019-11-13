@@ -1,7 +1,7 @@
 /* global startService */
 
 const assert = require('assert');
-const simpleDispatcher = require('../helpers/simpleDispatcher');
+const simpleDispatcher = require('../helpers/simple-dispatcher');
 
 describe('#admins', function verifySuite() {
   const constants = require('../../src/constants');

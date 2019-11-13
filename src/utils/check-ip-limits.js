@@ -1,7 +1,7 @@
 const { HttpStatusError } = require('common-errors');
 const uuid = require('uuid/v4');
 const redisKey = require('./key');
-const handlePipeline = require('../utils/pipelineError.js');
+const handlePipeline = require('../utils/pipeline-error');
 
 /**
  * Verify ip limits

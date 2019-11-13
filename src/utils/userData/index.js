@@ -1,6 +1,6 @@
-const getInternalData = require('./getInternalData');
-const getUserId = require('./getUserId');
-const resolveUserId = require('./resolveUserId');
+const getInternalData = require('./get-internal-data');
+const getUserId = require('./get-user-id');
+const resolveUserId = require('./resolve-user-id');
 
 module.exports = {
   getInternalData,

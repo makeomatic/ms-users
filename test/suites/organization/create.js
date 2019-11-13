@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const faker = require('faker');
 const { createMembers, createOrganization } = require('../../helpers/organization');
 const scrypt = require('../../../src/utils/scrypt');
-const registerOrganizationMembers = require('../../../src/utils/organization/registerOrganizationMembers');
+const registerOrganizationMembers = require('../../../src/utils/organization/register-organization-members');
 
 describe('#create organization', function registerSuite() {
   this.timeout(50000);

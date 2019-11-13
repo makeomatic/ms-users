@@ -2,7 +2,7 @@ const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const { ERROR_AUTH_REQUIRED } = require('../../constants');
 const attach = require('../../auth/oauth/utils/attach');
-const { getSignedToken } = require('../../auth/oauth/utils/getSignedToken');
+const { getSignedToken } = require('../../auth/oauth/utils/get-signed-token');
 
 async function facebookCallbackAction(request) {
   const { credentials } = request.auth;

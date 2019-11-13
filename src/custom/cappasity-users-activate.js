@@ -1,6 +1,6 @@
 const find = require('lodash/find');
 const moment = require('moment');
-const setMetadata = require('../utils/updateMetadata.js');
+const UserMetadata = require('../utils/metadata/user');
 
 /**
  * Adds metadata from billing into usermix
@@ -20,9 +20,7 @@ module.exports = function mixPlan(userId, params) {
     .then(function mix(plan) {
       const subscription = find(plan.subs, ['name', 'month']);
       const nextCycle = moment().add(1, 'month').valueOf();
-      const update = {
-        userId,
-        audience,
+      const updateParams = {
         metadata: {
           $set: {
             plan: id,
@@ -36,6 +34,8 @@ module.exports = function mixPlan(userId, params) {
         },
       };
 
-      return setMetadata.call(this, update);
+      return UserMetadata
+        .using(userId, audience, this.redis)
+        .batchUpdate(updateParams);
     });
 };

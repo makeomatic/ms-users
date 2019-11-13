@@ -1,6 +1,6 @@
-const getInternalData = require('./getInternalData');
-const getOrganizationMembers = require('./getOrganizationMembers');
-const getOrganizationMetadata = require('./getOrganizationMetadata');
+const getInternalData = require('./get-internal-data');
+const getOrganizationMembers = require('./get-organization-members');
+const getOrganizationMetadata = require('./get-organization-metadata');
 
 async function getOrganizationMetadataAndMembers(organizationId) {
   const organization = await getInternalData.call(this, organizationId, true);

@@ -7,11 +7,11 @@ const is = require('is');
 const scrypt = require('../utils/scrypt');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
-const isActive = require('../utils/isActive');
-const isBanned = require('../utils/isBanned');
-const handlePipeline = require('../utils/pipelineError');
+const isActive = require('../utils/is-active');
+const isBanned = require('../utils/is-banned');
+const handlePipeline = require('../utils/pipeline-error');
 const { checkMFA } = require('../utils/mfa');
-const { verifySignedToken } = require('../auth/oauth/utils/getSignedToken');
+const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,

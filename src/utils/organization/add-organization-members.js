@@ -2,14 +2,15 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const redisKey = require('../key.js');
-const getUserId = require('../userData/getUserId');
-const sendInviteMail = require('./sendInviteMail');
-const getInternalData = require('./getInternalData');
-const registerOrganizationMembers = require('./registerOrganizationMembers');
-const handlePipeline = require('../pipelineError.js');
+const getUserId = require('../userData/get-user-id');
+const sendInviteMail = require('./send-invite-email');
+const getInternalData = require('./get-internal-data');
+const registerOrganizationMembers = require('./register-organization-members');
+const handlePipeline = require('../pipeline-error');
+const UserMetadata = require('../metadata/user');
+
 const {
   ORGANIZATIONS_MEMBERS,
-  USERS_METADATA,
   ORGANIZATIONS_NAME_FIELD,
   USERS_ACTION_ORGANIZATION_INVITE,
   USERS_ACTION_ORGANIZATION_REGISTER,
@@ -46,14 +47,15 @@ async function addOrganizationMembers(opts) {
   const organizationMembers = registeredMembers.concat(createdMembers);
   organizationMembers.forEach(({ password, ...member }) => {
     const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
-    const memberOrganizations = redisKey(member.id, USERS_METADATA, audience);
     member.username = member.email;
     member.invited = Date.now();
     member.accepted = password ? Date.now() : null;
     member.permissions = member.permissions || [];
     const stringifyMember = mapValues(member, JSONStringify);
     pipe.hmset(memberKey, stringifyMember);
-    pipe.hset(memberOrganizations, organizationId, stringifyMember.permissions);
+    UserMetadata
+      .using(member.id, audience, pipe)
+      .update(organizationId, stringifyMember.permissions);
     pipe.zadd(membersKey, stringifyMember.invited, memberKey);
   });
 

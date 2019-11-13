@@ -3,10 +3,14 @@ const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
-const getMetadata = require('../utils/getMetadata');
-const handlePipeline = require('../utils/pipelineError.js');
+const getMetadata = require('../utils/get-metadata');
+const handlePipeline = require('../utils/pipeline-error.js');
+const InactiveUser = require('../utils/user/inactive-user');
+const User = require('../utils/user/user');
+
 const {
   USERS_INDEX,
+  USERS_INACTIVATED,
   USERS_DATA,
   USERS_REFERRAL_INDEX,
   USERS_PUBLIC_INDEX,
@@ -22,7 +26,7 @@ const {
 const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
 const Inactive = new Errors.HttpStatusError(412, 'expired token, please request a new email');
 const Active = new Errors.HttpStatusError(409, 'account is already active, please use sign in form');
-
+const NotFound = new Errors.HttpStatusError(404, 'account not found');
 /**
  * Helper to determine if something is true
  */
@@ -126,6 +130,9 @@ function activateAccount(data, metadata) {
     .persist(userKey)
     .sadd(USERS_INDEX, userId);
 
+  /* delete user id from the inactive users index */
+  pipeline.zrem(USERS_INACTIVATED, userId);
+
   if (alias) {
     pipeline.sadd(USERS_PUBLIC_INDEX, userId);
   }
@@ -152,6 +159,13 @@ function hook(userId) {
   return this.service.hook('users:activate', userId, { audience: this.audience });
 }
 
+async function checkUserDeleting(internalData) {
+  const user = new User(this);
+  if (await user.isUserDeleting(internalData.id)) {
+    throw NotFound;
+  }
+}
+
 /**
  * @api {amqp} <prefix>.activate Activate User
  * @apiVersion 1.0.0
@@ -173,7 +187,7 @@ function hook(userId) {
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
  */
-function activateAction({ params }) {
+async function activateAction({ params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
   const { token, username } = params;
@@ -191,11 +205,15 @@ function activateAction({ params }) {
     erase: config.token.erase,
   };
 
+  const inactiveUsers = new InactiveUser(this);
+  await inactiveUsers.cleanUsersOnce(config.deleteInactiveAccounts);
+
   return Promise
     .bind(context)
     .then(verifyRequest)
     .bind(this)
     .then((resolvedUsername) => getInternalData.call(this, resolvedUsername))
+    .tap(checkUserDeleting)
     .then((internalData) => Promise.join(
       internalData,
       getMetadata.call(this, internalData[USERS_ID_FIELD], audience).get(audience)

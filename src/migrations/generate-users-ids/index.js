@@ -18,7 +18,7 @@ const {
   USERS_USERNAME_FIELD,
 } = require('../../constants');
 const makeKey = require('../../utils/key');
-const safeParse = require('../../utils/safeParse');
+const safeParse = require('../../utils/safe-parse');
 
 function generateUsersIds({
   flake, redis, config, log,

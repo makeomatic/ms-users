@@ -2,15 +2,15 @@ const Errors = require('common-errors');
 
 const get = require('../../../utils/get-value');
 const redisKey = require('../../../utils/key');
-const updateMetadata = require('../../../utils/updateMetadata');
-const handlePipeline = require('../../../utils/pipelineError');
+const UserMetadata = require('../../../utils/metadata/user');
+const handlePipeline = require('../../../utils/pipeline-error');
 
 const {
   USERS_SSO_TO_ID,
   USERS_DATA,
 } = require('../../../constants');
 
-module.exports = function detach(provider, userData) {
+module.exports = async function detach(provider, userData) {
   const { id: userId } = userData;
   const { redis, config } = this;
   const audience = get(config, 'jwt.defaultAudience');
@@ -28,16 +28,17 @@ module.exports = function detach(provider, userData) {
   // delete account reference
   pipeline.hdel(USERS_SSO_TO_ID, uid);
 
-  return pipeline.exec().then(handlePipeline)
-    .bind(this)
-    .return({
-      userId,
-      audience,
-      metadata: {
-        $remove: [
-          provider,
-        ],
-      },
-    })
-    .then(updateMetadata);
+  handlePipeline(await pipeline.exec());
+
+  const updateParams = {
+    metadata: {
+      $remove: [
+        provider,
+      ],
+    },
+  };
+
+  return UserMetadata
+    .using(userId, audience, redis)
+    .batchUpdate(updateParams);
 };

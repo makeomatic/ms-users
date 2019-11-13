@@ -1,5 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
-const setOrganizationMetadata = require('../../utils/setOrganizationMetadata');
+const setOrganizationMetadata = require('../../utils/set-organization-metadata');
 const { checkOrganizationExists, getOrganizationMetadata } = require('../../utils/organization');
 
 /**

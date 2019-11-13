@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const assert = require('assert');
+const { LockAcquisitionError } = require('ioredis-lock');
 const User = require('./user');
 const UserMetadata = require('../metadata/user');
 const Organization = require('../organization/organization');
@@ -31,9 +32,7 @@ class InactiveUser {
     const { dlock } = this.service;
     return dlock
       .once(lockName)
-      .disposer((l) => {
-        l.release().reflect();
-      });
+      .catch(LockAcquisitionError, () => null);
   }
 
   /**
@@ -61,10 +60,12 @@ class InactiveUser {
    * @param {Number}userTTL - interval seconds
    * @returns {Promise<any> | * | Promise<T>}
    */
-  cleanUsersOnce(userTTL) {
-    return Promise
-      .using(this.acquireLock('delete-inactive-users'), () => this.cleanUsers(userTTL))
-      .catch({ name: 'LockAcquisitionError' }, () => {});
+  async cleanUsersOnce(userTTL) {
+    const lock = await this.acquireLock('delete-inactive-users');
+    if (lock === null) return null;
+    const result = this.cleanUsers(userTTL);
+    await lock.release();
+    return result;
   }
 
   /**

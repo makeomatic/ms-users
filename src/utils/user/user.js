@@ -110,7 +110,7 @@ class User {
 
       handlePipeline(pipelineResult);
     } finally {
-      lock.release().reflect();
+      lock.release();
     }
 
     return id;

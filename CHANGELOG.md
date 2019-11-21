@@ -1,3 +1,10 @@
+# [12.1.0](https://github.com/makeomatic/ms-users/compare/v12.0.0...v12.1.0) (2019-11-21)
+
+
+### Features
+
+* record user activation time ([#433](https://github.com/makeomatic/ms-users/issues/433)) ([9c8dec8](https://github.com/makeomatic/ms-users/commit/9c8dec8cc8626c36ecd925289f91c32d600d6622))
+
 # [12.0.0](https://github.com/makeomatic/ms-users/compare/v11.4.0...v12.0.0) (2019-10-31)
 
 

@@ -1,10 +1,12 @@
-const Errors = require('common-errors');
+const { ActionTransport } = require('@microfleet/core');
+const { HttpStatusError } = require('common-errors');
 const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
-const handlePipeline = require('../utils/pipeline-error.js');
+const handlePipeline = require('../utils/pipeline-error');
+const setMetadata = require('../utils/update-metadata');
 const {
   USERS_INDEX,
   USERS_DATA,
@@ -16,12 +18,13 @@ const {
   USERS_REFERRAL_FIELD,
   USERS_USERNAME_FIELD,
   USERS_ACTION_ACTIVATE,
+  USERS_ACTIVATED_FIELD,
 } = require('../constants.js');
 
 // cache error
-const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
-const Inactive = new Errors.HttpStatusError(412, 'expired token, please request a new email');
-const Active = new Errors.HttpStatusError(409, 'account is already active, please use sign in form');
+const Forbidden = new HttpStatusError(403, 'invalid token');
+const Inactive = new HttpStatusError(412, 'expired token, please request a new email');
+const Active = new HttpStatusError(409, 'account is already active, please use sign in form');
 
 /**
  * Helper to determine if something is true
@@ -103,7 +106,7 @@ function verifyRequest() {
     return Promise.resolve(username);
   }
 
-  throw new Errors.HttpStatusError(400, 'invalid params');
+  throw new HttpStatusError(400, 'invalid params');
 }
 
 /**
@@ -111,15 +114,29 @@ function verifyRequest() {
  * @param  {Object} data internal user data
  * @return {Promise}
  */
-function activateAccount(data, metadata) {
+async function activateAccount(data, metadata) {
   const userId = data[USERS_ID_FIELD];
   const alias = data[USERS_ALIAS_FIELD];
   const referral = metadata[USERS_REFERRAL_FIELD];
   const userKey = redisKey(userId, USERS_DATA);
+  const { defaultAudience, service } = this;
+  const { redis } = service;
+
+  // if this goes through, but other async calls fail its ok to repeat that
+  // adds activation field
+  await setMetadata.call(service, {
+    userId,
+    audience: defaultAudience,
+    metadata: {
+      $set: {
+        [USERS_ACTIVATED_FIELD]: Date.now(),
+      },
+    },
+  });
 
   // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
   // set to active & persist
-  const pipeline = this.redis
+  const pipeline = redis
     .pipeline()
     .hget(userKey, USERS_ACTIVE_FLAG)
     .hset(userKey, USERS_ACTIVE_FLAG, 'true')
@@ -134,15 +151,13 @@ function activateAccount(data, metadata) {
     pipeline.sadd(`${USERS_REFERRAL_INDEX}:${referral}`, userId);
   }
 
-  return pipeline
-    .exec()
-    .then(handlePipeline)
-    .spread((isActive) => {
-      if (isActive === 'true') {
-        throw new Errors.HttpStatusError(417, `Account ${userId} was already activated`);
-      }
-    })
-    .return(userId);
+  const [isActive] = handlePipeline(await pipeline.exec());
+
+  if (isActive === 'true') {
+    throw new HttpStatusError(417, `Account ${userId} was already activated`);
+  }
+
+  return userId;
 }
 
 /**
@@ -173,41 +188,40 @@ function hook(userId) {
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
  */
-function activateAction({ params }) {
+async function activateAction({ log, params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
   const { token, username } = params;
-  const { log, config } = this;
-  const audience = params.audience || config.defaultAudience;
+  const { config } = this;
+  const { jwt: { defaultAudience } } = config;
+  const audience = params.audience || defaultAudience;
 
-  log.debug('incoming request params %j', params);
+  log.debug({ params }, 'incoming request params');
 
   // basic context
   const context = {
     audience,
+    defaultAudience,
     token,
     username,
     service: this,
     erase: config.token.erase,
   };
 
-  return Promise
+  const userId = await Promise
     .bind(context)
     .then(verifyRequest)
-    .bind(this)
     .then((resolvedUsername) => getInternalData.call(this, resolvedUsername))
     .then((internalData) => Promise.join(
       internalData,
       getMetadata.call(this, internalData[USERS_ID_FIELD], audience).get(audience)
     ))
     .spread(activateAccount)
-    .bind(context)
-    .tap(hook)
-    .bind(this)
-    .then((userId) => [userId, audience])
-    .spread(jwt.login);
+    .tap(hook);
+
+  return jwt.login.call(this, userId, audience);
 }
 
-activateAction.transports = [require('@microfleet/core').ActionTransport.amqp];
+activateAction.transports = [ActionTransport.amqp];
 
 module.exports = activateAction;

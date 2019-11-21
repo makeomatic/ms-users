@@ -9,7 +9,7 @@ const {
   USERS_ACTION_RESET,
 } = require('../../../constants');
 
-function send(tel, action, context = {}) {
+async function send(tel, action, context = {}) {
   const {
     account, prefix, messages, waitChallenge,
   } = this.config.phone;
@@ -40,7 +40,8 @@ function send(tel, action, context = {}) {
   });
 
   if (waitChallenge) {
-    return sendingPromise.return({ context });
+    await sendingPromise;
+    return { context };
   }
 
   return {

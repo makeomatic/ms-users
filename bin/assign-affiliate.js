@@ -28,11 +28,11 @@ const { argv } = require('yargs')
     USERS_ALIAS_TO_ID,
   } = require('../lib/constants');
 
-  const handleRedisPipelineError = require('../lib/utils/pipelineError');
+  const handleRedisPipelineError = require('../lib/utils/pipeline-error');
   const redisKey = require('../lib/utils/key');
   const redisConfig = conf.get('/redis', { env: process.env.NODE_ENV });
   const audience = conf.get('/jwt/defaultAudience', { env: process.env.NODE_ENV });
-  const opts = Object.assign({}, redisConfig.options, { lazyConnect: true });
+  const opts = { ...redisConfig.options, lazyConnect: true };
   const redis = new Redis(redisConfig.hosts, opts);
   const metaKey = redisKey(argv.id, USERS_METADATA, audience);
 

@@ -1,3 +1,11 @@
+## [12.1.1](https://github.com/makeomatic/ms-users/compare/v12.1.0...v12.1.1) (2019-11-24)
+
+
+### Bug Fixes
+
+* docker build size ([9959505](https://github.com/makeomatic/ms-users/commit/995950524f48581995e072902138a313e06c9874))
+* improve logging & dlock startup ([3113e84](https://github.com/makeomatic/ms-users/commit/3113e84820b45421cc7700b5245d372a4c6e5645))
+
 # [12.1.0](https://github.com/makeomatic/ms-users/compare/v12.0.0...v12.1.0) (2019-11-21)
 
 

@@ -17,6 +17,9 @@
         "DESC"
       ]
     },
+    "audience": {
+      "type": "string"
+    },
     "criteria": {
       "type": "string"
     },

@@ -37,6 +37,7 @@ async function getOrganizationsList({ params }) {
   const { redis } = this;
   const {
     criteria,
+    audience,
     limit = 10,
     offset = 0,
     order = 'ASC',
@@ -58,7 +59,7 @@ async function getOrganizationsList({ params }) {
   const organizations = await Promise.map(organizationsIds, async (organizationId) => {
     const [organization, metadata] = await Promise.all([
       getInternalData.call(this, organizationId, true),
-      getOrganizationMetadata.call(this, organizationId),
+      getOrganizationMetadata.call(this, organizationId, audience),
     ]);
 
     return {

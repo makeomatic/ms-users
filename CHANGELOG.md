@@ -1,3 +1,10 @@
+## [12.1.3](https://github.com/makeomatic/ms-users/compare/v12.1.2...v12.1.3) (2019-11-28)
+
+
+### Bug Fixes
+
+* **deps:** dlock, @microfleet/transport-amqp ([d1a526d](https://github.com/makeomatic/ms-users/commit/d1a526dfe4ec9c7b9fc6706dd14f50f4de6bd0dc))
+
 ## [12.1.2](https://github.com/makeomatic/ms-users/compare/v12.1.1...v12.1.2) (2019-11-26)
 
 

@@ -521,7 +521,7 @@
     "@hapi/hoek" "8.x.x"
     "@hapi/topo" "3.x.x"
 
-"@hapi/joi@16.x.x", "@hapi/joi@^16.1.7":
+"@hapi/joi@16.x.x", "@hapi/joi@^16.1.8":
   version "16.1.8"
   resolved "https://registry.yarnpkg.com/@hapi/joi/-/joi-16.1.8.tgz#84c1f126269489871ad4e2decc786e0adef06839"
   integrity sha512-wAsVvTPe+FwSrsAurNt5vkg3zo+TblvC5Bb1zMVK6SJzZqw9UrJnexxR+76cpePmtUZKHAPxcQ2Bf7oVHyahhg==
@@ -741,12 +741,12 @@
     stdout-stream "^1.4.1"
     yargs-parser "^16.1.0"
 
-"@microfleet/transport-amqp@^15.1.2":
-  version "15.1.2"
-  resolved "https://registry.yarnpkg.com/@microfleet/transport-amqp/-/transport-amqp-15.1.2.tgz#886105e4754e4f6d5448d23581b8241aed4b02a7"
-  integrity sha512-LnwVbSBMghiKOoAzhLCNiAwNY07Ifvao7zPH+e/w5TM+k7U30w4+BLOFD919YXSAhYcxXgUuekLSVI9uz8JxlA==
+"@microfleet/transport-amqp@^15.1.3":
+  version "15.1.3"
+  resolved "https://registry.yarnpkg.com/@microfleet/transport-amqp/-/transport-amqp-15.1.3.tgz#d858c2d00cb4ecbea2a170d9cc765b3b995e98fd"
+  integrity sha512-n8QiMBEICUWmFotSMnubf3ogi1OeJjcIMOSImxvYPvpz2Gweg82j2wmUc/lU9K5YpVyMthvuB3e8IQlv8QESUg==
   dependencies:
-    "@hapi/joi" "^16.1.7"
+    "@hapi/joi" "^16.1.8"
     "@microfleet/amqp-coffee" "^1.3.1"
     bluebird "^3.7.1"
     common-errors "^1.0.5"
@@ -759,7 +759,7 @@
     lodash "^4.17.15"
     object-hash "^2.0.0"
     opentracing "^0.14.4"
-    pino "^5.13.6"
+    pino "^5.14.0"
     uuid "^3.3.3"
 
 "@microfleet/validation@^8.1.2":
@@ -2501,7 +2501,7 @@ debug@^4.0.0, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1:
   dependencies:
     ms "^2.1.1"
 
-debuglog@*, debuglog@^1.0.1:
+debuglog@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/debuglog/-/debuglog-1.0.1.tgz#aa24ffb9ac3df9a2351837cfb2d279360cd78492"
   integrity sha1-qiT/uaw9+aI1GDfPstJ5NgzXhJI=
@@ -2653,10 +2653,10 @@ disposable-email-domains@^1.0.50:
   resolved "https://registry.yarnpkg.com/disposable-email-domains/-/disposable-email-domains-1.0.50.tgz#2134170aa98394101972610e5a7b69cdf79de015"
   integrity sha512-ScWM11YB4PWkPmMtW+Jqx2f5DbXWQpcjJB0TjuEFaoTag0wosZHDG1IdJGeA7Kyc/c+Wnpoh9D9cFf191lx2Bw==
 
-dlock@^11.0.0:
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/dlock/-/dlock-11.0.0.tgz#c652d9ebc790d9299890f18444b640b49138426d"
-  integrity sha512-hbJ1jlVOwVtBZ/OFquAzKYUCcLYU9W3s9T3q4B7fxO9ZtIXQmpGkyMvdcQgIpuFjzDYSGX0vh3t+gQ+E8bU9bw==
+dlock@^11.0.1:
+  version "11.0.1"
+  resolved "https://registry.yarnpkg.com/dlock/-/dlock-11.0.1.tgz#c73bce3032aced30afd98604445f56da78509e83"
+  integrity sha512-xqHd4ep4aIUm/SSx6XkBERo3oQ2sVDUMPIc5bwmWYOCD4gp/E7gvn5XSk2wNIlAb4vFBnQswe422/CTvc7AKMA==
   dependencies:
     bluebird "^3.7.1"
     bunyan "^1.8.12"
@@ -3117,10 +3117,10 @@ eslint@6.5.1:
     text-table "^0.2.0"
     v8-compile-cache "^2.0.3"
 
-eslint@^6.7.0:
-  version "6.7.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-6.7.0.tgz#766162e383b236e61d873697f82c3a3e41392020"
-  integrity sha512-dQpj+PaHKHfXHQ2Imcw5d853PTvkUGbHk/MR68KQUl98EgKDCdh4vLRH1ZxhqeQjQFJeg8fgN0UwmNhN3l8dDQ==
+eslint@^6.7.1:
+  version "6.7.1"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-6.7.1.tgz#269ccccec3ef60ab32358a44d147ac209154b919"
+  integrity sha512-UWzBS79pNcsDSxgxbdjkmzn/B6BhsXMfUaOHnNwyE8nD+Q6pyT96ow2MccVayUTV4yMid4qLhMiQaywctRkBLA==
   dependencies:
     "@babel/code-frame" "^7.0.0"
     ajv "^6.10.0"
@@ -4156,7 +4156,7 @@ import-modules@^2.0.0:
   resolved "https://registry.yarnpkg.com/import-modules/-/import-modules-2.0.0.tgz#9c1e13b4e7a15682f70a6e3fa29534e4540cfc5d"
   integrity sha512-iczM/v9drffdNnABOKwj0f9G3cFDon99VcG1mxeBsdqnbd+vnQ5c2uAiCHNQITqFTOPaEvwg3VjoWCur0uHLEw==
 
-imurmurhash@*, imurmurhash@^0.1.4:
+imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
   integrity sha1-khi5srkoojixPcT7a21XbyMUU+o=
@@ -5120,11 +5120,6 @@ lockfile@^1.0.4:
   dependencies:
     signal-exit "^3.0.2"
 
-lodash._baseindexof@*:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/lodash._baseindexof/-/lodash._baseindexof-3.1.0.tgz#fe52b53a1c6761e42618d654e4a25789ed61822c"
-  integrity sha1-/lK1OhxnYeQmGNZU5KJXie1hgiw=
-
 lodash._baseuniq@~4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash._baseuniq/-/lodash._baseuniq-4.6.0.tgz#0ebb44e456814af7905c6212fa2c9b2d51b841e8"
@@ -5133,32 +5128,10 @@ lodash._baseuniq@~4.6.0:
     lodash._createset "~4.0.0"
     lodash._root "~3.0.0"
 
-lodash._bindcallback@*:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/lodash._bindcallback/-/lodash._bindcallback-3.0.1.tgz#e531c27644cf8b57a99e17ed95b35c748789392e"
-  integrity sha1-5THCdkTPi1epnhftlbNcdIeJOS4=
-
-lodash._cacheindexof@*:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/lodash._cacheindexof/-/lodash._cacheindexof-3.0.2.tgz#3dc69ac82498d2ee5e3ce56091bafd2adc7bde92"
-  integrity sha1-PcaayCSY0u5ePOVgkbr9Ktx73pI=
-
-lodash._createcache@*:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/lodash._createcache/-/lodash._createcache-3.1.2.tgz#56d6a064017625e79ebca6b8018e17440bdcf093"
-  integrity sha1-VtagZAF2JeeevKa4AY4XRAvc8JM=
-  dependencies:
-    lodash._getnative "^3.0.0"
-
 lodash._createset@~4.0.0:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/lodash._createset/-/lodash._createset-4.0.3.tgz#0f4659fbb09d75194fa9e2b88a6644d363c9fe26"
   integrity sha1-D0ZZ+7CddRlPqeK4imZE02PJ/iY=
-
-lodash._getnative@*, lodash._getnative@^3.0.0:
-  version "3.9.1"
-  resolved "https://registry.yarnpkg.com/lodash._getnative/-/lodash._getnative-3.9.1.tgz#570bc7dede46d61cdcde687d65d3eecbaa3aaff5"
-  integrity sha1-VwvH3t5G1hzc3mh9ZdPuy6o6r/U=
 
 lodash._reinterpolate@^3.0.0:
   version "3.0.0"
@@ -5294,11 +5267,6 @@ lodash.reduce@^4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.reduce/-/lodash.reduce-4.6.0.tgz#f1ab6b839299ad48f784abbf476596f03b914d3b"
   integrity sha1-8atrg5KZrUj3hKu/R2WW8DuRTTs=
-
-lodash.restparam@*:
-  version "3.6.1"
-  resolved "https://registry.yarnpkg.com/lodash.restparam/-/lodash.restparam-3.6.1.tgz#936a4e309ef330a7645ed4145986c85ae5b20805"
-  integrity sha1-k2pOMJ7zMKdkXtQUWYbIWuWyCAU=
 
 lodash.set@^4.3.2:
   version "4.3.2"
@@ -6934,7 +6902,7 @@ pino-std-serializers@^2.4.2:
   resolved "https://registry.yarnpkg.com/pino-std-serializers/-/pino-std-serializers-2.4.2.tgz#cb5e3e58c358b26f88969d7e619ae54bdfcc1ae1"
   integrity sha512-WaL504dO8eGs+vrK+j4BuQQq6GLKeCCcHaMB2ItygzVURcL1CycwNEUHTD/lHFHs/NL5qAz2UKrjYWXKSf4aMQ==
 
-pino@^5.13.2, pino@^5.13.6:
+pino@^5.13.2, pino@^5.13.6, pino@^5.14.0:
   version "5.14.0"
   resolved "https://registry.yarnpkg.com/pino/-/pino-5.14.0.tgz#eec56c6388797528e526f969ee022592cc538d4e"
   integrity sha512-Vj1f2wAojTGesogT0hsA/ua8ALltCOBCcA1nkEoDfnTsVWpgBu5UVSY7OdjiGmrMOKHBm24nd3nKXzyPUYJ3ig==

@@ -1,5 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
+/* eslint-disable no-prototype-builtins */
 const assert = require('assert');
 const sinon = require('sinon');
 const faker = require('faker');
@@ -16,14 +15,13 @@ describe('#create organization', function registerSuite() {
   });
   afterEach(global.clearRedis);
 
-  it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('users.organization.create', {})
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 1);
-      });
+  it('must reject invalid organization params and return detailed error', async function test() {
+    await assert.rejects(this.dispatch('users.organization.create', {}), (err) => {
+      assert.equal(err.name, 'HttpStatusError');
+      assert.equal(err.statusCode, 400);
+      assert.equal(err.errors.length, 1);
+      return true;
+    });
   });
 
   it('must be able to create organization and register user', async function test() {
@@ -55,9 +53,9 @@ describe('#create organization', function registerSuite() {
       audience: '*.localhost',
     };
 
-    return this.users.dispatch('login', { params: loginParams })
-      .reflect()
-      .then(inspectPromise());
+    const { user } = await this.users.dispatch('login', { params: loginParams });
+
+    assert(/^\d+$/.test(user.metadata[loginParams.audience].aa), 'activation time is not present');
   });
 
   it('must return organization exists error', async function test() {
@@ -66,11 +64,8 @@ describe('#create organization', function registerSuite() {
       name: this.organization.name,
     };
 
-    return this.dispatch('users.organization.create', params)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-      });
+    await assert.rejects(this.dispatch('users.organization.create', params), {
+      name: 'HttpStatusError',
+    });
   });
 });

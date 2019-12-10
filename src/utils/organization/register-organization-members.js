@@ -8,6 +8,7 @@ const {
   USERS_USERNAME_FIELD,
   USERS_ACTIVE_FLAG,
   USERS_PASSWORD_FIELD,
+  USERS_ACTIVATED_FIELD,
   USERS_DATA,
   USERS_USERNAME_TO_ID,
   USERS_INDEX,
@@ -23,8 +24,9 @@ async function registerOrganizationMember(member) {
 
   const userId = this.flake.next();
   const pipeline = redis.pipeline();
+  const createdAt = Date.now();
   const basicInfo = {
-    [USERS_CREATED_FIELD]: Date.now(),
+    [USERS_CREATED_FIELD]: createdAt,
     [USERS_USERNAME_FIELD]: email,
     [USERS_ACTIVE_FLAG]: true,
   };
@@ -44,9 +46,11 @@ async function registerOrganizationMember(member) {
           [USERS_ID_FIELD]: userId,
           [USERS_USERNAME_FIELD]: email,
           [USERS_CREATED_FIELD]: basicInfo[USERS_CREATED_FIELD],
+          [USERS_ACTIVATED_FIELD]: createdAt,
         },
       }],
     });
+
   // perform instant activation
   // internal username index
   const regPipeline = redis.pipeline().sadd(USERS_INDEX, userId);

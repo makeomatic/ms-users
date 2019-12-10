@@ -1,5 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
+/* eslint-disable no-prototype-builtins */
 const Promise = require('bluebird');
 const times = require('lodash/times');
 const assert = require('assert');
@@ -9,17 +8,15 @@ describe('#register', function registerSuite() {
     beforeEach(global.startService);
     afterEach(global.clearRedis);
 
-    it('must reject invalid registration params and return detailed error', function test() {
-      return this.dispatch('users.register', {})
-        .reflect()
-        .then(inspectPromise(false))
-        .then((registered) => {
-          assert.equal(registered.name, 'HttpStatusError');
-          assert.equal(registered.errors.length, 2);
-        });
+    it('must reject invalid registration params and return detailed error', async function test() {
+      await assert.rejects(this.dispatch('users.register', {}), (err) => {
+        assert.equal(err.name, 'HttpStatusError');
+        assert.equal(err.errors.length, 2);
+        return true;
+      });
     });
 
-    it('must be able to create user without validations and return user object and jwt token', function test() {
+    it('must be able to create user without validations and return user object and jwt token', async function test() {
       const opts = {
         username: 'v@makeomatic.ru',
         password: 'mynicepassword',
@@ -30,18 +27,17 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this.dispatch('users.register', opts)
-        .then((registered) => {
-          assert(registered.hasOwnProperty('jwt'));
-          assert(registered.hasOwnProperty('user'));
-          assert.ok(registered.user.id);
-          assert(registered.user.hasOwnProperty('metadata'));
-          assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
-          assert(registered.user.metadata.hasOwnProperty('*.localhost'));
-          assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
-          assert.ifError(registered.user.password);
-          assert.ifError(registered.user.audience);
-        });
+      const registered = await this.dispatch('users.register', opts);
+
+      assert(registered.hasOwnProperty('jwt'));
+      assert(registered.hasOwnProperty('user'));
+      assert.ok(registered.user.id);
+      assert(registered.user.hasOwnProperty('metadata'));
+      assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+      assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+      assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
+      assert.ifError(registered.user.password);
+      assert.ifError(registered.user.audience);
     });
 
     it('must be able to create user with alias', function test() {
@@ -83,22 +79,20 @@ describe('#register', function registerSuite() {
         return this.dispatch('users.register', { ...opts });
       });
 
-      it('with an already existing alias', function test() {
-        return this.dispatch('users.register', {
+      it('with an already existing alias', async function test() {
+        await assert.rejects(this.dispatch('users.register', {
           ...opts,
           username: 'test@makeomatic.ru',
-        })
-          .reflect()
-          .then(inspectPromise(false))
-          .then((error) => {
-            assert.equal(error.message, `"${opts.alias}" already exists`);
-            assert.equal(error.name, 'HttpStatusError');
-            assert.equal(error.statusCode, 409);
-          });
+        }), (error) => {
+          assert.equal(error.message, `"${opts.alias}" already exists`);
+          assert.equal(error.name, 'HttpStatusError');
+          assert.equal(error.statusCode, 409);
+          return true;
+        });
       });
     });
 
-    it('must be able to create user without validations and return user object and jwt token, password is auto-generated', function test() {
+    it('must be able to create user without validations and return user object and jwt token, password is auto-generated', async function test() {
       const opts = {
         username: 'v@makeomatic.ru',
         audience: 'matic.ninja',
@@ -107,21 +101,30 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this.dispatch('users.register', opts)
-        .then((registered) => {
-          assert(registered.hasOwnProperty('jwt'));
-          assert(registered.hasOwnProperty('user'));
-          assert.ok(registered.user.id);
-          assert(registered.user.hasOwnProperty('metadata'));
-          assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
-          assert(registered.user.metadata.hasOwnProperty('*.localhost'));
-          assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
-          assert.ifError(registered.user.password);
-          assert.ifError(registered.user.audience);
-        });
+      const registered = await this.dispatch('users.register', opts);
+
+      console.info('%j', registered);
+
+      assert(registered.hasOwnProperty('jwt'));
+      assert(registered.hasOwnProperty('user'));
+
+      assert.ok(registered.user.id);
+      assert(registered.user.hasOwnProperty('metadata'));
+
+      // 2 audiences
+      assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+      assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+
+      // verify that default props were set
+      assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
+      assert.ok(/^\d+$/.test(registered.user.metadata['*.localhost'].aa));
+
+      // must not be present
+      assert.ifError(registered.user.password);
+      assert.ifError(registered.user.audience);
     });
 
-    it('must be able to create user with validation and return success', function test() {
+    it('must be able to create user with validation and return success', async function test() {
       const opts = {
         username: 'v@makeomatic.ru',
         password: 'mynicepassword7159',
@@ -132,14 +135,10 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this
-        .dispatch('users.register', opts)
-        .reflect()
-        .then(inspectPromise())
-        .then(({ requiresActivation, id }) => {
-          assert.ok(id);
-          assert.equal(requiresActivation, true);
-        });
+      const { requiresActivation, id } = await this.dispatch('users.register', opts);
+
+      assert.ok(id);
+      assert.equal(requiresActivation, true);
     });
 
     describe('consequent registrations', function suite() {
@@ -157,15 +156,13 @@ describe('#register', function registerSuite() {
         return this.dispatch('users.register', { ...opts });
       });
 
-      it('must reject registration for an already existing user', function test() {
-        return this.dispatch('users.register', opts)
-          .reflect()
-          .then(inspectPromise(false))
-          .then((registered) => {
-            assert.equal(registered.name, 'HttpStatusError');
-            assert.equal(registered.statusCode, 409);
-            assert(/user already exists/.test(registered.message));
-          });
+      it('must reject registration for an already existing user', async function test() {
+        await assert.rejects(this.dispatch('users.register', opts), (registered) => {
+          assert.equal(registered.name, 'HttpStatusError');
+          assert.equal(registered.statusCode, 409);
+          assert(/user already exists/.test(registered.message));
+          return true;
+        });
       });
     });
 
@@ -187,19 +184,17 @@ describe('#register', function registerSuite() {
         )));
       });
 
-      it('must reject more than 3 registration a day per ipaddress if it is specified', function test() {
-        return this.dispatch('users.register', opts)
-          .reflect()
-          .then(inspectPromise(false))
-          .then((failed) => {
-            assert.equal(failed.name, 'HttpStatusError');
-            assert.equal(failed.statusCode, 429);
-            assert.equal(failed.message, 'You can\'t register more users from your ipaddress \'192.168.1.1\' now');
-          });
+      it('must reject more than 3 registration a day per ipaddress if it is specified', async function test() {
+        await assert.rejects(this.dispatch('users.register', opts), (failed) => {
+          assert.equal(failed.name, 'HttpStatusError');
+          assert.equal(failed.statusCode, 429);
+          assert.equal(failed.message, 'You can\'t register more users from your ipaddress \'192.168.1.1\' now');
+          return true;
+        });
       });
     });
 
-    it('must reject registration for disposable email addresses', function test() {
+    it('must reject registration for disposable email addresses', async function test() {
       const opts = {
         username: 'v@mailinator.com',
         password: 'mynicepassword7159',
@@ -209,17 +204,15 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this.dispatch('users.register', opts)
-        .reflect()
-        .then(inspectPromise(false))
-        .then((failed) => {
-          assert.equal(failed.name, 'HttpStatusError');
-          assert.equal(failed.statusCode, 400);
-          assert.equal(failed.message, 'you must use non-disposable email to register');
-        });
+      await assert.rejects(this.dispatch('users.register', opts), (failed) => {
+        assert.equal(failed.name, 'HttpStatusError');
+        assert.equal(failed.statusCode, 400);
+        assert.equal(failed.message, 'you must use non-disposable email to register');
+        return true;
+      });
     });
 
-    it('must reject registration for a domain name, which lacks MX record', function test() {
+    it('must reject registration for a domain name, which lacks MX record', async function test() {
       const opts = {
         username: 'v@aminev.co',
         password: 'mynicepassword7159',
@@ -229,17 +222,15 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this.dispatch('users.register', opts)
-        .reflect()
-        .then(inspectPromise(false))
-        .then((failed) => {
-          assert.equal(failed.name, 'HttpStatusError');
-          assert.equal(failed.statusCode, 400);
-          assert.equal(failed.message, 'no MX record was found for hostname aminev.co');
-        });
+      await assert.rejects(this.dispatch('users.register', opts), (failed) => {
+        assert.equal(failed.name, 'HttpStatusError');
+        assert.equal(failed.statusCode, 400);
+        assert.equal(failed.message, 'no MX record was found for hostname aminev.co');
+        return true;
+      });
     });
 
-    it('force password check', function test() {
+    it('force password check', async function test() {
       const msg = {
         username: 'v@makeomatic.ru',
         password: '',
@@ -251,9 +242,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this.dispatch('users.register', msg)
-        .reflect()
-        .then(inspectPromise(false));
+      await assert.rejects(this.dispatch('users.register', msg));
     });
   });
 
@@ -343,39 +332,29 @@ describe('#register', function registerSuite() {
 
     describe('config forceCheckFieldNames/skipCheckFieldNames check', function skipForceSuite() {
       it('forceCheckFieldNames', async function test() {
-        let err;
-
-        try {
-          await global.startService.call(this, {
-            passwordValidator: {
-              enabled: true,
-              forceCheckFieldNames: null,
-            },
-          });
-        } catch (e) {
-          err = e;
-        }
-
-        assert(err.status === 400, 'Must be HttpStatusError');
-        assert(err.message.includes('config validation failed: data.passwordValidator.forceCheckFieldNames should be array'));
+        await assert.rejects(global.startService.call(this, {
+          passwordValidator: {
+            enabled: true,
+            forceCheckFieldNames: null,
+          },
+        }), (err) => {
+          assert(err.status === 400, 'Must be HttpStatusError');
+          assert(err.message.includes('config validation failed: data.passwordValidator.forceCheckFieldNames should be array'));
+          return true;
+        });
       });
 
       it('skipCheckFieldNames', async function test() {
-        let err;
-
-        try {
-          await global.startService.call(this, {
-            passwordValidator: {
-              enabled: true,
-              skipCheckFieldNames: null,
-            },
-          });
-        } catch (e) {
-          err = e;
-        }
-
-        assert(err.status === 400, 'Must be HttpStatusError');
-        assert(err.message.includes('config validation failed: data.passwordValidator.skipCheckFieldNames should be array'));
+        await assert.rejects(global.startService.call(this, {
+          passwordValidator: {
+            enabled: true,
+            skipCheckFieldNames: null,
+          },
+        }), (err) => {
+          assert(err.status === 400, 'Must be HttpStatusError');
+          assert(err.message.includes('config validation failed: data.passwordValidator.skipCheckFieldNames should be array'));
+          return true;
+        });
       });
     });
 
@@ -455,17 +434,12 @@ describe('#register', function registerSuite() {
 
       weakPasswords.forEach((password, index) => {
         const reqOpts = { ...opts, username: `id${index}${opts.username}`, password };
-        promises.push(this
-          .dispatch('users.register', reqOpts)
-          .reflect()
-          .then(inspectPromise(false)));
+        promises.push(assert.rejects(this.dispatch('users.register', reqOpts), {
+          statusCode: 400,
+        }));
       });
 
-      const result = await Promise.all(promises);
-
-      result.forEach((err) => {
-        assert.equal(err.statusCode, 400);
-      });
+      await Promise.all(promises);
     });
 
     it('good passwords', async function test() {

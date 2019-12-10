@@ -24,10 +24,10 @@ const { prefix } = config.router.routes;
  */
 function registerUsers(users) {
   return AMQPTransport
-    .connect(amqpConfig)
-    .then(amqp => (
+    .connect({ ...amqpConfig, debug: false })
+    .then((amqp) => (
       Promise
-        .map(users, user => (
+        .map(users, (user) => (
           amqp.publishAndWait(`${prefix}.register`, user, { timeout: 5000 })
         ))
         .finally(() => amqp.close())
@@ -37,7 +37,7 @@ function registerUsers(users) {
 
 // read data from stdin
 getStdin()
-  .then(input => JSON.parse(input))
+  .then((input) => JSON.parse(input))
   .then((info) => {
     assert.equal(typeof info.common, 'object');
     assert.ok(Array.isArray(info.users));
@@ -66,8 +66,8 @@ getStdin()
     });
   })
   .then(registerUsers)
-  .then(users => (
-    users.forEach(user => (
+  .then((users) => (
+    users.forEach((user) => (
       console.info('[%s] - %s', user.username, user.password)
     ))
   ))

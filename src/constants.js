@@ -40,6 +40,7 @@ module.exports = exports = {
   USERS_TESTER_ROLE: 'tester',
   USERS_BANNED_DATA: 'bannedData',
   USERS_CREATED_FIELD: 'created',
+  USERS_ACTIVATED_FIELD: 'aa',
   USERS_USERNAME_FIELD: 'username',
   USERS_IS_ORG_FIELD: 'org',
   USERS_PASSWORD_FIELD: 'password',

@@ -34,6 +34,7 @@ const {
   USERS_USERNAME_FIELD,
   USERS_PASSWORD_FIELD,
   USERS_REFERRAL_FIELD,
+  USERS_ACTIVATED_FIELD,
   lockAlias,
   lockRegister,
   USERS_ACTION_INVITE,
@@ -211,16 +212,23 @@ async function performRegistration({ service, params }) {
     pipeline.expire(userDataKey, config.deleteInactiveAccounts);
   }
 
-  await pipeline.exec().then(handlePipeline);
+  handlePipeline(await pipeline.exec());
+
+  const commonMeta = {
+    [USERS_ID_FIELD]: userId,
+    [USERS_USERNAME_FIELD]: username,
+    [USERS_CREATED_FIELD]: created,
+  };
+
+  if (activate === true) {
+    commonMeta[USERS_ACTIVATED_FIELD] = Date.now();
+  }
+
   await UserMetadata
     .using(userId, audience, service.redis)
     .batchUpdate({
       metadata: audience.map((metaAudience) => ({
-        $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && {
-          [USERS_ID_FIELD]: userId,
-          [USERS_USERNAME_FIELD]: username,
-          [USERS_CREATED_FIELD]: created,
-        }),
+        $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && commonMeta),
       })),
     });
 

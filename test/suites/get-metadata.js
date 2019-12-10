@@ -1,20 +1,16 @@
-const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 
 describe('#getMetadata', function getMetadataSuite() {
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
-  it('must reject to return metadata on a non-existing username', function test() {
+  it('must reject to return metadata on a non-existing username', async function test() {
     const { defaultAudience: audience } = this.users.config.jwt;
 
-    return this.dispatch('users.getMetadata', { username: 'noob', audience })
-      .reflect()
-      .then(inspectPromise(false))
-      .then((error) => {
-        assert.equal(error.name, 'HttpStatusError');
-        assert.equal(error.statusCode, 404);
-      });
+    await assert.rejects(this.dispatch('users.getMetadata', { username: 'noob', audience }), {
+      name: 'HttpStatusError',
+      statusCode: 404,
+    });
   });
 
   describe('existing user', function suite() {
@@ -53,87 +49,67 @@ describe('#getMetadata', function getMetadataSuite() {
       });
     });
 
-    it('must return metadata for a default audience', function test() {
-      return this.dispatch('users.getMetadata', { username, audience })
-        .reflect()
-        .then(inspectPromise())
-        .then((getMetadata) => {
-          assert.deepEqual(getMetadata[audience].name, {
-            q: 'verynicedata',
-          });
+    it('must return metadata for a default audience', async function test() {
+      const meta = await this.dispatch('users.getMetadata', { username, audience });
 
-          assert.equal(getMetadata[audience].username, username);
-        });
+      assert.deepEqual(meta[audience].name, {
+        q: 'verynicedata',
+      });
+
+      assert.equal(meta[audience].username, username);
     });
 
-    it('must return metadata for default and passed audiences', function test() {
-      return this.dispatch('users.getMetadata', { username, audience: [audience, 'matic.ninja'] })
-        .reflect()
-        .then(inspectPromise())
-        .then((getMetadata) => {
-          assert.deepEqual(getMetadata, {
-            [audience]: {
-              name: {
-                q: 'verynicedata',
-              },
-              username,
-              id: this.firstUserId,
-            },
-            'matic.ninja': {
-              iat: 10,
-            },
-          });
-        });
+    it('must return metadata for default and passed audiences', async function test() {
+      const meta = await this.dispatch('users.getMetadata', {
+        username,
+        audience: [audience, 'matic.ninja'],
+      });
+
+      assert.deepEqual(meta[audience].name, {
+        q: 'verynicedata',
+      });
+
+      assert.equal(meta[audience].username, username);
+      assert.equal(meta[audience].id, this.firstUserId);
+      assert.deepEqual(meta['matic.ninja'], { iat: 10 });
     });
 
-    it('must return partial response for default and passed audiences', function test() {
-      return this
-        .dispatch('users.getMetadata', {
+    it('must return partial response for default and passed audiences', async function test() {
+      const meta = await this.dispatch('users.getMetadata', {
+        username,
+        audience: [audience, 'matic.ninja'],
+        fields: {
+          [audience]: ['username'],
+          'matic.ninja': ['iat'],
+        },
+      });
+
+      assert.equal(meta[audience].username, username);
+      assert.deepEqual(meta['matic.ninja'], {
+        iat: 10,
+      });
+    });
+
+    it('must return metadata for multiple users', async function test() {
+      const meta = await this.dispatch('users.getMetadata', {
+        username: [username, usernameB],
+        audience,
+        fields: {
+          [audience]: ['username'],
+        },
+      });
+
+      assert(Array.isArray(meta));
+      assert(meta.length === 2);
+      assert.deepEqual(meta, [{
+        [audience]: {
           username,
-          audience: [audience, 'matic.ninja'],
-          fields: {
-            [audience]: ['username'],
-            'matic.ninja': ['iat'],
-          },
-        })
-        .reflect()
-        .then(inspectPromise())
-        .then((getMetadata) => {
-          assert.deepEqual(getMetadata, {
-            [audience]: {
-              username,
-            },
-            'matic.ninja': {
-              iat: 10,
-            },
-          });
-        });
-    });
-
-    it('must return metadata for multiple users', function test() {
-      return this
-        .dispatch('users.getMetadata', {
-          username: [username, usernameB],
-          audience,
-          fields: {
-            [audience]: ['username'],
-          },
-        })
-        .reflect()
-        .then(inspectPromise())
-        .then((meta) => {
-          assert.ok(Array.isArray(meta));
-          assert.ok(meta.length === 2);
-          assert.deepEqual(meta, [{
-            [audience]: {
-              username,
-            },
-          }, {
-            [audience]: {
-              username: usernameB,
-            },
-          }]);
-        });
+        },
+      }, {
+        [audience]: {
+          username: usernameB,
+        },
+      }]);
     });
   });
 });

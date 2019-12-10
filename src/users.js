@@ -5,7 +5,6 @@ const assert = require('assert');
 const fsort = require('redis-filtered-sort');
 const TokenManager = require('ms-token');
 const LockManager = require('dlock');
-const RedisCluster = require('ioredis').Cluster;
 const Flakeless = require('ms-flakeless');
 const conf = require('./config');
 const get = require('./utils/get-value');
@@ -46,16 +45,10 @@ module.exports = class Users extends Microfleet {
     };
 
     // 2 different plugin types
-    let redisDuplicate;
     if (config.plugins.includes('redisCluster')) {
       this.redisType = 'redisCluster';
-      redisDuplicate = () => new RedisCluster(config.redis.hosts, {
-        ...config.redis.options,
-        lazyConnect: true,
-      });
     } else if (config.plugins.includes('redisSentinel')) {
       this.redisType = 'redisSentinel';
-      redisDuplicate = (redis) => redis.duplicate();
     } else {
       throw new Error('must include redis family plugins');
     }
@@ -65,7 +58,7 @@ module.exports = class Users extends Microfleet {
 
     this.on('plugin:connect:amqp', (amqp) => {
       this.mailer = new Mailer(amqp, config.mailer);
-    });
+    }, 'mailer');
 
     this.on('plugin:close:amqp', () => {
       this.mailer = null;
@@ -103,17 +96,18 @@ module.exports = class Users extends Microfleet {
     if (config.migrations.enabled === true) {
       this.addConnector(ConnectorsTypes.migration, () => (
         this.migrate('redis', `${__dirname}/migrations`)
-      ));
+      ), 'redis-migration');
     }
 
     // ensure we close connection when needed
     this.addDestructor(ConnectorsTypes.database, () => (
-      this.pubsub.quit().reflect()
-    ));
+      this.pubsub.quit()
+    ), 'pubsub-dlock');
 
     // add lock manager
     this.addConnector(ConnectorsTypes.migration, async () => {
-      this.pubsub = redisDuplicate(this.redis);
+      this.pubsub = this.redis.duplicate({ lazyConnect: true });
+
       await this.pubsub.connect();
 
       this.dlock = new LockManager({
@@ -124,7 +118,7 @@ module.exports = class Users extends Microfleet {
       });
 
       return this.dlock;
-    });
+    }, 'pubsub-dlock');
 
     this.addConnector(ConnectorsTypes.essential, () => {
       attachPasswordKeyword(this);
@@ -133,13 +127,13 @@ module.exports = class Users extends Microfleet {
     // init account seed
     this.addConnector(ConnectorsTypes.application, () => (
       this.initAdminAccounts()
-    ));
+    ), 'admins');
 
     // fake accounts for development
     if (process.env.NODE_ENV === 'development') {
       this.addConnector(ConnectorsTypes.application, () => (
         this.initFakeAccounts()
-      ));
+      ), 'dev accounts');
     }
   }
 

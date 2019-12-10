@@ -90,7 +90,9 @@ if (argv.criteria) iterator.criteria = argv.criteria;
 /**
  * Get transport
  */
-const getTransport = () => AMQPTransport.connect(amqpConfig).disposer(amqp => amqp.close());
+const getTransport = () => AMQPTransport
+  .connect({ ...amqpConfig, debug: false })
+  .disposer((amqp) => amqp.close());
 
 /**
  * Output stream
@@ -140,7 +142,7 @@ const writeUserToOutput = (user) => {
 /**
  * List users
  */
-const listUsers = amqp => (
+const listUsers = (amqp) => (
   amqp
     .publishAndWait(route, iterator, { timeout: 5000 })
     .then((data) => {
@@ -158,4 +160,4 @@ const listUsers = amqp => (
 
 Promise
   .using(getTransport(), listUsers)
-  .catch(err => setImmediate(() => { throw err; }));
+  .catch((err) => setImmediate(() => { throw err; }));

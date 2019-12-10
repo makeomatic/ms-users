@@ -14,6 +14,7 @@ RUN \
     curl \
     openssl \
   && yarn --production --frozen-lockfile \
+  && yarn cache clean \
   && apk del \
     .buildDeps \
     wget \

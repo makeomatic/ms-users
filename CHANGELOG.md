@@ -1,3 +1,39 @@
+## [12.1.4](https://github.com/makeomatic/ms-users/compare/v12.1.3...v12.1.4) (2019-12-10)
+
+
+### Bug Fixes
+
+* upgrade deps ([4d11f2c](https://github.com/makeomatic/ms-users/commit/4d11f2c8f2b1c23fa857507b3bb8becc40aacaa6))
+
+## [12.1.3](https://github.com/makeomatic/ms-users/compare/v12.1.2...v12.1.3) (2019-11-28)
+
+
+### Bug Fixes
+
+* **deps:** dlock, @microfleet/transport-amqp ([d1a526d](https://github.com/makeomatic/ms-users/commit/d1a526dfe4ec9c7b9fc6706dd14f50f4de6bd0dc))
+
+## [12.1.2](https://github.com/makeomatic/ms-users/compare/v12.1.1...v12.1.2) (2019-11-26)
+
+
+### Bug Fixes
+
+* added audience to organization list request ([#434](https://github.com/makeomatic/ms-users/issues/434)) ([068cdc2](https://github.com/makeomatic/ms-users/commit/068cdc2578ff7d81b953dabf546f5b62e69c6d0b))
+
+## [12.1.1](https://github.com/makeomatic/ms-users/compare/v12.1.0...v12.1.1) (2019-11-24)
+
+
+### Bug Fixes
+
+* docker build size ([9959505](https://github.com/makeomatic/ms-users/commit/995950524f48581995e072902138a313e06c9874))
+* improve logging & dlock startup ([3113e84](https://github.com/makeomatic/ms-users/commit/3113e84820b45421cc7700b5245d372a4c6e5645))
+
+# [12.1.0](https://github.com/makeomatic/ms-users/compare/v12.0.0...v12.1.0) (2019-11-21)
+
+
+### Features
+
+* record user activation time ([#433](https://github.com/makeomatic/ms-users/issues/433)) ([9c8dec8](https://github.com/makeomatic/ms-users/commit/9c8dec8cc8626c36ecd925289f91c32d600d6622))
+
 # [12.0.0](https://github.com/makeomatic/ms-users/compare/v11.4.0...v12.0.0) (2019-10-31)
 
 

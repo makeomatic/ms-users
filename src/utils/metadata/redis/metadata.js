@@ -119,7 +119,7 @@ class Metadata {
       const metaOps = Array.isArray(metadata) ? metadata : [metadata];
 
       if (metaOps.length !== audiences.length) {
-        return Promise.reject(new HttpStatusError(400, 'audiences must match metadata entries'));
+        throw new HttpStatusError(400, 'audiences must match metadata entries');
       }
 
       const operations = metaOps.map((meta, idx) => Metadata.handleAudience(pipe, keys[idx], meta));

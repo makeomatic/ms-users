@@ -1,3 +1,10 @@
+## [12.1.4](https://github.com/makeomatic/ms-users/compare/v12.1.3...v12.1.4) (2019-12-10)
+
+
+### Bug Fixes
+
+* upgrade deps ([4d11f2c](https://github.com/makeomatic/ms-users/commit/4d11f2c8f2b1c23fa857507b3bb8becc40aacaa6))
+
 ## [12.1.3](https://github.com/makeomatic/ms-users/compare/v12.1.2...v12.1.3) (2019-11-28)
 
 

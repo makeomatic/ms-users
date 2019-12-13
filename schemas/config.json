@@ -33,7 +33,7 @@
         },
         "attempts": {
           "type": "integer",
-          "min": 0
+          "minimum": 0
         }
       }
     },

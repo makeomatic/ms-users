@@ -12,7 +12,7 @@ const { checkMFA } = require('../utils/mfa');
 const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
 
 const UserLoginRateLimiter = require('../utils/rate-limiters/user-login-rate-limiter');
-const { STATUS_FOREVER } = require('../utils/sliding-window/redis/limiter');
+const { STATUS_FOREVER } = require('../utils/sliding-window-limiter/redis');
 
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,

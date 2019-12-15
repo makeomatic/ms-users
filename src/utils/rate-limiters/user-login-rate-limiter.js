@@ -1,7 +1,7 @@
 const uuid = require('uuid/v4');
 const { helpers: errorHelpers } = require('common-errors');
 const assertStringNotEmpty = require('../asserts/string-not-empty');
-const SlidingWindowRedisBackend = require('../sliding-window/redis/limiter');
+const SlidingWindowRedisBackend = require('../sliding-window-limiter/redis');
 const redisKey = require('../key');
 
 /**

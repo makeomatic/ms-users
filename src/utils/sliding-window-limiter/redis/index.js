@@ -1,12 +1,34 @@
 const { helpers: errorHelpers } = require('common-errors');
+const path = require('path');
+const { loadLuaScripts } = require('@microfleet/core/lib/plugins/redis/utils');
 const { strictEqual } = require('assert');
+
 const assertInteger = require('../../asserts/integer');
 const assertStringNotEmpty = require('../../asserts/string-not-empty');
 
 /**
  * Class providing sliding window based blocks using Redis database as storage.
  */
-class SlidingWindowRedisBackend {
+class SlidingWindowLimiterRedis {
+  /**
+   * Block forever
+   */
+  static STATUS_FOREVER = 0;
+
+  /**
+   * Rate limit error
+   */
+  static RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
+
+  /**
+   * Helper for loading lua scripts
+   * @param service
+   * @param redis
+   */
+  static loadLuaScripts(service, redis) {
+    loadLuaScripts.call(service, path.resolve(__dirname, './lua'), redis);
+  }
+
   /**
    * Create Sliding Window Redis Backend
    * @param {ioredis} redis - Redis Database connection
@@ -22,13 +44,13 @@ class SlidingWindowRedisBackend {
     assertInteger(blockInterval, '`interval` is invalid');
     strictEqual(windowInterval === 0 ? blockInterval === 0 : blockInterval > 0, true, '`attempts` is invalid');
 
+    strictEqual(redis.slidingWindowReserve !== undefined, true, 'Set redis lua scripts first on startup');
+    strictEqual(redis.slidingWindowCancel !== undefined, true, 'Set redis lua scripts first on startup');
+    strictEqual(redis.slidingWindowCleanup !== undefined, true, 'Set redis lua scripts first on startup');
+
     this.config = config;
     this.redis = redis;
   }
-
-  static STATUS_FOREVER = 0;
-
-  static RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
 
   /**
    * Tries to reserve provided token.
@@ -44,11 +66,11 @@ class SlidingWindowRedisBackend {
     const { redis, config } = this;
     const { windowInterval, windowLimit, blockInterval } = config;
     const [usage, limit, token, reset] = await redis
-      .slidingWindowReserve(1, key, Date.now(), windowInterval, windowLimit, 1, tokenToReserve, blockInterval);
+      .slidingWindowReserve(1, key, Date.now(), windowInterval, windowLimit, blockInterval, 1, tokenToReserve);
 
     /* reset becomes 0 if blocking forever */
-    if (!token) {
-      throw SlidingWindowRedisBackend.RateLimitError(reset, limit);
+    if (token === null) {
+      throw SlidingWindowLimiterRedis.RateLimitError(reset, limit);
     }
 
     return { token, usage, limit };
@@ -65,7 +87,7 @@ class SlidingWindowRedisBackend {
     const { redis, config } = this;
     const { windowInterval, windowLimit, blockInterval } = config;
     const [usage, limit, , reset] = await redis
-      .slidingWindowReserve(1, key, Date.now(), windowInterval, windowLimit, 0, '', blockInterval);
+      .slidingWindowReserve(1, key, Date.now(), windowInterval, windowLimit, blockInterval, 0);
 
     return { usage, limit, reset };
   }
@@ -101,4 +123,4 @@ class SlidingWindowRedisBackend {
   }
 }
 
-module.exports = SlidingWindowRedisBackend;
+module.exports = SlidingWindowLimiterRedis;

@@ -50,69 +50,86 @@ describe('#sliding-window-limiter', function suite() {
       };
     };
 
-    describe('microCurrentTime', function luaParamCurrentTimeSuite() {
+    describe('currentTime', function luaParamCurrentTimeSuite() {
       const tests = [
         {
           name: 'empty',
-          args: [null, 10, 10, 1, 'mytoken', 10],
+          args: [null, 10, 10, 10, 1, 'mytoken'],
         }, {
           name: 'negative',
-          args: [-1, 10, 10, 1, 'mytoken', 10],
+          args: [-1, 10, 10, 10, 1, 'mytoken'],
 
         }, {
           name: 'not a number',
-          args: ['notAnum', 10, 10, 1, 'mytoken', 10],
+          args: ['notAnum', 10, 10, 10, 1, 'mytoken'],
         },
       ];
 
       tests.forEach(testScript('currentTime'));
     });
 
-    describe('interval', function luaParamIntervalSuite() {
+    describe('windowInterval', function luaParamIntervalSuite() {
       const tests = [
         {
           name: 'empty',
-          args: [Date.now(), null, 10, 1, 'mytoken', 10],
+          args: [Date.now(), null, 10, 10, 1, 'mytoken'],
         }, {
           name: 'negative',
-          args: [7777, -1, 10, 1, 'mytoken', 10],
+          args: [Date.now(), -1, 10, 10, 1, 'mytoken'],
         }, {
           name: 'not a number',
-          args: [7777, 'notanum', 10, 1, 'mytoken', 10],
+          args: [Date.now(), 'notanum', 10, 10, 1, 'mytoken'],
         },
       ];
 
-      tests.forEach(testScript('interval'));
+      tests.forEach(testScript('windowInterval'));
     });
 
-    describe('limit', function luaParamLimitSuite() {
+    describe('windowLimit', function luaParamLimitSuite() {
       const tests = [
         {
           name: 'empty',
-          args: [Date.now(), 10, null, 1, 'mytoken', 10],
+          args: [Date.now(), 10, null, 10, 1, 'mytoken'],
         }, {
           name: 'negative',
-          args: [Date.now(), 10, -1, 1, 'mytoken', 10],
+          args: [Date.now(), 10, -1, 10, 1, 'mytoken'],
         }, {
           name: 'not a number',
-          args: [Date.now(), 10, 'notanumber', 1, 'mytoken', 10],
+          args: [Date.now(), 10, 'notanumber', 10, 1, 'mytoken'],
         },
       ];
 
-      tests.forEach(testScript('limit'));
+      tests.forEach(testScript('windowLimit'));
+    });
+
+    describe('blockInterval', function luaParamLimitSuite() {
+      const tests = [
+        {
+          name: 'empty',
+          args: [Date.now(), 10, 10, null, 1, 'mytoken'],
+        }, {
+          name: 'negative',
+          args: [Date.now(), 10, 10, -1, 1, 'mytoken'],
+        }, {
+          name: 'not a number',
+          args: [Date.now(), 10, 10, 'notanumber', 1, 'mytoken'],
+        },
+      ];
+
+      tests.forEach(testScript('blockInterval'));
     });
 
     describe('reserveToken', function luaParamLimitSuite() {
       const tests = [
         {
           name: 'empty',
-          args: [Date.now(), 10, 10, null, 'mytoken', 10],
+          args: [Date.now(), 10, 10, 10, null, 'mytoken'],
         }, {
           name: 'negative',
-          args: [Date.now(), 10, 10, -1, 'mytoken', 10],
+          args: [Date.now(), 10, 10, 10, -1, 'mytoken'],
         }, {
           name: 'not a number',
-          args: [Date.now(), 10, 10, 'notanumber', 'mytoken', 10],
+          args: [Date.now(), 10, 10, 10, 'notanumber', 'mytoken'],
         },
       ];
 
@@ -124,7 +141,7 @@ describe('#sliding-window-limiter', function suite() {
       const tests = [
         {
           name: 'empty but reserveToken true',
-          args: [Date.now(), 10, 10, 1, '', 10],
+          args: [Date.now(), 10, 10, 10, 1, ''],
         },
       ];
 
@@ -133,7 +150,7 @@ describe('#sliding-window-limiter', function suite() {
   });
 
   describe('utils tests', function utilSuite() {
-    const SlidingWindowLimiter = require('../../../../../src/utils/sliding-window/redis/limiter');
+    const SlidingWindowLimiter = require('../../../../../src/utils/sliding-window-limiter/redis');
     const { RateLimitError } = SlidingWindowLimiter;
     describe('internals', function internalChecks() {
       const rateLimiterConfig = {
@@ -285,7 +302,8 @@ describe('#sliding-window-limiter', function suite() {
         // end block period
         clock.tick(120003);
         usageResult = await limiter.check('myKey');
-        assert(usageResult.reset === 0);
+
+        assert(usageResult.reset === null);
         assert(usageResult.usage === 0, 'should delete some records');
       });
 
@@ -341,21 +359,21 @@ describe('#sliding-window-limiter', function suite() {
         await tokenPromises;
 
         let usageResult = await limiter.check('myKeyForever');
-        assert(usageResult.reset === 0);
+        assert(usageResult.reset === null);
 
         clock.tick(5000);
         usageResult = await limiter.check('myKeyForever');
-        assert(usageResult.reset === 0);
+        assert(usageResult.reset === null);
 
         clock.tick(10000);
         usageResult = await limiter.check('myKeyForever');
-        assert(usageResult.reset === 0);
+        assert(usageResult.reset === null);
 
         // end block period
         clock.tick(120003);
         usageResult = await limiter.check('myKeyForever');
 
-        assert(usageResult.reset === 0);
+        assert(usageResult.reset === null);
         assert(usageResult.usage === 5, 'should not delete some records');
       });
 

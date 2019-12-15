@@ -1,14 +1,12 @@
 const uuid = require('uuid/v4');
 const { helpers: errorHelpers } = require('common-errors');
 const assertStringNotEmpty = require('../asserts/string-not-empty');
-const UserIp = require('../user-ip');
-const LoginAttempt = require('../login-attempt');
 const SlidingWindowRedisBackend = require('../sliding-window/redis/limiter');
 const redisKey = require('../key');
 
 /**
  * Class controls rate limits on User Login attempts
- * */
+ */
 class UserLoginRateLimiter {
   /**
    * Create Login Action Rate Limiter
@@ -19,10 +17,9 @@ class UserLoginRateLimiter {
     this.redis = redis;
     this.config = config;
     this.token = uuid();
-    this.userIp = new UserIp(redis);
 
-    this.ipLimiter = new SlidingWindowRedisBackend(redis, config.forIp);
-    this.userIpLimiter = new SlidingWindowRedisBackend(redis, config.forUserIp);
+    this.ipLimiter = new SlidingWindowRedisBackend(redis, config.limitIp);
+    this.userIpLimiter = new SlidingWindowRedisBackend(redis, config.limitUserIp);
   }
 
   static RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['ip', 'reset', 'limit'] });
@@ -75,42 +72,16 @@ class UserLoginRateLimiter {
   }
 
   /**
-   * Get Sliding window usage information for IP
-   * @param {ip} ip
-   * @returns {Promise<{usage: *, limit: *, reset: *}>}
-   */
-  async checkForIp(ip) {
-    const key = UserLoginRateLimiter.makeRedisIpKey(ip);
-    return this.ipLimiter.check(key);
-  }
-
-  /**
-   * Get Sliding window usage information for UserID and IP pair
-   * @param user
-   * @param ip
-   * @returns {Promise<{usage: *, limit: *, reset: *}>}
-   */
-  async checkForUserIp(user, ip) {
-    const key = UserLoginRateLimiter.makeRedisUserIpKey(user, ip);
-    return this.userIpLimiter.check(key);
-  }
-
-  /**
    * Remove all attempt tokens fro provided UserID and IP pair
    * @param user
    * @param ip
    * @returns {Promise<void>}
    */
   async cleanupForUserIp(user, ip) {
-    const keysToClean = [UserLoginRateLimiter.makeRedisUserIpKey(user, ip)];
-    const userIPs = await this.userIp.getIps(user);
-
-    for (const userIP of userIPs) {
-      keysToClean.push(UserLoginRateLimiter.makeRedisIpKey(userIP));
-      keysToClean.push(UserLoginRateLimiter.makeRedisUserIpKey(user, userIP));
-    }
-
-    return this.userIpLimiter.cleanup(LoginAttempt.getRedisKey(user), ...keysToClean);
+    return this.userIpLimiter.cleanup(
+      UserLoginRateLimiter.makeRedisUserIpKey(user, ip),
+      UserLoginRateLimiter.makeRedisIpKey(ip)
+    );
   }
 
   isEnabled() {

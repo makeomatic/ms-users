@@ -10,23 +10,20 @@ class SlidingWindowRedisBackend {
   /**
    * Create Sliding Window Redis Backend
    * @param {ioredis} redis - Redis Database connection
-   * @param {object} config - Ratelimiter configuration
+   * @param {object} config - Sliding window configuration
    */
   constructor(redis, config) {
-    assertInteger(config.interval, '`interval` is invalid');
-    strictEqual(config.interval >= 0, true, '`interval` is invalid');
-    assertInteger(config.attempts, '`attempts` is invalid');
-    strictEqual(config.attempts > 0, true, '`attempts` is invalid');
+    const { windowInterval, windowLimit, blockInterval } = config;
 
+    assertInteger(windowInterval, '`interval` is invalid');
+    strictEqual(windowInterval >= 0, true, '`interval` is invalid');
+    assertInteger(windowLimit, '`attempts` is invalid');
+    strictEqual(windowLimit > 0, true, '`attempts` is invalid');
+    assertInteger(blockInterval, '`interval` is invalid');
+    strictEqual(windowInterval === 0 ? blockInterval === 0 : blockInterval > 0, true, '`attempts` is invalid');
+
+    this.config = config;
     this.redis = redis;
-
-    const { interval, blockInterval } = config;
-    /* Convert interval to milliseconds */
-    this.config = {
-      interval: interval * 1000,
-      blockInterval: (blockInterval || interval) * 1000,
-      limit: config.attempts,
-    };
   }
 
   static STATUS_FOREVER = 0;
@@ -45,8 +42,9 @@ class SlidingWindowRedisBackend {
     assertStringNotEmpty(tokenToReserve, '`token` invalid');
 
     const { redis, config } = this;
+    const { windowInterval, windowLimit, blockInterval } = config;
     const [usage, limit, token, reset] = await redis
-      .slidingWindowReserve(1, key, Date.now(), config.interval, config.limit, 1, tokenToReserve, config.blockInterval);
+      .slidingWindowReserve(1, key, Date.now(), windowInterval, windowLimit, 1, tokenToReserve, blockInterval);
 
     /* reset becomes 0 if blocking forever */
     if (!token) {
@@ -65,8 +63,9 @@ class SlidingWindowRedisBackend {
     assertStringNotEmpty(key, '`key` is invalid');
 
     const { redis, config } = this;
+    const { windowInterval, windowLimit, blockInterval } = config;
     const [usage, limit, , reset] = await redis
-      .slidingWindowReserve(1, key, Date.now(), config.interval, config.limit, 0, '', config.blockInterval);
+      .slidingWindowReserve(1, key, Date.now(), windowInterval, windowLimit, 0, '', blockInterval);
 
     return { usage, limit, reset };
   }

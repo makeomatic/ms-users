@@ -45,7 +45,7 @@ Utility class wrapping all calls to LUA scripts.
 
 E.g.:
 ```javascript
-const SlidingWindowlimiter = require('util/sliding-window/redis/limiter');
+const SlidingWindowlimiter = require(utils);
 const { RateLimitError } = SlidingWindowLimiter;
 
 const myLimiter = new SlidingWindowLimiter(redis, {

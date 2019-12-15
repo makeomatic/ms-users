@@ -12,5 +12,5 @@ exports.redis = {
     // pass this to constructor
     dropBufferSupport: false,
   },
-  luaScripts: path.resolve(__dirname, '../../scripts'),
+  luaScripts: path.resolve(__dirname, '../../scripts/redis-lua'),
 };

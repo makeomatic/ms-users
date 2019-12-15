@@ -80,7 +80,7 @@ const p = {
       message: 'BadError',
       name: 'Error',
       stack:
-       'Error: BadError\n    at Object.internal (/src/test/suites/oauth/facebook.js:106:28)\n    at Object.invoke (/src/node_modules/sinon/lib/sinon/behavior.js:151:35)\n    at module.exports.internals.Auth.functionStub (/src/node_modules/sinon/lib/sinon/stub.js:130:47)\n    at Function.invoke (/src/node_modules/sinon/lib/sinon/spy.js:297:51)\n    at module.exports.internals.Auth.functionStub (/src/node_modules/sinon/lib/sinon/spy.js:90:30)\n    at Users.test (/src/src/auth/oauth/index.js:149:45)\n    at Users.tryCatcher (/src/node_modules/bluebird/js/release/util.js:16:23)\n    at Promise._settlePromiseFromHandler (/src/node_modules/bluebird/js/release/promise.js:517:31)\n    at Promise._settlePromise (/src/node_modules/bluebird/js/release/promise.js:574:18)\n    at Promise._settlePromiseCtx (/src/node_modules/bluebird/js/release/promise.js:611:10)\n    at _drainQueueStep (/src/node_modules/bluebird/js/release/async.js:142:12)\n    at _drainQueue (/src/node_modules/bluebird/js/release/async.js:131:9)\n    at Async._drainQueues (/src/node_modules/bluebird/js/release/async.js:147:5)\n    at Immediate.Async.drainQueues [as _onImmediate] (/src/node_modules/bluebird/js/release/async.js:17:14)\n    at runCallback (timers.js:705:18)\n    at tryOnImmediate (timers.js:676:5)\n    at processImmediate (timers.js:658:5)',
+       utils,
       data:
        { message: 'X-Throttled',
          name: 'Error',

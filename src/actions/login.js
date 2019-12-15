@@ -13,8 +13,6 @@ const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
 
 const UserLoginRateLimiter = require('../utils/rate-limiters/user-login-rate-limiter');
 const { STATUS_FOREVER } = require('../utils/sliding-window/redis/limiter');
-const UserIp = require('../utils/user-ip');
-const LoginAttempt = require('../utils/login-attempt');
 
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
@@ -48,25 +46,11 @@ function handleRateLimitError(error) {
 }
 
 async function checkLoginAttempts(data) {
-  const { loginRateLimiter, remoteip, redis } = this;
+  const { loginRateLimiter, remoteip } = this;
   const userId = data[USERS_ID_FIELD];
 
-  if (!remoteip) {
-    return;
-  }
-
-  if (loginRateLimiter.isEnabled()) {
-    const pipeline = redis.pipeline();
-    const userIp = new UserIp(pipeline);
-    const loginAttempt = new LoginAttempt(pipeline);
-
-    userIp.addIp(userId, remoteip);
-    loginAttempt.addAttempt(userId, loginRateLimiter.token);
-
-    await pipeline.exec();
-    await loginRateLimiter
-      .reserveForUserIp(userId, remoteip)
-      .catch(handleRateLimitError);
+  if (remoteip !== false && loginRateLimiter.isEnabled()) {
+    await loginRateLimiter.reserveForUserIp(userId, remoteip).catch(handleRateLimitError);
   }
 }
 
@@ -133,12 +117,9 @@ function getVerifyStrategy(data) {
  * Drops login limiter tokens
  */
 async function cleanupRateLimits(internalData) {
-  const {
-    remoteip,
-    loginRateLimiter,
-  } = this;
+  const { remoteip, loginRateLimiter } = this;
 
-  if (remoteip) {
+  if (remoteip !== false && loginRateLimiter.isEnabled()) {
     await loginRateLimiter.cleanupForUserIp(internalData[USERS_ID_FIELD], remoteip);
   }
 }
@@ -178,28 +159,17 @@ function verifyInternalData(data) {
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
 async function login({ params, locals }) {
-  const { redis, tokenManager } = this;
-  const config = this.config.jwt;
-  const { defaultAudience } = config;
-  const rateLimiterConfig = this.config.rateLimiters;
+  const { redis, tokenManager, config } = this;
+  const { jwt: { defaultAudience }, rateLimiters: rateLimitersConfig } = config;
+  const { isOAuthFollowUp, isDisposablePassword, isSSO, password, audience = defaultAudience, remoteip = false } = params;
+  const loginRateLimiter = new UserLoginRateLimiter(redis, rateLimitersConfig.userLogin);
 
-  const { isOAuthFollowUp, isDisposablePassword, isSSO, password } = params;
-
-  const audience = params.audience || defaultAudience;
-  const remoteip = params.remoteip || false;
-
-  const loginRateLimiter = new UserLoginRateLimiter(this.redis, rateLimiterConfig.userLogin);
-
-  // build context
   const ctx = {
-    // service data
     service: this,
     tokenManager,
     redis,
     config,
     loginRateLimiter,
-
-    // business logic params
     params,
     isOAuthFollowUp,
     isDisposablePassword,
@@ -209,10 +179,8 @@ async function login({ params, locals }) {
     remoteip,
   };
 
-  if (remoteip && loginRateLimiter.isEnabled()) {
-    await loginRateLimiter
-      .reserveForIp(remoteip)
-      .catch(handleRateLimitError);
+  if (remoteip !== false && loginRateLimiter.isEnabled()) {
+    await loginRateLimiter.reserveForIp(remoteip).catch(handleRateLimitError);
   }
 
   return Promise

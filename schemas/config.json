@@ -16,47 +16,6 @@
     "phone",
     "rateLimiters"
   ],
-  "definitions": {
-    "rateLimiterConfig": {
-      "type": "object",
-      "required": [
-        "interval",
-        "attempts",
-        "blockInterval"
-      ],
-      "properties": {
-        "interval": {
-          "type": "integer"
-        },
-        "blockInterval": {
-          "type": "integer"
-        },
-        "attempts": {
-          "type": "integer",
-          "minimum": 0
-        }
-      }
-    },
-    "userLoginRateLimiterConfig": {
-      "type": "object",
-      "required": [
-        "enabled",
-        "forIp",
-        "forUserIp"
-      ],
-      "properties":{
-        "enabled": {
-          "type": "boolean"
-        },
-        "forIp": {
-          "$ref": "config#/definitions/rateLimiterConfig"
-        },
-        "forUserIp": {
-          "$ref": "config#/definitions/rateLimiterConfig"
-        }
-      }
-    }
-  },
   "properties": {
     "deleteInactiveAccounts": {
       "type": "integer",
@@ -665,7 +624,64 @@
       ],
       "properties": {
         "userLogin" : {
-          "$ref": "config#/definitions/userLoginRateLimiterConfig"
+          "$ref": "#/definitions/userLoginRateLimiter"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "slidingWindowRateLimiter": {
+      "type": "object",
+      "required": [
+        "windowInterval",
+        "windowLimit",
+        "blockInterval"
+      ],
+      "properties": {
+        "windowInterval": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "windowLimit": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "blockInterval": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "if" : {
+        "properties": {
+          "windowInterval": {
+            "const": 0
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "blockInterval": {
+            "const": 0
+          }
+        }
+      }
+    },
+    "userLoginRateLimiter": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "limitIp",
+        "limitUserIp"
+      ],
+      "properties":{
+        "enabled": {
+          "type": "boolean"
+        },
+        "limitIp": {
+          "$ref": "#/definitions/slidingWindowRateLimiter"
+        },
+        "limitUserIp": {
+          "$ref": "#/definitions/slidingWindowRateLimiter"
         }
       }
     }

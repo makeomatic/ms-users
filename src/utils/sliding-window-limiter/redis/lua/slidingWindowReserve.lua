@@ -10,9 +10,10 @@
 -- {integer} currentTime - timestamp.
 -- {integer} windowInterval - milliseconds. Lowest windowInterval boundary from last reserved token or currentTime.
 -- {integer} windowLimit - maximum possible amount of tokens in sliding windowInterval.
+-- {integer} blockInterval - milliseconds or 0 (if window interval is 0 (e.g. -inf) then block interval has no sense).
+--                           Block windowInterval from last reserved token.
 -- {integer} reserveToken - 1 to reserve token, 0 to return usage information.
 -- {string} [token] - token to reserve, may be ommited when reserveToken == 0.
--- {integer} [blockInterval] - milliseconds. Block windowInterval from last reserved token.
 --
 -- Returns:
 -- Script returns response in format [reservedTokenCount, windowLimit, token, reset].
@@ -55,7 +56,7 @@ local blockInterval = tonumber(ARGV[4])
 local reserveToken = tonumber(ARGV[5])
 
 -- Validate input types
-if isStringNotEmpty(tokenDbKey) == false or tokenDbKey == 'undefined'  then
+if isStringNotEmpty(tokenDbKey) == false then
  return redis.error_reply('invalid `tokenDbKey` argument')
 end
 

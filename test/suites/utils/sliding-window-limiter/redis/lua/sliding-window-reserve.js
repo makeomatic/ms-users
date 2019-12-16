@@ -47,14 +47,20 @@ describe('redis.slidingWindowReserve script', function suite() {
     // invalid reserve token argument
     await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0), /^ReplyError: invalid `reserveToken` argument$/);
     await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, -1), /^ReplyError: invalid `reserveToken` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 'fat'), /^ReplyError: invalid `reserveToken` argument$/);
+    await rejects(
+      async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 'fat'),
+      /^ReplyError: invalid `reserveToken` argument$/
+    );
 
     // invalid token argument
     await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 1), /^ReplyError: invalid `token` argument$/);
     await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 1, ''), /^ReplyError: invalid `token` argument$/);
 
     // if window interval equals 0 then block interval has no sense
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 10, 0), /^ReplyError: `blockInterval` has no sense if `windowInterval` is gt 0$/);
+    await rejects(
+      async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 10, 0),
+      /^ReplyError: `blockInterval` has no sense if `windowInterval` is gt 0$/
+    );
   });
 
   describe('should be able to works well if window interval equals 0', () => {

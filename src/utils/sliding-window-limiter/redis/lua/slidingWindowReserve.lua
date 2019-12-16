@@ -7,8 +7,9 @@
 -- tokenDbKey - ZSET storing tokens.
 --
 -- ARGS:
--- {integer} currentTime - timestamp.
--- {integer} windowInterval - milliseconds. Lowest windowInterval boundary from last reserved token or currentTime.
+-- {integer} currentTime - timestamp, milliseconds.
+-- {integer} windowInterval - milliseconds or 0. Lowest windowInterval boundary from last reserved token or currentTime.
+--                            Pass 0 to lock forever.
 -- {integer} windowLimit - maximum possible amount of tokens in sliding windowInterval.
 -- {integer} blockInterval - milliseconds or 0 (if window interval is 0 (e.g. -inf) then block interval has no sense).
 --                           Block windowInterval from last reserved token.
@@ -19,11 +20,16 @@
 -- Script returns response in format [reservedTokenCount, windowLimit, token, reset].
 -- {integer} reservedTokenCount - count of tokens reserved.
 -- {integer} windowLimit - maximum number of possible tokens.
--- {string} token - provided token or 0.
--- {integer} reset - milliseconds windowInterval for next available attempt. 0 - forever.
+-- {string} token - provided token or null.
+-- {integer} reset - milliseconds windowInterval for next available attempt. 0 - forever. null - unpredictable.
 --
--- If token reserve is successful: [9, 10, 'passedToken', 0].
--- If token reserve is not successful: [10, 10, 0, 1200000].
+-- If token reserve is successful (window interval gt 0): [9, 10, 'passedToken', null].
+-- If token reserve is successful (window interval gt 0, limit is reached): [9, 10, 'passedToken', 20000].
+-- If token reserve is not successful (window interval gt 0): [10, 10, null, 20000].
+--
+-- If token reserve is successful (window interval is 0): [9, 10, 'passedToken', null].
+-- If token reserve is successful (window interval is 0, limit is reached): [9, 10, 'passedToken', 0].
+-- If token reserve is not successful (window interval is 0): [10, 10, null, 0].
 
 -- Helper functions
 local function isStringNotEmpty(val)
@@ -42,6 +48,14 @@ local function isNumberPretendBool(val)
   return type(val) == 'number' and (val == 0 or val == 1)
 end
 
+local function isStringEndsWith(str, ending)
+   return str:sub(-#ending) == ending
+end
+
+local function isStringStartsWith(str, start)
+   return str:sub(1, #start) == start
+end
+
 -- Define default values for variables
 local token = false
 local millisToReset = false
@@ -57,6 +71,15 @@ local reserveToken = tonumber(ARGV[5])
 
 -- Validate input types
 if isStringNotEmpty(tokenDbKey) == false then
+ return redis.error_reply('invalid `tokenDbKey` argument')
+end
+
+if isStringEndsWith(tokenDbKey, 'undefined') == true then
+ return redis.error_reply('invalid `tokenDbKey` argument')
+end
+
+-- key prefix
+if isStringStartsWith(tokenDbKey, '{') == true and isStringEndsWith(tokenDbKey, '}') == true then
  return redis.error_reply('invalid `tokenDbKey` argument')
 end
 
@@ -88,7 +111,7 @@ end
 
 if windowInterval == false then
   if blockInterval ~= 0 then
-    return redis.error_reply('invalid `blockInterval` argument')
+    return redis.error_reply('`blockInterval` has no sense if `windowInterval` is gt 0')
   end
 
   blockInterval = false
@@ -153,7 +176,7 @@ if reserveToken == true then
     if windowInterval == false then
       millisToReset = 0
     else
-      millisToReset = currentTime + blockInterval
+      millisToReset = blockInterval
     end
   end
 

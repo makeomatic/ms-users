@@ -15,7 +15,7 @@ This algorithm allows you to get a smoother service load and softer locks for th
 ### Login Rate limiter specs
 * Should rate limit access from IP.
 * Should rate limit access for UserId and IP pair
-* On successful login must remove all logged attempts from User and all IPs that were used by the user.
+* On successful login must remove all logged attempts from User and IP keys.
 * Block interval is calculated from the last attempt.
 
 ### Sliding window rate limiting Util
@@ -45,21 +45,21 @@ Utility class wrapping all calls to LUA scripts.
 
 E.g.:
 ```javascript
-const SlidingWindowlimiter = require(utils);
+const SlidingWindowLimiter = require('util/sliding-window-limiter/redis');
 const { RateLimitError } = SlidingWindowLimiter;
 
 const myLimiter = new SlidingWindowLimiter(redis, {
-  interval: 15 * 60, // 15 minutes.
-  blockInterval: 60 * 60, // 1 hour.
-  attempts: 15,
+  windowInterval: 15 * 60 * 1000, // 15 minutes.
+  windowLimit: 15,
+  blockInterval: 60 * 60 * 1000, // 1 hour.
 });
 
 // Try to allocate span in `(lastAttempt || now())-interval` seconds with max 10 slots/tokens.
 try {
-  const {usage, token, reset} = await myLimiter.reserve("myKey");
+  const { usage, token, reset } = await myLimiter.reserve('cats', 'perchik');
 } catch (e) {
   if (e instanceof RateLimitError) {
-    console.log(`Attempts count ${e.usage} > 15. Wait for ${e.reset} milliseconds`)
+    console.log(`Attempts count more than ${e.limit}. Wait for ${e.reset} milliseconds`)
   }
 }
 
@@ -67,7 +67,7 @@ try {
 // We can proceed our work.
 
 // Get RateLimit usage information.
-const usageResult = myLimiter.check('myKey');
+const usageResult = myLimiter.check('cats');
 
 // Free used span/token.
 await limiter.cancel(token);
@@ -83,14 +83,14 @@ exports.rateLimiters = {
   userLogin: {
     enabled: false,
     forIp: {
-      interval: 60 * 60 * 24, // 24 hours
-      attempts: 15,
-      blockInterval: 60 * 60 * 24 * 7, // 7 days
+      windowInterval: 1000 * 60 * 60 * 24, // 24 hours
+      windowLimit: 15,
+      blockInterval: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
     forUserIp: {
-      interval: 60 * 60 * 24, // 24 hours
-      attempts: 5,
-      blockInterval: 60 * 60 * 24, // 1 day
+      windowInterval: 1000 * 60 * 60 * 24, // 24 hours
+      windowLimit: 5,
+      blockInterval: 1000 * 60 * 60 * 24, // 1 day
     },
   },
 };
@@ -109,5 +109,4 @@ Decided to rename migration files into format: `$migrationFinalVer_$migrationNam
 
 
 ## Updates
-* Received additional information and [document](login_block_sliding_window/tz.md)
 * Changed Microseconds to Milliseconds as scores. Dont' know why, but Redis messes with them ((((

@@ -63,7 +63,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'empty:key:case0', 1576335000000, 0, 1, 0, 1, 'token1'),
-        [1, 1, 'token1', 0]);
+        [1, 1, 'token1', 0]
+      );
       strictEqual(await redis.pttl('empty:key:case0'), -1);
     });
 
@@ -74,7 +75,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case0', 1576335000000, 0, 2, 0, 1, 'token2'),
-        [2, 2, 'token2', 0]);
+        [2, 2, 'token2', 0]
+      );
       strictEqual(await redis.pttl('exists:key:case0'), -1);
     });
 
@@ -84,7 +86,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case0', 1576335000001, 0, 2, 0, 1, 'token3'),
-        [2, 2, null, 0]);
+        [2, 2, null, 0]
+      );
       strictEqual(await redis.pttl('exists:key:case0'), -1);
     });
 
@@ -94,7 +97,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case0', 1576335000002, 0, 2, 0, 0),
-        [2, 2, null, 0]);
+        [2, 2, null, 0]
+      );
       strictEqual(await redis.pttl('exists:key:case0'), -1);
     });
 
@@ -106,7 +110,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case0', 1576335001000, 0, 2, 0, 1, 'token4'),
-        [2, 2, null, 0]);
+        [2, 2, null, 0]
+      );
       strictEqual(await redis.pttl('exists:key:case0'), -1);
     });
   });
@@ -117,7 +122,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'empty:key:case1', 1576335000000, 1000, 1, 2000, 1, 'token1'),
-        [1, 1, 'token1', 2000]);
+        [1, 1, 'token1', 2000]
+      );
       strictEqual(await redis.pttl('empty:key:case1') > 1950, true);
     });
 
@@ -128,7 +134,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335000000, 1000, 2, 2000, 1, 'token2'),
-        [2, 2, 'token2', 2000]);
+        [2, 2, 'token2', 2000]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 1950, true);
     });
 
@@ -138,7 +145,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335000001, 1000, 2, 2000, 1, 'token3'),
-        [2, 2, null, 1999]);
+        [2, 2, null, 1999]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 1950, true);
     });
 
@@ -148,7 +156,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335000002, 1000, 2, 2000, 0),
-        [2, 2, null, 1998]);
+        [2, 2, null, 1998]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 1950, true);
     });
 
@@ -160,7 +169,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335005000, 1000, 2, 2000, 1, 'token4'),
-        [1, 2, 'token4', null]);
+        [1, 2, 'token4', null]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 1950, true);
     });
 
@@ -170,7 +180,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335005001, 1000, 2, 2000, 0),
-        [1, 2, null, null]);
+        [1, 2, null, null]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 1950, true);
     });
 
@@ -182,7 +193,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335010000, 1000, 2, 2000, 0),
-        [0, 2, null, null]);
+        [0, 2, null, null]
+      );
       strictEqual(await redis.pttl('exists:key:case1'), -2);
     });
   });
@@ -193,7 +205,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'empty:key:case1', 1576335000000, 2000, 1, 1000, 1, 'token1'),
-        [1, 1, 'token1', 1000]);
+        [1, 1, 'token1', 1000]
+      );
       strictEqual(await redis.pttl('empty:key:case1') > 950, true);
     });
 
@@ -204,7 +217,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335000000, 2000, 2, 1000, 1, 'token2'),
-        [2, 2, 'token2', 1000]);
+        [2, 2, 'token2', 1000]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 950, true);
     });
 
@@ -214,7 +228,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335000001, 2000, 2, 1000, 1, 'token3'),
-        [2, 2, null, 999]);
+        [2, 2, null, 999]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 950, true);
     });
 
@@ -224,7 +239,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335000002, 2000, 2, 1000, 0),
-        [2, 2, null, 998]);
+        [2, 2, null, 998]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 950, true);
     });
 
@@ -236,7 +252,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335005000, 2000, 2, 1000, 1, 'token4'),
-        [1, 2, 'token4', null]);
+        [1, 2, 'token4', null]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 950, true);
     });
 
@@ -246,7 +263,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335005001, 2000, 2, 1000, 0),
-        [1, 2, null, null]);
+        [1, 2, null, null]
+      );
       strictEqual(await redis.pttl('exists:key:case1') > 950, true);
     });
 
@@ -258,7 +276,8 @@ describe('redis.slidingWindowReserve script', function suite() {
 
       deepStrictEqual(
         await redis.slidingWindowReserve(1, 'exists:key:case1', 1576335010000, 2000, 2, 1000, 0),
-        [0, 2, null, null]);
+        [0, 2, null, null]
+      );
       strictEqual(await redis.pttl('exists:key:case1'), -2);
     });
   });

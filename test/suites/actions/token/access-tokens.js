@@ -4,9 +4,9 @@ const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
 const uuid = require('uuid/v4');
 const md5 = require('md5');
-const { sign } = require('../../../src/utils/signatures');
-const { USERS_API_TOKENS } = require('../../../src/constants');
-const redisKey = require('../../../src/utils/key');
+const { sign } = require('../../../../src/utils/signatures');
+const { USERS_API_TOKENS } = require('../../../../src/constants');
+const redisKey = require('../../../../src/utils/key');
 
 describe('#token.*', function activateSuite() {
   // actions supported by this

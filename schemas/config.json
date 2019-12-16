@@ -664,6 +664,13 @@
             "const": 0
           }
         }
+      },
+      "else": {
+        "properties": {
+          "blockInterval": {
+            "minimum": 1
+          }
+        }
       }
     },
     "userLoginRateLimiter": {

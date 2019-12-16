@@ -10,7 +10,7 @@ const request = require('request-promise').defaults({
   simple: true,
   strictSSL: false,
 });
-const { USERS_MFA_FLAG } = require('../../../src/constants');
+const { USERS_MFA_FLAG } = require('../../../../src/constants');
 
 authenticator.options = { crypto };
 

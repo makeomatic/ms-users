@@ -1,3 +1,15 @@
+# [13.0.0](https://github.com/makeomatic/ms-users/compare/v12.1.4...v13.0.0) (2019-12-17)
+
+
+### Features
+
+* sliding window rate limitation for sign in ([#438](https://github.com/makeomatic/ms-users/issues/438)) ([1b4273c](https://github.com/makeomatic/ms-users/commit/1b4273c4241db66ec29003fab7d310c66b31c731))
+
+
+### BREAKING CHANGES
+
+* implements new rate limiting algorithm using sliding window. While overall the mechanics of rate limiting remain the same - it's now harder to lock out the ip completely as each unsuccessful attempt wont extend login attempt capture duration for another <keep login attempts time>. Consult with the docs on a new configuration format for the rate limiter
+
 ## [12.1.4](https://github.com/makeomatic/ms-users/compare/v12.1.3...v12.1.4) (2019-12-10)
 
 

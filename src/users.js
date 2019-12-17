@@ -10,7 +10,6 @@ const Flakeless = require('ms-flakeless');
 const conf = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
-const SlidingWindowLimiterRedis = require('./utils/sliding-window-limiter/redis');
 
 /**
  * @namespace Users
@@ -68,7 +67,7 @@ module.exports = class Users extends Microfleet {
 
     this.on(`plugin:connect:${this.redisType}`, (redis) => {
       fsort.attach(redis, 'fsort');
-      SlidingWindowLimiterRedis.loadLuaScripts(this, redis);
+
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
       this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));

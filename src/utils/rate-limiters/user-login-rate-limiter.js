@@ -37,13 +37,12 @@ class UserLoginRateLimiter {
     return redisKey(user, 'ip', ip);
   }
 
-  static handleError(ip) {
-    return (error) => {
-      if (error instanceof SlidingWindowRedisBackend.RateLimitError) {
-        throw UserLoginRateLimiter.RateLimitError(ip, error.reset, error.limit);
-      }
-      throw error;
-    };
+  static handleError(ip, error) {
+    if (error instanceof SlidingWindowRedisBackend.RateLimitError) {
+      return UserLoginRateLimiter.RateLimitError(ip, error.reset, error.limit);
+    }
+
+    return error;
   }
 
   /**
@@ -53,9 +52,11 @@ class UserLoginRateLimiter {
    */
   async reserveForIp(ip) {
     const key = UserLoginRateLimiter.makeRedisIpKey(ip);
-    return this.ipLimiter
-      .reserve(key, this.token)
-      .catch(UserLoginRateLimiter.handleError(ip));
+    try {
+      return await this.ipLimiter.reserve(key, this.token);
+    } catch (e) {
+      throw UserLoginRateLimiter.handleError(ip, e);
+    }
   }
 
   /**
@@ -66,9 +67,11 @@ class UserLoginRateLimiter {
    */
   async reserveForUserIp(user, ip) {
     const key = UserLoginRateLimiter.makeRedisUserIpKey(user, ip);
-    return this.userIpLimiter
-      .reserve(key, this.token)
-      .catch(UserLoginRateLimiter.handleError(ip));
+    try {
+      return await this.userIpLimiter.reserve(key, this.token);
+    } catch (e) {
+      throw UserLoginRateLimiter.handleError(ip, e);
+    }
   }
 
   /**

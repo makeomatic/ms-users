@@ -1,6 +1,4 @@
 const { helpers: errorHelpers } = require('common-errors');
-const path = require('path');
-const { loadLuaScripts } = require('@microfleet/core/lib/plugins/redis/utils');
 const { strictEqual } = require('assert');
 
 const assertInteger = require('../../asserts/integer');
@@ -19,15 +17,6 @@ class SlidingWindowLimiterRedis {
    * Rate limit error
    */
   static RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
-
-  /**
-   * Helper for loading lua scripts
-   * @param service
-   * @param redis
-   */
-  static loadLuaScripts(service, redis) {
-    loadLuaScripts.call(service, path.resolve(__dirname, './lua'), redis);
-  }
 
   /**
    * Create Sliding Window Redis Backend

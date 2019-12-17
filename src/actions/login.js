@@ -45,14 +45,20 @@ function handleRateLimitError(error) {
   throw error;
 }
 
-async function checkLoginAttempts(data) {
-  const { loginRateLimiter, remoteip } = this;
+const checkLoginAttempts = async (ctx, data) => {
+  const { loginRateLimiter, remoteip } = ctx;
   const userId = data[USERS_ID_FIELD];
 
-  if (remoteip !== false && loginRateLimiter.isEnabled()) {
-    await loginRateLimiter.reserveForUserIp(userId, remoteip).catch(handleRateLimitError);
+  if (remoteip === false || !loginRateLimiter.isEnabled()) {
+    return;
   }
-}
+
+  try {
+    await loginRateLimiter.reserveForUserIp(userId, remoteip);
+  } catch (e) {
+    handleRateLimitError(e);
+  }
+};
 
 /**
  * Verifies passed hash
@@ -93,54 +99,52 @@ async function verifyDisposablePassword(ctx, data) {
 /**
  * Determines which strategy to use
  */
-function getVerifyStrategy(data) {
-  if (this.isSSO === true) {
+const performAuthentication = async (ctx, data) => {
+  if (ctx.isSSO === true) {
     return null;
   }
 
-  if (is.string(this.password) !== true || this.password.length < 1) {
+  if (is.string(ctx.password) !== true || ctx.password.length < 1) {
     throw new Errors.HttpStatusError(400, 'should supply password');
   }
 
-  if (this.isDisposablePassword === true) {
-    return verifyDisposablePassword(this, data);
+  if (ctx.isDisposablePassword === true) {
+    return verifyDisposablePassword(ctx, data);
   }
 
-  if (this.isOAuthFollowUp === true) {
-    return verifyOAuthToken.call(this.service, data, this.password);
+  if (ctx.isOAuthFollowUp === true) {
+    return verifyOAuthToken.call(ctx.service, data, ctx.password);
   }
 
-  return verifyHash(data, this.password);
-}
+  return verifyHash(data, ctx.password);
+};
 
 /**
  * Drops login limiter tokens
  */
-async function cleanupRateLimits(internalData) {
-  const { remoteip, loginRateLimiter } = this;
+const cleanupRateLimits = async (ctx, internalData) => {
+  const { remoteip, loginRateLimiter } = ctx;
 
-  if (remoteip !== false && loginRateLimiter.isEnabled()) {
-    await loginRateLimiter.cleanupForUserIp(internalData[USERS_ID_FIELD], remoteip);
+  if (remoteip === false || loginRateLimiter.isEnabled()) {
+    return;
   }
-}
+
+  await loginRateLimiter.cleanupForUserIp(internalData[USERS_ID_FIELD], remoteip);
+};
 
 /**
  * Returns user info
  */
-async function getUserInfo(internalData) {
+const getUserInfo = async (ctx, internalData) => {
   const datum = await Promise
-    .bind(this.service, [internalData.id, this.audience])
+    .bind(ctx.service, [internalData.id, ctx.audience])
     .spread(jwt.login);
 
   // NOTE: transformed to boolean
   datum.mfa = !!internalData[USERS_MFA_FLAG];
 
   return datum;
-}
-
-function verifyInternalData(data) {
-  if (!data) throw ErrorUserNotFound;
-}
+};
 
 /**
  * @api {amqp} <prefix>.login User Authentication
@@ -183,21 +187,28 @@ async function login({ params, locals }) {
     await loginRateLimiter.reserveForIp(remoteip).catch(handleRateLimitError);
   }
 
-  return Promise
-    .bind(ctx, locals.internalData)
-    // verify that locals.internalData exists
-    .tap(verifyInternalData)
-    // check login attempts
-    .tap(checkLoginAttempts)
-    // different auth strategies
-    .tap(getVerifyStrategy)
-    // pass-through or drop counter
-    .tap(cleanupRateLimits)
-    // do verifications on the logged in account
-    .tap(isActive)
-    .tap(isBanned)
-    // fetch final user information
-    .then(getUserInfo);
+  const { internalData } = locals;
+
+  // verify that locals.internalData exists
+  if (!internalData) {
+    throw ErrorUserNotFound;
+  }
+
+  // check login attempts from passed ipaddress or noop
+  await checkLoginAttempts(ctx, internalData);
+
+  // selects auth strategy and verifies passed data
+  await performAuthentication(ctx, internalData);
+
+  // cleans up counters in case of success
+  await cleanupRateLimits(ctx, internalData);
+
+  // verifies that the user is active and not banned
+  isActive(internalData);
+  isBanned(internalData);
+
+  // retrieves complete information and returns it
+  return getUserInfo(ctx, internalData);
 }
 
 login.mfa = MFA_TYPE_OPTIONAL;

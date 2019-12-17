@@ -10,61 +10,61 @@ describe('redis.slidingWindowReserve script', function suite() {
   it('should be able to throw error if params are invalid', async () => {
     const { redis } = this.ctx.users;
 
-    await rejects(async () => redis.slidingWindowReserve(), /^ReplyError: ERR wrong number of arguments for 'evalsha' command$/);
+    await rejects(redis.slidingWindowReserve(), /^ReplyError: ERR wrong number of arguments for 'evalsha' command$/);
 
     // invalid number of keys
-    await rejects(async () => redis.slidingWindowReserve(''), /^ReplyError: ERR value is not an integer or out of range$/);
-    await rejects(async () => redis.slidingWindowReserve(null), /^ReplyError: ERR value is not an integer or out of range$/);
-    await rejects(async () => redis.slidingWindowReserve('perchik'), /^ReplyError: ERR value is not an integer or out of range$/);
-    await rejects(async () => redis.slidingWindowReserve(true), /^ReplyError: ERR value is not an integer or out of range$/);
+    await rejects(redis.slidingWindowReserve(''), /^ReplyError: ERR value is not an integer or out of range$/);
+    await rejects(redis.slidingWindowReserve(null), /^ReplyError: ERR value is not an integer or out of range$/);
+    await rejects(redis.slidingWindowReserve('perchik'), /^ReplyError: ERR value is not an integer or out of range$/);
+    await rejects(redis.slidingWindowReserve(true), /^ReplyError: ERR value is not an integer or out of range$/);
 
     // invalid redis key argument
-    await rejects(async () => redis.slidingWindowReserve(1), /^ReplyError: invalid `tokenDbKey` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, ''), /^ReplyError: invalid `tokenDbKey` argument$/);
+    await rejects(redis.slidingWindowReserve(1), /^ReplyError: invalid `tokenDbKey` argument$/);
+    await rejects(redis.slidingWindowReserve(1, ''), /^ReplyError: invalid `tokenDbKey` argument$/);
 
     // invalid current time argument
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik'), /^ReplyError: invalid `currentTime` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 0), /^ReplyError: invalid `currentTime` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', -1), /^ReplyError: invalid `currentTime` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 'fat'), /^ReplyError: invalid `currentTime` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik'), /^ReplyError: invalid `currentTime` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 0), /^ReplyError: invalid `currentTime` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', -1), /^ReplyError: invalid `currentTime` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 'fat'), /^ReplyError: invalid `currentTime` argument$/);
 
     // invalid window interval argument
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000), /^ReplyError: invalid `windowInterval` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, -1), /^ReplyError: invalid `windowInterval` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 'fat'), /^ReplyError: invalid `windowInterval` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000), /^ReplyError: invalid `windowInterval` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, -1), /^ReplyError: invalid `windowInterval` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 'fat'), /^ReplyError: invalid `windowInterval` argument$/);
 
     // invalid window limit argument
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0), /^ReplyError: invalid `windowLimit` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 0), /^ReplyError: invalid `windowLimit` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, -1), /^ReplyError: invalid `windowLimit` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 'fat'), /^ReplyError: invalid `windowLimit` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0), /^ReplyError: invalid `windowLimit` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 0), /^ReplyError: invalid `windowLimit` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, -1), /^ReplyError: invalid `windowLimit` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 'fat'), /^ReplyError: invalid `windowLimit` argument$/);
 
     // invalid block interval argument
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1), /^ReplyError: invalid `blockInterval` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, -1), /^ReplyError: invalid `blockInterval` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 'fat'), /^ReplyError: invalid `blockInterval` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1), /^ReplyError: invalid `blockInterval` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, -1), /^ReplyError: invalid `blockInterval` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 'fat'), /^ReplyError: invalid `blockInterval` argument$/);
 
     // invalid reserve token argument
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0), /^ReplyError: invalid `reserveToken` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, -1), /^ReplyError: invalid `reserveToken` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0), /^ReplyError: invalid `reserveToken` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, -1), /^ReplyError: invalid `reserveToken` argument$/);
     await rejects(
-      async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 'fat'),
+      redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 'fat'),
       /^ReplyError: invalid `reserveToken` argument$/
     );
 
     // invalid token argument
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 1), /^ReplyError: invalid `token` argument$/);
-    await rejects(async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 1, ''), /^ReplyError: invalid `token` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 1), /^ReplyError: invalid `token` argument$/);
+    await rejects(redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 0, 1, ''), /^ReplyError: invalid `token` argument$/);
 
     // if window interval equals 0 then block interval has no sense
     await rejects(
-      async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 10, 0),
+      redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 10, 0),
       /^ReplyError: `blockInterval` has no sense if `windowInterval` is gt 0$/
     );
 
     // if window interval gt 0 then block interval must be gt 0
     await rejects(
-      async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 1000, 1, 0, 0),
+      redis.slidingWindowReserve(1, 'perchik', 1576335000000, 1000, 1, 0, 0),
       /^ReplyError: `blockInterval` must be greater than 0 if `windowInterval` is greater than 0$/
     );
   });

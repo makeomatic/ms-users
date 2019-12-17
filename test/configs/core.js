@@ -43,4 +43,9 @@ module.exports = {
       enabled: true,
     },
   },
+  rateLimiters: {
+    userLogin: {
+      enabled: true,
+    },
+  },
 };

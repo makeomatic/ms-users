@@ -6,6 +6,7 @@ const fsort = require('redis-filtered-sort');
 const TokenManager = require('ms-token');
 const LockManager = require('dlock');
 const Flakeless = require('ms-flakeless');
+
 const conf = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');

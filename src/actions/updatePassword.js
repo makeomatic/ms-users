@@ -40,12 +40,12 @@ async function usernamePasswordReset(service, username, password) {
 /**
  * Sets new password for a given username
  * @param {Object} service
- * @param {String} username
+ * @param {String} userId
  * @param {String} password
  */
 async function setPassword(service, userId, password) {
   const { redis } = service;
-  const hash = scrypt.hash(password);
+  const hash = await scrypt.hash(password);
 
   return redis.hset(redisKey(userId, USERS_DATA), USERS_PASSWORD_FIELD, hash);
 }

@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const Errors = require('common-errors');
+const { HttpStatusError } = require('common-errors');
 const moment = require('moment');
 const is = require('is');
 const scrypt = require('../utils/scrypt');
@@ -30,7 +30,7 @@ const {
  */
 const is404 = (e) => parseInt(e.message, 10) === 404;
 
-function handleRateLimitError(error) {
+const handleRateLimitError = (error) => {
   let message;
   if (error instanceof UserLoginRateLimiter.RateLimitError) {
     if (error.reset === STATUS_FOREVER) {
@@ -39,48 +39,62 @@ function handleRateLimitError(error) {
       const duration = moment().add(error.reset, 'milliseconds').toNow(true);
       message = `You are locked from making login attempts for ${duration} from ipaddress '${error.ip}'`;
     }
-    throw new Errors.HttpStatusError(429, message);
+    throw new HttpStatusError(429, message);
   }
 
   throw error;
-}
+};
 
+/**
+ * Increments login attempts counter or throws if limit is reached
+ */
 const checkLoginAttempts = async (ctx, data) => {
-  const { loginRateLimiter, remoteip } = ctx;
-  const userId = data[USERS_ID_FIELD];
-
-  if (remoteip === false || !loginRateLimiter.isEnabled()) {
+  if (!ctx.rateLimiterEnabled) {
     return;
   }
 
+  const userId = data[USERS_ID_FIELD];
+
   try {
-    await loginRateLimiter.reserveForUserIp(userId, remoteip);
+    await ctx.loginRateLimiter.reserveForUserIp(userId, ctx.remoteip);
   } catch (e) {
     handleRateLimitError(e);
   }
 };
 
 /**
+ * Drops login limiter tokens
+ */
+const cleanupRateLimits = async (ctx, internalData) => {
+  if (!ctx.rateLimiterEnabled) {
+    return;
+  }
+
+  await ctx.loginRateLimiter
+    .cleanupForUserIp(internalData[USERS_ID_FIELD], ctx.remoteip);
+};
+
+/**
  * Verifies passed hash
  */
-function verifyHash({ password }, comparableInput) {
+const verifyHash = ({ password }, comparableInput) => {
   return scrypt.verify(password, comparableInput);
-}
+};
 
-async function verifyOAuthToken({ id }, token) {
-  const providerData = await verifySignedToken.call(this, token);
+const verifyOAuthToken = async (ctx, { id }, token) => {
+  const providerData = await verifySignedToken.call(ctx.service, token);
 
   if (providerData.profile.userId !== id) {
     throw USERS_INVALID_TOKEN;
   }
 
   return true;
-}
+};
 
 /**
  * Checks onу-time password
  */
-async function verifyDisposablePassword(ctx, data) {
+const verifyDisposablePassword = async (ctx, data) => {
   try {
     return await ctx.tokenManager.verify({
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
@@ -94,7 +108,7 @@ async function verifyDisposablePassword(ctx, data) {
 
     throw e;
   }
-}
+};
 
 /**
  * Determines which strategy to use
@@ -105,7 +119,7 @@ const performAuthentication = async (ctx, data) => {
   }
 
   if (is.string(ctx.password) !== true || ctx.password.length < 1) {
-    throw new Errors.HttpStatusError(400, 'should supply password');
+    throw new HttpStatusError(400, 'should supply password');
   }
 
   if (ctx.isDisposablePassword === true) {
@@ -113,23 +127,10 @@ const performAuthentication = async (ctx, data) => {
   }
 
   if (ctx.isOAuthFollowUp === true) {
-    return verifyOAuthToken.call(ctx.service, data, ctx.password);
+    return verifyOAuthToken(ctx, data, ctx.password);
   }
 
   return verifyHash(data, ctx.password);
-};
-
-/**
- * Drops login limiter tokens
- */
-const cleanupRateLimits = async (ctx, internalData) => {
-  const { remoteip, loginRateLimiter } = ctx;
-
-  if (remoteip === false || loginRateLimiter.isEnabled()) {
-    return;
-  }
-
-  await loginRateLimiter.cleanupForUserIp(internalData[USERS_ID_FIELD], remoteip);
 };
 
 /**
@@ -167,6 +168,7 @@ async function login({ params, locals }) {
   const { jwt: { defaultAudience }, rateLimiters: rateLimitersConfig } = config;
   const { isOAuthFollowUp, isDisposablePassword, isSSO, password, audience = defaultAudience, remoteip = false } = params;
   const loginRateLimiter = new UserLoginRateLimiter(redis, rateLimitersConfig.userLogin);
+  const rateLimiterEnabled = remoteip !== false && loginRateLimiter.isEnabled();
 
   const ctx = {
     service: this,
@@ -181,10 +183,15 @@ async function login({ params, locals }) {
     password,
     audience,
     remoteip,
+    rateLimiterEnabled,
   };
 
-  if (remoteip !== false && loginRateLimiter.isEnabled()) {
-    await loginRateLimiter.reserveForIp(remoteip).catch(handleRateLimitError);
+  if (rateLimiterEnabled) {
+    try {
+      await loginRateLimiter.reserveForIp(remoteip);
+    } catch (e) {
+      handleRateLimitError(e);
+    }
   }
 
   const { internalData } = locals;
@@ -203,8 +210,10 @@ async function login({ params, locals }) {
   // cleans up counters in case of success
   await cleanupRateLimits(ctx, internalData);
 
-  // verifies that the user is active and not banned
-  isActive(internalData);
+  // verifies that the user is active, rejects by default
+  await isActive(internalData);
+
+  // verifies that user is not banned, sync action - throws
   isBanned(internalData);
 
   // retrieves complete information and returns it

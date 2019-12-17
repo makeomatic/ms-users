@@ -61,6 +61,12 @@ describe('redis.slidingWindowReserve script', function suite() {
       async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 0, 1, 10, 0),
       /^ReplyError: `blockInterval` has no sense if `windowInterval` is gt 0$/
     );
+
+    // if window interval gt 0 then block interval must be gt 0
+    await rejects(
+      async () => redis.slidingWindowReserve(1, 'perchik', 1576335000000, 1000, 1, 0, 0),
+      /^ReplyError: `blockInterval` must be greater than 0 if `windowInterval` is greater than 0$/
+    );
   });
 
   describe('should be able to works well if window interval equals 0', () => {

@@ -115,6 +115,10 @@ if windowInterval == false then
   end
 
   blockInterval = false
+else
+  if blockInterval == 0 then
+    return redis.error_reply('`blockInterval` must be greater than 0 if `windowInterval` is greater than 0')
+  end
 end
 
 if reserveToken == 1 then

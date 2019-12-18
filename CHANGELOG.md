@@ -1,3 +1,10 @@
+## [13.0.1](https://github.com/makeomatic/ms-users/compare/v13.0.0...v13.0.1) (2019-12-18)
+
+
+### Bug Fixes
+
+* delete lock for user ip after password reset ([#439](https://github.com/makeomatic/ms-users/issues/439)) ([cb9d3fd](https://github.com/makeomatic/ms-users/commit/cb9d3fd5b2c69bca4805f2cd444b8bbda07cc5a8))
+
 # [13.0.0](https://github.com/makeomatic/ms-users/compare/v12.1.4...v13.0.0) (2019-12-17)
 
 

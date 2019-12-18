@@ -111,12 +111,17 @@ describe('#updatePassword', function updatePasswordSuite() {
       });
 
       it('must update password passed with a valid challenge token', async function test() {
-        const result = await this.users.amqp.publishAndWait(
+        const { amqp, redis } = this.users;
+
+        const result = await amqp.publishAndWait(
           'users.updatePassword',
           { resetToken: this.token, newPassword: 'vvv' }
         );
+        const hashedPassword = await redis.hget(`${this.userId}!data`, 'password');
 
         deepStrictEqual(result, { success: true });
+        strictEqual(hashedPassword.startsWith('scrypt'), true);
+        strictEqual(hashedPassword.length > 50, true);
       });
 
       it('must delete lock for ip after success update', async function test() {

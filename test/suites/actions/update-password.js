@@ -1,5 +1,7 @@
-const { inspectPromise } = require('@makeomatic/deploy');
+const { deepStrictEqual, strictEqual } = require('assert');
 const { expect } = require('chai');
+const { inspectPromise } = require('@makeomatic/deploy');
+
 const redisKey = require('../../../src/utils/key.js');
 const simpleDispatcher = require('../../helpers/simple-dispatcher');
 
@@ -108,13 +110,40 @@ describe('#updatePassword', function updatePasswordSuite() {
           });
       });
 
-      it('must update password passed with a valid challenge token', function test() {
-        return simpleDispatcher(this.users.router)('users.updatePassword', { resetToken: this.token, newPassword: 'vvv' })
-          .reflect()
-          .then(inspectPromise())
-          .then((updatePassword) => {
-            expect(updatePassword).to.be.deep.eq({ success: true });
-          });
+      it('must update password passed with a valid challenge token', async function test() {
+        const { amqp, redis } = this.users;
+
+        const result = await amqp.publishAndWait(
+          'users.updatePassword',
+          { resetToken: this.token, newPassword: 'vvv' }
+        );
+        const hashedPassword = await redis.hget(`${this.userId}!data`, 'password');
+
+        deepStrictEqual(result, { success: true });
+        strictEqual(hashedPassword.startsWith('scrypt'), true);
+        strictEqual(hashedPassword.length > 50, true);
+      });
+
+      it('must delete lock for ip after success update', async function test() {
+        const { amqp, redis } = this.users;
+
+        await redis.zadd(`${this.userId}!ip!10.0.0.1`, 1576335000001, 'token1');
+        await redis.zadd(`${this.userId}!ip!10.0.0.1`, 1576335000002, 'token2');
+        await redis.zadd('gl!ip!ctr!10.0.0.1', 1576335000001, 'token1');
+        await redis.zadd('gl!ip!ctr!10.0.0.1', 1576335000002, 'token2');
+
+        strictEqual(await redis.zrange(`${this.userId}!ip!10.0.0.1`, 0, -1).get('length'), 2);
+        strictEqual(await redis.zrange('gl!ip!ctr!10.0.0.1', 0, -1).get('length'), 2);
+
+        const result = await amqp.publishAndWait(
+          'users.updatePassword',
+          { resetToken: this.token, newPassword: 'vvv', remoteip: '10.0.0.1' }
+        );
+
+        deepStrictEqual(result, { success: true });
+
+        strictEqual(await redis.zrange(`${this.userId}!ip!10.0.0.1`, 0, -1).get('length'), 0);
+        strictEqual(await redis.zrange('gl!ip!ctr!10.0.0.1', 0, -1).get('length'), 0);
       });
     });
   });

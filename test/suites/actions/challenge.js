@@ -1,23 +1,20 @@
-const { inspectPromise } = require('@makeomatic/deploy');
+const assert = require('assert');
 const Promise = require('bluebird');
-const { expect } = require('chai');
 
 describe('#challenge', function challengeSuite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(global.startService.bind(this));
+  afterEach(global.clearRedis.bind(this));
 
-  it('must fail to send a challenge for a non-existing user', function test() {
-    return this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' })
-      .reflect()
-      .then(inspectPromise(false))
-      .then((validation) => {
-        expect(validation.name).to.be.eq('HttpStatusError');
-        expect(validation.statusCode).to.be.eq(404);
-      });
+  it('must fail to send a challenge for a non-existing user', async () => {
+    const request = this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' });
+    await assert.rejects(request, {
+      name: 'HttpStatusError',
+      statusCode: 404,
+    });
   });
 
-  describe('challenge for an already active user', function suite() {
-    beforeEach(function pretest() {
+  describe('challenge for an already active user', () => {
+    beforeEach('register user', () => {
       return this.dispatch('users.register', {
         username: 'oops@gmail.com',
         password: '123',
@@ -28,23 +25,21 @@ describe('#challenge', function challengeSuite() {
       });
     });
 
-    it('must fail to send', function test() {
-      return this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((validation) => {
-          expect(validation.name).to.be.eq('HttpStatusError');
-          expect(validation.statusCode).to.be.eq(417);
-        });
+    it('must fail to send', async () => {
+      const request = this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' });
+      await assert.rejects(request, {
+        name: 'HttpStatusError',
+        statusCode: 417,
+      });
     });
   });
 
-  describe('challenge for an inactive user', function suite() {
-    function requestChallenge() {
+  describe('challenge for an inactive user', () => {
+    const requestChallenge = () => {
       return this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' });
-    }
+    };
 
-    beforeEach(function pretest() {
+    beforeEach('register user', () => {
       const msg = {
         username: 'oops@gmail.com',
         password: '123',
@@ -58,45 +53,64 @@ describe('#challenge', function challengeSuite() {
       return this.dispatch('users.register', msg);
     });
 
-    it('must be able to send challenge email', function test() {
-      return requestChallenge.call(this)
-        .reflect()
-        .then(inspectPromise())
-        .then((validation) => {
-          expect(validation).to.have.ownProperty('context');
-          expect(validation.queued).to.be.eq(true);
-        });
+    it('must be able to send challenge email', async () => {
+      const validation = await requestChallenge();
+      assert.ok(validation.context);
+      assert.equal(validation.queued, true);
     });
 
-    it('must fail to send challenge email more than once in an hour per user', function test() {
+    it('must fail to send challenge email more than once in an hour per user', async () => {
       const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 4 hours or send us an email';
 
-      return Promise.bind(this)
-        .then(requestChallenge)
-        .then(requestChallenge)
-        .reflect()
-        .then(inspectPromise(false))
-        .then((validation) => {
-          expect(validation.name).to.be.eq('HttpStatusError');
-          expect(validation.statusCode).to.be.eq(429);
-          expect(validation.message).to.be.eq(msg);
-        });
+      await requestChallenge();
+      const secondRequest = requestChallenge();
+
+      await assert.rejects(secondRequest, {
+        name: 'HttpStatusError',
+        statusCode: 429,
+        message: msg,
+      });
     });
 
-    it('must fail to send challeng email during race condition', function test() {
+    it('must fail to send challeng email during race condition', async () => {
       const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 4 hours or send us an email';
+      const raceRequest = Promise.all([requestChallenge(), requestChallenge(), requestChallenge()]);
 
-      return Promise
-        .bind(this)
-        .return([requestChallenge, requestChallenge, requestChallenge])
-        .map((it) => it.call(this))
-        .reflect()
-        .then(inspectPromise(false))
-        .then((validation) => {
-          expect(validation.name).to.be.eq('HttpStatusError');
-          expect(validation.statusCode).to.be.eq(429);
-          expect(validation.message).to.be.eq(msg);
-        });
+      await assert.rejects(raceRequest, {
+        name: 'HttpStatusError',
+        statusCode: 429,
+        message: msg,
+      });
+    });
+  });
+
+  describe('challenge for an inactive user passes metadata', () => {
+    const msg = {
+      username: 'oops@gmail.com',
+      password: '123',
+      audience: '*.localhost', // should match default audience
+      activate: false,
+      skipChallenge: true,
+      metadata: {
+        firstName: 'FooUser',
+        lastName: 'BarName',
+      },
+    };
+
+    const requestChallenge = () => {
+      return this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' });
+    };
+
+    beforeEach('register user', () => {
+      return this.dispatch('users.register', { ...msg });
+    });
+
+    it('metadata passed correctly', async () => {
+      const { context } = await requestChallenge();
+      const { metadata } = msg;
+
+      assert.equal(context.firstName, metadata.firstName);
+      assert.equal(context.lastName, metadata.lastName);
     });
   });
 });

@@ -1,3 +1,10 @@
+## [13.0.2](https://github.com/makeomatic/ms-users/compare/v13.0.1...v13.0.2) (2020-01-21)
+
+
+### Bug Fixes
+
+* metadata to email context ([#440](https://github.com/makeomatic/ms-users/issues/440)) ([54b140a](https://github.com/makeomatic/ms-users/commit/54b140ab57f1e5a8648dd7cd349766ee395b6b92))
+
 ## [13.0.1](https://github.com/makeomatic/ms-users/compare/v13.0.0...v13.0.1) (2019-12-18)
 
 

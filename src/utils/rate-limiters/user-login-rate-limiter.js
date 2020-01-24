@@ -22,8 +22,6 @@ class UserLoginRateLimiter {
     this.userIpLimiter = new SlidingWindowRedisBackend(redis, config.limitUserIp);
   }
 
-  static RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['ip', 'reset', 'limit'] });
-
   /* Key for IP tokens  */
   static makeRedisIpKey(ip) {
     assertStringNotEmpty(ip, '`ip` is invalid');
@@ -91,5 +89,7 @@ class UserLoginRateLimiter {
     return this.config.enabled;
   }
 }
+
+UserLoginRateLimiter.RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['ip', 'reset', 'limit'] });
 
 module.exports = UserLoginRateLimiter;

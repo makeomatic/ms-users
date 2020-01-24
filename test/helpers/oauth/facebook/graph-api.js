@@ -4,14 +4,6 @@ const assert = require('assert');
  * Class wraps Facebook Graph API requests
  */
 class GraphAPI {
-  static graphApi = request.defaults({
-    baseUrl: 'https://graph.facebook.com/v4.0',
-    headers: {
-      Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
-    },
-    json: true,
-  });
-
   /**
    * Just to be sure that correct user passed
    * @param user
@@ -82,5 +74,13 @@ class GraphAPI {
     });
   }
 }
+
+GraphAPI.graphApi = request.defaults({
+  baseUrl: 'https://graph.facebook.com/v4.0',
+  headers: {
+    Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
+  },
+  json: true,
+});
 
 module.exports = GraphAPI;

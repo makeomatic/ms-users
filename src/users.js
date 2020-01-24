@@ -14,13 +14,7 @@ const attachPasswordKeyword = require('./utils/password-validator');
 /**
  * @namespace Users
  */
-module.exports = class Users extends Microfleet {
-  /**
-   * Configuration options for the service
-   * @type {Object}
-   */
-  static defaultOpts = conf.get('/', { env: process.env.NODE_ENV });
-
+class Users extends Microfleet {
   /**
    * @namespace Users
    * @param  {Object} opts
@@ -28,6 +22,18 @@ module.exports = class Users extends Microfleet {
    */
   constructor(opts = {}) {
     super(merge({}, Users.defaultOpts, opts));
+
+    /**
+     * Initializes Admin accounts
+     * @returns {Promise}
+     */
+    this.initAdminAccounts = require('./accounts/init-admin');
+
+    /**
+     * Initializes fake account for dev purposes
+     * @returns {Promise}
+     */
+    this.initFakeAccounts = require('./accounts/init-dev');
 
     // cached ref
     const { config } = this;
@@ -70,7 +76,10 @@ module.exports = class Users extends Microfleet {
 
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
-      this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
+      const tmOpts = merge({}, config.tokenManager, tokenManagerOpts);
+
+      this.log.debug({ tmOpts }, 'init token manager');
+      this.tokenManager = new TokenManager(tmOpts);
     });
 
     this.on('plugin:start:http', (server) => {
@@ -137,16 +146,12 @@ module.exports = class Users extends Microfleet {
       ), 'dev accounts');
     }
   }
+}
 
-  /**
-   * Initializes Admin accounts
-   * @returns {Promise}
-   */
-  initAdminAccounts = require('./accounts/init-admin');
+/**
+ * Configuration options for the service
+ * @type {Object}
+ */
+Users.defaultOpts = conf.get('/', { env: process.env.NODE_ENV });
 
-  /**
-   * Initializes fake account for dev purposes
-   * @returns {Promise}
-   */
-  initFakeAccounts = require('./accounts/init-dev');
-};
+module.exports = Users;

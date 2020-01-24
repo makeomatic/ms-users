@@ -1,7 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 /* global globalRegisterUser, globalAuthUser */
 
-const authenticator = require('otplib/authenticator');
+const { authenticator } = require('otplib');
 const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');

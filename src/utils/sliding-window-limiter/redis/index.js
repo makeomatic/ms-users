@@ -9,16 +9,6 @@ const assertStringNotEmpty = require('../../asserts/string-not-empty');
  */
 class SlidingWindowLimiterRedis {
   /**
-   * Block forever
-   */
-  static STATUS_FOREVER = 0;
-
-  /**
-   * Rate limit error
-   */
-  static RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
-
-  /**
    * Create Sliding Window Redis Backend
    * @param {ioredis} redis - Redis Database connection
    * @param {object} config - Sliding window configuration
@@ -111,5 +101,16 @@ class SlidingWindowLimiterRedis {
     return redis.slidingWindowCleanup(keyCount, key, ...extraKeys);
   }
 }
+
+/**
+ * Block forever
+ */
+SlidingWindowLimiterRedis.STATUS_FOREVER = 0;
+
+/**
+ * Rate limit error
+ */
+SlidingWindowLimiterRedis.RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
+
 
 module.exports = SlidingWindowLimiterRedis;

@@ -1,8 +1,4 @@
-module.exports = class Urls {
-  static DEFAULT_API_VERSION = 'v4.0';
-
-  static self = null;
-
+class Urls {
   static instance(version = Urls.DEFAULT_API_VERSION) {
     let { self } = this;
 
@@ -49,4 +45,9 @@ module.exports = class Urls {
   get profile() {
     return `https://graph.facebook.com/${this.apiVersion}/me`;
   }
-};
+}
+
+Urls.DEFAULT_API_VERSION = 'v4.0';
+Urls.self = null;
+
+module.exports = Urls;

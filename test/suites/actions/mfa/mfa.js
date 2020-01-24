@@ -1,8 +1,7 @@
 /* global globalRegisterUser, globalAuthUser */
-const crypto = require('crypto');
 const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
-const authenticator = require('otplib/authenticator');
+const { authenticator } = require('otplib');
 const request = require('request-promise').defaults({
   uri: 'https://ms-users.local/users/_/me',
   json: true,
@@ -11,8 +10,6 @@ const request = require('request-promise').defaults({
   strictSSL: false,
 });
 const { USERS_MFA_FLAG } = require('../../../../src/constants');
-
-authenticator.options = { crypto };
 
 describe('#mfa.*', function activateSuite() {
   // actions supported by this

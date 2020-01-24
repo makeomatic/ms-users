@@ -20,7 +20,8 @@ exports.tokenManager = {
   },
   encrypt: {
     algorithm: 'aes256',
-    sharedSecret: 'replace-shared-secret-at-least-24-chars-long',
+    sharedSecret: 'replace-shared-secret-with-32-by',
+    // must be 256bit / 32 bytes for aes256 ^
   },
 };
 

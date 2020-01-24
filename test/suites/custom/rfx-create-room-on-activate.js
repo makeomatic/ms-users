@@ -1,4 +1,3 @@
-const { inspectPromise } = require('@makeomatic/deploy');
 const _ = require('lodash');
 const assert = require('assert');
 const Promise = require('bluebird');
@@ -34,8 +33,6 @@ describe('Hook `rfx-create-room-on-activate`', function suite() {
           },
         },
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         assert.ok(result.context.token.secret);
 
@@ -46,8 +43,6 @@ describe('Hook `rfx-create-room-on-activate`', function suite() {
           audience: '*.localhost',
         });
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         const stubArgs = amqpStub.args[0];
 

@@ -1,0 +1,6 @@
+{
+  "require": ["@babel/register", "./test/config.js"],
+  "timeout": 60000,
+  "bail": true,
+  "report": "spec"
+}

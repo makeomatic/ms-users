@@ -1,3 +1,16 @@
+# [14.0.0](https://github.com/makeomatic/ms-users/compare/v13.0.2...v14.0.0) (2020-01-25)
+
+
+### Features
+
+* upgrades @hapi/hapi to 19, otplib to 12 ([75ce95c](https://github.com/makeomatic/ms-users/commit/75ce95c25700cc1fe73a45b0fd2d5b37eba86cdd))
+
+
+### BREAKING CHANGES
+
+* requires node 12.14.x, configuration changes
+Public facing APIs remain exactly the same
+
 ## [13.0.2](https://github.com/makeomatic/ms-users/compare/v13.0.1...v13.0.2) (2020-01-21)
 
 

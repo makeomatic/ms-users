@@ -34,7 +34,7 @@ async function generateChallenge(type, opts, ctx = {}, wait = false) {
     ctx.token = token;
   } catch (error) {
     if (error.message === '429') {
-      const duration = moment().add(opts.ttl, 'seconds').toNow(true);
+      const duration = moment().add(opts.throttle, 'seconds').toNow(true);
       const msg = `We've already sent you an email, if it doesn't come - please try again in ${duration} or send us an email`;
       throw new HttpStatusError(429, msg);
     }

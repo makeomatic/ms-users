@@ -1,3 +1,10 @@
+## [14.0.1](https://github.com/makeomatic/ms-users/compare/v14.0.0...v14.0.1) (2020-02-04)
+
+
+### Bug Fixes
+
+* invalid throttle message ([#442](https://github.com/makeomatic/ms-users/issues/442)) ([1b36c77](https://github.com/makeomatic/ms-users/commit/1b36c77bb6834f6dc5c13fd1ac5f8c8e1f0ef40b))
+
 # [14.0.0](https://github.com/makeomatic/ms-users/compare/v13.0.2...v14.0.0) (2020-01-25)
 
 

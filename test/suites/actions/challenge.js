@@ -60,7 +60,7 @@ describe('#challenge', function challengeSuite() {
     });
 
     it('must fail to send challenge email more than once in an hour per user', async () => {
-      const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 4 hours or send us an email';
+      const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 2 hours or send us an email';
 
       await requestChallenge();
       const secondRequest = requestChallenge();
@@ -73,7 +73,7 @@ describe('#challenge', function challengeSuite() {
     });
 
     it('must fail to send challeng email during race condition', async () => {
-      const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 4 hours or send us an email';
+      const msg = 'We\'ve already sent you an email, if it doesn\'t come - please try again in 2 hours or send us an email';
       const raceRequest = Promise.all([requestChallenge(), requestChallenge(), requestChallenge()]);
 
       await assert.rejects(raceRequest, {

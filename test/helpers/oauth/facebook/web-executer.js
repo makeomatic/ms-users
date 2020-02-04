@@ -129,11 +129,11 @@ class WebExecuter {
       await page.waitForSelector('#platformDialogForm a[id]', { visible: true });
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-initial-${Date.now()}.png` });
       await page.click('#platformDialogForm a[id]', { delay: 100 });
-      await Promise.delay(300);
+      await Promise.delay(500);
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-before-${Date.now()}.png` });
       await page.waitForSelector(`#platformDialogForm label:nth-child(${permissionIndex})`, { visible: true });
       await page.click(`#platformDialogForm label:nth-child(${permissionIndex})`, { delay: 100 });
-      await Promise.delay(300);
+      await Promise.delay(500);
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-after-${Date.now()}.png` });
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
       await page.click('button[name=__CONFIRM__]', { delay: 100 });

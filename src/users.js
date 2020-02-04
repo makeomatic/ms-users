@@ -78,7 +78,6 @@ class Users extends Microfleet {
       const tokenManagerOpts = { backend: { connection: redis } };
       const tmOpts = merge({}, config.tokenManager, tokenManagerOpts);
 
-      this.log.debug({ tmOpts }, 'init token manager');
       this.tokenManager = new TokenManager(tmOpts);
     });
 

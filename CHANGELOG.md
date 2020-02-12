@@ -1,3 +1,5 @@
+## [14.0.2](https://github.com/makeomatic/ms-users/compare/v14.0.1...v14.0.2) (2020-02-12)
+
 ## [14.0.1](https://github.com/makeomatic/ms-users/compare/v14.0.0...v14.0.1) (2020-02-04)
 
 

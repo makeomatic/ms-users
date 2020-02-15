@@ -1,35 +1,12 @@
-version: '2'
+version: '3'
 
 volumes:
   certs:
   vhost:
   html:
 
-networks:
-  static:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: 172.16.238.0/24
-
 services:
-  redis:
-    hostname: redis
-    image: makeomatic/redis-cluster:5-alpine
-    networks:
-      static:
-        ipv4_address: 172.16.238.10
-
-  rabbitmq:
-    image: rabbitmq:3.7-alpine
-    hostname: rabbitmq
-    networks:
-      static:
-        ipv4_address: 172.16.238.11
-
   nginx-proxy:
-    hostname: ms-users.local
     image: jwilder/nginx-proxy
     expose:
       - "80"
@@ -41,35 +18,34 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     labels:
       - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
+    environment:
+      DHPARAM_GENERATION: "false"
     networks:
-      static:
-        ipv4_address: 172.16.238.12
+      default:
+        aliases:
+        - ms-users.local
 
   proxy-companion:
     image: jrcs/letsencrypt-nginx-proxy-companion
-    volumes_from:
-      - nginx-proxy
+    environment:
+      NGINX_PROXY_CONTAINER: nginx-proxy
     volumes:
       - certs:/etc/nginx/certs:rw
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      static:
-        ipv4_address: 172.16.238.13
 
   tester:
-    shm_size: 512m
+    shm_size: 128m
     expose:
       - "3000"
-    image: makeomatic/node:12.14.1-chrome-tester
     links:
-      - redis
+      - redis-cluster
       - rabbitmq
     working_dir: /src
     volumes:
       - ${PWD}:/src:cached
-      - ./configs:/configs:cached
-    extra_hosts:
-      - "ms-users.local:172.16.238.12"
+      - ${PWD}/test/configs:/configs:cached
     environment:
       NODE_ENV: "test"
       NCONF_FILE_PATH: '["/configs/amqp.js", "/configs/core.js","/configs/redis.cluster.js"]'
@@ -83,6 +59,3 @@ services:
       VIRTUAL_PORT: 3000
       CERT_NAME: default
     command: tail -f /dev/null
-    networks:
-      static:
-        ipv4_address: 172.16.238.14

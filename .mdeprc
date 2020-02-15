@@ -1,4 +1,0 @@
-{
-  "node": "12.14.1",
-  "rebuild": ["ms-flakeless"]
-}

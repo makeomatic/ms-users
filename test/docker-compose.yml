@@ -7,7 +7,7 @@ volumes:
 
 services:
   nginx-proxy:
-    image: jwilder/nginx-proxy
+    image: jwilder/nginx-proxy:alpine
     expose:
       - "80"
       - "443"
@@ -27,6 +27,8 @@ services:
 
   proxy-companion:
     image: jrcs/letsencrypt-nginx-proxy-companion
+    depends_on:
+      - nginx-proxy
     environment:
       NGINX_PROXY_CONTAINER: nginx-proxy
     volumes:

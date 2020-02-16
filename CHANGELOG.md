@@ -1,3 +1,15 @@
+# [14.1.0](https://github.com/makeomatic/ms-users/compare/v14.0.2...v14.1.0) (2020-02-16)
+
+
+### Bug Fixes
+
+* improve stability of tests with depends_on ([465d170](https://github.com/makeomatic/ms-users/commit/465d170e3c60c0a00c3b5415d7604080b32c7f78))
+
+
+### Features
+
+* migration for default activation time on old users ([c47c65d](https://github.com/makeomatic/ms-users/commit/c47c65da6ddfc4b73dc8a14cfbb7b675809c49a6))
+
 ## [14.0.2](https://github.com/makeomatic/ms-users/compare/v14.0.1...v14.0.2) (2020-02-12)
 
 ## [14.0.1](https://github.com/makeomatic/ms-users/compare/v14.0.0...v14.0.1) (2020-02-04)

@@ -48,9 +48,9 @@ function addMetadata(userData) {
  * @apiName RemoveUser
  * @apiGroup Users
  *
- * @apiDescription Removes user from system. Be careful as this operation is not revertable.
+ * @apiDescription Removes user from system. Be careful as this operation is not revertible.
  *
- * @apiParam (Payload) {String} username - currently only email is supported
+ * @apiParam (Payload) {String} username - user's email or id
  */
 async function removeUser({ params }) {
   const audience = this.config.jwt.defaultAudience;

@@ -1,3 +1,15 @@
+# [14.2.0](https://github.com/makeomatic/ms-users/compare/v14.1.1...v14.2.0) (2020-03-18)
+
+
+### Bug Fixes
+
+* remove unnecessary error instantiation ([eadcfc3](https://github.com/makeomatic/ms-users/commit/eadcfc3d32f0440b4074556be5fa9164b2b42f35))
+
+
+### Features
+
+* **restore-pwd:** add details to restore pwd error ([89d550c](https://github.com/makeomatic/ms-users/commit/89d550c277b6054e96f5fa28fd8a05862bd6b572))
+
 ## [14.1.1](https://github.com/makeomatic/ms-users/compare/v14.1.0...v14.1.1) (2020-03-02)
 
 # [14.1.0](https://github.com/makeomatic/ms-users/compare/v14.0.2...v14.1.0) (2020-02-16)

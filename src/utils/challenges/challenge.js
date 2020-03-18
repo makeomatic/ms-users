@@ -39,7 +39,7 @@ async function generateChallenge(type, opts, ctx = {}, wait = false) {
       const msg = `We've already sent you an email, if it doesn't come - please try again in ${duration} or send us an email`;
       const reason = { duration: opts.throttle, email };
 
-      throw new DetailedHttpStatusError(429, msg, reason);
+      throw DetailedHttpStatusError(429, msg, reason);
     }
 
     throw error;

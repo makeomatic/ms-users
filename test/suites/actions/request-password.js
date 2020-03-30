@@ -117,7 +117,7 @@ describe('#requestPassword', function requestPasswordSuite() {
 
       expect(requestPassword.name).to.be.eq('HttpStatusError');
       expect(requestPassword.statusCode).to.be.eq(429);
-      expect(requestPassword.reason).to.deep.equal({ duration: 7200, email: 'support@example.com' });
+      expect(requestPassword.reason).to.deep.equal({ duration: 7200, email: 'mailto@example.com' });
     });
   });
 });

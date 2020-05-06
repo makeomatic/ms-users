@@ -14,7 +14,7 @@ describe('#admins', function verifySuite() {
     service = await startService.call(ctx, {
       admins: [
         {
-          username: 'admin0@test.com',
+          username: 'admin0@x.com',
           password: 'megalongsuperpasswordfortest',
           metadata: {
             firstName: 'Im',
@@ -22,7 +22,7 @@ describe('#admins', function verifySuite() {
           },
         },
         {
-          username: 'admin1@test.com',
+          username: 'admin1@x.com',
           password: 'megalongsuperpasswordfortest',
           metadata: {
             firstName: 'Im',
@@ -31,7 +31,7 @@ describe('#admins', function verifySuite() {
           },
         },
         {
-          username: 'user0@test.com',
+          username: 'user0@x.com',
           password: 'megalongsuperpasswordfortest',
           metadata: {
             firstName: 'Im',
@@ -56,17 +56,17 @@ describe('#admins', function verifySuite() {
     const admin0 = await dispatch('users.login', {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
-      username: 'admin0@test.com',
+      username: 'admin0@x.com',
     });
     const admin1 = await dispatch('users.login', {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
-      username: 'admin1@test.com',
+      username: 'admin1@x.com',
     });
     const user0 = await dispatch('users.login', {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
-      username: 'user0@test.com',
+      username: 'user0@x.com',
     });
 
     assert.ok(admin0.jwt);

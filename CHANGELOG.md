@@ -1,3 +1,10 @@
+# [14.4.0](https://github.com/makeomatic/ms-users/compare/v14.3.0...v14.4.0) (2020-05-12)
+
+
+### Features
+
+* **restore-pwd:** expand 429 error with actual ttl ([c544d8a](https://github.com/makeomatic/ms-users/commit/c544d8a4767ed543cd18a2aedab6c2517977d226))
+
 # [14.3.0](https://github.com/makeomatic/ms-users/compare/v14.2.0...v14.3.0) (2020-04-01)
 
 

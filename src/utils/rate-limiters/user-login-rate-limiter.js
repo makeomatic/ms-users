@@ -1,4 +1,4 @@
-const uuid = require('uuid/v4');
+const uuidv4 = require('uuid').v4;
 const { helpers: errorHelpers } = require('common-errors');
 const assertStringNotEmpty = require('../asserts/string-not-empty');
 const SlidingWindowRedisBackend = require('../sliding-window-limiter/redis');
@@ -16,7 +16,7 @@ class UserLoginRateLimiter {
   constructor(redis, config) {
     this.redis = redis;
     this.config = config;
-    this.token = uuid();
+    this.token = uuidv4();
 
     this.ipLimiter = new SlidingWindowRedisBackend(redis, config.limitIp);
     this.userIpLimiter = new SlidingWindowRedisBackend(redis, config.limitUserIp);

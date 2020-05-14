@@ -129,7 +129,7 @@ async function mserviceVerification({ service, transportRequest }, credentials) 
  * @param  {MserviceRequest} request
  * @returns {Promise}
  */
-module.exports = async function authHandler({ action, transportRequest }) {
+async function authHandler({ action, transportRequest }) {
   const { http, config } = this;
   const { strategy } = action;
 
@@ -165,4 +165,9 @@ module.exports = async function authHandler({ action, transportRequest }) {
 
   const credentials = await oauthVerification(ctx, ...response);
   return mserviceVerification(ctx, credentials);
-};
+}
+
+authHandler.oauthVerification = oauthVerification;
+authHandler.mserviceVerification = mserviceVerification;
+
+module.exports = authHandler;

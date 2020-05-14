@@ -1,7 +1,4 @@
-const Promise = require('bluebird');
-const partial = require('lodash/partial');
 const { ActionTransport } = require('@microfleet/core');
-
 const detach = require('../../auth/oauth/utils/detach');
 const { getInternalData } = require('../../utils/userData');
 
@@ -16,13 +13,15 @@ const { getInternalData } = require('../../utils/userData');
  * @apiParam (Payload) {String} provider
  * @apiParam (Payload) {String} username - user's username
  */
-module.exports = function detachAction(request) {
+async function detachAction(request) {
   const { provider, username } = request.params;
 
-  return Promise.bind(this, username)
-    .then(getInternalData)
-    .then(partial(detach, provider))
-    .return({ success: true });
-};
+  const internalData = await getInternalData.call(this, username);
+  await detach.call(this, provider, internalData);
 
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+  return { success: true };
+}
+
+detachAction.transports = [ActionTransport.amqp, ActionTransport.internal];
+
+module.exports = detachAction;

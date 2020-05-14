@@ -10,7 +10,7 @@ const {
   USERS_DATA,
 } = require('../../../constants');
 
-module.exports = function detach(provider, userData) {
+module.exports = async function detach(provider, userData) {
   const { id: userId } = userData;
   const { redis, config } = this;
   const audience = get(config, 'jwt.defaultAudience');
@@ -28,16 +28,15 @@ module.exports = function detach(provider, userData) {
   // delete account reference
   pipeline.hdel(USERS_SSO_TO_ID, uid);
 
-  return pipeline.exec().then(handlePipeline)
-    .bind(this)
-    .return({
-      userId,
-      audience,
-      metadata: {
-        $remove: [
-          provider,
-        ],
-      },
-    })
-    .then(updateMetadata);
+  handlePipeline(await pipeline.exec());
+
+  return updateMetadata.call(this, {
+    userId,
+    audience,
+    metadata: {
+      $remove: [
+        provider,
+      ],
+    },
+  });
 };

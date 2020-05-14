@@ -1,7 +1,10 @@
-const Promise = require('bluebird');
 const Crypto = require('crypto');
+const assert = require('assert');
+const Boom = require('@hapi/boom');
+const request = require('request-promise');
 const differenceWith = require('lodash/differenceWith');
 const defaults = require('lodash/defaults');
+const Hoek = require('@hapi/hoek');
 const Urls = require('../utils/fb-urls');
 const get = require('../../../utils/get-value');
 
@@ -24,8 +27,8 @@ function scopeComparator(scopeValue, fbPermission) {
   return scopeValue === fbPermission.permission && fbPermission.status === 'granted';
 }
 
-function defaultProfileHandler(profile) {
-  const { credentials } = this;
+function defaultProfileHandler(ctx, profile) {
+  const { credentials } = ctx;
   const { token, refreshToken } = credentials;
   const { id, email, username } = profile;
 
@@ -73,8 +76,8 @@ function fetch(resource) {
 const fetchProfile = fetch('profile');
 const fetchPermissions = fetch('permissions');
 
-function verifyPermissions(permissions) {
-  const { credentials, requiredPermissions } = this;
+function verifyPermissions(ctx, permissions) {
+  const { credentials, requiredPermissions } = ctx;
   const missingPermissions = differenceWith(
     requiredPermissions,
     permissions.data,
@@ -89,8 +92,42 @@ function verifyPermissions(permissions) {
   return true;
 }
 
+/**
+ *
+ * @param {Bell#context} ctx - bell auth strategy settings & context
+ */
+const defaultGetterFactory = (ctx) => async (uri, params = {}, bearer) => {
+  assert(bearer, 'bearer token must be supplied');
+
+  const getOptions = {
+    headers: {
+      Authorization: `Bearer ${bearer}`,
+    },
+  };
+
+  if (ctx.profileParams) {
+    Hoek.merge(params, ctx.profileParams);
+  }
+
+  if (ctx.provider.headers) {
+    Hoek.merge(getOptions.headers, ctx.provider.headers);
+  }
+
+  try {
+    return await request[ctx.provider.profileMethod]({
+      uri,
+      qs: params,
+      json: true,
+      gzip: true,
+      timeout: 5000,
+    });
+  } catch (err) {
+    throw Boom.internal(`Failed obtaining ${ctx.name} user profile`, err);
+  }
+};
+
 function profileFactory(fields, profileHandler = defaultProfileHandler) {
-  return async function obtainProfile(credentials, params, getter) {
+  return async function obtainProfile(credentials, params, getter = defaultGetterFactory(this)) {
     const ap = Crypto.createHmac('sha256', this.clientSecret)
       .update(credentials.token)
       .digest('hex');
@@ -102,13 +139,33 @@ function profileFactory(fields, profileHandler = defaultProfileHandler) {
       requiredPermissions,
     };
 
-    return Promise
-      .bind(ctx, [getter, { appsecret_proof: ap }])
-      .spread(fetchPermissions)
-      .tap(verifyPermissions)
-      .return([getter, { appsecret_proof: ap, fields }])
-      .spread(fetchProfile)
-      .then(profileHandler);
+    const permissions = await fetchPermissions(ctx, getter, { appsecret_proof: ap });
+    verifyPermissions(ctx, permissions);
+    const profile = await fetchProfile(ctx, getter, { appsecret_proof: ap, fields });
+    return profileHandler(ctx, profile);
+  };
+}
+
+function transformAccountToResponseFormat(account) {
+  // input data
+  // TODO: customize what to encode
+  const {
+    uid,
+    provider,
+    email,
+    profile,
+    internals,
+  } = account;
+
+  // compose facebook context, would be encoded
+  return {
+    uid,
+    email,
+    provider,
+    internals,
+    profile: {
+      ...profile,
+    },
   };
 }
 
@@ -142,3 +199,7 @@ exports.options = (options) => {
 
   return defaults(configuredOptions, defaultOptions);
 };
+
+exports.profileFactory = profileFactory;
+exports.verifyPermissions = verifyPermissions;
+exports.transformAccountToResponseFormat = transformAccountToResponseFormat;

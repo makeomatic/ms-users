@@ -2,7 +2,7 @@
 const { inspectPromise } = require('@makeomatic/deploy');
 const assert = require('assert');
 const faker = require('faker');
-const uuid = require('uuid');
+const uuidv4 = require('uuid').v4;
 const { createMembers, createOrganization } = require('../../../../helpers/organization');
 
 describe('#accept invite organization', function registerSuite() {
@@ -37,7 +37,7 @@ describe('#accept invite organization', function registerSuite() {
     const opts = {
       organizationId: faker.company.companyName(),
       username: faker.internet.email(),
-      inviteToken: uuid.v4(),
+      inviteToken: uuidv4()(),
     };
 
     return this.dispatch('users.organization.invites.accept', opts)
@@ -53,7 +53,7 @@ describe('#accept invite organization', function registerSuite() {
     const acceptOpts = {
       organizationId: this.organization.id,
       username: faker.internet.email(),
-      inviteToken: uuid.v4(),
+      inviteToken: uuidv4()(),
     };
 
     return this.dispatch('users.organization.invites.accept', acceptOpts)

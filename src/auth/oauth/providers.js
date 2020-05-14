@@ -9,7 +9,7 @@ const strategiesFiles = glob.sync('*.js', { cwd: strategiesFolderPath, matchBase
 // remove .js
 strategiesFiles.forEach((filename) => {
   // eslint-disable-next-line import/no-dynamic-require
-  strategies[filename.slice(0, -3)] = require(path.resolve(strategiesFolderPath, filename));
+  exports[filename.slice(0, -3)] = require(path.resolve(strategiesFolderPath, filename));
 });
 
 module.exports = strategies;

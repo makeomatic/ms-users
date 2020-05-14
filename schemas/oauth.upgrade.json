@@ -1,0 +1,21 @@
+{
+  "$id": "oauth.upgrade",
+  "type": "object",
+  "required": ["provider", "token"],
+  "properties": {
+    "provider": {
+      "type": "string",
+      "enum": ["facebook"]
+    },
+    "token": {
+      "type": "string",
+      "maxLength": 512,
+      "minLength": 1
+    },
+    "jwt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    }
+  }
+}

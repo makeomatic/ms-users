@@ -436,7 +436,7 @@ describe('#facebook', function oauthFacebookSuite() {
       const username = 'facebookuser@me.com';
       /* Should be 'before' hook, but Mocha executes it before starting our service.  */
       beforeEach('init WebExecuter, get Facebook token, register user', async () => {
-        if (!fb || typeof fb === 'undefined') {
+        if (!fb) {
           fb = new WebExecuter();
           await fb.start();
           ({ token } = await fb.getToken(generalUser));

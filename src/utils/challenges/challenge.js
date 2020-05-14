@@ -37,7 +37,7 @@ async function generateChallenge(type, opts, ctx = {}, wait = false) {
       const { mailto: email } = this.config.validation;
       const duration = moment().add(opts.throttle, 'seconds').toNow(true);
       const msg = `We've already sent you an email, if it doesn't come - please try again in ${duration} or send us an email`;
-      const reason = { duration: opts.throttle, email };
+      const reason = { ...error.reason, duration: opts.throttle, email };
 
       throw DetailedHttpStatusError(429, msg, reason);
     }

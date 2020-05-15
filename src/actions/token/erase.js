@@ -27,7 +27,7 @@ function eraseData(userId) {
  * @apiName EraseToken
  * @apiGroup Tokens
  *
- * @apiDescription This method invalidates tokens from future use. Token is uuidv4()() generated earlier
+ * @apiDescription This method invalidates tokens from future use. Token is uuidv4() generated earlier
  *  and username is who it belongs to
  *
  * @apiParam (Payload) {String} token - token to be invalidated

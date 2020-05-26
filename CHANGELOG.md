@@ -1,3 +1,10 @@
+# [14.5.0](https://github.com/makeomatic/ms-users/compare/v14.4.0...v14.5.0) (2020-05-26)
+
+
+### Features
+
+* edit organization invites api ([#452](https://github.com/makeomatic/ms-users/issues/452)) ([51203bf](https://github.com/makeomatic/ms-users/commit/51203bff55a3b958916551978c9ad63963e41b2a))
+
 # [14.4.0](https://github.com/makeomatic/ms-users/compare/v14.3.0...v14.4.0) (2020-05-12)
 
 

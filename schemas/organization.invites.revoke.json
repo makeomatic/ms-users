@@ -2,8 +2,7 @@
   "type": "object",
   "required": [
     "organizationId",
-    "member",
-    "inviteToken"
+    "member"
   ],
   "additionalProperties": false,
   "properties": {
@@ -12,16 +11,9 @@
     },
     "member": {
       "required": [
-        "permissions",
-        "email",
-        "firstName",
-        "lastName"
+        "email"
       ],
       "$ref": "common.json#/definitions/organizationMember"
-    },
-    "inviteToken": {
-      "type": "string",
-      "minLength": 1
     }
   }
 }

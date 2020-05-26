@@ -1,16 +1,11 @@
 const { ActionTransport } = require('@microfleet/core');
 const sendInviteMail = require('../../../utils/organization/send-invite-email');
 const getInternalData = require('../../../utils/organization/get-internal-data');
-const redisKey = require('../../../utils/key');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const {
-  ORGANIZATIONS_MEMBERS,
-  ErrorUserNotMember,
   ORGANIZATIONS_NAME_FIELD,
   ORGANIZATIONS_ID_FIELD,
-  USERS_ACTION_ORGANIZATION_INVITE,
 } = require('../../../constants');
-const getUserId = require('../../../utils/userData/get-user-id');
 
 /**
  * @api {amqp} <prefix>.invites.send Send invitation
@@ -29,24 +24,16 @@ const getUserId = require('../../../utils/userData/get-user-id');
  * @apiParam (Payload) {String[]} member.permissions - member permission list.
  */
 async function sendOrganizationInvite({ params }) {
-  const service = this;
   const { member, organizationId } = params;
-
-  const userId = await getUserId.call(this, member.email);
-  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
-  const userInOrganization = await service.redis.hget(memberKey, 'username');
-  if (!userInOrganization) {
-    throw ErrorUserNotMember;
-  }
   const organization = await getInternalData.call(this, organizationId);
 
   return sendInviteMail.call(this, {
     email: member.email,
-    action: USERS_ACTION_ORGANIZATION_INVITE,
     ctx: {
       firstName: member.firstName,
       lastName: member.lastName,
       password: member.password,
+      permissions: member.permissions,
       email: member.email,
       organizationId: organization[ORGANIZATIONS_ID_FIELD],
       organization: organization[ORGANIZATIONS_NAME_FIELD],

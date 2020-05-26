@@ -90,7 +90,8 @@ module.exports = exports = {
 
   // invitations constants
   INVITATIONS_INDEX: 'user-invitations',
-  ORGANIZATIONS_INVITATIONS_INDEX: 'organization-invitations',
+  organizationInvite: (organizationId) => `organization-invitations:${organizationId}`,
+  inviteId: (organizationId, username) => `${organizationId}:${username}`,
 
   // token
   TOKEN_METADATA_FIELD_METADATA: '1',

@@ -26,10 +26,10 @@ module.exports = {
     waitChallenge: true,
   },
   oauth: {
-    enabled: true,
+    enabled: false,
     providers: {
       facebook: {
-        enabled: true,
+        enabled: false,
         clientId: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
         location: 'https://ms-users.local',

@@ -4,11 +4,16 @@
     "organizationId",
     "member"
   ],
+  "additionalProperties": false,
   "properties": {
     "organizationId": {
       "type": "string"
     },
     "member": {
+      "required": [
+        "permissions",
+        "email"
+      ],
       "$ref": "common.json#/definitions/organizationMember"
     }
   }

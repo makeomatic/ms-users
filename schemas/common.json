@@ -132,11 +132,6 @@
     },
     "organizationMember": {
       "type": "object",
-      "required": [
-        "firstName",
-        "lastName",
-        "email"
-      ],
       "properties": {
         "email": {
           "type": "string"

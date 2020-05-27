@@ -1,3 +1,10 @@
+## [14.5.1](https://github.com/makeomatic/ms-users/compare/v14.5.0...v14.5.1) (2020-05-27)
+
+
+### Bug Fixes
+
+* edit distributeUsersByExist for organization members ([#453](https://github.com/makeomatic/ms-users/issues/453)) ([6198f57](https://github.com/makeomatic/ms-users/commit/6198f5768bece765287600721bce80587ce46704))
+
 # [14.5.0](https://github.com/makeomatic/ms-users/compare/v14.4.0...v14.5.0) (2020-05-26)
 
 

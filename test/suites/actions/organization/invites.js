@@ -97,6 +97,8 @@ describe('#invite organization', function registerSuite() {
   });
 
   it('must be able to accept invite to member', async function test() {
+    this.memberPassword = faker.internet.password();
+
     const opts = {
       organizationId: this.organization.id,
       member: {
@@ -104,10 +106,23 @@ describe('#invite organization', function registerSuite() {
         firstName: faker.name.firstName(),
         lastName: faker.name.lastName(),
       },
+      password: this.memberPassword,
       inviteToken: this.member.token.secret,
     };
 
     await this.dispatch('users.organization.invites.accept', opts);
+  });
+
+  it('must be able login invited user', async function test() {
+    const opts = {
+      username: this.member.email,
+      password: this.memberPassword,
+      audience: '*.localhost',
+    };
+
+    return this.dispatch('users.login', opts)
+      .reflect()
+      .then(inspectPromise());
   });
 
   it('must be able to revoke invite to admin', async function test() {

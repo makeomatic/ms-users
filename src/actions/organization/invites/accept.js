@@ -38,11 +38,12 @@ async function verifyToken(tokenManager, token, username, organizationId) {
  */
 async function acceptOrganizationMember({ params }) {
   const { config } = this;
-  const { member, inviteToken, organizationId } = params;
+  const { member, inviteToken, password, organizationId } = params;
   const { audience } = config.organizations;
 
   const memberInviteMetadata = await verifyToken(this.tokenManager, inviteToken, member.email, organizationId);
   member.permissions = memberInviteMetadata.permissions;
+  member.password = password;
 
   return addOrganizationMembers.call(this, {
     organizationId,

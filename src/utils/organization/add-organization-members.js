@@ -67,7 +67,7 @@ async function addOrganizationMembers({ organizationId, members, audience }, sen
 
   const registeredMembers = [];
   const notRegisteredMembers = [];
-  const filterMembersJob = members.map(distributeUsersByExist, { registeredMembers, notRegisteredMembers });
+  const filterMembersJob = members.map(distributeUsersByExist, { ...this, registeredMembers, notRegisteredMembers });
   await Promise.all(filterMembersJob);
 
   // Create non exist users and concat with already registered

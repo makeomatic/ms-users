@@ -99,7 +99,7 @@ async function deactivateAccount(data, metadata) {
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  *
  */
-async function deactivateAction({ log, params }) {
+async function deactivateAction({ params }) {
   const { username } = params;
   const { config } = this;
   const { jwt: { defaultAudience } } = config;

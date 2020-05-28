@@ -5,6 +5,7 @@ const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
+const handlePipeline = require('../utils/pipeline-error');
 const setMetadata = require('../utils/update-metadata');
 const {
   USERS_INDEX,
@@ -68,7 +69,6 @@ async function deactivateAccount(data, metadata) {
   // set to active & persist
   const pipeline = redis
     .pipeline()
-    .hget(userKey, USERS_ACTIVE_FLAG)
     .hset(userKey, USERS_ACTIVE_FLAG, 'false')
     .persist(userKey)
     .sadd(USERS_INDEX, userId);
@@ -80,6 +80,8 @@ async function deactivateAccount(data, metadata) {
   if (referral) {
     pipeline.sadd(`${USERS_REFERRAL_INDEX}:${referral}`, userId);
   }
+
+  handlePipeline(await pipeline.exec());
 
   return userId;
 }

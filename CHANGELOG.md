@@ -1,3 +1,10 @@
+# [14.6.0](https://github.com/makeomatic/ms-users/compare/v14.5.1...v14.6.0) (2020-05-28)
+
+
+### Features
+
+* added deactivate user action ([#454](https://github.com/makeomatic/ms-users/issues/454)) ([bf0e8cc](https://github.com/makeomatic/ms-users/commit/bf0e8cc39644b04f0184725a016fb0bb4a0d060c))
+
 ## [14.5.1](https://github.com/makeomatic/ms-users/compare/v14.5.0...v14.5.1) (2020-05-27)
 
 

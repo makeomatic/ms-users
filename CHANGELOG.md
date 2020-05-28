@@ -1,3 +1,10 @@
+# [14.7.0](https://github.com/makeomatic/ms-users/compare/v14.6.0...v14.7.0) (2020-05-28)
+
+
+### Features
+
+* added banned field to org member, remove deactivate action ([#455](https://github.com/makeomatic/ms-users/issues/455)) ([a99754d](https://github.com/makeomatic/ms-users/commit/a99754d4c6e1d043a86d38e07d993c12e00f2ce9))
+
 # [14.6.0](https://github.com/makeomatic/ms-users/compare/v14.5.1...v14.6.0) (2020-05-28)
 
 

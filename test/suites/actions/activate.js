@@ -52,6 +52,11 @@ describe('#activate', function activateSuite() {
         return true;
       });
     });
+
+    it('must deactivate account', async function test() {
+      const params = { username: email, audience: 'ok' };
+      await this.dispatch('users.deactivate', params);
+    });
   });
 
   describe('activate inactive user', function suite() {
@@ -65,6 +70,16 @@ describe('#activate', function activateSuite() {
         },
         activate: false,
         skipChallenge: true,
+      });
+    });
+
+    it('must reject deactivation when account is already deactivated', async function test() {
+      const params = { username: email, audience: 'ok' };
+      await assert.rejects(this.dispatch('users.deactivate', params), (activation) => {
+        expect(activation.name).to.be.eq('HttpStatusError');
+        expect(activation.message).to.match(new RegExp(`Account ${email} was already deactivated`));
+        expect(activation.statusCode).to.be.eq(417);
+        return true;
       });
     });
 

@@ -32,7 +32,18 @@ describe('#invite organization', function registerSuite() {
       organizationId: this.organization.id,
       member: this.admin,
     };
-    await this.dispatch('users.organization.invites.send', opts);
+
+    await this.dispatch('users.organization.invites.send', opts)
+      .reflect()
+      .then(inspectPromise())
+      .then(({ data }) => {
+        assert(data);
+        assert(data.link);
+        assert(data.organizationId);
+        assert(data.organization);
+        assert(data.permissions);
+        assert(data.email);
+      });
     this.admin.token = this.spy.lastCall.args[3].token;
   });
 

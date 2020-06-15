@@ -27,7 +27,7 @@ async function sendOrganizationInvite({ params }) {
   const { member, organizationId } = params;
   const organization = await getInternalData.call(this, organizationId);
 
-  return sendInviteMail.call(this, {
+  const mailData = await sendInviteMail.call(this, {
     email: member.email,
     ctx: {
       firstName: member.firstName,
@@ -39,6 +39,8 @@ async function sendOrganizationInvite({ params }) {
       organization: organization[ORGANIZATIONS_NAME_FIELD],
     },
   });
+
+  return { data: mailData };
 }
 
 sendOrganizationInvite.allowed = checkOrganizationExists;

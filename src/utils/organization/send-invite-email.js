@@ -1,3 +1,4 @@
+const omit = require('lodash/omit');
 const generateEmail = require('../challenges/email/generate.js');
 const {
   organizationInvite,
@@ -25,6 +26,8 @@ module.exports = async function sendInviteMail(params) {
       },
     });
 
-  await generateEmail.call(this, email, USERS_ACTION_ORGANIZATION_INVITE, { ...ctx, token }, { send: true });
+  const { context } = await generateEmail.call(this, email, USERS_ACTION_ORGANIZATION_INVITE, { ...ctx, token }, { send: true });
   await redis.sadd(organizationInvite(ctx.organizationId), email);
+
+  return omit(context, ['token', 'qs']);
 };

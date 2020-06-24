@@ -9,7 +9,7 @@ const RelayDisabledError = new HttpStatusError(412, 'tbits relay auth disabled')
  * @apiName RelayTbitsAuth
  * @apiGroup Relay
  *
- * @apiDescription Verifies Tbits Session Id, creates "shadow" user and issues JWT token if everything is in order
+ * @apiDescription Verifies Tbits Session Id, creates "shadow" microfleet user if not exist, login and issues JWT token if everything is in order
  *
  * @apiParam (Payload) {String} sessionUid - tbits session uid to verify
  */

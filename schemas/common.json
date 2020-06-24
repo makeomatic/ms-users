@@ -67,7 +67,8 @@
       "oneOf": [
         { "format": "email" },
         { "pattern": "^\\d+$" },
-        { "pattern": "^(fb|sso)/[\\d_]+$" }
+        { "pattern": "^(fb|sso)/[\\d_]+$" },
+        { "pattern": "^tbits\\/\\d+\\/\\d+$"}
       ]
     },
     "alias": {

@@ -2,7 +2,7 @@
 const Promise = require('bluebird');
 const assert = require('assert');
 const { inspectPromise } = require('@makeomatic/deploy');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const md5 = require('md5');
 const { sign } = require('../../../../src/utils/signatures');
 const { USERS_API_TOKENS } = require('../../../../src/constants');

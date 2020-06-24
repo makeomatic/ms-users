@@ -1,7 +1,7 @@
 const mapValues = require('lodash/mapValues');
 const pick = require('lodash/pick');
 const Promise = require('bluebird');
-const redisKey = require('../utils/key.js');
+const redisKey = require('./key.js');
 const { USERS_METADATA } = require('../constants.js');
 
 const { isArray } = Array;

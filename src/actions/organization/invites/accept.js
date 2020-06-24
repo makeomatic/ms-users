@@ -24,7 +24,6 @@ async function verifyToken(tokenManager, token, username, organizationId) {
   return tokenData.metadata[TOKEN_METADATA_FIELD_METADATA];
 }
 
-
 /**
  * @api {amqp} <prefix>.invites.accept Accept invitation
  * @apiVersion 1.0.0

@@ -30,7 +30,6 @@ const metrics = routerExtension('audit/metrics');
  */
 const preResponse = require('../auth/oauth/pre-response');
 
-
 /**
  * Specifies configuration for the router of the microservice
  * @type {Object}

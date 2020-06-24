@@ -1,4 +1,4 @@
-exports.node = "12.15.0";
+exports.node = "12.18";
 exports.auto_compose = true;
 exports.with_local_compose = true;
 exports.tester_flavour = "chrome-tester";

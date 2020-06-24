@@ -21,7 +21,6 @@ const ARGS = [
   Date.now(),
 ];
 
-
 // migration configuration
 exports.min = MIN;
 exports.final = FINAL;

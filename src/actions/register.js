@@ -340,7 +340,7 @@ module.exports = async function registerUser({ params }) {
       isDisposable(username);
     }
 
-    if (params.challengeType === CHALLENGE_TYPE_EMAIL && limits.checkMX) {
+    if (params.activate !== true && params.challengeType === CHALLENGE_TYPE_EMAIL && limits.checkMX) {
       await mxExists(username);
     }
 

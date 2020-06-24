@@ -22,7 +22,7 @@ async function tbitsAuth({ params, log }) {
   log.debug({ response }, 'verified session & signed in');
   return response;
 }
-\
+
 tbitsAuth.schema = 'relay.tbits';
 tbitsAuth.transports = [ActionTransport.amqp, ActionTransport.internal, ActionTransport.http];
 tbitsAuth.transportOptions = {

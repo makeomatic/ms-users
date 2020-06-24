@@ -18,11 +18,11 @@ async function tbitsAuth({ params, log }) {
     throw RelayDisabledError;
   }
 
-  const response = await this.tbits.verify(params.sessionUid);
+  const response = await this.tbits.authenticate(params.sessionUid);
   log.debug({ response }, 'verified session & signed in');
   return response;
 }
-
+\
 tbitsAuth.schema = 'relay.tbits';
 tbitsAuth.transports = [ActionTransport.amqp, ActionTransport.internal, ActionTransport.http];
 tbitsAuth.transportOptions = {

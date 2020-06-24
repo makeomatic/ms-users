@@ -134,7 +134,7 @@ class TbitsService {
     this.audience = this.service.config.jwt.defaultAudience;
   }
 
-  async verify(sessionUid) {
+  async authenticate(sessionUid) {
     const userProfile = await this.retrieveUser(sessionUid);
     return this.registerAndLogin(userProfile);
   }

@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const { HttpStatusError } = require('@microfleet/validation');
+const { HttpStatusError } = require('common-errors');
 const moment = require('moment');
 const is = require('is');
 const scrypt = require('../utils/scrypt');

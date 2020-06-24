@@ -2,7 +2,7 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const is = require('is');
-const { HttpStatusError } = require('@microfleet/validation');
+const { HttpStatusError } = require('common-errors');
 const redisKey = require('./key');
 const sha256 = require('./sha256');
 const handlePipeline = require('./pipeline-error');

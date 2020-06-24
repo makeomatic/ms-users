@@ -1,4 +1,4 @@
-const { HttpStatusError } = require('@microfleet/validation');
+const { HttpStatusError } = require('common-errors');
 
 function DetailedHttpStatusError(code, msg, reason) {
   const err = new HttpStatusError(code, msg);

@@ -1,4 +1,4 @@
-const { HttpStatusError } = require('@microfleet/validation');
+const { HttpStatusError } = require('common-errors');
 
 const scrypt = require('../utils/scrypt');
 const redisKey = require('../utils/key');

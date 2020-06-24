@@ -1,4 +1,4 @@
-const { HttpStatusError } = require('@microfleet/validation');
+const { HttpStatusError } = require('common-errors');
 const { USERS_ALIAS_TO_ID } = require('../constants.js');
 
 async function resolveAlias(alias) {

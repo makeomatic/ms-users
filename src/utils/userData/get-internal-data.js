@@ -1,4 +1,4 @@
-const { HttpStatusError } = require('@microfleet/validation');
+const { HttpStatusError } = require('common-errors');
 const reduce = require('lodash/reduce');
 const Promise = require('bluebird');
 const zipObject = require('lodash/zipObject');

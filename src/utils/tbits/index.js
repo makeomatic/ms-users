@@ -2,7 +2,7 @@ const got = require('got');
 const assert = require('assert');
 const camelcase = require('camelcase');
 const { Agent: HttpsAgent } = require('https');
-const { HttpStatusError } = require('@microfleet/validation');
+const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');
 const { USERS_INVALID_TOKEN, lockTbits, ErrorConflictUserExists } = require('../../constants');
 

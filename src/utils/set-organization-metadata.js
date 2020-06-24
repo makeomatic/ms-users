@@ -1,7 +1,7 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const is = require('is');
-const { HttpStatusError } = require('@microfleet/validation');
+const { HttpStatusError } = require('common-errors');
 const redisKey = require('./key');
 const handlePipeline = require('./pipeline-error');
 const { handleAudience } = require('./update-metadata');

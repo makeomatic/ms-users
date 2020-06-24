@@ -1,5 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
-const { HttpStatusError } = require('@microfleet/validation');
+const { HttpStatusError } = require('common-errors');
 
 const RelayDisabledError = new HttpStatusError(412, 'tbits relay auth disabled');
 

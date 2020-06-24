@@ -217,6 +217,7 @@ describe('#register', function registerSuite() {
         username: 'v@aminev.co',
         password: 'mynicepassword7159',
         audience: 'matic.ninja',
+        activate: false,
         metadata: {
           service: 'craft',
         },

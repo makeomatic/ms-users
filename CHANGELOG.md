@@ -1,3 +1,10 @@
+# [14.8.0](https://github.com/makeomatic/ms-users/compare/v14.7.0...v14.8.0) (2020-06-24)
+
+
+### Features
+
+* tbits relay auth ([#457](https://github.com/makeomatic/ms-users/issues/457)) ([25e8024](https://github.com/makeomatic/ms-users/commit/25e8024178ede86bab27acd785ef6eaa1dd48a76))
+
 # [14.7.0](https://github.com/makeomatic/ms-users/compare/v14.6.0...v14.7.0) (2020-05-28)
 
 

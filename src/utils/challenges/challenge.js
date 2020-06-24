@@ -5,7 +5,7 @@ const {
   CHALLENGE_TYPE_EMAIL,
   CHALLENGE_TYPE_PHONE,
 } = require('../../constants.js');
-const DetailedHttpStatusError = require('../../utils/detailed-error');
+const DetailedHttpStatusError = require('../detailed-error');
 const sendSms = require('./phone/send');
 
 // contains challenges

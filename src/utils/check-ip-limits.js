@@ -1,7 +1,7 @@
-const { HttpStatusError } = require('common-errors');
-const uuid = require('uuid/v4');
+const { HttpStatusError } = require('@microfleet/validation');
+const { v4: uuid } = require('uuid');
 const redisKey = require('./key');
-const handlePipeline = require('../utils/pipeline-error');
+const handlePipeline = require('./pipeline-error');
 
 /**
  * Verify ip limits

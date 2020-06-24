@@ -1,5 +1,5 @@
 const { ActionTransport } = require('@microfleet/core');
-const { HttpStatusError } = require('common-errors');
+const { HttpStatusError } = require('@microfleet/validation');
 const Promise = require('bluebird');
 const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');

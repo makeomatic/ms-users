@@ -133,6 +133,13 @@ class Users extends Microfleet {
       attachPasswordKeyword(this);
     });
 
+    if (this.config.tbits.enabled) {
+      this.addConnector(ConnectorsTypes.essential, () => {
+        const TbitsRelay = require('./utils/tbits');
+        this.tbits = new TbitsRelay(this);
+      }, 'tbits');
+    }
+
     // init account seed
     this.addConnector(ConnectorsTypes.application, () => (
       this.initAdminAccounts()

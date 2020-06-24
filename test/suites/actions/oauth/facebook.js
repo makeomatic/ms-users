@@ -213,7 +213,6 @@ describe('#facebook', function oauthFacebookSuite() {
       });
     });
 
-
     /**
      * Internal check. Just to be sure if Throttling Happened during test suites.
      */
@@ -446,7 +445,6 @@ describe('#facebook', function oauthFacebookSuite() {
         await globalRegisterUser(username).call(dataBag);
         await globalAuthUser(username).call(dataBag);
       });
-
 
       after('stop executer', async () => {
         await fb.stop();

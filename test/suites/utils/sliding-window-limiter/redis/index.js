@@ -136,7 +136,6 @@ describe('#sliding-window-limiter', function suite() {
       tests.forEach(testScript('reserveToken'));
     });
 
-
     describe('token', function luaParamTokenSuite() {
       const tests = [
         {

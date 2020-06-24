@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
 const { LockAcquisitionError } = require('ioredis-lock');
-const { HttpStatusError } = require('common-errors');
+const { HttpStatusError } = require('@microfleet/validation');
 
 const set = require('lodash/set');
 const merge = require('lodash/merge');
@@ -340,7 +340,7 @@ module.exports = async function registerUser({ params }) {
       isDisposable(username);
     }
 
-    if (params.challengeType === CHALLENGE_TYPE_EMAIL && limits.checkMX) {
+    if (params.activate !== true && params.challengeType === CHALLENGE_TYPE_EMAIL && limits.checkMX) {
       await mxExists(username);
     }
 

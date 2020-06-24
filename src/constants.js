@@ -1,4 +1,4 @@
-const { HttpStatusError } = require('common-errors');
+const { HttpStatusError } = require('@microfleet/validation');
 
 module.exports = exports = {
   // indices
@@ -111,6 +111,7 @@ module.exports = exports = {
   lockAlias: (alias) => `users:alias:${alias}`,
   lockRegister: (username) => `users:register:${username}`,
   lockOrganization: (organizationName) => `organizations:create:${organizationName}`,
+  lockTbits: (profile) => `tbits:${profile.accountId}:${profile.fanId}`,
 };
 
 // embed error codes

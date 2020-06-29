@@ -1,3 +1,10 @@
+## [14.8.1](https://github.com/makeomatic/ms-users/compare/v14.8.0...v14.8.1) (2020-06-29)
+
+
+### Bug Fixes
+
+* edit metro area in tbits response schema ([#458](https://github.com/makeomatic/ms-users/issues/458)) ([aece5de](https://github.com/makeomatic/ms-users/commit/aece5de3fe93116575531fbe5a8496cfc9eb99a8))
+
 # [14.8.0](https://github.com/makeomatic/ms-users/compare/v14.7.0...v14.8.0) (2020-06-24)
 
 

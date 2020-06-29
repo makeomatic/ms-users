@@ -77,12 +77,8 @@ const schema = {
     birthDate: typeOrNull('string', {
       description: 'optional ?? returned as null',
     }),
-    metroArea: {
-      type: 'string',
-    },
-    postalCode: {
-      type: 'string',
-    },
+    metroArea: typeOrNull('string'),
+    postalCode: typeOrNull('string'),
     displayName: {
       type: 'string',
       description: 'optional ?? returned as null',

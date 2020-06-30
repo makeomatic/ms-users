@@ -1,3 +1,10 @@
+## [14.8.2](https://github.com/makeomatic/ms-users/compare/v14.8.1...v14.8.2) (2020-06-30)
+
+
+### Bug Fixes
+
+* skip password for tbits user registration ([#459](https://github.com/makeomatic/ms-users/issues/459)) ([46a83bb](https://github.com/makeomatic/ms-users/commit/46a83bbff6c51340c995a181277d2a35e3de66e5))
+
 ## [14.8.1](https://github.com/makeomatic/ms-users/compare/v14.8.0...v14.8.1) (2020-06-29)
 
 

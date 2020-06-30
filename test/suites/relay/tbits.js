@@ -49,7 +49,14 @@ describe('/relay/tbits', function verifySuite() {
   });
 
   describe('tbits enabled', () => {
-    before(() => global.startService({ tbits: { enabled: true } }));
+    before(() => global.startService({
+      tbits: { enabled: true },
+      validation: {
+        templates: {
+          register: 'UNKNOWN',
+        },
+      },
+    }));
     after(() => global.clearRedis());
 
     it('rejects on invalidd session uid', async () => {

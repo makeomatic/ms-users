@@ -174,6 +174,7 @@ class TbitsService {
       activate: true, // externally validated, no challenge
       username: TbitsService.userId(userProfile),
       audience: this.audience,
+      skipPassword: true,
       metadata: {
         ...pick(userProfile, TbitsService.sharedFields),
       },

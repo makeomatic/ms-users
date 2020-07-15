@@ -1,3 +1,10 @@
+# [14.9.0](https://github.com/makeomatic/ms-users/compare/v14.8.2...v14.9.0) (2020-07-15)
+
+
+### Features
+
+* **activation:** return detailed error when missing activation ([#463](https://github.com/makeomatic/ms-users/issues/463)) ([9220c95](https://github.com/makeomatic/ms-users/commit/9220c954572451486f2ad7fb8de2e1d8ac469fc6))
+
 ## [14.8.2](https://github.com/makeomatic/ms-users/compare/v14.8.1...v14.8.2) (2020-06-30)
 
 

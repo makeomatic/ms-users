@@ -44,6 +44,7 @@ describe('#login', function loginSuite() {
 
       expect(login.name).to.be.eq('HttpStatusError');
       expect(login.statusCode).to.be.eq(412);
+      expect(login.reason.username).to.be.eq(userWithValidPassword.username);
     });
   });
 

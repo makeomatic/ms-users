@@ -14,6 +14,7 @@ module.exports = exports = {
 
   // referral tracking
   USERS_REF: 'users-ref',
+  USERS_REF_METADATA: 'users-ref-metadata',
 
   // hashes
   USERS_DATA: 'data',
@@ -44,6 +45,7 @@ module.exports = exports = {
   USERS_PASSWORD_FIELD: 'password',
   USERS_NEXT_CYCLE_FIELD: 'nextCycle',
   USERS_REFERRAL_FIELD: 'referral',
+  USERS_REFERRAL_META_FIELD: 'referralMeta',
   USERS_SSO_FACEBOOK_FIELD: 'facebook',
   ORGANIZATIONS_ID_FIELD: 'id',
   ORGANIZATIONS_CREATED_FIELD: 'created',

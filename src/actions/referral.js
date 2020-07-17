@@ -1,8 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const redisKey = require('../utils/key');
+const handlePipeline = require('../utils/pipeline-error');
 const { USERS_REF, USERS_REF_METADATA } = require('../constants');
-
-const popRes = (r) => r.pop();
 
 /**
  * @api {amqp} <prefix>.referral Store referral
@@ -22,7 +21,7 @@ module.exports = async function storeReferral({ params }) {
   const key = redisKey(USERS_REF, id);
   const { expiration } = this.config.referral;
 
-  const pipeline = await this.redis.pipeline();
+  const pipeline = this.redis.pipeline();
 
   if (metadata) {
     const metadataKey = redisKey(USERS_REF_METADATA, id);
@@ -34,9 +33,7 @@ module.exports = async function storeReferral({ params }) {
   // returns OK if op was performed, null otherwise
   pipeline.set(key, referral, 'EX', expiration, 'NX');
 
-  const res = await pipeline.exec();
-
-  return res.map(popRes);
+  return handlePipeline(await pipeline.exec());
 };
 
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

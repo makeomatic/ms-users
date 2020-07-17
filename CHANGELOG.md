@@ -1,3 +1,10 @@
+# [14.10.0](https://github.com/makeomatic/ms-users/compare/v14.9.0...v14.10.0) (2020-07-17)
+
+
+### Features
+
+* added referral metadata ([#462](https://github.com/makeomatic/ms-users/issues/462)) ([0e56d8a](https://github.com/makeomatic/ms-users/commit/0e56d8a487330cf92a8c200286dd86a42f7b3b98))
+
 # [14.9.0](https://github.com/makeomatic/ms-users/compare/v14.8.2...v14.9.0) (2020-07-15)
 
 

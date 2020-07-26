@@ -17,7 +17,7 @@ describe('binary: password', function suite() {
     const stdout = await exec(`${binaryPath} ${uid} ${newPassword}`);
     const lines = stdout.split('\n');
     const updated = lines.find((line) => (
-      line.indexOf(uid)
+      line.indexOf(uid) >= 0
     ));
 
     assert(updated);

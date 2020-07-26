@@ -6,6 +6,7 @@ describe('binary: password', function suite() {
   const binaryPath = path.resolve(__dirname, '../../../bin/password.js');
   const username = 'test@test.me';
   const newPassword = 'trickynewpassword';
+  // eslint-disable-next-line no-undef
   const checkAuth = globalAuthUser(username, newPassword);
 
   before(global.startService);

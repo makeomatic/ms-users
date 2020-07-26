@@ -14,15 +14,9 @@ describe('binary: password', function suite() {
   after(global.clearRedis);
 
   it('allows updating password from the command-line', async () => {
-    const stdout = await exec(`${binaryPath} ${uid} ${newPassword}`);
-    const lines = stdout.split('\n');
-    const updated = lines.find((line) => (
-      line.indexOf(uid) >= 0
-    ));
+    await exec(`${binaryPath} ${uid} ${newPassword}`);
 
-    console.log('output:', lines);
-    assert(updated);
-
+    // Verify trying to log in with the new password
     // unset jwt token just in case
     this.jwt = null;
     // eslint-disable-next-line no-undef

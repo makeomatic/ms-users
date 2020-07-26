@@ -20,6 +20,7 @@ describe('binary: password', function suite() {
       line.indexOf(uid) >= 0
     ));
 
+    console.log('output:', lines);
     assert(updated);
 
     // unset jwt token just in case

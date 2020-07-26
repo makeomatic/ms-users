@@ -55,4 +55,4 @@ if (module.parent === null) {
     });
 }
 
-export default main;
+exports.main = main;

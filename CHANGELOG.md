@@ -1,3 +1,10 @@
+## [14.10.1](https://github.com/makeomatic/ms-users/compare/v14.10.0...v14.10.1) (2020-07-27)
+
+
+### Bug Fixes
+
+* **bin:** update password tool ([#466](https://github.com/makeomatic/ms-users/issues/466)) ([c74f848](https://github.com/makeomatic/ms-users/commit/c74f8481bd3505b2bc90d4032ef554e1f9ad0670))
+
 # [14.10.0](https://github.com/makeomatic/ms-users/compare/v14.9.0...v14.10.0) (2020-07-17)
 
 

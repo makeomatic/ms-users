@@ -17,7 +17,7 @@ describe('binary: password', function suite() {
   before(globalAuthUser(username));
   after(global.clearRedis);
 
-  it('allows updating password from the command-line', async () => {
+  it('allows updating password from the command-line', async function test() {
     await exec(`${binaryPath} ${this.userId} ${newPassword}`);
     // Verify trying to log in with the new password
     // unset jwt token just in case

@@ -10,7 +10,7 @@ describe('binary: password', function suite() {
   const checkAuth = globalAuthUser(username, newPassword);
 
   before(global.startService);
-  before(() => global.globalRegisterUser(username, {
+  before(global.globalRegisterUser(username, {
     inactive: false,
   }));
   // eslint-disable-next-line no-undef

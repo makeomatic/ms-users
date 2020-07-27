@@ -23,7 +23,7 @@ describe('binary: password', function suite() {
     // unset jwt token just in case
     this.jwt = null;
     // eslint-disable-next-line no-undef
-    await checkAuth();
+    await checkAuth.call(this);
     assert(this.jwt);
   });
 });

@@ -15,6 +15,7 @@ const initRedis = (redisConfig) => {
   };
 
   if (redisConfig.sentinels) {
+    opts.name = redisConfig.name;
     opts.sentinels = redisConfig.sentinels;
     return new Redis(opts);
   }

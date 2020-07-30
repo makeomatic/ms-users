@@ -1,3 +1,10 @@
+## [14.10.2](https://github.com/makeomatic/ms-users/compare/v14.10.1...v14.10.2) (2020-07-30)
+
+
+### Bug Fixes
+
+* **org:** send emails on creation and member invitation ([#467](https://github.com/makeomatic/ms-users/issues/467)) ([981c56a](https://github.com/makeomatic/ms-users/commit/981c56acfdbcfd4733f1c45e8270d0c1f587d2fc))
+
 ## [14.10.1](https://github.com/makeomatic/ms-users/compare/v14.10.0...v14.10.1) (2020-07-27)
 
 

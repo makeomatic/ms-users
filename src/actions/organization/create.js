@@ -101,7 +101,7 @@ async function createOrganizationAction({ params, locals }) {
     organizationId,
     audience,
     members,
-  });
+  }, true);
 
   const organization = await getOrganizationMetadataAndMembers.call(this, organizationId);
 

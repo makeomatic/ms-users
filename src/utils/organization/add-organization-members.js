@@ -47,10 +47,11 @@ function sendInvite(member) {
   return sendInviteMail.call(this, {
     email: member.email,
     ctx: {
+      email: member.email,
       firstName: member.firstName,
       lastName: member.lastName,
       password: member.password,
-      email: member.email,
+      permissions: member.permissions,
       organizationId: this.organization[ORGANIZATIONS_ID_FIELD],
       organization: this.organization[ORGANIZATIONS_NAME_FIELD],
     },

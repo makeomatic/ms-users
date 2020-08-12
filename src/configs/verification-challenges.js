@@ -5,6 +5,7 @@ const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_ACTION_REGISTER,
   USERS_ACTION_RESET,
+  USERS_ACTION_VERIFY_CONTACT,
 } = require('../constants');
 
 /**
@@ -58,6 +59,7 @@ exports.phone = {
   account: 'replace-with-your-account',
   messages: {
     [USERS_ACTION_ACTIVATE]: '%s is your activation code',
+    [USERS_ACTION_VERIFY_CONTACT]: '%s is your verification code',
     [USERS_ACTION_DISPOSABLE_PASSWORD]: '%s is your disposable password',
     [USERS_ACTION_REGISTER]: '%s is your password',
     [USERS_ACTION_RESET]: '%s is your code for reset password',

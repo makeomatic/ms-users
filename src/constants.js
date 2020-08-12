@@ -19,6 +19,7 @@ module.exports = exports = {
   // hashes
   USERS_DATA: 'data',
   USERS_METADATA: 'metadata',
+  USERS_CONTACTS: 'contacts',
   USERS_TOKENS: 'tokens',
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
@@ -82,6 +83,7 @@ module.exports = exports = {
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
+  USERS_ACTION_VERIFY_CONTACT: 'verify-contact',
   USERS_ACTION_DISPOSABLE_PASSWORD: 'disposable-password',
   USERS_ACTION_PASSWORD: 'password',
   USERS_ACTION_RESET: 'reset',

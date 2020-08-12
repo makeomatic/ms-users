@@ -147,6 +147,22 @@
           "type": "array"
         }
       }
+    },
+    "contact": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "oneOf": [
+            { "format": "email" },
+            { "pattern": "^\\d+$" }
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": ["email", "phone"]
+        }
+      }
     }
   }
 }

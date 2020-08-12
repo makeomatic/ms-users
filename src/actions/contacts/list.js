@@ -3,9 +3,7 @@ const Promise = require('bluebird');
 const contacts = require('../../utils/contacts');
 const { getUserId } = require('../../utils/userData');
 
-const formatData = (contacts) => ({
-  data: contacts
-})
+const formatData = (data) => ({ data });
 
 /**
  * @api {amqp} <prefix>.contacts.list User Contact list

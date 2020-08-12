@@ -5,9 +5,9 @@ const { getUserId } = require('../../utils/userData');
 
 const formatData = (contact) => ({
   data: {
-    attributes: contact
-  }
-})
+    attributes: contact,
+  },
+});
 
 /**
  * @api {amqp} <prefix>.contacts.add Add User Contact

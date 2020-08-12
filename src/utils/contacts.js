@@ -1,30 +1,9 @@
-const { USERS_CONTACTS, USERS_ACTION_VERIFY_CONTACT } = require('../constants');
-const vefiryAct = require('../actions/verify')
-const challengeAct = require('./challenges/challenge')
-const redisKey = require('./key')
-const handlePipeline = require('./pipeline-error');
 const { isEmpty } = require('lodash');
 const { HttpStatusError } = require('@microfleet/validation');
-
-// const parseValues = (obj) => {
-//   const newObj = Object.create({})
-
-//   for (const [key, value] of Object.entries(obj)) {
-//     newObj[key] = JSON.parse(value)
-//   }
-
-//   return newObj
-// }
-
-// const stringifyValues = (obj) => {
-//   const newObj = Object.create({})
-
-//   for (const [key, value] of Object.entries(obj)) {
-//     newObj[key] = JSON.stringify(value)
-//   }
-
-//   return newObj
-// }
+const challengeAct = require('./challenges/challenge');
+const redisKey = require('./key');
+const handlePipeline = require('./pipeline-error');
+const { USERS_CONTACTS, USERS_ACTION_VERIFY_CONTACT } = require('../constants');
 
 async function add({ userId, contact }) {
   const { redis } = this;
@@ -33,7 +12,7 @@ async function add({ userId, contact }) {
   const concatData = {
     ...contact,
     verified: false,
-    challenge_uid: null
+    challenge_uid: null,
   };
 
   const pipe = redis.pipeline();
@@ -41,7 +20,7 @@ async function add({ userId, contact }) {
   pipe.sadd(redisKey(userId, USERS_CONTACTS), contact.value);
   await pipe.exec().then(handlePipeline);
 
-  return concatData
+  return concatData;
 }
 
 async function list({ userId }) {
@@ -52,12 +31,12 @@ async function list({ userId }) {
 
   if (contacts.length) {
     const pipe = redis.pipeline();
-    contacts.forEach(kkey => pipe.hgetall(redisKey(userId, USERS_CONTACTS, kkey)));
+    contacts.forEach((kkey) => pipe.hgetall(redisKey(userId, USERS_CONTACTS, kkey)));
     const values = await pipe.exec().then(handlePipeline);
-    return values
+    return values;
   }
 
-  return []
+  return [];
 }
 
 async function challenge({ userId, contact }) {
@@ -90,9 +69,9 @@ async function verify({ userId, contact, token }) {
     action: USERS_ACTION_VERIFY_CONTACT,
     id: contact.value,
     uid: concatData.challenge_uid,
-  }
+  };
 
-  await tokenManager.verify(args, { erase: true })
+  await tokenManager.verify(args, { erase: true });
   await redis.hset(key, 'verified', true);
 
   return redis.hgetall(key);
@@ -105,12 +84,12 @@ async function remove({ userId, contact }) {
   const concatData = await redis.hgetall(key);
 
   if (!concatData || isEmpty(concatData)) {
-    throw new HttpStatusError(404)
+    throw new HttpStatusError(404);
   }
 
   const pipe = redis.pipeline();
   pipe.del(key);
-  pipe.srem(redisKey(userId, USERS_CONTACTS), contact.value)
+  pipe.srem(redisKey(userId, USERS_CONTACTS), contact.value);
 
   return pipe.exec().then(handlePipeline);
 }
@@ -121,4 +100,4 @@ module.exports = {
   verify,
   remove,
   list,
-}
+};

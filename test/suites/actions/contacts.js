@@ -1,26 +1,26 @@
 /* eslint-disable no-prototype-builtins */
 const assert = require('assert');
 const faker = require('faker');
-const { createMembers } = require('../../../helpers/organization');
 const sinon = require('sinon');
+const { createMembers } = require('../../helpers/organization');
 
-describe('#add user contact', function registerSuite() {
+describe('#user contacts', function registerSuite() {
   before(global.startService);
   before(async function pretest() {
     this.testUser = {
       username: faker.internet.email(),
       firstName: faker.name.firstName(),
       lastName: faker.name.lastName(),
-      phone: '79215555555', // faker.phone.phoneNumber('#########'),
-    }
+      phone: faker.phone.phoneNumber('#########'),
+    };
 
     const params = {
       username: this.testUser.username,
       password: '123',
-      audience: '*.localhost'
-    }
+      audience: '*.localhost',
+    };
 
-    await this.users.dispatch('register', { params })
+    await this.users.dispatch('register', { params });
 
     return createMembers.call(this, 1);
   });
@@ -53,13 +53,13 @@ describe('#add user contact', function registerSuite() {
     const response = await this.dispatch('users.contacts.list', params);
     assert(response);
     assert(response.data);
-    response.data.forEach(contact => {
+    response.data.forEach((contact) => {
       assert(contact);
       assert(contact.value);
       assert(contact.type);
       assert.equal(contact.verified, 'false');
       assert.equal(contact.challenge_uid, '');
-    })
+    });
   });
 
   it('must be able to request contact challenge', async function test() {
@@ -91,7 +91,7 @@ describe('#add user contact', function registerSuite() {
     assert.strictEqual(response.data.attributes.verified, 'false');
     assert(response.data.attributes.challenge_uid);
 
-    this.testUser.code = code
+    this.testUser.code = code;
   });
 
   it('must throw error on verify contact with wrong code', async function test() {
@@ -103,7 +103,7 @@ describe('#add user contact', function registerSuite() {
       },
     };
 
-    await assert.rejects(this.dispatch('users.contacts.verificate', params))
+    await assert.rejects(this.dispatch('users.contacts.verificate', params));
   });
 
   it('must throw error on verify contact with wrong phone', async function test() {
@@ -111,11 +111,11 @@ describe('#add user contact', function registerSuite() {
       username: this.testUser.username,
       token: this.testUser.code,
       contact: {
-        value: '79215555551',
+        value: faker.phone.phoneNumber('#########'),
       },
     };
 
-    await assert.rejects(this.dispatch('users.contacts.verificate', params))
+    await assert.rejects(this.dispatch('users.contacts.verificate', params));
   });
 
   it('must be able to verify contact', async function test() {

@@ -6,22 +6,22 @@ const handlePipeline = require('./pipeline-error');
 const { USERS_CONTACTS, USERS_ACTION_VERIFY_CONTACT } = require('../constants');
 
 const stringifyObj = (obj) => {
-  const newObj = {}
+  const newObj = Object.create(null);
   for (const [key, value] of Object.entries(obj)) {
-    newObj[key] = JSON.stringify(value)
+    newObj[key] = JSON.stringify(value);
   }
 
-  return newObj
-}
+  return newObj;
+};
 
 const parseObj = (obj) => {
-  const newObj = {}
+  const newObj = Object.create(null);
   for (const [key, value] of Object.entries(obj)) {
-    newObj[key] = JSON.parse(value)
+    newObj[key] = JSON.parse(value);
   }
 
-  return newObj
-}
+  return newObj;
+};
 
 async function add({ userId, contact }) {
   const { redis } = this;

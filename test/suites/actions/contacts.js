@@ -103,7 +103,6 @@ describe('#user contacts', function registerSuite() {
       challengeType: this.testUser.challengeType,
       uid: this.testUser.challengeId,
     };
-    console.log('params', params)
 
     const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
 

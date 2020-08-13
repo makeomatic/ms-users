@@ -3,6 +3,7 @@ const assert = require('assert');
 const faker = require('faker');
 const sinon = require('sinon');
 const { createMembers } = require('../../helpers/organization');
+// const { USERS_ACTION_VERIFY_CONTACT } = require('../../../src/constants');
 
 describe('#user contacts', function registerSuite() {
   before(global.startService);
@@ -57,8 +58,8 @@ describe('#user contacts', function registerSuite() {
       assert(contact);
       assert(contact.value);
       assert(contact.type);
-      assert.equal(contact.verified, 'false');
-      assert.equal(contact.challenge_uid, '');
+      assert.equal(contact.verified, false);
+      assert.equal(contact.challenge_uid, null);
     });
   });
 
@@ -67,6 +68,7 @@ describe('#user contacts', function registerSuite() {
       username: this.testUser.username,
       contact: {
         value: this.testUser.phone,
+        type: 'phone',
       },
     };
 
@@ -88,18 +90,45 @@ describe('#user contacts', function registerSuite() {
     assert(response.data.attributes);
     assert.equal(response.data.attributes.value, this.testUser.phone);
     assert(response.data.attributes.type);
-    assert.strictEqual(response.data.attributes.verified, 'false');
+    assert.strictEqual(response.data.attributes.verified, false);
     assert(response.data.attributes.challenge_uid);
 
-    this.testUser.code = code;
+    this.testUser.code1 = code;
+    this.testUser.challengeType = response.data.attributes.type;
+    this.testUser.challengeId = response.data.attributes.challenge_uid;
+  });
+
+  it('must be able to request disposable password', async function test() {
+    const params = {
+      challengeType: this.testUser.challengeType,
+      uid: this.testUser.challengeId,
+    };
+    console.log('params', params)
+
+    const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
+
+    amqpStub.withArgs('phone.message.predefined')
+      .resolves({ queued: true });
+
+    await this.dispatch('users.regenerate-token', params);
+
+    const { message } = amqpStub.args[0][1];
+    const code = message.match(/^(\d{4}) is your verification code/)[1];
+    amqpStub.restore();
+
+    assert(message);
+    assert(code);
+
+    this.testUser.code2 = code;
   });
 
   it('must throw error on verify contact with wrong code', async function test() {
     const params = {
       username: this.testUser.username,
-      token: '1234',
+      token: this.testUser.code1,
       contact: {
         value: this.testUser.phone,
+        type: 'phone',
       },
     };
 
@@ -109,9 +138,10 @@ describe('#user contacts', function registerSuite() {
   it('must throw error on verify contact with wrong phone', async function test() {
     const params = {
       username: this.testUser.username,
-      token: this.testUser.code,
+      token: this.testUser.code2,
       contact: {
         value: faker.phone.phoneNumber('#########'),
+        type: 'phone',
       },
     };
 
@@ -121,9 +151,10 @@ describe('#user contacts', function registerSuite() {
   it('must be able to verify contact', async function test() {
     const params = {
       username: this.testUser.username,
-      token: this.testUser.code,
+      token: this.testUser.code2,
       contact: {
         value: this.testUser.phone,
+        type: 'phone',
       },
     };
 
@@ -134,7 +165,7 @@ describe('#user contacts', function registerSuite() {
     assert(response.data.attributes);
     assert.equal(response.data.attributes.value, this.testUser.phone);
     assert(response.data.attributes.type);
-    assert.strictEqual(response.data.attributes.verified, 'true');
+    assert.strictEqual(response.data.attributes.verified, true);
     assert(response.data.attributes.challenge_uid);
   });
 
@@ -143,6 +174,7 @@ describe('#user contacts', function registerSuite() {
       username: this.testUser.username,
       contact: {
         value: this.testUser.phone,
+        type: 'phone',
       },
     };
 

@@ -5,22 +5,40 @@ const redisKey = require('./key');
 const handlePipeline = require('./pipeline-error');
 const { USERS_CONTACTS, USERS_ACTION_VERIFY_CONTACT } = require('../constants');
 
+const stringifyObj = (obj) => {
+  const newObj = {}
+  for (const [key, value] of Object.entries(obj)) {
+    newObj[key] = JSON.stringify(value)
+  }
+
+  return newObj
+}
+
+const parseObj = (obj) => {
+  const newObj = {}
+  for (const [key, value] of Object.entries(obj)) {
+    newObj[key] = JSON.parse(value)
+  }
+
+  return newObj
+}
+
 async function add({ userId, contact }) {
   const { redis } = this;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
-  const concatData = {
+  const contactData = {
     ...contact,
     verified: false,
     challenge_uid: null,
   };
 
   const pipe = redis.pipeline();
-  pipe.hmset(key, concatData);
+  pipe.hmset(key, stringifyObj(contactData));
   pipe.sadd(redisKey(userId, USERS_CONTACTS), contact.value);
   await pipe.exec().then(handlePipeline);
 
-  return concatData;
+  return contactData;
 }
 
 async function list({ userId }) {
@@ -33,7 +51,7 @@ async function list({ userId }) {
     const pipe = redis.pipeline();
     contacts.forEach((kkey) => pipe.hgetall(redisKey(userId, USERS_CONTACTS, kkey)));
     const values = await pipe.exec().then(handlePipeline);
-    return values;
+    return values.map(parseObj);
   }
 
   return [];
@@ -43,47 +61,69 @@ async function challenge({ userId, contact }) {
   const { redis } = this;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
-  const concatData = await redis.hgetall(key);
-  const { throttle, ttl } = this.config.contacts[concatData.type];
+  const contactData = await redis.hgetall(key).then(parseObj);
+  const { throttle, ttl } = this.config.contacts[contactData.type];
 
   const challengeOpts = {
     ttl,
     throttle,
     action: USERS_ACTION_VERIFY_CONTACT,
     id: contact.value,
-    ...this.config.token[concatData.type],
+    ...this.config.token[contactData.type],
   };
 
-  const { context } = await challengeAct.call(this, concatData.type, challengeOpts, concatData);
+  const { context } = await challengeAct.call(this, contactData.type, challengeOpts, contactData);
 
   await redis.hset(key, 'challenge_uid', `"${context.token.uid}"`);
-  return redis.hgetall(key);
+  return redis.hgetall(key).then(parseObj);
 }
+
+// async function retryChallenge({ userId, contact }) {
+//   const { redis } = this;
+//   const key = redisKey(userId, USERS_CONTACTS, contact.value);
+//   const contactData = await redis.hgetall(key).then(parseObj);
+
+//   const contactData = await redis.hgetall(key).then(parseObj);
+//   const { throttle, ttl } = this.config.contacts[contactData.type];
+
+//   const challengeOpts = {
+//     ttl,
+//     throttle,
+//     action: USERS_ACTION_VERIFY_CONTACT,
+//     id: contact.value,
+//     ...this.config.token[contactData.type],
+//   };
+
+//   const { context } = await challengeAct.call(this, contactData.type, challengeOpts, contactData);
+
+//   await redis.hset(key, 'challenge_uid', `"${context.token.uid}"`);
+//   return redis.hgetall(key).then(parseObj);
+// }
 
 async function verify({ userId, contact, token }) {
   const { redis, tokenManager } = this;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
-  const concatData = await redis.hgetall(key);
+  const contactData = await redis.hgetall(key).then(parseObj);
   const args = {
     token,
     action: USERS_ACTION_VERIFY_CONTACT,
     id: contact.value,
-    uid: concatData.challenge_uid,
+    uid: contactData.challenge_uid,
   };
 
   await tokenManager.verify(args, { erase: true });
   await redis.hset(key, 'verified', true);
 
-  return redis.hgetall(key);
+  return redis.hgetall(key).then(parseObj);
 }
 
 async function remove({ userId, contact }) {
   const { redis } = this;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
-  const concatData = await redis.hgetall(key);
+  const contactData = await redis.hgetall(key).then(parseObj);
 
-  if (!concatData || isEmpty(concatData)) {
+  if (!contactData || isEmpty(contactData)) {
     throw new HttpStatusError(404);
   }
 

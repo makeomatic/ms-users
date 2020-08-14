@@ -14,8 +14,8 @@ const formatData = (data) => ({ data });
  * @apiParam (Payload) {String} username -
  */
 module.exports = async function list({ params }) {
-  const userId = await getUserId.call(this, params.username)
-  const contactList = await contacts.list.call(this, { userId })
+  const userId = await getUserId.call(this, params.username);
+  const contactList = await contacts.list.call(this, { userId });
 
   return formatData(contactList);
 };

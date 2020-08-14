@@ -175,7 +175,6 @@ describe('#user contacts', function registerSuite() {
         type: 'phone',
       },
     };
-    console.log('params', params)
 
     const response = await this.dispatch('users.contacts.remove', params);
 

@@ -42,10 +42,10 @@ async function add({ userId, contact }) {
 }
 
 async function checkLimit({ userId }) {
-  const contactsLength = await this.redis.scard(redisKey(userId, USERS_CONTACTS))
+  const contactsLength = await this.redis.scard(redisKey(userId, USERS_CONTACTS));
 
   if (contactsLength >= this.config.contacts.max) {
-    throw new HttpStatusError(400, "contact limit reached")
+    throw new HttpStatusError(400, 'contact limit reached');
   }
 }
 

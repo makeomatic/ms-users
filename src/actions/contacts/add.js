@@ -1,5 +1,3 @@
-const omit = require('lodash/omit');
-const Promise = require('bluebird');
 const contacts = require('../../utils/contacts');
 const { getUserId } = require('../../utils/userData');
 
@@ -19,13 +17,12 @@ const formatData = (contact) => ({
  *
  * @apiParam (Payload) {String} username -
  */
-module.exports = function add(request) {
-  return Promise
-    .bind(this, request.params.username)
-    .then(getUserId)
-    .then((userId) => ({ ...omit(request.params, 'username'), userId }))
-    .then(contacts.add)
-    .then(formatData);
+module.exports = async function add({ params }) {
+  const userId = await getUserId.call(this, params.username);
+  await contacts.checkLimit.call(this, { userId });
+  const contact = await contacts.add.call(this, { contact: params.contact, userId });
+
+  return formatData(contact);
 };
 
 module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

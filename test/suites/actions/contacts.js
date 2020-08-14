@@ -3,7 +3,6 @@ const assert = require('assert');
 const faker = require('faker');
 const sinon = require('sinon');
 const { createMembers } = require('../../helpers/organization');
-// const { USERS_ACTION_VERIFY_CONTACT } = require('../../../src/constants');
 
 describe('#user contacts', function registerSuite() {
   before(global.startService);
@@ -131,7 +130,7 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
-    await assert.rejects(this.dispatch('users.contacts.verificate', params));
+    await assert.rejects(this.dispatch('users.contacts.verify', params));
   });
 
   it('must throw error on verify contact with wrong phone', async function test() {
@@ -144,7 +143,7 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
-    await assert.rejects(this.dispatch('users.contacts.verificate', params));
+    await assert.rejects(this.dispatch('users.contacts.verify', params));
   });
 
   it('must be able to verify contact', async function test() {
@@ -157,7 +156,7 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
-    const response = await this.dispatch('users.contacts.verificate', params);
+    const response = await this.dispatch('users.contacts.verify', params);
 
     assert(response);
     assert(response.data);
@@ -176,6 +175,7 @@ describe('#user contacts', function registerSuite() {
         type: 'phone',
       },
     };
+    console.log('params', params)
 
     const response = await this.dispatch('users.contacts.remove', params);
 

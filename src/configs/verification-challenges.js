@@ -67,3 +67,11 @@ exports.phone = {
   prefix: 'phone',
   waitChallenge: false,
 };
+
+/**
+ * User contacts settings
+ * @type {Object}
+ */
+exports.contacts = {
+  max: 5,
+};

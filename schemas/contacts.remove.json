@@ -11,8 +11,7 @@
       "maxLength": 50
     },
     "contact": {
-      "$ref": "common.json#/definitions/contact",
-      "required": ["value"]
+      "$ref": "common.json#/definitions/contact"
     }
   }
 }

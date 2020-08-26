@@ -3,7 +3,7 @@ const { HttpStatusError } = require('@microfleet/validation');
 const challengeAct = require('./challenges/challenge');
 const redisKey = require('./key');
 const handlePipeline = require('./pipeline-error');
-const { USERS_CONTACTS, USERS_ACTION_VERIFY_CONTACT } = require('../constants');
+const { USERS_CONTACTS, USERS_DEFAULT_CONTACT, USERS_ACTION_VERIFY_CONTACT } = require('../constants');
 
 const stringifyObj = (obj) => {
   const newObj = Object.create(null);
@@ -23,30 +23,38 @@ const parseObj = (obj) => {
   return newObj;
 };
 
-async function add({ userId, contact }) {
-  const { redis } = this;
-  const key = redisKey(userId, USERS_CONTACTS, contact.value);
-
-  const contactData = {
-    ...contact,
-    verified: false,
-    challenge_uid: null,
-  };
-
-  const pipe = redis.pipeline();
-  pipe.hmset(key, stringifyObj(contactData));
-  pipe.sadd(redisKey(userId, USERS_CONTACTS), contact.value);
-  await pipe.exec().then(handlePipeline);
-
-  return contactData;
-}
-
 async function checkLimit({ userId }) {
   const contactsLength = await this.redis.scard(redisKey(userId, USERS_CONTACTS));
 
   if (contactsLength >= this.config.contacts.max) {
     throw new HttpStatusError(400, 'contact limit reached');
   }
+
+  return contactsLength;
+}
+
+async function add({ userId, contact }) {
+  const { redis } = this;
+  const contactsCount = await checkLimit.call(this, { userId });
+
+  const key = redisKey(userId, USERS_CONTACTS, contact.value);
+
+  const contactData = {
+    ...contact,
+    verified: false,
+  };
+
+  const pipe = redis.pipeline();
+  pipe.hmset(key, stringifyObj(contactData));
+  pipe.sadd(redisKey(userId, USERS_CONTACTS), contact.value);
+
+  if (!contactsCount) {
+    pipe.set(redisKey(userId, USERS_DEFAULT_CONTACT), contact.value);
+  }
+
+  await pipe.exec().then(handlePipeline);
+
+  return contactData;
 }
 
 async function list({ userId }) {
@@ -83,18 +91,26 @@ async function challenge({ userId, contact }) {
   const { context } = await challengeAct.call(this, contactData.type, challengeOpts, contactData);
 
   await redis.hset(key, 'challenge_uid', `"${context.token.uid}"`);
-  return redis.hgetall(key).then(parseObj);
+
+  return {
+    ...contact,
+    challenge_uid: context.token.uid,
+  };
 }
 
 async function verify({ userId, contact, token }) {
   const { redis, tokenManager } = this;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
   const contactData = await redis.hgetall(key).then(parseObj);
+
+  if (!contactData || isEmpty(contactData)) {
+    throw new HttpStatusError(404);
+  }
+
   const args = {
     token,
     action: USERS_ACTION_VERIFY_CONTACT,
     id: contact.value,
-    uid: contactData.challenge_uid,
   };
 
   await tokenManager.verify(args, { erase: false });
@@ -113,9 +129,15 @@ async function remove({ userId, contact }) {
     throw new HttpStatusError(404);
   }
 
+  const contactsCount = await checkLimit.call(this, { userId });
+  const defaultContact = await redis.get(redisKey(userId, USERS_DEFAULT_CONTACT));
+
+  if (defaultContact === contact.value && contactsCount !== 1) {
+    throw new HttpStatusError(400, 'cannot remove default contact');
+  }
+
   await tokenManager.remove({
     id: contact.value,
-    uid: contactData.challenge_uid,
     action: USERS_ACTION_VERIFY_CONTACT,
   });
 

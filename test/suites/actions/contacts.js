@@ -42,7 +42,6 @@ describe('#user contacts', function registerSuite() {
     assert(response.data.attributes.value);
     assert(response.data.attributes.type);
     assert.strictEqual(response.data.attributes.verified, false);
-    assert.strictEqual(response.data.attributes.challenge_uid, null);
   });
 
   it('must be able to get user contacts list', async function test() {
@@ -58,7 +57,6 @@ describe('#user contacts', function registerSuite() {
       assert(contact.value);
       assert(contact.type);
       assert.equal(contact.verified, false);
-      assert.equal(contact.challenge_uid, null);
     });
   });
 
@@ -89,7 +87,6 @@ describe('#user contacts', function registerSuite() {
     assert(response.data.attributes);
     assert.equal(response.data.attributes.value, this.testUser.phone);
     assert(response.data.attributes.type);
-    assert.strictEqual(response.data.attributes.verified, false);
     assert(response.data.attributes.challenge_uid);
 
     this.testUser.code1 = code;
@@ -164,7 +161,6 @@ describe('#user contacts', function registerSuite() {
     assert.equal(response.data.attributes.value, this.testUser.phone);
     assert(response.data.attributes.type);
     assert.strictEqual(response.data.attributes.verified, true);
-    assert(response.data.attributes.challenge_uid);
   });
 
   it('must be able to remove contact', async function test() {

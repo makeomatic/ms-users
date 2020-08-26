@@ -6,6 +6,8 @@ module.exports = exports = {
   USERS_PUBLIC_INDEX: 'users-public',
   USERS_REFERRAL_INDEX: 'users-referral',
   ORGANIZATIONS_INDEX: 'organization-iterator-set',
+  USERS_DEFAULT_CONTACT: 'user-default-contact',
+
   // id mapping
   USERS_ALIAS_TO_ID: 'users-alias',
   USERS_SSO_TO_ID: 'users-sso-hash',

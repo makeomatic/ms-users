@@ -19,7 +19,6 @@ const formatData = (contact) => ({
  */
 module.exports = async function add({ params }) {
   const userId = await getUserId.call(this, params.username);
-  await contacts.checkLimit.call(this, { userId });
   const contact = await contacts.add.call(this, { contact: params.contact, userId });
 
   return formatData(contact);

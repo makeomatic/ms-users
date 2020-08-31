@@ -1,12 +1,6 @@
 const contacts = require('../../utils/contacts');
 const { getUserId } = require('../../utils/userData');
 
-const formatData = (contact) => ({
-  data: {
-    attributes: contact,
-  },
-});
-
 /**
  * @api {amqp} <prefix>.contacts.verificate
  * @apiVersion 1.0.0

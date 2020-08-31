@@ -25,7 +25,11 @@ module.exports = async function verify({ params }) {
     token: params.token,
   });
 
-  return formatData(contact);
+  return {
+    data: {
+      attributes: contact,
+    },
+  };
 };
 
 module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

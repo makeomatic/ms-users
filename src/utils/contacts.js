@@ -3,7 +3,7 @@ const { HttpStatusError } = require('@microfleet/validation');
 const challengeAct = require('./challenges/challenge');
 const redisKey = require('./key');
 const handlePipeline = require('./pipeline-error');
-const { USERS_CONTACTS, USERS_DEFAULT_CONTACT, USERS_ACTION_VERIFY_CONTACT } = require('../constants');
+const { USERS_CONTACTS, USERS_DEFAULT_CONTACT, USERS_ACTION_VERIFY_CONTACT, lockContact } = require('../constants');
 
 const stringifyObj = (obj) => {
   const newObj = Object.create(null);
@@ -36,25 +36,30 @@ async function checkLimit({ userId }) {
 async function add({ userId, contact }) {
   const { redis } = this;
   const contactsCount = await checkLimit.call(this, { userId });
+  const lock = await this.dlock.once(lockContact(contact.value));
 
-  const key = redisKey(userId, USERS_CONTACTS, contact.value);
+  try {
+    const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
-  const contactData = {
-    ...contact,
-    verified: false,
-  };
+    const contactData = {
+      ...contact,
+      verified: false,
+    };
 
-  const pipe = redis.pipeline();
-  pipe.hmset(key, stringifyObj(contactData));
-  pipe.sadd(redisKey(userId, USERS_CONTACTS), contact.value);
+    const pipe = redis.pipeline();
+    pipe.hmset(key, stringifyObj(contactData));
+    pipe.sadd(redisKey(userId, USERS_CONTACTS), contact.value);
 
-  if (!contactsCount) {
-    pipe.set(redisKey(userId, USERS_DEFAULT_CONTACT), contact.value);
+    if (!contactsCount) {
+      pipe.set(redisKey(userId, USERS_DEFAULT_CONTACT), contact.value);
+    }
+
+    await pipe.exec().then(handlePipeline);
+
+    return contactData;
+  } finally {
+    await lock.release();
   }
-
-  await pipe.exec().then(handlePipeline);
-
-  return contactData;
 }
 
 async function list({ userId }) {

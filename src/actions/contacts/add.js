@@ -1,12 +1,6 @@
 const contacts = require('../../utils/contacts');
 const { getUserId } = require('../../utils/userData');
 
-const formatData = (contact) => ({
-  data: {
-    attributes: contact,
-  },
-});
-
 /**
  * @api {amqp} <prefix>.contacts.add Add User Contact
  * @apiVersion 1.0.0
@@ -21,7 +15,11 @@ module.exports = async function add({ params }) {
   const userId = await getUserId.call(this, params.username);
   const contact = await contacts.add.call(this, { contact: params.contact, userId });
 
-  return formatData(contact);
+  return {
+    data: {
+      attributes: contact,
+    },
+  };
 };
 
 module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

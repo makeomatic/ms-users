@@ -118,6 +118,7 @@ module.exports = exports = {
   lockRegister: (username) => `users:register:${username}`,
   lockOrganization: (organizationName) => `organizations:create:${organizationName}`,
   lockTbits: (profile) => `tbits:${profile.accountId}:${profile.fanId}`,
+  lockContact: (contact) => `contact:${contact}`,
 };
 
 // embed error codes

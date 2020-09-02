@@ -95,8 +95,6 @@ async function challenge({ userId, contact }) {
 
   const { context } = await challengeAct.call(this, contactData.type, challengeOpts, contactData);
 
-  await redis.hset(key, 'challenge_uid', `"${context.token.uid}"`);
-
   return {
     ...contact,
     challenge_uid: context.token.uid,

@@ -176,6 +176,7 @@ class WebExecuter {
    */
   async rejectAuth(user) {
     await this.initiateAuth(user);
+    await Promise.delay(2000);
     const { page } = this;
     try {
       await this.page.waitForSelector('button[name=__CANCEL__]');

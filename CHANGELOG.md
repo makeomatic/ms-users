@@ -1,3 +1,16 @@
+# [14.11.0-rc.1](https://github.com/makeomatic/ms-users/compare/v14.10.2...v14.11.0-rc.1) (2020-09-10)
+
+
+### Bug Fixes
+
+* added rc release ([f1cb54a](https://github.com/makeomatic/ms-users/commit/f1cb54abc8706cc159b432e629c90d280165da82))
+* skip facebook tests ([#470](https://github.com/makeomatic/ms-users/issues/470)) ([6a9f93d](https://github.com/makeomatic/ms-users/commit/6a9f93d98bac0c186f44bb43acdfe60a15818806))
+
+
+### Features
+
+* added user contacts api ([#468](https://github.com/makeomatic/ms-users/issues/468)) ([6ad461d](https://github.com/makeomatic/ms-users/commit/6ad461df56c10069adeeed33cfac1e0a7e0ea9e0))
+
 ## [14.10.2](https://github.com/makeomatic/ms-users/compare/v14.10.1...v14.10.2) (2020-07-30)
 
 

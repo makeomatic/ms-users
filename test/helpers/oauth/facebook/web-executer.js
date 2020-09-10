@@ -137,7 +137,7 @@ class WebExecuter {
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-after-${Date.now()}.png` });
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
       await page.click('button[name=__CONFIRM__]', { delay: 100 });
-      response = await page.waitForResponse(predicate);
+      response = await page.waitForResponse(predicate, { timeout: 60000 });
     } catch (e) {
       console.error('failed to signin and navigate', e);
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });

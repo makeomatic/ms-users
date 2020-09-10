@@ -137,7 +137,7 @@ class WebExecuter {
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-after-${Date.now()}.png` });
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
       await page.click('button[name=__CONFIRM__]', { delay: 100 });
-      response = await page.waitForResponse(predicate);
+      response = await page.waitForResponse(predicate, { timeout: 60000 });
     } catch (e) {
       console.error('failed to signin and navigate', e);
       await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });
@@ -176,6 +176,7 @@ class WebExecuter {
    */
   async rejectAuth(user) {
     await this.initiateAuth(user);
+    await Promise.delay(2000);
     const { page } = this;
     try {
       await this.page.waitForSelector('button[name=__CANCEL__]');

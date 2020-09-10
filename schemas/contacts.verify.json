@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "required": [
+    "username",
+    "token",
+    "contact"
+  ],
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 50
+    },
+    "contact": {
+      "$ref": "common.json#/definitions/contact",
+      "required": ["value"]
+    },
+    "token": {
+      "type": "string"
+    }
+  }
+}

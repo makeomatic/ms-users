@@ -6,6 +6,8 @@ module.exports = exports = {
   USERS_PUBLIC_INDEX: 'users-public',
   USERS_REFERRAL_INDEX: 'users-referral',
   ORGANIZATIONS_INDEX: 'organization-iterator-set',
+  USERS_DEFAULT_CONTACT: 'user-default-contact',
+
   // id mapping
   USERS_ALIAS_TO_ID: 'users-alias',
   USERS_SSO_TO_ID: 'users-sso-hash',
@@ -19,6 +21,7 @@ module.exports = exports = {
   // hashes
   USERS_DATA: 'data',
   USERS_METADATA: 'metadata',
+  USERS_CONTACTS: 'contacts',
   USERS_TOKENS: 'tokens',
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
@@ -82,6 +85,7 @@ module.exports = exports = {
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
+  USERS_ACTION_VERIFY_CONTACT: 'verify-contact',
   USERS_ACTION_DISPOSABLE_PASSWORD: 'disposable-password',
   USERS_ACTION_PASSWORD: 'password',
   USERS_ACTION_RESET: 'reset',
@@ -114,6 +118,7 @@ module.exports = exports = {
   lockRegister: (username) => `users:register:${username}`,
   lockOrganization: (organizationName) => `organizations:create:${organizationName}`,
   lockTbits: (profile) => `tbits:${profile.accountId}:${profile.fanId}`,
+  lockContact: (contact) => `contact:${contact}`,
 };
 
 // embed error codes

@@ -268,8 +268,9 @@ describe('#facebook', function oauthFacebookSuite() {
    * Application has any access to the users Facebook profile.
    * This suite don't need to recreate user for each test and we can use one AuthToken in all tests.
    */
-  describe('new user', async () => {
+  describe('new user', async function newUserTest() {
     let generalUser;
+    this.slow(60000);
 
     before('create test user', async () => {
       generalUser = await GraphApi.createTestUser();

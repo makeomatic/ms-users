@@ -1,3 +1,10 @@
+# [14.11.0](https://github.com/makeomatic/ms-users/compare/v14.10.2...v14.11.0) (2020-09-16)
+
+
+### Features
+
+* added user contacts api ([#468](https://github.com/makeomatic/ms-users/issues/468)) ([6ad461d](https://github.com/makeomatic/ms-users/commit/6ad461df56c10069adeeed33cfac1e0a7e0ea9e0))
+
 ## [14.10.2](https://github.com/makeomatic/ms-users/compare/v14.10.1...v14.10.2) (2020-07-30)
 
 

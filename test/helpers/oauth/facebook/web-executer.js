@@ -7,9 +7,10 @@ const assert = require('assert');
 const util = require('util');
 
 const errors = require('common-errors');
+const fs = require('fs').promises;
 
 const WebExecuterTimeoutError = errors.helpers.generateClass('WebExecuterTimeoutError', {
-  args: ['status_code', 'message', 'url', 'page_contents', 'inner_error'],
+  args: ['status_code', 'message', 'url', 'page_contents', 'service_message', 'inner_error'],
 });
 
 /**
@@ -20,8 +21,9 @@ class WebExecuter {
 
   static set serviceLink(v) { this._serviceLink = v; }
 
-  constructor() {
+  constructor(testTag = 'default') {
     this._serviceLink = WebExecuter.serviceLink;
+    this.testTag = testTag;
   }
 
   async stop() {
@@ -42,6 +44,11 @@ class WebExecuter {
     });
 
     const page = this.page = await this.chrome.newPage();
+
+    // low cpu speed in semaphore causes timeout
+    page.setDefaultTimeout(60000);
+    page.setDefaultNavigationTimeout(30000);
+
     // rewrite window.close()
     await page.exposeFunction('close', () => (
       console.info('triggered window.close()')
@@ -69,19 +76,12 @@ class WebExecuter {
       const context = WebExecuter.getJavascriptContext(responseText);
       const { $ms_users_inj_post_message: serviceMessage } = context;
 
-      let pageContents;
-      if (serviceMessage !== null && typeof serviceMessage === 'object') {
-        pageContents = serviceMessage;
-      } else {
-        pageContents = responseText;
-      }
-
       const message = `
         ${e.message}:
-        Page contents: ${util.inspect(pageContents, { depth: null })}
+        Page contents: ${util.inspect({ responseText, serviceMessage }, { depth: null })}
       `;
 
-      throw new WebExecuterTimeoutError(statusCode, message, lastUrl, pageContents, e);
+      throw new WebExecuterTimeoutError(statusCode, message, lastUrl, responseText, serviceMessage, e);
     }
 
     throw e;
@@ -93,22 +93,25 @@ class WebExecuter {
    * Enters users credentials and presses on login button
    */
   async initiateAuth(user) {
-    const { _serviceLink, page } = this;
+    const { _serviceLink, page, testTag } = this;
     const executeLink = `${_serviceLink}/users/oauth/facebook`;
+    const { email } = user;
+
+    await fs.writeFile(`./ss/${email}-data.json`, JSON.stringify({ fbUser: user }, null, 2));
 
     try {
       await page.goto(executeLink, { waitUntil: 'networkidle2' });
-      await page.screenshot({ fullPage: true, path: './ss/1.png' });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-1.png` });
       await page.waitForSelector('input#email');
       await page.type('input#email', user.email, { delay: 100 });
-      await page.screenshot({ fullPage: true, path: './ss/2.png' });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-2.png` });
       await page.waitForSelector('input#pass');
       await page.type('input#pass', user.password, { delay: 100 });
-      await page.screenshot({ fullPage: true, path: './ss/3.png' });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-3.png` });
       await page.click('button[name=login]', { delay: 100 });
     } catch (e) {
       console.error('failed to initiate auth', e);
-      await page.screenshot({ fullPage: true, path: `./ss/initiate-auth-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-initiate-auth-${Date.now()}.png` });
       await this.processPageError(e);
     }
   }
@@ -123,24 +126,25 @@ class WebExecuter {
    */
   async signInAndNavigate(user, predicate, permissionIndex = 2) {
     await this.initiateAuth(user);
-    const { page } = this;
+    const { page, testTag } = this;
+    const { email } = user;
     let response;
     try {
       await page.waitForSelector('#platformDialogForm a[id]', { visible: true });
-      await page.screenshot({ fullPage: true, path: `./ss/sandnav-initial-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-sandnav-initial-${Date.now()}.png` });
       await page.click('#platformDialogForm a[id]', { delay: 100 });
       await Promise.delay(500);
-      await page.screenshot({ fullPage: true, path: `./ss/sandnav-before-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-sandnav-before-${Date.now()}.png` });
       await page.waitForSelector(`#platformDialogForm label:nth-child(${permissionIndex})`, { visible: true });
       await page.click(`#platformDialogForm label:nth-child(${permissionIndex})`, { delay: 100 });
       await Promise.delay(500);
-      await page.screenshot({ fullPage: true, path: `./ss/sandnav-after-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-sandnav-after-${Date.now()}.png` });
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
       await page.click('button[name=__CONFIRM__]', { delay: 100 });
       response = await page.waitForResponse(predicate, { timeout: 60000 });
     } catch (e) {
       console.error('failed to signin and navigate', e);
-      await page.screenshot({ fullPage: true, path: `./ss/sandnav-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-sandnav-${Date.now()}.png` });
       await this.processPageError(e);
     }
 
@@ -157,14 +161,16 @@ class WebExecuter {
     await this.initiateAuth(user);
     await Promise.delay(1000);
 
-    const { page } = this;
+    const { page, testTag } = this;
+    const { email } = user;
+
     try {
       await page.waitForSelector('button[name=__CONFIRM__]');
-      await page.screenshot({ fullPage: true, path: `./ss/authenticate-accept-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-authenticate-accept-${Date.now()}.png` });
       await page.click('button[name=__CONFIRM__]', { delay: 100 });
     } catch (e) {
       console.error('failed to authenticate', e);
-      await page.screenshot({ fullPage: true, path: `./ss/authenticate-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-authenticate-${Date.now()}.png` });
       await this.processPageError(e);
     }
   }
@@ -177,14 +183,15 @@ class WebExecuter {
   async rejectAuth(user) {
     await this.initiateAuth(user);
     await Promise.delay(2000);
-    const { page } = this;
+    const { page, testTag } = this;
+    const { email } = user;
     try {
       await this.page.waitForSelector('button[name=__CANCEL__]');
       await this.page.click('button[name=__CANCEL__]');
       return await this.navigatePage();
     } catch (e) {
       console.error('failed to rejectAuth', e);
-      await page.screenshot({ fullPage: true, path: `./ss/declined-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-declined-${Date.now()}.png` });
       await this.processPageError(e);
     }
 
@@ -197,8 +204,8 @@ class WebExecuter {
    * @returns {Promise<{body: *, token: *}> | void}
    */
   async getToken(user) {
-    const { page } = this;
-
+    const { page, testTag } = this;
+    const { email } = user;
     await this.authenticate(user);
     await Promise.all([
       this.navigatePage(), // so that refresh works, etc
@@ -216,7 +223,7 @@ class WebExecuter {
       };
     } catch (e) {
       console.error('failed to getToken', e);
-      await page.screenshot({ fullPage: true, path: `./ss/token-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-token-${Date.now()}.png` });
       await this.processPageError(e);
     }
 

@@ -3,11 +3,14 @@ const cheerio = require('cheerio');
 const puppeteer = require('puppeteer');
 const Promise = require('bluebird');
 const assert = require('assert');
+const path = require('path');
 
 const util = require('util');
 
 const errors = require('common-errors');
 const fs = require('fs').promises;
+
+const DEBUG_DIR = './ss';
 
 const WebExecuterTimeoutError = errors.helpers.generateClass('WebExecuterTimeoutError', {
   args: ['status_code', 'message', 'url', 'page_contents', 'service_message', 'inner_error'],
@@ -21,9 +24,10 @@ class WebExecuter {
 
   static set serviceLink(v) { this._serviceLink = v; }
 
-  constructor(testTag = 'default') {
+  constructor(testTag = 'default', debugDir = DEBUG_DIR) {
     this._serviceLink = WebExecuter.serviceLink;
     this.testTag = testTag;
+    this.debugDir = debugDir;
   }
 
   async stop() {
@@ -93,25 +97,25 @@ class WebExecuter {
    * Enters users credentials and presses on login button
    */
   async initiateAuth(user) {
-    const { _serviceLink, page, testTag } = this;
+    const { _serviceLink, page } = this;
     const executeLink = `${_serviceLink}/users/oauth/facebook`;
     const { email } = user;
 
-    await fs.writeFile(`./ss/${email}-data.json`, JSON.stringify({ fbUser: user }, null, 2));
+    await fs.writeFile(this.getDebugFilename(`${email}-data.json`), JSON.stringify({ fbUser: user }, null, 2));
 
     try {
       await page.goto(executeLink, { waitUntil: 'networkidle2' });
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-1.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-1.png`) });
       await page.waitForSelector('input#email');
       await page.type('input#email', user.email, { delay: 100 });
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-2.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-2.png`) });
       await page.waitForSelector('input#pass');
       await page.type('input#pass', user.password, { delay: 100 });
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-3.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-3.png`) });
       await page.click('button[name=login]', { delay: 100 });
     } catch (e) {
       console.error('failed to initiate auth', e);
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-initiate-auth-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-initiate-auth.png`) });
       await this.processPageError(e);
     }
   }
@@ -126,25 +130,25 @@ class WebExecuter {
    */
   async signInAndNavigate(user, predicate, permissionIndex = 2) {
     await this.initiateAuth(user);
-    const { page, testTag } = this;
+    const { page } = this;
     const { email } = user;
     let response;
     try {
       await page.waitForSelector('#platformDialogForm a[id]', { visible: true });
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-sandnav-initial-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-sandnav-initial.png`) });
       await page.click('#platformDialogForm a[id]', { delay: 100 });
       await Promise.delay(500);
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-sandnav-before-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-sandnav-before.png`) });
       await page.waitForSelector(`#platformDialogForm label:nth-child(${permissionIndex})`, { visible: true });
       await page.click(`#platformDialogForm label:nth-child(${permissionIndex})`, { delay: 100 });
       await Promise.delay(500);
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-sandnav-after-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-sandnav-after.png`) });
       await page.waitForSelector('button[name=__CONFIRM__]', { visible: true });
       await page.click('button[name=__CONFIRM__]', { delay: 100 });
       response = await page.waitForResponse(predicate, { timeout: 60000 });
     } catch (e) {
       console.error('failed to signin and navigate', e);
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-sandnav-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-sandnav.png`) });
       await this.processPageError(e);
     }
 
@@ -161,16 +165,16 @@ class WebExecuter {
     await this.initiateAuth(user);
     await Promise.delay(1000);
 
-    const { page, testTag } = this;
+    const { page } = this;
     const { email } = user;
 
     try {
       await page.waitForSelector('button[name=__CONFIRM__]');
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-authenticate-accept-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-authenticate-accept.png`) });
       await page.click('button[name=__CONFIRM__]', { delay: 100 });
     } catch (e) {
       console.error('failed to authenticate', e);
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-authenticate-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-authenticate.png`) });
       await this.processPageError(e);
     }
   }
@@ -183,7 +187,7 @@ class WebExecuter {
   async rejectAuth(user) {
     await this.initiateAuth(user);
     await Promise.delay(2000);
-    const { page, testTag } = this;
+    const { page } = this;
     const { email } = user;
     try {
       await this.page.waitForSelector('button[name=__CANCEL__]');
@@ -191,7 +195,7 @@ class WebExecuter {
       return await this.navigatePage();
     } catch (e) {
       console.error('failed to rejectAuth', e);
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-declined-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-declined.png`) });
       await this.processPageError(e);
     }
 
@@ -204,7 +208,7 @@ class WebExecuter {
    * @returns {Promise<{body: *, token: *}> | void}
    */
   async getToken(user) {
-    const { page, testTag } = this;
+    const { page } = this;
     const { email } = user;
     await this.authenticate(user);
     await Promise.all([
@@ -223,7 +227,7 @@ class WebExecuter {
       };
     } catch (e) {
       console.error('failed to getToken', e);
-      await page.screenshot({ fullPage: true, path: `./ss/${testTag}-${email}-token-${Date.now()}.png` });
+      await page.screenshot({ fullPage: true, path: this.getDebugFilename(`${email}-token.png`) });
       await this.processPageError(e);
     }
 
@@ -280,6 +284,10 @@ class WebExecuter {
     console.info('%s - %s', status, url);
 
     return { body, status, url };
+  }
+
+  getDebugFilename(name) {
+    return path.join(`${this.debugDir}`, `${this.testTag}-${Date.now()}-${name}`);
   }
 
   /**

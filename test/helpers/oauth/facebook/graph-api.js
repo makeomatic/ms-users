@@ -18,8 +18,8 @@ class GraphAPI {
    * @param props
    * @returns {*}
    */
-  static createTestUser(props = {}) {
-    return this.graphApi({
+  static async createTestUser(props = {}) {
+    const newUser = await this.graphApi({
       uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
       method: 'POST',
       body: {
@@ -27,6 +27,22 @@ class GraphAPI {
         ...props,
       },
     });
+
+    // In some cases Facebook API returns test user without email:
+    // {
+    //   "id": "111779840675519",
+    //   "login_url": "https://developers.facebook.com/checkpoint/test...",
+    //   "email": "",
+    //   "password": "153058002"
+    // }
+    // Delete current and try to create new one.
+    const { email } = newUser;
+    if (typeof email !== 'string' && email.length === 0) {
+      await GraphAPI.deleteTestUser(newUser);
+      return GraphAPI.createTestUser(props);
+    }
+
+    return newUser;
   }
 
   /**

@@ -9,6 +9,7 @@ const forEach = require('lodash/forEach');
 
 const GraphApi = require('../../../helpers/oauth/facebook/graph-api');
 const WebExecuter = require('../../../helpers/oauth/facebook/web-executer');
+const GraphAPI = require('../../../helpers/oauth/facebook/graph-api');
 
 /* Set our service url */
 WebExecuter.serviceLink = 'https://ms-users.local';
@@ -74,6 +75,7 @@ describe('#facebook', function oauthFacebookSuite() {
   /* Restart service before each test to achieve clean database. */
   beforeEach('start', async () => {
     service = await global.startService(this.testConfig);
+    GraphAPI.log = service.log;
   });
 
   afterEach('stop', async () => {

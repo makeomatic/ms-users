@@ -52,6 +52,7 @@ class WebExecuter {
     // low cpu speed in semaphore causes timeout
     page.setDefaultTimeout(60000);
     page.setDefaultNavigationTimeout(30000);
+    await page.setCacheEnabled(false);
 
     // rewrite window.close()
     await page.exposeFunction('close', () => (

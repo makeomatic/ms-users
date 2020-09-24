@@ -24,6 +24,7 @@ class GraphAPI {
       method: 'POST',
       body: {
         installed: false,
+        permissions: 'public_profile,email',
         ...props,
       },
     });
@@ -35,6 +36,7 @@ class GraphAPI {
     //   "email": "",
     //   "password": "153058002"
     // }
+    //
     // Delete current and try to create new one.
     const { email } = newUser;
     if (typeof email !== 'string' || email.length === 0) {

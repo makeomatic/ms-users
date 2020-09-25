@@ -635,6 +635,9 @@
           "type": "boolean"
         }
       }
+    },
+    "cfAccessList": {
+      "$ref": "#/definitions/cfAccessList"
     }
   },
   "definitions": {
@@ -697,6 +700,103 @@
         },
         "limitUserIp": {
           "$ref": "#/definitions/slidingWindowRateLimiter"
+        }
+      }
+    },
+    "cfAccessList": {
+      "type": "object",
+      "description": "Cloudflare account and access list configuration",
+      "required": [ "enabled" ],
+      "if": {"properties": { "enabled": { "const": true } } },
+      "then": {
+        "required": [ "auth", "accessList", "worker" ],
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "auth": {
+            "description": "API access configuration [https://api.cloudflare.com/#getting-started-requests]",
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [ "token" ],
+                "properties": {
+                  "token": { "type": "string", "minLength": 10, "maxLength": 128 }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["serviceKey"],
+                "properties": {
+                  "serviceKey": { "type": "string", "minLength": 10, "maxLength": 128 }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [ "email", "key" ],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "key": { "type": "string", "minLength": 10, "maxLength": 128 }
+                }
+              }
+            ]
+          },
+          "api": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "retry": {
+                "type": "object",
+                "description": "Bulk operation wait configuration [https://www.npmjs.com/package/p-retry#options]"
+              }
+            }
+          },
+          "accessList": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [ "accountId", "ttl", "listCacheTTL" ],
+            "properties": {
+              "prefix": {
+                "type": "string",
+                "description": "Use only lists that start with a prefix"
+              },
+              "accountId": {
+                "type": "string",
+                "description": "Cloudflare account id with managed lists",
+                "minLength": 10,
+                "maxLength": 128
+              },
+              "ttl": {
+                "type": "number",
+                "description": "Milliseconds to hold the IP address in access list",
+                "minimum": 60000
+              },
+              "listCacheTTL": {
+                "type": "number",
+                "description": "Milliseconds to wait before dropping cached lists information",
+                "minimum": 15000
+              }
+            }
+          },
+          "worker": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [ "cleanupInterval", "concurrency", "enabled" ],
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "cleanupInterval": {
+                "type": "number",
+                "description": "Milliseconds to wait between lists cleanup",
+                "minimum": 2000
+              },
+              "concurrency": {
+                "type": "number",
+                "description": "The number of lists to process in parallel",
+                "minimum": 1
+              }
+            }
+          }
         }
       }
     }

@@ -48,4 +48,22 @@ module.exports = {
       enabled: true,
     },
   },
+  cfAccessList: {
+    enabled: true,
+    auth: {
+      token: process.env.CF_TOKEN,
+    },
+    accessList: {
+      accountId: process.env.CF_ACCOUNT_ID,
+      prefix: 'test_',
+    },
+    worker: {
+      enabled: false,
+    },
+  },
+  consul: {
+    base: {
+      host: 'consul',
+    },
+  },
 };

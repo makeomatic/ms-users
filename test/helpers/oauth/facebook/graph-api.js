@@ -18,15 +18,34 @@ class GraphAPI {
    * @param props
    * @returns {*}
    */
-  static createTestUser(props = {}) {
-    return this.graphApi({
+  static async createTestUser(props = {}) {
+    const newUser = await this.graphApi({
       uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
       method: 'POST',
       body: {
         installed: false,
+        permissions: 'public_profile,email',
         ...props,
       },
     });
+
+    // In some cases Facebook API returns test user without email:
+    // {
+    //   "id": "111779840675519",
+    //   "login_url": "https://developers.facebook.com/checkpoint/test...",
+    //   "email": "",
+    //   "password": "153058002"
+    // }
+    //
+    // Delete current and try to create new one.
+    const { email } = newUser;
+    if (typeof email !== 'string' || email.length === 0) {
+      GraphAPI.log.error({ newUser }, 'Empty user. Try create again');
+      await GraphAPI.deleteTestUser(newUser);
+      return GraphAPI.createTestUser(props);
+    }
+    GraphAPI.log.debug({ newUser }, 'GAPI: created new user');
+    return newUser;
   }
 
   /**
@@ -34,13 +53,17 @@ class GraphAPI {
    * @param facebook user
    * @returns {Promise<*>}
    */
-  static deleteTestUser(user) {
+  static async deleteTestUser(user) {
     this.checkUser(user);
 
-    return this.graphApi({
+    const result = await this.graphApi({
       uri: `${user.id}`,
       method: 'DELETE',
     });
+
+    GraphAPI.log.debug({ user, result }, 'GAPI: delete user');
+
+    return result;
   }
 
   /**
@@ -49,13 +72,17 @@ class GraphAPI {
    * @param facebook user
    * @returns {Promise<*>}
    */
-  static deAuthApplication(user) {
+  static async deAuthApplication(user) {
     this.checkUser(user);
 
-    return this.graphApi({
+    const result = await this.graphApi({
       uri: `/${user.id}/permissions`,
       method: 'DELETE',
     });
+
+    GraphAPI.log.debug({ user, result }, 'GAPI: deauth application for user');
+
+    return result;
   }
 
   /**
@@ -64,14 +91,18 @@ class GraphAPI {
    * @param permission
    * @returns {Promise<*>}
    */
-  static deletePermission(user, permission) {
+  static async deletePermission(user, permission) {
     this.checkUser(user);
     assert(permission, 'No `permission` provided');
 
-    return this.graphApi({
+    const result = await this.graphApi({
       uri: `/${user.id}/permissions/${permission}`,
       method: 'DELETE',
     });
+
+    GraphAPI.log.debug({ user, result }, 'GAPI: delete permission for user');
+
+    return result;
   }
 }
 
@@ -83,5 +114,7 @@ GraphAPI.graphApi = request.defaults({
   json: true,
   timeout: 40000,
 });
+
+GraphAPI.log = null;
 
 module.exports = GraphAPI;

@@ -9,6 +9,7 @@ const forEach = require('lodash/forEach');
 
 const GraphApi = require('../../../helpers/oauth/facebook/graph-api');
 const WebExecuter = require('../../../helpers/oauth/facebook/web-executer');
+const GraphAPI = require('../../../helpers/oauth/facebook/graph-api');
 
 /* Set our service url */
 WebExecuter.serviceLink = 'https://ms-users.local';
@@ -43,8 +44,10 @@ function checkServiceMissingPermissionsResponse(context) {
   assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
 }
 
-describe.skip('#facebook', function oauthFacebookSuite() {
+describe('#facebook', function oauthFacebookSuite() {
   let service;
+
+  this.timeout(240000); // increase timeout
 
   /**
    * Creates new account in `ms-users` service.
@@ -72,6 +75,7 @@ describe.skip('#facebook', function oauthFacebookSuite() {
   /* Restart service before each test to achieve clean database. */
   beforeEach('start', async () => {
     service = await global.startService(this.testConfig);
+    GraphAPI.log = service.log;
   });
 
   afterEach('stop', async () => {
@@ -287,7 +291,7 @@ describe.skip('#facebook', function oauthFacebookSuite() {
       let fb;
 
       beforeEach('start WebExecuter', async () => {
-        fb = new WebExecuter();
+        fb = new WebExecuter('general-checks');
         await fb.start();
       });
 
@@ -321,7 +325,7 @@ describe.skip('#facebook', function oauthFacebookSuite() {
 
       /* Should be 'before' hook, but Mocha executes it before starting our service.  */
       before('start WebExecuter', async () => {
-        fb = new WebExecuter();
+        fb = new WebExecuter('register-create-detach');
       });
 
       beforeEach('get Facebook token', async () => {
@@ -437,7 +441,7 @@ describe.skip('#facebook', function oauthFacebookSuite() {
       /* Should be 'before' hook, but Mocha executes it before starting our service.  */
       beforeEach('init WebExecuter, get Facebook token, register user', async () => {
         if (!fb || typeof fb === 'undefined') {
-          fb = new WebExecuter();
+          fb = new WebExecuter('login-attach');
           await fb.start();
           ({ token } = await fb.getToken(generalUser));
         }
@@ -575,7 +579,7 @@ describe.skip('#facebook', function oauthFacebookSuite() {
     });
 
     beforeEach('start WebExecuter', async () => {
-      fb = new WebExecuter();
+      fb = new WebExecuter('partial-user');
       await fb.start();
     });
 

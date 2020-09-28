@@ -10,6 +10,7 @@ const Flakeless = require('ms-flakeless');
 const conf = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
+const { CloudflareWorker } = require('./utils/cloudflare/worker');
 
 /**
  * @namespace Users
@@ -139,6 +140,16 @@ class Users extends Microfleet {
         this.tbits = new TbitsRelay(this);
       }, 'tbits');
     }
+
+    this.addConnector(ConnectorsTypes.application, () => {
+      this.cfWorker = new CloudflareWorker(this);
+      this.cfWhiteList = this.cfWorker.cfList;
+      this.cfWorker.start();
+    });
+
+    this.addDestructor(ConnectorsTypes.application, () => {
+      this.cfWorker.stop();
+    });
 
     // init account seed
     this.addConnector(ConnectorsTypes.application, () => (

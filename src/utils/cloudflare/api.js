@@ -40,7 +40,7 @@ class CloudflareAPI {
 
   async getListItems(listId, cursor) {
     const { accountId } = this.props;
-    return this.client.get(`accounts/${accountId}/rules/lists/${listId}/items`, { json: { cursor } });
+    return this.client.get(`accounts/${accountId}/rules/lists/${listId}/items`, { searchParams: { cursor } });
   }
 
   async waitListOperation(operationId) {
@@ -49,7 +49,7 @@ class CloudflareAPI {
     // https://api.cloudflare.com/#rules-lists-get-bulk-operation
     await retry(async (retryFn) => {
       try {
-        const { result } = await this.client.get(`accounts/${accountId}/rules/lists/bulk_operations/${operationId}`);
+        const result = await this.client.get(`accounts/${accountId}/rules/lists/bulk_operations/${operationId}`);
         if (result.error) {
           throw new CF_ERROR(result.message, result.error);
         }
@@ -63,21 +63,27 @@ class CloudflareAPI {
 
   async createListItems(listId, items) {
     assert(Array.isArray(items) && items.length > 0, 'should provide array of items');
+
     const { accountId } = this.props;
     const toCreate = items.map((ip) => ({ ip }));
-    console.debug('createListItemRequest', { listId, toCreate });
-    const response = await this.client.post(`accounts/${accountId}/rules/lists/${listId}/items`, { json: toCreate });
-    console.debug('createListItemResponse', response);
-    const { result: { operation_id: operationId } } = response;
+
+    const { result: { operation_id: operationId } } = await this.client
+      .post(`accounts/${accountId}/rules/lists/${listId}/items`, { json: toCreate });
+
     const operationResult = await this.waitListOperation(operationId);
+
     return operationResult;
   }
 
   async deleteListItems(listId, items) {
     assert(Array.isArray(items) && items.length > 0, 'should provide array of items');
+
     const { accountId } = this.props;
     const toDelete = items.map((id) => ({ id }));
-    const { result: { operationId } } = this.client.delete(`accounts/${accountId}/rules/lists/${listId}/items`, { json: toDelete });
+
+    const { result: { operation_id: operationId } } = await this.client
+      .delete(`accounts/${accountId}/rules/lists/${listId}/items`, { json: toDelete });
+
     const operationResult = await this.waitListOperation(operationId);
     return operationResult;
   }

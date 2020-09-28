@@ -4,100 +4,134 @@ const { helpers: { generateClass } } = require('common-errors');
 
 const handlePipeline = require('../pipeline-error');
 
-const IP_LIST = 'cf:pass-rate-limit';
 const CF_IP_LIST_INFO = 'cf:available-lists';
 const IP_TO_LIST = 'cf:ip-to-list';
-
-const CF_IP_LIST_MAX = 10;
-const delimiter = ':';
+const CF_IP_LIST_MAX = 1000;
 
 const ListFullError = generateClass('ListFullError', { args: ['message', 'lists'] });
 
 class CloudflareIPList {
-  constructor(service, config) {
+  constructor(service, api, config) {
     assert(service instanceof Microfleet, 'ms-users instance required');
+
     this.service = service;
     this.redis = service.redis;
-    this.cfApi = service.cfApi.withAccountId(config.accountId);
+    this.cfApi = api.withAccountId(config.accountId);
+    this.config = config;
   }
 
-  async ipExists(ip) {
-    return this.redis.hget(IP_TO_LIST, ip);
+  async findRuleListId(ip) {
+    const listId = await this.redis.hget(IP_TO_LIST, ip);
+    return listId;
+  }
+
+  async touchIP(ip, list) {
+    return this.cfApi.createListItems(list, [ip]);
   }
 
   async addIP(ip) {
-    const ips = Array.isArray(ip) ? ip : [ip];
-    const freeList = await this.findFreeList();
-    await this.cfApi.createListItems(freeList, ips);
+    const freeList = await this.findFreeLists();
+    await this.cfApi.createListItems(freeList, [ip]);
 
     const pipeline = this.redis.multi();
-
-    pipeline.zadd(IP_LIST, Date.now(), ip);
     pipeline.hset(IP_TO_LIST, ip, freeList);
-    pipeline.zincrby(CF_IP_LIST_INFO, ips.length, freeList);
+    pipeline.zincrby(CF_IP_LIST_INFO, 1, freeList);
 
     const result = await pipeline.exec();
 
-    handlePipeline(result);
+    return handlePipeline(result);
   }
 
-  async cleanupList() {
-    const outdatedIps = await this.redis.zrevrangebyscore(CF_IP_LIST_INFO, '-inf', Date.now() - month);
-    const byIpList = {};
+  async cleanupList(listId) {
+    const ipsGenerator = this.getListIPsGenerator(this, listId);
+    const outdatedGenerator = this.findOutdatedGenerator(this.config.ttl, ipsGenerator);
 
-    outdatedIps.forEach((record) => {
-      const [ip, listId] = record.split(delimiter);
-      if (!byIpList[listId]) byIpList[listId] = [];
-      byIpList[listId].push(ip);
-    });
-
-    const deletePromises = Object.entries(byIpList).map(async ([listId, ips]) => {
-      await this.cfApi.deleteListItems(listId, ips);
-      await this.redis.zincrby(CF_IP_LIST_INFO, 0 - ips.length, listId);
-    });
-
-    // eslint-disable-next-line promise/no-native
-    await Promise.allSettled(deletePromises);
+    for await (const chunk of outdatedGenerator) {
+      if (Array.isArray(chunk) || chunk.length > 0) {
+        await this.cfApi.deleteListItems(listId, chunk);
+        await this.redis.hdel(IP_TO_LIST, ...chunk);
+      }
+    }
   }
 
-  async findListIds(ips) {
-    const ids = await this.redis.hmget(IP_TO_LIST, ips);
-    return ids;
+  async resyncList(listId) {
+    const ipsGenerator = this.getListIPsGenerator(this, listId);
+    const multi = this.redis.multi();
+    const tempKey = `${IP_TO_LIST}-old`;
+
+    for await (const chunk of ipsGenerator) {
+      multi.hmset(tempKey, ...chunk.map((ip) => [ip, listId]));
+    }
+
+    multi.del(IP_TO_LIST);
+    multi.rename(tempKey, IP_TO_LIST);
+
+    return handlePipeline(await multi.exec());
   }
 
   async findFreeList() {
-    const lists = await this.getCfLists();
-    console.debug('lists', lists);
-    const emptyList = Object.entries(lists).find(([, v]) => v < CF_IP_LIST_MAX);
-    if (!emptyList) {
-      throw new ListFullError('no free list', lists);
-    }
-    return emptyList[0];
+    const lists = await this.getCFLists();
+    const availableList = Object.entries(lists)
+      .sort(([, aItemCount], [, bItemCount]) => aItemCount - bItemCount)
+      .find(([, itemCount]) => itemCount < CF_IP_LIST_MAX);
+
+    if (!availableList) throw new ListFullError('no free list', lists);
+
+    return availableList[0];
   }
 
-  async getCfLists() {
-    const listInfo = await this.redis.zrevrangebyscore(CF_IP_LIST_INFO, 0, -1, 'WITHSCORES');
-    console.debug('listInfo', { listInfo });
-    if (listInfo.length > 0) {
-      return listInfo.reduce((a, b) => { a[b] = ''; return a; }, {});
+  async* findOutdatedGenerator(ipList) {
+    for await (const chunk of ipList) {
+      yield chunk.filter((ip) => Date.now() - this.config.ttl > Date.parse(ip.modified_on));
     }
+  }
+
+  async* getListIPsGenerator(listId) {
+    let done = false;
+    let cursor;
+
+    while (!done) {
+      // eslint-disable-next-line no-await-in-loop
+      const { result_info: { cursors: after }, result } = await this.getIPs(listId, cursor);
+      if (!after) done = true;
+      yield result;
+    }
+  }
+
+  /** Get remote IPs */
+  async getIPs(listId, cursor) {
+    return this.cfApi.getListItems(listId, cursor);
+  }
+
+  /** Get Cloudflare Rule lists */
+  async getCFLists() {
+    const { redis } = this;
+    const listInfo = await redis.zrevrangebyscore(CF_IP_LIST_INFO, 0, -1, 'WITHSCORES');
+
+    if (listInfo.length > 0) {
+      return listInfo.reduce((a, b) => {
+        a[b] = ''; return a;
+      }, {});
+    }
+
     return this.loadCfLists();
   }
 
+  /** Download and save Clouflare Rule lists into cache */
   async loadCfLists() {
     const { result: lists } = await this.cfApi.getLists();
-    console.debug('got lists', lists);
-    const pipeline = this.redis.pipeline();
     const listsObject = {};
 
+    const pipeline = this.redis.pipeline();
     pipeline.del(CF_IP_LIST_INFO);
+
     lists.forEach(({ id, num_items: numItems }) => {
-      console.debug('add', { id, numItems });
       pipeline.zadd(CF_IP_LIST_INFO, numItems, id);
       listsObject[id] = numItems;
     });
 
-    pipeline.expire(CF_IP_LIST_INFO, 50000); // @TODO
+    pipeline.expire(CF_IP_LIST_INFO, this.config.listCacheTTL);
+
     handlePipeline(await pipeline.exec());
 
     return listsObject;

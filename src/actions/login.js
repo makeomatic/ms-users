@@ -217,7 +217,11 @@ async function login({ params, locals }) {
   isBanned(internalData);
 
   // retrieves complete information and returns it
-  return getUserInfo(ctx, internalData);
+  const userInfo = getUserInfo(ctx, internalData);
+
+  await this.service.hook('user:login', userInfo, params);
+
+  return userInfo;
 }
 
 login.mfa = MFA_TYPE_OPTIONAL;

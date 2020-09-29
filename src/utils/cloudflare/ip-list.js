@@ -33,7 +33,7 @@ class CloudflareIPList {
     const freeList = await this.findFreeLists();
     await this.cfApi.createListItems(freeList, [ip]);
 
-    const pipeline = this.redis.multi();
+    const pipeline = this.redis.pipeline();
     pipeline.hset(IP_TO_LIST, ip, freeList);
     pipeline.zincrby(CF_IP_LIST_INFO, 1, freeList);
 
@@ -56,17 +56,17 @@ class CloudflareIPList {
 
   async resyncList(listId) {
     const ipsGenerator = this.getListIPsGenerator(this, listId);
-    const multi = this.redis.multi();
+    const pipeline = this.redis.pipeline();
     const tempKey = `${IP_TO_LIST}-old`;
 
     for await (const chunk of ipsGenerator) {
-      multi.hmset(tempKey, ...chunk.map((ip) => [ip, listId]));
+      pipeline.hmset(tempKey, ...chunk.map((ip) => [ip, listId]));
     }
 
-    multi.del(IP_TO_LIST);
-    multi.rename(tempKey, IP_TO_LIST);
+    pipeline.del(IP_TO_LIST);
+    pipeline.rename(tempKey, IP_TO_LIST);
 
-    return handlePipeline(await multi.exec());
+    return handlePipeline(await pipeline.exec());
   }
 
   async findFreeList() {

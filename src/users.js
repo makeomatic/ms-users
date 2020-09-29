@@ -143,7 +143,7 @@ class Users extends Microfleet {
 
     this.addConnector(ConnectorsTypes.application, () => {
       this.cfWorker = new CloudflareWorker(this);
-      this.cfWhiteList = this.cfWorker.cfList;
+      this.cfAccessList = this.cfWorker.cfList;
       this.cfWorker.start();
     });
 

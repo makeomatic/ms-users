@@ -4,11 +4,11 @@
  * @return {Promise}
  */
 module.exports = async function registerUserIp(userData, params) {
-  const { amqp } = this;
-  const route = 'users.cf.white-list';
+  const { amqp, config: { router: { routes } } } = this;
+  const route = `${routes.prefix ? `${routes.prefix}.` : ''}cf.white-list`;
   const { remoteIp } = params;
 
   if (remoteIp !== false && userData.metadata.plan !== 'free') {
-    await amqp.publish(route, { ip: remoteIp });
+    await amqp.publish(route, { remoteIp });
   }
 };

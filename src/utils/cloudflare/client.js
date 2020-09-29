@@ -3,12 +3,24 @@ const got = require('got');
 const { helpers: { generateClass } } = require('common-errors');
 
 const API_URL = 'https://api.cloudflare.com/client/v4/';
-const CF_ERROR = generateClass('CfAPIError', { args: ['messages', 'errors'] });
 
-const has = (obj, prop) => Object.getOwnPropertyNames(obj).includes(prop);
+// https://api.cloudflare.com/#getting-started-responses
+const CfAPIError = generateClass('CfAPIError', {
+  args: ['messages', 'errors'],
+  generateMessage() {
+    const errors = this.errors ? this.errors.map((e) => `[${e.code}] ${e.message}`) : '';
+    const messages = this.messages ? ` Messages: ${this.messages.join(',')}` : '';
+    const message = `${errors}${messages}`;
+    return `CfApiError: ${message}`;
+  },
+});
+
+const has = (obj, prop) => Object.hasOwnProperty.call(obj, prop);
 
 class CloudflareClient {
   constructor(opts) {
+    assert(typeof opts === 'object', 'configuration required');
+
     this.client = got.extend({
       headers: CloudflareClient.getHeaders(opts),
       prefixUrl: API_URL,
@@ -17,7 +29,10 @@ class CloudflareClient {
       hooks: {
         afterResponse: [CloudflareClient.processResponse],
         beforeError: [(e) => {
-          e.url = e.request.requestUrl;
+          const { requestUrl, body, searchParams } = e.request;
+          e.requestUrl = requestUrl;
+          e.body = body;
+          e.searchParams = searchParams;
           return e;
         }],
       },
@@ -25,10 +40,10 @@ class CloudflareClient {
   }
 
   static processResponse(response) {
-    if (response.success === false) {
-      throw new CF_ERROR(response.messages, response.errors);
+    const { body } = response;
+    if (body.success === false) {
+      throw new CfAPIError(body.messages, body.errors);
     }
-
     return response;
   }
 
@@ -48,21 +63,19 @@ class CloudflareClient {
     }
 
     if (has(connectionOpts, 'key')) {
-      assert(connectionOpts.email, 'should provide email');
+      assert(connectionOpts.email, 'email should be set');
       const { email, key } = connectionOpts;
       return {
         'X-Auth-Email': email,
         'X-Auth-Key': key,
       };
     }
-    const { token } = connectionOpts;
-    return {
-      'X-Auth-Token': token,
-    };
+
+    throw new Error('invalid configuration');
   }
 }
 
 module.exports = {
   CloudflareClient,
-  CF_ERROR,
+  CfAPIError,
 };

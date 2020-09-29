@@ -217,9 +217,9 @@ async function login({ params, locals }) {
   isBanned(internalData);
 
   // retrieves complete information and returns it
-  const userInfo = getUserInfo(ctx, internalData);
+  const userInfo = await getUserInfo(ctx, internalData);
 
-  await this.service.hook('user:login', userInfo, params);
+  await this.hook('user:login', userInfo, ctx);
 
   return userInfo;
 }

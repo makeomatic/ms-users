@@ -13,7 +13,6 @@ const ListFullError = generateClass('ListFullError', { args: ['message', 'lists'
 class CloudflareIPList {
   constructor(service, api, config) {
     assert(service instanceof Microfleet, 'ms-users instance required');
-
     this.service = service;
     this.redis = service.redis;
     this.cfApi = api.withAccountId(config.accountId);
@@ -119,13 +118,15 @@ class CloudflareIPList {
 
   /** Download and save Clouflare Rule lists into cache */
   async loadCfLists() {
+    const { prefix } = this.config;
     const { result: lists } = await this.cfApi.getLists();
     const listsObject = {};
 
     const pipeline = this.redis.pipeline();
     pipeline.del(CF_IP_LIST_INFO);
 
-    lists.forEach(({ id, num_items: numItems }) => {
+    lists.forEach(({ name, id, num_items: numItems }) => {
+      if (!name.startsWith(prefix)) return;
       pipeline.zadd(CF_IP_LIST_INFO, numItems, id);
       listsObject[id] = numItems;
     });

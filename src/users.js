@@ -141,15 +141,17 @@ class Users extends Microfleet {
       }, 'tbits');
     }
 
-    this.addConnector(ConnectorsTypes.application, () => {
-      this.cfWorker = new CloudflareWorker(this);
-      this.cfAccessList = this.cfWorker.cfList;
-      this.cfWorker.start();
-    });
+    if (this.config.cfList.enabled) {
+      this.addConnector(ConnectorsTypes.application, () => {
+        this.cfWorker = new CloudflareWorker(this);
+        this.cfAccessList = this.cfWorker.cfList;
+        this.cfWorker.start();
+      });
 
-    this.addDestructor(ConnectorsTypes.application, () => {
-      this.cfWorker.stop();
-    });
+      this.addDestructor(ConnectorsTypes.application, () => {
+        this.cfWorker.stop();
+      });
+    }
 
     // init account seed
     this.addConnector(ConnectorsTypes.application, () => (

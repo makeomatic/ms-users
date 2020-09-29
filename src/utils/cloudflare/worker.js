@@ -13,17 +13,19 @@ class CloudflareWorker extends EventEmitter {
 
     super();
 
-    const config = service.config.cloudflareList;
+    const config = service.config.cfList;
     const client = new CloudflareClient(config.auth);
     const cfApi = new CloudflareAPI(client);
 
     this.service = service;
     this.config = config.worker;
-    this.cfList = new CloudflareIPList(service, cfApi, config.whitelist);
+    this.cfList = new CloudflareIPList(service, cfApi, config.accessList);
     this.cleanup = this.cleanup.bind(this);
   }
 
   start() {
+    if (!this.config.enabled) return;
+
     this.next = setTimeout(
       this.config.cleanupInterval,
       this.cleanup

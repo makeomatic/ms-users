@@ -1,3 +1,5 @@
+const { CF_TOKEN, CF_ACCOUNT_ID } = process.env;
+
 module.exports = {
   logger: {
     defaultLogger: true,
@@ -46,6 +48,14 @@ module.exports = {
   rateLimiters: {
     userLogin: {
       enabled: true,
+    },
+  },
+  cfList: {
+    auth: {
+      token: CF_TOKEN,
+    },
+    accessList: {
+      accountId: CF_ACCOUNT_ID,
     },
   },
 };

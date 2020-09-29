@@ -627,6 +627,9 @@
           "$ref": "#/definitions/userLoginRateLimiter"
         }
       }
+    },
+    "cfList": {
+      "$ref": "#/definitions/cfList"
     }
   },
   "definitions": {
@@ -691,60 +694,64 @@
           "$ref": "#/definitions/slidingWindowRateLimiter"
         }
       }
-    }
-  },
-  "cfList": {
-    "type": "object",
-    "description": "Cloudflare account and access list configuration",
-    "additionalProperties": false,
-    "properties": {
-      "enabled": { "type": "boolean" },
-      "auth": {
-        "anyOf": [
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [ "token" ],
-            "properties": {
-              "token": { "type": "string", "minLength": 10, "maxLength": 128 }
+    },
+    "cfList": {
+      "type": "object",
+      "description": "Cloudflare account and access list configuration",
+      "additionalProperties": false,
+      "required": [ "enabled" ],
+      "if": {"properties": { "enabled": { "const": true } } },
+      "then": { "required": [ "auth", "accessList", "worker" ] },
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "auth": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [ "token" ],
+              "properties": {
+                "token": { "type": "string", "minLength": 10, "maxLength": 128 }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["serviceKey"],
+              "properties": {
+                "serviceKey": { "type": "string", "minLength": 10, "maxLength": 128 }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [ "email", "key" ],
+              "properties": {
+                "email": { "type": "string", "format": "email" },
+                "key": { "type": "string", "minLength": 10, "maxLength": 128 }
+              }
             }
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "required": "serviceKey",
-            "properties": {
-              "serviceKey": { "type": "string", "minLength": 10, "maxLength": 128 }
-            }
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [ "email", "key" ],
-            "properties": {
-              "email": { "type": "string", "format": "email" },
-              "key": { "type": "string", "minLength": 10, "maxLength": 128 }
-            }
+          ]
+        },
+        "accessList": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [ "accountId", "ttl", "listCacheTTL" ],
+          "properties": {
+            "accountId": { "type": "string", "minLength": 10, "maxLength": 128 },
+            "ttl": { "type": "number", "minimum": 5000 },
+            "listCacheTTL": { "type": "number", "minimum": 45000 }
           }
-        ]
-      },
-      "accessList": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [ "accountId", "ttl", "listCacheTTL" ],
-        "properties": {
-          "accountId": { "type": "string", "minLength": 10, "maxLength": 128 },
-          "ttl": { "type": "number", "minimum": 5000 },
-          "listCacheTTL": { "type": "number", "minimum": 45000 }
-        }
-      },
-      "worker": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [ "cleanupInterval", "concurrency" ],
-        "properties": {
-          "cleanupInterval": { "type": "number", "minimum": 60000 },
-          "concurrency": { "type": "number", "minimum": 1 }
+        },
+        "worker": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [ "cleanupInterval", "concurrency", "enabled" ],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "cleanupInterval": { "type": "number", "minimum": 60000 },
+            "concurrency": { "type": "number", "minimum": 1 }
+          }
         }
       }
     }

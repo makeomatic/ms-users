@@ -1,53 +1,29 @@
-const assert = require('assert');
-const sinon = require('sinon');
-
-const hook = require('../../../src/custom/cappasity-cf-access-list');
-
 describe('#cloudflare.add-to-list action', () => {
-  const username = 'some@user-mail.com';
-  const password = '123';
-  const audience = '*.localhost';
-  const userData = {
-    username,
-    password,
-    audience,
-    activate: true,
-    skipChallenge: true,
-    metadata: {
-      plan: 'free',
-    },
-  };
-
-  let service;
-
   /* Restart service before each test to achieve clean database. */
   before('start', async () => {
-    service = await global.startService.call(this, {
+    await global.startService.call(this, {
       cfList: { enabled: true, worker: { enabled: false } },
     });
-
-    await service.dispatch('register', { params: userData });
   });
 
   after('stop', async () => {
-    await global.clearRedis.call(this);
+    await global.clearRedis.call(this, false);
   });
 
-  it('should not call `cf.add-to-list` if `plan` is `free`', async () => {
-    await this.dispatch('users.login', { username, password, audience, remoteip: '8.8.8.8' });
-    assert.strictEqual(service.amqp.publish.called, false, 'should not be called');
+  it('should add ip', async () => {
+    await this.dispatch('users.cf.add-to-list', { remoteip: '8.8.8.8' });
+    await this.dispatch('users.cf.add-to-list', { remoteip: '8.8.8.9' });
+
+    const { redis } = this.users;
+    const result = await redis.hgetall('cf:ip-to-list');
+    console.debug('hgetall', result);
   });
 
-  it('should call `cf.add-to-list` if `plan` is not `free`', async () => {
-    await this.dispatch('users.updateMetadata', {
-      username,
-      audience: [audience],
-      metadata: [{ $set: { plan: 'enterprise' } }],
-    });
+  it('should touch ip', async () => {
+    await this.dispatch('users.cf.add-to-list', { remoteip: '8.8.8.8' });
 
-    await this.dispatch('users.login', { username, password, audience, remoteip: '8.8.8.8' });
-    const [publishCall] = service.amqp.publish.getCalls();
-    assert.ok(publishCall);
-    assert.deepStrictEqual(publishCall.args, ['users.cf.add-to-list', { remoteip: '8.8.8.8' }]);
+    const { redis } = this.users;
+    const result = await redis.hgetall('cf:ip-to-list');
+    console.debug('hgetall', result);
   });
 });

@@ -1,6 +1,7 @@
 const assert = require('assert');
 const { Microfleet } = require('@microfleet/core');
 const { helpers: { generateClass } } = require('common-errors');
+const ld = require('lodash');
 
 const handlePipeline = require('../pipeline-error');
 
@@ -25,11 +26,12 @@ class CloudflareIPList {
   }
 
   async touchIP(ip, list) {
+    console.debug('touchip', { ip, list });
     return this.cfApi.createListItems(list, [ip]);
   }
 
   async addIP(ip) {
-    const freeList = await this.findFreeLists();
+    const freeList = await this.findFreeList();
     await this.cfApi.createListItems(freeList, [ip]);
 
     const pipeline = this.redis.pipeline();
@@ -105,11 +107,10 @@ class CloudflareIPList {
   /** Get Cloudflare Rule lists */
   async getCFLists() {
     const { redis } = this;
-    const listInfo = await redis.zrevrangebyscore(CF_IP_LIST_INFO, 0, -1, 'WITHSCORES');
-
+    const listInfo = await redis.zrevrangebyscore(CF_IP_LIST_INFO, '+inf', '-inf', 'WITHSCORES');
     if (listInfo.length > 0) {
-      return listInfo.reduce((a, b) => {
-        a[b] = ''; return a;
+      return ld.chunk(listInfo, 2).reduce((a, [list, size]) => {
+        a[list] = parseInt(size, 10); return a;
       }, {});
     }
 

@@ -55,6 +55,7 @@ module.exports = {
       token: CF_TOKEN,
     },
     accessList: {
+      prefix: 'test_',
       accountId: CF_ACCOUNT_ID,
     },
   },

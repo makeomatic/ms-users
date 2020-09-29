@@ -738,6 +738,7 @@
           "additionalProperties": false,
           "required": [ "accountId", "ttl", "listCacheTTL" ],
           "properties": {
+            "prefix": { "type": "string" },
             "accountId": { "type": "string", "minLength": 10, "maxLength": 128 },
             "ttl": { "type": "number", "minimum": 5000 },
             "listCacheTTL": { "type": "number", "minimum": 45000 }

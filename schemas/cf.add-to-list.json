@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "remoteIp": {
+      "type": "string",
+      "format": "ipv4"
+    }
+  }
+}

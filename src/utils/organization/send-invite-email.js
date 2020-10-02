@@ -12,6 +12,7 @@ module.exports = async function sendInviteMail(params) {
   const { redis, tokenManager } = this;
   const { email, ctx } = params;
   const now = Date.now();
+  this.service.log.debug(params, 'send invite mail');
 
   const token = await tokenManager
     .create({

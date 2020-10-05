@@ -44,7 +44,7 @@ function checkServiceMissingPermissionsResponse(context) {
   assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
 }
 
-describe.skip('#facebook', function oauthFacebookSuite() {
+describe('#facebook', function oauthFacebookSuite() {
   let service;
 
   this.timeout(240000); // increase timeout

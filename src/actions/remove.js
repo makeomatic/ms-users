@@ -27,6 +27,7 @@ const {
   USERS_ACTION_REGISTER,
   THROTTLE_PREFIX,
   SSO_PROVIDERS,
+  ORGANIZATIONS_MEMBERS,
 } = require('../constants');
 
 // intersection of priority users
@@ -40,6 +41,25 @@ function addMetadata(userData) {
     .bind(this, [userId, audience])
     .spread(getMetadata)
     .then((metadata) => [userData, metadata]);
+}
+
+async function removeOrganizationUser(userId) {
+  const { redis, config } = this;
+  const { audience } = config.organizations;
+
+  const userOrganizationsKey = key(userId, USERS_METADATA, audience);
+  const userOrganizations = await redis.hgetall(userOrganizationsKey);
+
+  if (userOrganizations) {
+    const pipeline = redis.pipeline();
+
+    for (const organizationId of Object.keys(userOrganizations)) {
+      const memberKey = key(organizationId, ORGANIZATIONS_MEMBERS, userId);
+      pipeline.zrem(key(organizationId, ORGANIZATIONS_MEMBERS), memberKey);
+    }
+
+    await pipeline.exec().then(handlePipeline);
+  }
 }
 
 /**
@@ -109,6 +129,9 @@ async function removeUser({ params }) {
   const removeResult = await transaction
     .exec()
     .then(handlePipeline);
+
+  // remove user from organizations
+  await removeOrganizationUser(userId);
 
   // clear cache
   const now = Date.now();

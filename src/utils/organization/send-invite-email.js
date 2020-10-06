@@ -5,6 +5,7 @@ const {
   TOKEN_METADATA_FIELD_CONTEXT,
   TOKEN_METADATA_FIELD_SENDED_AT,
   USERS_ACTION_ORGANIZATION_INVITE,
+  USERS_ACTION_ORGANIZATION_REGISTER,
   TOKEN_METADATA_FIELD_METADATA,
 } = require('../../constants.js');
 
@@ -25,7 +26,8 @@ module.exports = async function sendInviteMail(params) {
       },
     });
 
-  const res = await generateEmail.call(this, email, USERS_ACTION_ORGANIZATION_INVITE, { ...ctx, token }, { wait: true, send: true });
+  const emailType = ctx.password ? USERS_ACTION_ORGANIZATION_REGISTER : USERS_ACTION_ORGANIZATION_INVITE;
+  const res = await generateEmail.call(this, email, emailType, { ...ctx, token }, { wait: true, send: true });
 
   if (res.err) {
     this.log.error(res, 'send invite mail result');

@@ -40,22 +40,20 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
       context.qs = `?q=${context.token.secret}`;
       context.link = generateLink(server, paths[type]);
       break;
+    case USERS_ACTION_ORGANIZATION_REGISTER:
+      context.qs = `?${stringify({
+        password: ctx.password,
+        login: ctx.email,
+      })}`;
+      context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_REGISTER]);
+      break;
     case USERS_ACTION_ORGANIZATION_INVITE:
-      // generate secret
-      if (ctx.password) {
-        context.qs = `?${stringify({
-          password: ctx.password,
-          login: ctx.email,
-        })}`;
-        context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_REGISTER]);
-      } else {
-        context.qs = `?${stringify({
-          q: context.token.secret,
-          organizationId: ctx.organizationId,
-          username: ctx.email,
-        })}`;
-        context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_INVITE]);
-      }
+      context.qs = `?${stringify({
+        q: context.token.secret,
+        organizationId: ctx.organizationId,
+        username: ctx.email,
+      })}`;
+      context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_INVITE]);
       break;
 
     case USERS_ACTION_PASSWORD:

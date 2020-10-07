@@ -131,7 +131,7 @@ async function removeUser({ params }) {
     .then(handlePipeline);
 
   // remove user from organizations
-  await removeOrganizationUser(userId);
+  await removeOrganizationUser.call(this, userId);
 
   // clear cache
   const now = Date.now();

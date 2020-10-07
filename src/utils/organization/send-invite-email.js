@@ -25,6 +25,11 @@ module.exports = async function sendInviteMail(params) {
       },
     });
 
-  await generateEmail.call(this, email, USERS_ACTION_ORGANIZATION_INVITE, { ...ctx, token }, { send: true });
+  const res = await generateEmail.call(this, email, USERS_ACTION_ORGANIZATION_INVITE, { ...ctx, token }, { wait: true, send: true });
+
+  if (res.err) {
+    this.log.error(res, 'send invite mail result');
+  }
+
   await redis.sadd(organizationInvite(ctx.organizationId), email);
 };

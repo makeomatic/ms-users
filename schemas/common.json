@@ -67,7 +67,8 @@
       "oneOf": [
         { "format": "email" },
         { "pattern": "^\\d+$" },
-        { "pattern": "^(fb|sso)/[\\d_]+$" }
+        { "pattern": "^(fb|sso)/[\\d_]+$" },
+        { "pattern": "^tbits\\/\\d+\\/\\d+$"}
       ]
     },
     "alias": {
@@ -132,11 +133,6 @@
     },
     "organizationMember": {
       "type": "object",
-      "required": [
-        "firstName",
-        "lastName",
-        "email"
-      ],
       "properties": {
         "email": {
           "type": "string"
@@ -149,6 +145,23 @@
         },
         "permissions": {
           "type": "array"
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "required": ["value", "type"],
+      "properties": {
+        "value": {
+          "type": "string",
+          "oneOf": [
+            { "format": "email" },
+            { "pattern": "^\\d+$" }
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": ["email", "phone"]
         }
       }
     }

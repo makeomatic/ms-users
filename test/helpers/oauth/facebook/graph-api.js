@@ -81,6 +81,7 @@ GraphAPI.graphApi = request.defaults({
     Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
   },
   json: true,
+  timeout: 40000,
 });
 
 module.exports = GraphAPI;

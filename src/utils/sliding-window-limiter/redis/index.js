@@ -112,5 +112,4 @@ SlidingWindowLimiterRedis.STATUS_FOREVER = 0;
  */
 SlidingWindowLimiterRedis.RateLimitError = errorHelpers.generateClass('RateLimitError', { args: ['reset', 'limit'] });
 
-
 module.exports = SlidingWindowLimiterRedis;

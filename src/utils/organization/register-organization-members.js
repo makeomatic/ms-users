@@ -30,7 +30,7 @@ async function registerOrganizationMember(member) {
     [USERS_USERNAME_FIELD]: email,
     [USERS_ACTIVE_FLAG]: true,
   };
-  const password = generatePassword(pwdReset.length, pwdReset.memorable);
+  const password = member.password || generatePassword(pwdReset.length, pwdReset.memorable);
   basicInfo[USERS_PASSWORD_FIELD] = await scrypt.hash(password);
 
   const userDataKey = redisKey(userId, USERS_DATA);

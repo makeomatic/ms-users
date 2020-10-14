@@ -11,74 +11,83 @@ const {
   ORGANIZATIONS_MEMBERS,
   USERS_METADATA,
   ORGANIZATIONS_NAME_FIELD,
-  USERS_ACTION_ORGANIZATION_INVITE,
-  USERS_ACTION_ORGANIZATION_REGISTER,
   ORGANIZATIONS_ID_FIELD,
 } = require('../../constants.js');
 
 const JSONStringify = (data) => JSON.stringify(data);
+
+async function distributeUsersByExist(user) {
+  try {
+    const userId = await getUserId.call(this, user.email);
+    this.registeredMembers.push({ ...user, id: userId });
+  } catch (e) {
+    this.notRegisteredMembers.push(user);
+  }
+}
+
+async function addMember({ password, ...member }) {
+  const { organizationId, audience, pipe, membersKey } = this;
+
+  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
+  const memberOrganizations = redisKey(member.id, USERS_METADATA, audience);
+
+  member.username = member.email;
+  member.invited = Date.now();
+  member.accepted = password ? Date.now() : null;
+  member.permissions = member.permissions || [];
+
+  const stringifyMember = mapValues(member, JSONStringify);
+
+  pipe.hmset(memberKey, stringifyMember);
+  pipe.hset(memberOrganizations, organizationId, stringifyMember.permissions);
+  pipe.zadd(membersKey, stringifyMember.invited, memberKey);
+}
+
+function sendInvite(member) {
+  return sendInviteMail.call(this, {
+    email: member.email,
+    ctx: {
+      email: member.email,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      password: member.password,
+      permissions: member.permissions,
+      organizationId: this.organization[ORGANIZATIONS_ID_FIELD],
+      organization: this.organization[ORGANIZATIONS_NAME_FIELD],
+    },
+  });
+}
 
 /**
  * Updates metadata on a organization object
  * @param  {Object} opts
  * @return {Promise}
  */
-async function addOrganizationMembers(opts) {
+async function addOrganizationMembers({ organizationId, members, audience }, sendInviteFlag = false) {
   const { redis } = this;
-  const { organizationId, members, audience } = opts;
 
   const registeredMembers = [];
   const notRegisteredMembers = [];
-
-  const filterMembersJob = members.map(async (member) => {
-    try {
-      const userId = await getUserId.call(this, member.email);
-      registeredMembers.push({ ...member, id: userId });
-    } catch (e) {
-      notRegisteredMembers.push(member);
-    }
-  });
+  const filterMembersJob = members.map(distributeUsersByExist, { ...this, registeredMembers, notRegisteredMembers });
   await Promise.all(filterMembersJob);
+
+  // Create non exist users and concat with already registered
   const createdMembers = await registerOrganizationMembers.call(this, notRegisteredMembers);
-
-  const pipe = redis.pipeline();
-  const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const organizationMembers = registeredMembers.concat(createdMembers);
-  organizationMembers.forEach(({ password, ...member }) => {
-    const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
-    const memberOrganizations = redisKey(member.id, USERS_METADATA, audience);
-    member.username = member.email;
-    member.invited = Date.now();
-    member.accepted = password ? Date.now() : null;
-    member.permissions = member.permissions || [];
-    const stringifyMember = mapValues(member, JSONStringify);
-    pipe.hmset(memberKey, stringifyMember);
-    pipe.hset(memberOrganizations, organizationId, stringifyMember.permissions);
-    pipe.zadd(membersKey, stringifyMember.invited, memberKey);
-  });
 
+  // Add members to organization through pipeline
+  const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
+  const pipe = redis.pipeline();
+  organizationMembers.forEach(addMember, { organizationId, audience, pipe, membersKey });
   await pipe.exec().then(handlePipeline);
-  const organization = await getInternalData.call(this, organizationId);
 
-  const membersIdsJob = [];
-  for (const member of organizationMembers) {
-    membersIdsJob.push(
-      sendInviteMail.call(this, {
-        email: member.email,
-        action: member.password ? USERS_ACTION_ORGANIZATION_REGISTER : USERS_ACTION_ORGANIZATION_INVITE,
-        ctx: {
-          firstName: member.firstName,
-          lastName: member.lastName,
-          password: member.password,
-          email: member.email,
-          organizationId: organization[ORGANIZATIONS_ID_FIELD],
-          organization: organization[ORGANIZATIONS_NAME_FIELD],
-        },
-      })
-    );
+  if (sendInviteFlag) {
+    // Send invites
+    const organization = await getInternalData.call(this, organizationId);
+    const membersIdsJob = organizationMembers.map(sendInvite, { ...this, organization });
+
+    await Promise.all(membersIdsJob);
   }
-
-  return Promise.all(membersIdsJob);
 }
 
 module.exports = addOrganizationMembers;

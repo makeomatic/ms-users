@@ -6,6 +6,8 @@ module.exports = exports = {
   USERS_PUBLIC_INDEX: 'users-public',
   USERS_REFERRAL_INDEX: 'users-referral',
   ORGANIZATIONS_INDEX: 'organization-iterator-set',
+  USERS_DEFAULT_CONTACT: 'user-default-contact',
+
   // id mapping
   USERS_ALIAS_TO_ID: 'users-alias',
   USERS_SSO_TO_ID: 'users-sso-hash',
@@ -14,10 +16,12 @@ module.exports = exports = {
 
   // referral tracking
   USERS_REF: 'users-ref',
+  USERS_REF_METADATA: 'users-ref-metadata',
 
   // hashes
   USERS_DATA: 'data',
   USERS_METADATA: 'metadata',
+  USERS_CONTACTS: 'contacts',
   USERS_TOKENS: 'tokens',
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
@@ -44,6 +48,7 @@ module.exports = exports = {
   USERS_PASSWORD_FIELD: 'password',
   USERS_NEXT_CYCLE_FIELD: 'nextCycle',
   USERS_REFERRAL_FIELD: 'referral',
+  USERS_REFERRAL_META_FIELD: 'referralMeta',
   USERS_SSO_FACEBOOK_FIELD: 'facebook',
   ORGANIZATIONS_ID_FIELD: 'id',
   ORGANIZATIONS_CREATED_FIELD: 'created',
@@ -80,6 +85,7 @@ module.exports = exports = {
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
+  USERS_ACTION_VERIFY_CONTACT: 'verify-contact',
   USERS_ACTION_DISPOSABLE_PASSWORD: 'disposable-password',
   USERS_ACTION_PASSWORD: 'password',
   USERS_ACTION_RESET: 'reset',
@@ -90,7 +96,8 @@ module.exports = exports = {
 
   // invitations constants
   INVITATIONS_INDEX: 'user-invitations',
-  ORGANIZATIONS_INVITATIONS_INDEX: 'organization-invitations',
+  organizationInvite: (organizationId) => `organization-invitations:${organizationId}`,
+  inviteId: (organizationId, username) => `${organizationId}:${username}`,
 
   // token
   TOKEN_METADATA_FIELD_METADATA: '1',
@@ -110,6 +117,8 @@ module.exports = exports = {
   lockAlias: (alias) => `users:alias:${alias}`,
   lockRegister: (username) => `users:register:${username}`,
   lockOrganization: (organizationName) => `organizations:create:${organizationName}`,
+  lockTbits: (profile) => `tbits:${profile.accountId}:${profile.fanId}`,
+  lockContact: (contact) => `contact:${contact}`,
 };
 
 // embed error codes

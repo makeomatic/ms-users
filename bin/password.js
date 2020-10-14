@@ -1,30 +1,59 @@
 #!/usr/bin/env node
 
 /* eslint-disable no-console */
-const Redis = require('ioredis').Cluster;
+const Redis = require('ioredis');
 const assert = require('assert');
 const conf = require('../lib/config');
-
-const config = conf.get('/', { env: process.env.NODE_ENV });
-const redisConfig = config.redis;
 const { updatePassword } = require('../lib/actions/updatePassword');
 
-const username = process.argv[2];
-const password = process.argv[3];
-assert(username, 'must provide id as argv[2]');
-assert(password, 'must provide password of token as argv[3]');
+const config = conf.get('/', { env: process.env.NODE_ENV });
 
+const initRedis = (redisConfig) => {
+  const opts = {
+    lazyConnect: true,
+    ...redisConfig.options,
+  };
 
-const redis = new Redis(redisConfig.hosts, ({ ...redisConfig.options, lazyConnect: true }));
+  if (redisConfig.sentinels) {
+    opts.name = redisConfig.name;
+    opts.sentinels = redisConfig.sentinels;
+    return new Redis(opts);
+  }
+
+  return new Redis.Cluster(redisConfig.hosts, opts);
+};
+
+const redis = initRedis(config.redis);
 
 // connection options
-redis
-  .connect()
-  .bind({ redis })
-  .return([username, password])
-  .spread(updatePassword)
-  .then(() => {
-    console.info('\nSet password for %s to "%s"\n', username, password);
-    return redis.disconnect();
-  })
-  .catch((err) => setImmediate(() => { throw err; }));
+const main = async (username, password) => {
+  assert(username, 'must provide user id');
+  assert(password, 'must provide password');
+
+  try {
+    await redis.connect();
+    await updatePassword({ redis }, username, password);
+  } catch (err) {
+    setImmediate(() => {
+      throw err;
+    });
+  } finally {
+    await redis.disconnect();
+  }
+};
+
+if (module.parent === null) {
+  const username = process.argv[2];
+  const password = process.argv[3];
+  assert(username, 'must provide id as argv[2]');
+  assert(password, 'must provide password of token as argv[3]');
+
+  // eslint-disable-next-line promise/catch-or-return
+  main(username, password)
+    .then(() => {
+      console.info('\nSet password for %s to "%s"\n', username, password);
+      return null;
+    });
+}
+
+exports.main = main;

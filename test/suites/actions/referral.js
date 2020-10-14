@@ -8,16 +8,18 @@ describe('#referral', function registerSuite() {
 
   const exampleHash = 'i-know-referrals-dot-com';
   const referralId = '00000001';
+  const referralName = 'Inviter';
 
   it('captures referral', function test() {
     return this.dispatch('users.referral', {
       id: exampleHash,
       referral: referralId,
+      metadata: { name: referralName },
     })
       .reflect()
       .then(inspectPromise())
       .then((result) => {
-        assert.equal(result, 'OK');
+        assert.deepEqual(result, ['OK', 1, 'OK']);
       });
   });
 
@@ -29,7 +31,7 @@ describe('#referral', function registerSuite() {
       .reflect()
       .then(inspectPromise())
       .then((result) => {
-        assert.equal(result, null);
+        assert.deepEqual(result, [null]);
       });
   });
 
@@ -50,6 +52,7 @@ describe('#referral', function registerSuite() {
       .then(inspectPromise())
       .then((registered) => {
         assert.equal(registered.user.metadata[opts.audience].referral, referralId);
+        assert.equal(registered.user.metadata[opts.audience].referralMeta.name, referralName);
       });
   });
 

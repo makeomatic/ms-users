@@ -24,6 +24,7 @@ const handlePipeline = require('../utils/pipeline-error');
 const hashPassword = require('../utils/register/password/hash');
 const {
   USERS_REF,
+  USERS_REF_METADATA,
   USERS_INDEX,
   USERS_SSO_TO_ID,
   USERS_DATA,
@@ -34,6 +35,7 @@ const {
   USERS_USERNAME_FIELD,
   USERS_PASSWORD_FIELD,
   USERS_REFERRAL_FIELD,
+  USERS_REFERRAL_META_FIELD,
   USERS_ACTIVATED_FIELD,
   lockAlias,
   lockRegister,
@@ -96,8 +98,13 @@ async function verifyReferral(redis, params) {
     return null;
   }
 
+  const metadataKey = redisKey(USERS_REF_METADATA, params.referral);
+  const referenceMetadata = await redis.hgetall(metadataKey);
+
   const [creatorAudience] = params.audience;
   params.metadata[creatorAudience][USERS_REFERRAL_FIELD] = reference;
+  params.metadata[creatorAudience][USERS_REFERRAL_META_FIELD] = referenceMetadata;
+
   return null;
 }
 
@@ -340,7 +347,7 @@ module.exports = async function registerUser({ params }) {
       isDisposable(username);
     }
 
-    if (params.challengeType === CHALLENGE_TYPE_EMAIL && limits.checkMX) {
+    if (params.activate !== true && params.challengeType === CHALLENGE_TYPE_EMAIL && limits.checkMX) {
       await mxExists(username);
     }
 

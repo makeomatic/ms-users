@@ -33,7 +33,7 @@ describe('#create organization', function registerSuite() {
       metadata: {
         description: 'test organization',
       },
-      members: this.userNames.slice(0, 2),
+      members: this.userNames.slice(0, 1),
     };
 
     const response = await this.dispatch('users.organization.create', params);

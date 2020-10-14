@@ -26,7 +26,7 @@ async function addOrganizationMember({ params }) {
     organizationId,
     audience,
     members: [member],
-  });
+  }, true);
 }
 
 addOrganizationMember.allowed = checkOrganizationExists;

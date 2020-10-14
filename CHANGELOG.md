@@ -1,3 +1,87 @@
+# [14.11.0](https://github.com/makeomatic/ms-users/compare/v14.10.2...v14.11.0) (2020-09-16)
+
+
+### Features
+
+* added user contacts api ([#468](https://github.com/makeomatic/ms-users/issues/468)) ([6ad461d](https://github.com/makeomatic/ms-users/commit/6ad461df56c10069adeeed33cfac1e0a7e0ea9e0))
+
+## [14.10.2](https://github.com/makeomatic/ms-users/compare/v14.10.1...v14.10.2) (2020-07-30)
+
+
+### Bug Fixes
+
+* **org:** send emails on creation and member invitation ([#467](https://github.com/makeomatic/ms-users/issues/467)) ([981c56a](https://github.com/makeomatic/ms-users/commit/981c56acfdbcfd4733f1c45e8270d0c1f587d2fc))
+
+## [14.10.1](https://github.com/makeomatic/ms-users/compare/v14.10.0...v14.10.1) (2020-07-27)
+
+
+### Bug Fixes
+
+* **bin:** update password tool ([#466](https://github.com/makeomatic/ms-users/issues/466)) ([c74f848](https://github.com/makeomatic/ms-users/commit/c74f8481bd3505b2bc90d4032ef554e1f9ad0670))
+
+# [14.10.0](https://github.com/makeomatic/ms-users/compare/v14.9.0...v14.10.0) (2020-07-17)
+
+
+### Features
+
+* added referral metadata ([#462](https://github.com/makeomatic/ms-users/issues/462)) ([0e56d8a](https://github.com/makeomatic/ms-users/commit/0e56d8a487330cf92a8c200286dd86a42f7b3b98))
+
+# [14.9.0](https://github.com/makeomatic/ms-users/compare/v14.8.2...v14.9.0) (2020-07-15)
+
+
+### Features
+
+* **activation:** return detailed error when missing activation ([#463](https://github.com/makeomatic/ms-users/issues/463)) ([9220c95](https://github.com/makeomatic/ms-users/commit/9220c954572451486f2ad7fb8de2e1d8ac469fc6))
+
+## [14.8.2](https://github.com/makeomatic/ms-users/compare/v14.8.1...v14.8.2) (2020-06-30)
+
+
+### Bug Fixes
+
+* skip password for tbits user registration ([#459](https://github.com/makeomatic/ms-users/issues/459)) ([46a83bb](https://github.com/makeomatic/ms-users/commit/46a83bbff6c51340c995a181277d2a35e3de66e5))
+
+## [14.8.1](https://github.com/makeomatic/ms-users/compare/v14.8.0...v14.8.1) (2020-06-29)
+
+
+### Bug Fixes
+
+* edit metro area in tbits response schema ([#458](https://github.com/makeomatic/ms-users/issues/458)) ([aece5de](https://github.com/makeomatic/ms-users/commit/aece5de3fe93116575531fbe5a8496cfc9eb99a8))
+
+# [14.8.0](https://github.com/makeomatic/ms-users/compare/v14.7.0...v14.8.0) (2020-06-24)
+
+
+### Features
+
+* tbits relay auth ([#457](https://github.com/makeomatic/ms-users/issues/457)) ([25e8024](https://github.com/makeomatic/ms-users/commit/25e8024178ede86bab27acd785ef6eaa1dd48a76))
+
+# [14.7.0](https://github.com/makeomatic/ms-users/compare/v14.6.0...v14.7.0) (2020-05-28)
+
+
+### Features
+
+* added banned field to org member, remove deactivate action ([#455](https://github.com/makeomatic/ms-users/issues/455)) ([a99754d](https://github.com/makeomatic/ms-users/commit/a99754d4c6e1d043a86d38e07d993c12e00f2ce9))
+
+# [14.6.0](https://github.com/makeomatic/ms-users/compare/v14.5.1...v14.6.0) (2020-05-28)
+
+
+### Features
+
+* added deactivate user action ([#454](https://github.com/makeomatic/ms-users/issues/454)) ([bf0e8cc](https://github.com/makeomatic/ms-users/commit/bf0e8cc39644b04f0184725a016fb0bb4a0d060c))
+
+## [14.5.1](https://github.com/makeomatic/ms-users/compare/v14.5.0...v14.5.1) (2020-05-27)
+
+
+### Bug Fixes
+
+* edit distributeUsersByExist for organization members ([#453](https://github.com/makeomatic/ms-users/issues/453)) ([6198f57](https://github.com/makeomatic/ms-users/commit/6198f5768bece765287600721bce80587ce46704))
+
+# [14.5.0](https://github.com/makeomatic/ms-users/compare/v14.4.0...v14.5.0) (2020-05-26)
+
+
+### Features
+
+* edit organization invites api ([#452](https://github.com/makeomatic/ms-users/issues/452)) ([51203bf](https://github.com/makeomatic/ms-users/commit/51203bff55a3b958916551978c9ad63963e41b2a))
+
 # [14.4.0](https://github.com/makeomatic/ms-users/compare/v14.3.0...v14.4.0) (2020-05-12)
 
 

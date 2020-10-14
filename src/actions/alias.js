@@ -4,6 +4,7 @@ const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
+const DetailedHttpStatusError = require('../utils/detailed-error');
 const key = require('../utils/key');
 const handlePipeline = require('../utils/pipeline-error');
 const {
@@ -13,6 +14,7 @@ const {
   USERS_ID_FIELD,
   USERS_ALIAS_FIELD,
   USERS_PUBLIC_INDEX,
+  USERS_USERNAME_FIELD,
   lockAlias,
 } = require('../constants');
 
@@ -51,7 +53,7 @@ async function assignAlias({ params }) {
   const activeUser = isActive(data, true);
 
   if (!activeUser && !internal) {
-    return Promise.reject(new Errors.HttpStatusError(412, 'Account hasn\'t been activated'));
+    return Promise.reject(DetailedHttpStatusError(412, 'Account hasn\'t been activated', { username: data[USERS_USERNAME_FIELD] }));
   }
 
   let lock;

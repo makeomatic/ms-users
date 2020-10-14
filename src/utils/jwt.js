@@ -224,7 +224,6 @@ exports.internal = async function verifyInternalToken(token) {
   };
 };
 
-
 /**
  * Sign data
  * @param  {any} paylaod

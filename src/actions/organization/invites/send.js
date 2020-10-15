@@ -32,7 +32,6 @@ async function sendOrganizationInvite({ params }) {
     ctx: {
       firstName: member.firstName,
       lastName: member.lastName,
-      password: member.password,
       permissions: member.permissions,
       email: member.email,
       organizationId: organization[ORGANIZATIONS_ID_FIELD],

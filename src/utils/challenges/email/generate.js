@@ -44,6 +44,9 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
       context.qs = `?${stringify({
         password: ctx.password,
         login: ctx.email,
+        firstName: ctx.firstName,
+        lastName: ctx.lastName,
+        organizationId: ctx.organizationId,
       })}`;
       context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_REGISTER]);
       break;

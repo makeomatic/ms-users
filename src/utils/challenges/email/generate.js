@@ -52,6 +52,8 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
         q: context.token.secret,
         organizationId: ctx.organizationId,
         username: ctx.email,
+        firstName: ctx.firstName,
+        lastName: ctx.lastName,
       })}`;
       context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_INVITE]);
       break;

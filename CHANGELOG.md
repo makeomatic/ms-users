@@ -1,3 +1,15 @@
+## [14.11.1-rc.1](https://github.com/makeomatic/ms-users/compare/v14.11.0...v14.11.1-rc.1) (2020-10-15)
+
+
+### Bug Fixes
+
+* added clear cache on create, update organization ([#475](https://github.com/makeomatic/ms-users/issues/475)) ([ba4605a](https://github.com/makeomatic/ms-users/commit/ba4605a672f4e9c6ec4bd4b18b76b92d20ebec15))
+* added rc release ([8154cbb](https://github.com/makeomatic/ms-users/commit/8154cbba8af7b3208cbb0fcf8b0ca4ccfe568985))
+* added remove user from org on user.remove, edit generate email ([#476](https://github.com/makeomatic/ms-users/issues/476)) ([40b0158](https://github.com/makeomatic/ms-users/commit/40b01586f688203a9cec7903373877b82ca227ce))
+* added username to query on organization invite mail ([294f3cc](https://github.com/makeomatic/ms-users/commit/294f3cc9489e388aafd1fb72cf4d22034b38cf08))
+* added username to query on organization register mail ([bc9050a](https://github.com/makeomatic/ms-users/commit/bc9050a22f4063fefeb567da93ee7c207b901df1))
+* skip facebook tests ([#470](https://github.com/makeomatic/ms-users/issues/470)) ([e35f77e](https://github.com/makeomatic/ms-users/commit/e35f77ed2714b3031815762d2a9ff703ff8b142a))
+
 # [14.11.0-rc.3](https://github.com/makeomatic/ms-users/compare/v14.11.0-rc.2...v14.11.0-rc.3) (2020-10-07)
 
 

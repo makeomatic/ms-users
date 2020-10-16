@@ -16,7 +16,7 @@ const formOAuthResponse = require('../../auth/oauth/utils/form-oauth-response');
  * @apiParam (Payload) {String} token - sso token
  */
 async function upgrade(request) {
-  const { transportRequest, params } = request;
+  const { transportRequest, params, query } = request;
   const { provider, token } = params;
 
   // fetch settings, otherwise provider is not supported
@@ -25,14 +25,15 @@ async function upgrade(request) {
   assert(providerSettings.provider && typeof providerSettings.provider === 'object', 'provider doesnt support token upgrading');
 
   // profile fetcher
-  const { profile } = providerSettings;
-  assert(typeof profile === 'function', 'provider doesnt support token upgrading');
+  const { profile } = providerSettings.provider;
+  assert.strictEqual(typeof profile, 'function', 'provider doesnt support token upgrading');
 
   // retrieves requested profile
-  const initialReq = {
-    token,
-    query: Object.create(null),
-  };
+  if (params.jwt) {
+    query.jwt = params.jwt;
+  }
+
+  const initialReq = { token, query };
 
   // verifies token by retreiving profile
   const credentials = await profile.call(providerSettings, initialReq);
@@ -50,17 +51,17 @@ async function upgrade(request) {
 
   // as this is not intended to be called from the browser we do not want any redirects going out
   if (oauthConfig.retryOnMissingPermissions !== false) {
-    oauthConfig.retryOnMissingPermissions = true;
+    oauthConfig.retryOnMissingPermissions = false;
   }
 
-  const verifiedCredentials = await oauthVerification(ctx, null, credentials);
+  const verifiedCredentials = oauthVerification(ctx, null, credentials);
   const associatedUserData = await mserviceVerification(ctx, verifiedCredentials);
 
   // at that point we can have the following:
   // 1. account linked, jwt wasnt passed - sign in information under `associatedUserData.user`
   // 2. account not linked, jwt passed - user information + credentials - need to link at that point (?)
   // 3. not linked, no jwt - only fb credentials - encode token for future use in registration
-  return formOAuthResponse(associatedUserData);
+  return formOAuthResponse(this, request, associatedUserData);
 }
 
 upgrade.transports = [ActionTransport.http];

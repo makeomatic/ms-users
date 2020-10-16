@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 const rp = require('request-promise').defaults({
-  url: `https://graph.facebook.com/v4.0/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
+  url: `https://graph.facebook.com/v8.0/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
   json: true,
   qs: {
     access_token: process.env.FACEBOOK_APP_TOKEN,
@@ -12,7 +12,7 @@ const rp = require('request-promise').defaults({
 async function fetchUsers(url = '') {
   const { data, paging } = await rp.get(url);
   for (const user of data) {
-    await rp.delete(`https://graph.facebook.com/v4.0/${user.id}`);
+    await rp.delete(`https://graph.facebook.com/v8.0/${user.id}`);
     process.stdout.write('.');
   }
 

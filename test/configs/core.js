@@ -34,7 +34,7 @@ module.exports = {
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
         location: 'https://ms-users.local',
         password: 'lB4wlZByzpp2R9mGefiLeaZUwVooUuX7G7uctaoeNgxvUs3W',
-        apiVersion: 'v4.0',
+        apiVersion: 'v8.0',
       },
     },
   },

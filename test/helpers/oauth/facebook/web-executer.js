@@ -182,7 +182,6 @@ class WebExecuter {
       await this.page.click('button[name=__CANCEL__]');
       return await this.navigatePage();
     } catch (e) {
-      console.error('failed to rejectAuth', e);
       await page.screenshot({ fullPage: true, path: `./ss/declined-${Date.now()}.png` });
       await this.processPageError(e);
     }

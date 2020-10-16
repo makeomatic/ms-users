@@ -34,13 +34,13 @@ function checkServiceOkResponse(payload) {
  * Used in tests checking partial permission access
  * @param context
  */
-function checkServiceMissingPermissionsResponse(context) {
+function checkServiceMissingPermissionsResponse(context, type = 'attached') {
   assert.ok(context.$ms_users_inj_post_message);
-  assert.equal(context.$ms_users_inj_post_message.type, 'ms-users:attached');
-  assert.equal(context.$ms_users_inj_post_message.error, false);
+  assert.strictEqual(context.$ms_users_inj_post_message.type, `ms-users:${type}`);
+  assert.strictEqual(context.$ms_users_inj_post_message.error, false);
   assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
   assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
-  assert.equal(context.$ms_users_inj_post_message.payload.provider, 'facebook');
+  assert.strictEqual(context.$ms_users_inj_post_message.payload.provider, 'facebook');
 }
 
 describe('#facebook', function oauthFacebookSuite() {
@@ -502,8 +502,8 @@ describe('#facebook', function oauthFacebookSuite() {
         const message = await fb.extractMsUsersPostMessage();
 
         assert.ok(message);
-        assert.equal(message.error, false);
-        assert.equal(message.type, 'ms-users:logged-in');
+        assert.strictEqual(message.error, false);
+        assert.strictEqual(message.type, 'ms-users:logged-in');
 
         const { payload } = message;
         checkServiceOkResponse(payload);
@@ -647,7 +647,7 @@ describe('#facebook', function oauthFacebookSuite() {
         const body = await data.text();
         const context = WebExecuter.getJavascriptContext(body);
 
-        checkServiceMissingPermissionsResponse(context);
+        checkServiceMissingPermissionsResponse(context, 'signed');
       });
 
       it('should register with partially returned scope and require email verification', async () => {
@@ -663,14 +663,14 @@ describe('#facebook', function oauthFacebookSuite() {
 
         const context = WebExecuter.getJavascriptContext(body);
 
-        checkServiceMissingPermissionsResponse(context);
+        checkServiceMissingPermissionsResponse(context, 'signed');
 
         const { requiresActivation, id } = await createAccount(
           context.$ms_users_inj_post_message.payload.token,
           { username: 'unverified@makeomatic.ca' }
         );
 
-        assert.equal(requiresActivation, true);
+        assert.strictEqual(requiresActivation, true);
         assert.ok(id);
       });
 

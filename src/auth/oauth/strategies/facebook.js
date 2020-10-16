@@ -70,7 +70,7 @@ function defaultProfileHandler(ctx, profile) {
 
 function fetch(resource) {
   const endpoint = Urls.instance()[resource];
-  return (fetcher, options) => fetcher(endpoint, options);
+  return (fetcher, options, bearer) => fetcher(endpoint, options, bearer);
 }
 
 const fetchProfile = fetch('profile');
@@ -99,10 +99,8 @@ function verifyPermissions(ctx, permissions) {
 const defaultGetterFactory = (ctx) => async (uri, params = {}, bearer) => {
   assert(bearer, 'bearer token must be supplied');
 
-  const getOptions = {
-    headers: {
-      Authorization: `Bearer ${bearer}`,
-    },
+  const headers = {
+    Authorization: `Bearer ${bearer}`,
   };
 
   if (ctx.profileParams) {
@@ -110,19 +108,29 @@ const defaultGetterFactory = (ctx) => async (uri, params = {}, bearer) => {
   }
 
   if (ctx.provider.headers) {
-    Hoek.merge(getOptions.headers, ctx.provider.headers);
+    Hoek.merge(headers, ctx.provider.headers);
   }
 
   try {
     return await request[ctx.provider.profileMethod]({
       uri,
       qs: params,
+      headers,
       json: true,
       gzip: true,
       timeout: 5000,
     });
   } catch (err) {
-    throw Boom.internal(`Failed obtaining ${ctx.name} user profile`, err);
+    throw Boom.internal(`Failed obtaining ${ctx.name} user profile`, {
+      body: err.response.body,
+      headers: err.response.headers,
+      request: {
+        uri,
+        params,
+        headers,
+      },
+      stack: err.stack,
+    });
   }
 };
 
@@ -139,9 +147,9 @@ function profileFactory(fields, profileHandler = defaultProfileHandler) {
       requiredPermissions,
     };
 
-    const permissions = await fetchPermissions(ctx, getter, { appsecret_proof: ap });
+    const permissions = await fetchPermissions(getter, { appsecret_proof: ap }, credentials.token);
     verifyPermissions(ctx, permissions);
-    const profile = await fetchProfile(ctx, getter, { appsecret_proof: ap, fields });
+    const profile = await fetchProfile(getter, { appsecret_proof: ap, fields }, credentials.token);
     return profileHandler(ctx, profile);
   };
 }
@@ -177,6 +185,7 @@ const defaultOptions = {
   profile: profileFactory(FIELDS),
   auth: Urls.auth,
   token: Urls.token,
+  profileMethod: 'get',
 };
 
 exports.options = (options) => {

@@ -47,7 +47,7 @@ class Urls {
   }
 }
 
-Urls.DEFAULT_API_VERSION = 'v4.0';
+Urls.DEFAULT_API_VERSION = 'v8.0';
 Urls.self = null;
 
 module.exports = Urls;

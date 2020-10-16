@@ -1,16 +1,20 @@
-const Promise = require('bluebird');
 const assert = require('assert');
 const { HttpStatusError } = require('common-errors');
 const attach = require('./attach');
 const providers = require('../providers');
 const { getSignedToken } = require('./get-signed-token');
 
-async function formOAuthResponse(request, credentials) {
+/**
+ * @param {Service} ctx
+ * @param {ServiceRequest} request
+ * @param {{ account: any, jwt: string, user: any }} credentials
+ */
+async function formOAuthResponse(ctx, request, credentials) {
   const { account, jwt, user } = credentials;
 
   // logged in, no account provided - bypass
   if (!account && jwt) {
-    const { cookies } = this.config.jwt;
+    const { cookies } = ctx.config.jwt;
     if (cookies.enabled === true) {
       request.transportRequest.setState(cookies.name, jwt, cookies.settings);
     }
@@ -34,15 +38,15 @@ async function formOAuthResponse(request, credentials) {
   assert(Provider, `${account.provider} is not usable`);
   const accountResponse = Provider.transformAccountToResponseFormat(account);
 
-  const context = await Promise
-    .bind(this, [accountResponse, user])
-    .spread(user ? attach : getSignedToken);
+  const context = user
+    ? attach.call(ctx, accountResponse, user)
+    : getSignedToken.call(ctx, accountResponse);
 
   return {
-    payload: context,
+    payload: await context,
     error: false,
     missingPermissions,
-    type: 'ms-users:attached',
+    type: user ? 'ms-users:attached' : 'ms-users:signed',
     title: `Attached ${account.provider} account`,
   };
 }

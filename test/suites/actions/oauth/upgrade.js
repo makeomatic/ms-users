@@ -6,6 +6,7 @@ const Promise = require('bluebird');
 const assert = require('assert');
 const got = require('got');
 const GraphApi = require('../../../helpers/oauth/facebook/graph-api');
+const { AssertionError } = require('assert');
 
 const kDefaultAudience = '*.localhost';
 const msUsers = got.extend({
@@ -161,9 +162,11 @@ describe('oauth#upgrade', function oauthFacebookSuite() {
 
         checkServiceOkResponse(registered);
 
-        const uid = `facebook:${registered.user.metadata[kDefaultAudience].facebook.id}`;
+        const { uid } = registered.user.metadata[kDefaultAudience].facebook;
         const { username } = registered.user.metadata['*.localhost'];
         let response;
+
+        assert(username, 'fb username wasnt captured');
 
         response = await service.dispatch('oauth.detach', {
           params: {

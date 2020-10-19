@@ -381,9 +381,11 @@ describe('#facebook', function oauthFacebookSuite() {
 
         checkServiceOkResponse(registered);
 
-        const uid = `facebook:${registered.user.metadata[kDefaultAudience].facebook.id}`;
+        const { uid } = registered.user.metadata[kDefaultAudience].facebook;
         const { username } = registered.user.metadata['*.localhost'];
         let response;
+
+        assert(username, 'fb username wasnt captured');
 
         response = await service.dispatch('oauth.detach', {
           params: {

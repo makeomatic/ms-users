@@ -35,6 +35,9 @@ const schema = {
     lastName: {
       type: 'string',
     },
+    name: {
+      type: 'string',
+    },
     email: {
       type: 'string',
       format: 'email',
@@ -66,26 +69,20 @@ const schema = {
     isSubscribed: {
       type: 'boolean',
     },
-    isOptout: typeOrNull('boolean'),
-    isPhoneSubscribed: {
-      type: 'boolean',
-    },
     rating: typeOrNull('number'),
-    phone: typeOrNull('string', {
-      description: 'optional ?? returned as null',
-    }),
+    phone: typeOrNull('string'),
     birthDate: typeOrNull('string', {
       description: 'optional ?? returned as null',
     }),
     metroArea: typeOrNull('string'),
     postalCode: typeOrNull('string'),
-    displayName: {
-      type: 'string',
-      description: 'optional ?? returned as null',
+    fields: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
     },
-    lastUpdateTimestamp: {
-      type: 'number',
-    },
+    imageUrl: typeOrNull('string'),
     gender: typeOrNull('string', {
       enum: ['male', 'female'],
     }),
@@ -98,9 +95,6 @@ const schema = {
     resetUid: typeOrNull('string', {
       description: 'optional ?? returned as null - not sure what it means/used as',
     }),
-    isConfirmed: {
-      type: 'boolean',
-    },
   },
 };
 
@@ -116,7 +110,7 @@ class TbitsService {
   constructor(service) {
     this.service = service;
     this.req = got.extend({
-      prefixUrl: 'https://fanxp.tradablebits.com/api',
+      prefixUrl: 'https://tradablebits.com/api/v1',
       responseType: 'json',
       agent: {
         https: new HttpsAgent({
@@ -199,13 +193,12 @@ class TbitsService {
    * @param {string} sessionUid - tbits authentication token
    */
   async retrieveUser(sessionUid) {
+    const { apiKey } = this.service.config.tbits;
     let response;
+
     try {
-      const { statusCode, body } = await this.req('fans/details', {
-        searchParams: {
-          session_uid: sessionUid,
-        },
-      });
+      const searchParams = { api_key: apiKey };
+      const { statusCode, body } = await this.req(`sessions/${sessionUid}/fan`, { searchParams });
 
       assert.equal(statusCode, 200);
 

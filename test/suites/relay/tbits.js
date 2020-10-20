@@ -8,7 +8,7 @@ const msUsers = got.extend({
 });
 
 const tbitsAPI = got.extend({
-  prefixUrl: 'https://fanxp.tradablebits.com/api/auth',
+  prefixUrl: 'https://tradablebits.com/api/v1',
   responseType: 'json',
   resolveBodyOnly: true,
   method: 'post',
@@ -17,18 +17,26 @@ const tbitsAPI = got.extend({
 describe('/relay/tbits', function verifySuite() {
   const username = 'microfleet@makeomatic.ca';
   const password = 'Demopassword1';
-  const accountId = '7177497';
   let sessionUid;
   let pristine;
   let second;
 
   before(async () => {
-    const requestId = await tbitsAPI('request', { json: { account_id: accountId } });
-    const resp = await tbitsAPI('login', { json: { request_uid: requestId, login_name: username, password } });
-    if (resp.terms_required) {
-      await tbitsAPI('legal_accept', { json: { request_uid: requestId, legal_terms: true, legal_privacy: true } });
+    const form = {
+      password,
+      email: username,
+      network: 'email',
+      api_key: process.env.TBITS_API_KEY,
+    };
+
+    try {
+      const result = await tbitsAPI('sessions/connect', { form });
+      console.log('result', result);
+      sessionUid = result.session_uid;
+    } catch (e) {
+      console.log(e);
+      throw e;
     }
-    sessionUid = await tbitsAPI('session', { json: { request_uid: requestId, challenge_uid: resp.challenge_uid } });
   });
 
   describe('tbits disabled', () => {
@@ -50,7 +58,10 @@ describe('/relay/tbits', function verifySuite() {
 
   describe('tbits enabled', () => {
     before(() => global.startService({
-      tbits: { enabled: true },
+      tbits: {
+        enabled: true,
+        apiKey: process.env.TBITS_API_KEY,
+      },
       validation: {
         templates: {
           register: 'UNKNOWN',

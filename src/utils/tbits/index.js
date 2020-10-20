@@ -5,6 +5,7 @@ const { Agent: HttpsAgent } = require('https');
 const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');
 const { USERS_INVALID_TOKEN, lockTbits, ErrorConflictUserExists } = require('../../constants');
+const contacts = require('../contacts');
 
 const toCamelCase = (obj) => {
   const response = Object.create(null);
@@ -134,6 +135,10 @@ class TbitsService {
     try {
       const registeredUser = await this.service.dlock.fanout(lockTbits(userProfile), 5000, this.registerUser, userProfile);
       if (registeredUser) {
+        if (userProfile.phone) {
+          await contacts.add.call(this, { contact: { type: 'phone', value: userProfile.phone }, userId: registeredUser.id });
+        }
+
         return registeredUser;
       }
     } catch (e) {

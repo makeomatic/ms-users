@@ -17,6 +17,7 @@ const tbitsAPI = got.extend({
 describe('/relay/tbits', function verifySuite() {
   const username = 'microfleet@makeomatic.ca';
   const password = 'Demopassword1';
+  const apiKey = process.env.TBITS_API_KEY;
   let sessionUid;
   let pristine;
   let second;
@@ -26,7 +27,7 @@ describe('/relay/tbits', function verifySuite() {
       password,
       email: username,
       network: 'email',
-      api_key: process.env.TBITS_API_KEY,
+      api_key: apiKey,
     };
 
     try {
@@ -44,7 +45,7 @@ describe('/relay/tbits', function verifySuite() {
     after(() => global.clearRedis());
 
     it('validates its off', async () => {
-      await assert.rejects(msUsers.post({ json: { sessionUid } }), (e) => {
+      await assert.rejects(msUsers.post({ json: { apiKey, sessionUid } }), (e) => {
         assert.deepStrictEqual(e.response.body, {
           statusCode: 412,
           error: 'Precondition Failed',
@@ -60,7 +61,6 @@ describe('/relay/tbits', function verifySuite() {
     before(() => global.startService({
       tbits: {
         enabled: true,
-        apiKey: process.env.TBITS_API_KEY,
       },
       validation: {
         templates: {
@@ -71,7 +71,7 @@ describe('/relay/tbits', function verifySuite() {
     after(() => global.clearRedis());
 
     it('rejects on invalidd session uid', async () => {
-      await assert.rejects(msUsers.post({ json: { sessionUid: 'invalid' } }), (e) => {
+      await assert.rejects(msUsers.post({ json: { apiKey, sessionUid: 'invalid' } }), (e) => {
         assert.deepStrictEqual(e.response.body, {
           statusCode: 403,
           error: 'Forbidden',
@@ -83,12 +83,12 @@ describe('/relay/tbits', function verifySuite() {
     });
 
     it('signs in with valid session, non-existent user', async () => {
-      pristine = await msUsers.post({ json: { sessionUid } });
+      pristine = await msUsers.post({ json: { apiKey, sessionUid } });
       console.info('%j', pristine.body);
     });
 
     it('signs in with valid session, existing user', async () => {
-      second = await msUsers.post({ json: { sessionUid } });
+      second = await msUsers.post({ json: { apiKey, sessionUid } });
       console.info('%j', second.body);
     });
   });

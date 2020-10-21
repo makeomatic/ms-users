@@ -125,8 +125,8 @@ class TbitsService {
     this.audience = this.service.config.jwt.defaultAudience;
   }
 
-  async authenticate(sessionUid) {
-    const userProfile = await this.retrieveUser(sessionUid);
+  async authenticate(sessionUid, apiKey) {
+    const userProfile = await this.retrieveUser(sessionUid, apiKey);
     return this.registerAndLogin(userProfile);
   }
 
@@ -196,9 +196,9 @@ class TbitsService {
   /**
    * Validates & retrieves tbits fan profile, as well as transforms it into camel case
    * @param {string} sessionUid - tbits authentication token
+   * @param {string} apiKey - tbits public api key
    */
-  async retrieveUser(sessionUid) {
-    const { apiKey } = this.service.config.tbits;
+  async retrieveUser(sessionUid, apiKey) {
     let response;
 
     try {

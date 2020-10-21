@@ -6,7 +6,6 @@ const Promise = require('bluebird');
 const assert = require('assert');
 const got = require('got');
 const GraphApi = require('../../../helpers/oauth/facebook/graph-api');
-const { AssertionError } = require('assert');
 
 const kDefaultAudience = '*.localhost';
 const msUsers = got.extend({

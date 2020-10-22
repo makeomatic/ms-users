@@ -631,9 +631,6 @@
     "tbits": {
       "type": "object",
       "properties": {
-        "apiKey": {
-          "type": "string"
-        },
         "enabled": {
           "type": "boolean"
         }

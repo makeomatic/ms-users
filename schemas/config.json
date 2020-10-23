@@ -627,6 +627,14 @@
           "$ref": "#/definitions/userLoginRateLimiter"
         }
       }
+    },
+    "tbits": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "definitions": {

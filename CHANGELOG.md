@@ -1,3 +1,11 @@
+# [14.12.0-rc.1](https://github.com/makeomatic/ms-users/compare/v14.11.1-rc.1...v14.12.0-rc.1) (2020-10-26)
+
+
+### Features
+
+* **cf-access-list:** Cloudflare Ip List API + client ([#474](https://github.com/makeomatic/ms-users/issues/474)) ([0f6062d](https://github.com/makeomatic/ms-users/commit/0f6062d41c24537e90d469f5a56dca874d0fcb20))
+* edit tbits authenticate ([#479](https://github.com/makeomatic/ms-users/issues/479)) ([090cbb6](https://github.com/makeomatic/ms-users/commit/090cbb6dd2e303d17e47ca3d465f02d7d88b1637))
+
 ## [14.11.1-rc.1](https://github.com/makeomatic/ms-users/compare/v14.11.0...v14.11.1-rc.1) (2020-10-15)
 
 

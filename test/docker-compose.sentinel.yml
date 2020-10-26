@@ -37,6 +37,10 @@ services:
       - html:/usr/share/nginx/html
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
+  consul:
+    image: consul:1.6
+    hostname: consul
+
   tester:
     shm_size: 128m
     expose:
@@ -57,6 +61,8 @@ services:
       FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
       FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
       TBITS_API_KEY: ${TBITS_API_KEY}
+      CF_TOKEN: ${CF_TOKEN}
+      CF_ACCOUNT_ID: ${CF_ACCOUNT_ID}
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
       VIRTUAL_HOST: ms-users.local
       VIRTUAL_PORT: 3000

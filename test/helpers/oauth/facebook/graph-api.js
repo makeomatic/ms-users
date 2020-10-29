@@ -111,7 +111,7 @@ class GraphAPI {
    * @param {string} [next] - url for fetching test user data
    * @returns {Promise<{ id: string, access_token: string | undefined, login_url: string, email?: string }>}
    */
-  static async getTestUserWithPermissions(permissions, next = `${baseOpts.baseUrl}/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`) {
+  static async _getTestUserWithPermissions(permissions, next = `${baseOpts.baseUrl}/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`) {
     const { data, paging: { next: nextPage } } = await this.graphApi({
       baseUrl: '',
       uri: next,
@@ -138,6 +138,24 @@ class GraphAPI {
     const user = data[data.length * Math.random() | 0];
     await this.deAuthApplication(user);
     return this.associateUser(user, permissions);
+  }
+
+  /**
+   * ensures that every test user has email
+   * @param {string[]} permissions
+   */
+  static async getTestUserWithPermissions(permissions) {
+    const user = await this._getTestUserWithPermissions(permissions);
+
+    const hasPermission = Array.isArray(permissions) && permissions.length > 0;
+    const needsEmail = hasPermission ? permissions.includes('email') : true;
+
+    if (needsEmail && !user.email) {
+      await this.deleteTestUser(user);
+      return this.getTestUserWithPermissions(permissions);
+    }
+
+    return user;
   }
 }
 

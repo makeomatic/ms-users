@@ -122,8 +122,8 @@ const defaultGetterFactory = (ctx) => async (uri, params = {}, bearer) => {
     });
   } catch (err) {
     throw Boom.internal(`Failed obtaining ${ctx.name} user profile`, {
-      body: err.response.body,
-      headers: err.response.headers,
+      body: err.response && err.response.body,
+      headers: err.response && err.response.headers,
       request: {
         uri,
         params,

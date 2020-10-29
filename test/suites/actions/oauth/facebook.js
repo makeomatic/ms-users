@@ -2,10 +2,22 @@
 /* global globalRegisterUser, globalAuthUser */
 
 const { authenticator } = require('otplib');
-const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const assert = require('assert');
-const forEach = require('lodash/forEach');
+const Bell = require('@hapi/bell');
+const Boom = require('@hapi/boom');
+const got = require('got');
+const clone = require('rfdc')();
+
+const msUsers = got.extend({
+  prefixUrl: 'https://ms-users.local/users/oauth/facebook',
+  responseType: 'text',
+  retry: 0,
+  followRedirect: false,
+  https: {
+    rejectUnauthorized: false,
+  },
+});
 
 const GraphApi = require('../../../helpers/oauth/facebook/graph-api');
 const WebExecuter = require('../../../helpers/oauth/facebook/web-executer');
@@ -35,16 +47,36 @@ function checkServiceOkResponse(payload) {
  * @param context
  */
 function checkServiceMissingPermissionsResponse(context, type = 'attached') {
-  assert.ok(context.$ms_users_inj_post_message);
-  assert.strictEqual(context.$ms_users_inj_post_message.type, `ms-users:${type}`);
-  assert.strictEqual(context.$ms_users_inj_post_message.error, false);
-  assert.deepEqual(context.$ms_users_inj_post_message.missingPermissions, ['email']);
-  assert.ok(context.$ms_users_inj_post_message.payload.token, 'missing token');
-  assert.strictEqual(context.$ms_users_inj_post_message.payload.provider, 'facebook');
+  assert.strictEqual(context.type, `ms-users:${type}`);
+  assert.strictEqual(context.error, false);
+  assert.deepEqual(context.missingPermissions, ['email']);
+  assert.ok(context.payload.token, 'missing token');
+  assert.strictEqual(context.payload.provider, 'facebook');
 }
+
+const profileCache = Object.create(null);
+
+// https://github.com/hapijs/bell/blob/master/lib/oauth.js#L164
+const getRejectError = (reason = 'No information provided', credentials = { provider: 'facebook' }) => {
+  return Boom.internal(`App rejected: ${reason}`, { credentials });
+};
+
+const getSimulatedRequestForUser = (service, user) => async (request) => {
+  const providerSettings = service.oauth.app.oauthProviderSettings.facebook;
+  const { profile } = providerSettings.provider;
+  const initialReq = { token: user.access_token, query: request.query };
+
+  if (profileCache[initialReq.token]) {
+    return clone(profileCache[initialReq.token]);
+  }
+
+  profileCache[initialReq.token] = await profile.call(providerSettings, initialReq);
+  return clone(profileCache[initialReq.token]);
+};
 
 describe('#facebook', function oauthFacebookSuite() {
   let service;
+  let simulateReq;
 
   /**
    * Creates new account in `ms-users` service.
@@ -55,6 +87,9 @@ describe('#facebook', function oauthFacebookSuite() {
    */
   function createAccount(token, overwrite = {}) {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64'));
+
+    assert.ok(payload.email || overwrite.username, 'email is empty');
+
     const opts = {
       username: payload.email,
       password: 'mynicepassword',
@@ -71,11 +106,21 @@ describe('#facebook', function oauthFacebookSuite() {
 
   /* Restart service before each test to achieve clean database. */
   beforeEach('start', async () => {
+    Bell.simulate((req) => {
+      if (simulateReq) {
+        return simulateReq(req);
+      }
+
+      throw Boom.badRequest();
+    });
+
     service = await global.startService(this.testConfig);
   });
 
   afterEach('stop', async () => {
     await global.clearRedis();
+    Bell.simulate(false);
+    simulateReq = false;
   });
 
   /**
@@ -84,26 +129,15 @@ describe('#facebook', function oauthFacebookSuite() {
    * so we will test it once
    */
   describe('OAuth Throttling Error Handling', () => {
-    const sinon = require('sinon');
-    const Boom = require('@hapi/boom');
-    const request = require('request-promise');
-
-    const executeLink = `${WebExecuter.serviceLink}/users/oauth/facebook`;
-    const serviceHttpRequest = request.defaults({
-      method: 'GET',
-      strictSSL: false,
-      url: executeLink,
-    });
-
     describe('errors from @hapi/bell passed through', async () => {
       beforeEach('stub Errors ', async () => {
         const throttleError = Boom.forbidden('X-Throttled', {});
 
         /* Stub all oauth calls with custom error */
         /* Bell always returns InternalError with Error, Response or payload in it's data */
-        sinon
-          .stub(service.http.auth, 'test')
-          .throws(() => Boom.internal('BadError', throttleError));
+        simulateReq = () => {
+          throw Boom.internal('BadError', throttleError);
+        };
       });
 
       it('errors from @hapi/bell passed through', async () => {
@@ -111,9 +145,9 @@ describe('#facebook', function oauthFacebookSuite() {
         let statusCode;
 
         try {
-          await serviceHttpRequest();
+          await msUsers.get();
         } catch (e) {
-          const javascriptContext = WebExecuter.getJavascriptContext(e.error);
+          const javascriptContext = WebExecuter.getJavascriptContext(e.response.body);
           ({ statusCode } = e.response);
           ({ $ms_users_inj_post_message: postMessage } = javascriptContext);
         }
@@ -190,19 +224,19 @@ describe('#facebook', function oauthFacebookSuite() {
 
       tests.forEach((test) => {
         describe('serializes error correctly', () => {
-          beforeEach('stub Errors ', async () => {
-            sinon
-              .stub(service.http.auth, 'test')
-              .throws(() => Boom.internal('BadError', test.subError));
+          beforeEach('stub Errors ', () => {
+            simulateReq = () => {
+              throw Boom.internal('BadError', test.subError);
+            };
           });
 
           it('serializes error correctly', async () => {
             let postMessage;
 
             try {
-              await serviceHttpRequest();
+              await msUsers.get();
             } catch (e) {
-              const javascriptContext = WebExecuter.getJavascriptContext(e.error);
+              const javascriptContext = WebExecuter.getJavascriptContext(e.response.body);
               ({ $ms_users_inj_post_message: postMessage } = javascriptContext);
             }
 
@@ -210,55 +244,6 @@ describe('#facebook', function oauthFacebookSuite() {
             test.check(innerError.data);
           });
         });
-      });
-    });
-
-    /**
-     * Internal check. Just to be sure if Throttling Happened during test suites.
-     */
-    describe('WebExecuter generate custom throttling error', async () => {
-      let fb;
-
-      /* Simulates situation when timeout happens */
-      const simulateTimeout = async () => {
-        try {
-          await fb.navigatePage({ href: executeLink });
-          // we use stubbed response so timeout is small
-          await fb.page.waitForSelector('input#email', { timeout: 1000 });
-        } catch (e) {
-          await fb.processPageError(e);
-        }
-      };
-
-      before('start WebExcuter', async () => {
-        fb = new WebExecuter();
-        await fb.start();
-      });
-
-      beforeEach('stub Errors ', async () => {
-        const throttleError = Boom.forbidden('X-Throttled', {});
-        sinon
-          .stub(service.http.auth, 'test')
-          .throws(() => Boom.internal('BadError', throttleError));
-      });
-
-      it('WebExecuter generate custom throttling error', async () => {
-        let executerError;
-
-        try {
-          await simulateTimeout();
-        } catch (error) {
-          executerError = error;
-        }
-
-        assert.ok(executerError, 'Should be error');
-        assert(executerError instanceof WebExecuter.TimeoutError, 'Must be instance of WebExecuter.TimeoutError');
-        assert(executerError.status_code === 500, 'Status code must be set');
-        assert.ok(executerError.page_contents, 'Must include service message or last response');
-      });
-
-      after('stop WebExecuter', async () => {
-        await fb.stop();
       });
     });
   });
@@ -269,45 +254,34 @@ describe('#facebook', function oauthFacebookSuite() {
    * This suite don't need to recreate user for each test and we can use one AuthToken in all tests.
    */
   describe('new user', async function newUserTest() {
+    /**
+     * @type {{ id: string, access_token: string | undefined, login_url: string, email?: string }}
+     */
     let generalUser;
-    this.slow(60000);
 
-    before('create test user', async () => {
-      generalUser = await GraphApi.createTestUser();
-    });
-
-    after('delete test user', async () => {
-      await GraphApi.deleteTestUser(generalUser);
+    before(async () => {
+      generalUser = await GraphApi.getTestUserWithPermissions(['public_profile', 'email']);
     });
 
     /**
      * Checking general functionality just to be ensured that we can receive `token` or handle `Declined` Facebook Auth Request
      */
     describe('general checks', async () => {
-      let fb;
-
-      beforeEach('start WebExecuter', async () => {
-        fb = new WebExecuter();
-        await fb.start();
-      });
-
-      afterEach('stop WebExecuter', async () => {
-        await fb.stop();
-      });
-
-      afterEach('deauth App', async () => {
-        await GraphApi.deAuthApplication(generalUser);
-      });
-
       it('should able to handle declined authentication', async () => {
-        const { status, url } = await fb.rejectAuth(generalUser);
-        console.log('Decline', status, url);
-        assert(status === 401, `statusCode is ${status}, url is ${url}`);
+        simulateReq = () => {
+          throw getRejectError('test declined');
+        };
+
+        await assert.rejects(msUsers.get(), (e) => {
+          return e.response.statusCode === 401;
+        });
       });
 
       it('should able to retrieve faceboook profile', async () => {
-        const { token: resToken, body } = await fb.getToken(generalUser);
-        assert(resToken, `did not get token - ${resToken} - ${body}`);
+        simulateReq = getSimulatedRequestForUser(service, generalUser);
+        const { body } = await msUsers.get();
+        const context = WebExecuter.extractPostMessageResponse(body);
+        assert(context.payload.token, `did not get token - ${JSON.stringify(context)}`);
       });
     });
 
@@ -316,27 +290,12 @@ describe('#facebook', function oauthFacebookSuite() {
      * Token retrieved once and all tests use it.
      */
     describe('service register/create/detach', () => {
-      let fb;
       let token;
 
-      /* Should be 'before' hook, but Mocha executes it before starting our service.  */
-      before('start WebExecuter', async () => {
-        fb = new WebExecuter();
-      });
-
-      beforeEach('get Facebook token', async () => {
-        if (token != null) {
-          return;
-        }
-
-        await fb.start();
-        token = (await fb.getToken(generalUser)).token;
-        await fb.stop();
-      });
-
-      /* Cleanup App permissions for further user reuse */
-      after('deauth application', async () => {
-        await GraphApi.deAuthApplication(generalUser);
+      it('get Facebook token', async () => {
+        simulateReq = getSimulatedRequestForUser(service, generalUser);
+        const { body } = await msUsers.get();
+        token = WebExecuter.extractPostMessageResponse(body).payload.token;
       });
 
       it('should be able to register via facebook', async () => {
@@ -404,9 +363,10 @@ describe('#facebook', function oauthFacebookSuite() {
           },
         });
 
-        forEach(response.metadata, (audience) => {
+        // NOTE: check whats iin
+        for (const audience of Object.values(response)) {
           assert.ifError(audience.facebook);
-        });
+        }
 
         /* verify that related account has been pruned from internal data */
         response = await service
@@ -415,12 +375,9 @@ describe('#facebook', function oauthFacebookSuite() {
         assert.ifError(response.facebook, 'did not detach fb');
 
         /* verify that related account has been dereferenced */
-        const error = await service
-          .dispatch('getInternalData', { params: { username: uid } })
-          .reflect()
-          .then(inspectPromise(false));
-
-        assert.equal(error.statusCode, 404);
+        await assert.rejects(service.dispatch('getInternalData', { params: { username: uid } }), {
+          statusCode: 404,
+        });
       });
     });
 
@@ -432,87 +389,66 @@ describe('#facebook', function oauthFacebookSuite() {
      * This version repeats same behavior but without repeating auth and get token processes.
      */
     describe('service login/attach', () => {
-      let fb;
       let token;
       let dataBag;
+
       const username = 'facebookuser@me.com';
+
       /* Should be 'before' hook, but Mocha executes it before starting our service.  */
-      beforeEach('init WebExecuter, get Facebook token, register user', async () => {
-        if (!fb) {
-          fb = new WebExecuter();
-          await fb.start();
-          ({ token } = await fb.getToken(generalUser));
-        }
+      beforeEach('get Facebook token, register user', async () => {
+        simulateReq = getSimulatedRequestForUser(service, generalUser);
+        const { body } = await msUsers.get();
+        token = WebExecuter.extractPostMessageResponse(body).payload.token;
 
         dataBag = { service };
         await globalRegisterUser(username).call(dataBag);
         await globalAuthUser(username).call(dataBag);
       });
 
-      after('stop executer', async () => {
-        await fb.stop();
-      });
-
-      /* IF test reordering occurs this going to save us from headache */
-      after('deauth application', async () => {
-        await GraphApi.deAuthApplication(generalUser);
-      });
-
       it('should reject attaching already attached profile to a new user', async () => {
         await createAccount(token);
-        await Promise.delay(1000);
+        await assert.rejects(msUsers.get({ searchParams: { jwt: dataBag.jwt } }), ({ response }) => {
+          const context = WebExecuter.extractPostMessageResponse(response.body);
 
-        const { status, url } = await fb.signInWithToken(dataBag.jwt);
-        assert(status === 412, `Page is ${url} and status is ${status}`);
-
-        const message = await fb.extractMsUsersPostMessage();
-        assert.ok(message);
-        assert.equal(message.type, 'ms-users:attached');
-        assert.equal(message.error, true);
-        assert.deepEqual(message.payload, {
-          status: 412,
-          statusCode: 412,
-          status_code: 412,
-          name: 'HttpStatusError',
-          message: 'profile is linked',
+          return response.statusCode === 412
+            && context
+            && context.type === 'ms-users:attached'
+            && context.error === true
+            && context.payload.statusCode === 412
+            && context.payload.name === 'HttpStatusError'
+            && context.payload.message === 'profile is linked';
         });
       });
 
       it('should attach facebook profile to existing user', async () => {
-        await Promise.delay(1000);
-        const { status, url, body } = await fb.signInWithToken(dataBag.jwt);
-        assert(status === 200, `Page is ${url} and status is ${status}`);
+        const { statusCode, body } = await msUsers.get({ searchParams: { jwt: dataBag.jwt } });
+        assert.strictEqual(statusCode, 200);
 
-        const message = await fb.extractMsUsersPostMessage();
+        const message = await WebExecuter.extractPostMessageResponse(body);
 
-        assert(message, `post message not present: ${body}`);
-        assert(message.type === 'ms-users:attached', `type wrong -> ${body}`);
-        assert(Object.keys(message.payload).length);
+        assert.ok(message, `post message not present: ${body}`);
+        assert.strictEqual(message.type, 'ms-users:attached', `type wrong -> ${body}`);
+        assert.ok(Object.keys(message.payload).length);
       });
 
       it('should be able to sign in with facebook account', async () => {
-        await Promise.delay(1000);
-        const executeLink = `${fb._serviceLink}/users/oauth/facebook`;
-
         /* initial request for attaching account */
-        const preRequest = await fb.signInWithToken(dataBag.jwt);
-        assert(preRequest.status === 200, `attaching account failed - ${preRequest.status} - ${preRequest.url}`);
+        const preRequest = await msUsers.get({ searchParams: { jwt: dataBag.jwt } });
+        assert.strictEqual(preRequest.statusCode, 200);
 
-        const { status, url } = await fb.navigatePage({ href: executeLink });
-        assert(status === 200, `signing in failed - ${status} - ${url}`);
+        // now that the account is linked - access same endpoint without JWT and ensure we get it back
+        const { statusCode, body } = await msUsers.get();
+        assert.strictEqual(statusCode, 200, `signing in failed - ${statusCode}`);
 
-        const message = await fb.extractMsUsersPostMessage();
+        const message = WebExecuter.extractPostMessageResponse(body);
 
         assert.ok(message);
         assert.strictEqual(message.error, false);
         assert.strictEqual(message.type, 'ms-users:logged-in');
-
-        const { payload } = message;
-        checkServiceOkResponse(payload);
+        checkServiceOkResponse(message.payload);
       });
 
       it('should be able to sign in with facebook account if mfa is enabled', async function test() {
-        await Promise.delay(1000);
         /* enable mfa */
         const { secret } = await service.dispatch('mfa.generate-key', { params: { username, time: Date.now() } });
         await service.dispatch('mfa.attach', {
@@ -523,20 +459,22 @@ describe('#facebook', function oauthFacebookSuite() {
           },
         });
 
-        const executeLink = `${fb._serviceLink}/users/oauth/facebook`;
-
         /* initial request for attaching account */
-        const preRequest = await fb.signInWithToken(dataBag.jwt);
-        assert(preRequest.status === 200, `attaching account failed - ${preRequest.status} - ${preRequest.url}`);
+        const preRequest = await msUsers.get({ searchParams: { jwt: dataBag.jwt } });
+        assert.strictEqual(preRequest.statusCode, 200, `attaching account failed - ${preRequest.statusCode}`);
 
-        const { status, url } = await fb.navigatePage({ href: executeLink });
-        assert(status === 403, `mfa was not requested - ${status} - ${url}`);
+        /* must request MFA */
+        let body;
+        await assert.rejects(msUsers.get(), ({ response }) => {
+          body = response.body;
+          return response.statusCode === 403;
+        });
 
-        const message = await fb.extractMsUsersPostMessage();
+        const message = WebExecuter.extractPostMessageResponse(body);
 
         assert.ok(message);
-        assert.equal(message.error, true);
-        assert.equal(message.type, 'ms-users:totp_required');
+        assert.strictEqual(message.error, true);
+        assert.strictEqual(message.type, 'ms-users:totp_required');
 
         const { payload: { userId, token: localToken } } = message;
         const login = await service.dispatch(
@@ -563,26 +501,11 @@ describe('#facebook', function oauthFacebookSuite() {
    * OAuth API endpoint behavior is same, and tests code will be copied from this suite.
    */
   describe('partial user', async () => {
-    let fb;
     let partialUser;
 
-    before('create test user', async () => {
-      partialUser = await GraphApi.createTestUser({
-        permissions: 'public_profile',
-      });
-    });
-
-    after('delete test user', async () => {
-      await GraphApi.deleteTestUser(partialUser);
-    });
-
-    beforeEach('start WebExecuter', async () => {
-      fb = new WebExecuter();
-      await fb.start();
-    });
-
-    afterEach('stop WebExecuter', async () => {
-      await fb.stop();
+    beforeEach('create test user', async () => {
+      partialUser = await GraphApi.getTestUserWithPermissions(['public_profile']);
+      simulateReq = getSimulatedRequestForUser(service, partialUser);
     });
 
     afterEach('deauth application', async () => {
@@ -590,20 +513,14 @@ describe('#facebook', function oauthFacebookSuite() {
     });
 
     it('should reject when signing in with partially returned scope and report it', async () => {
-      const data = await fb.signInAndNavigate(partialUser, (response) => {
-        return response.url().startsWith(fb._serviceLink) && response.status() === 401;
+      let body;
+      await assert.rejects(msUsers.get(), ({ response }) => {
+        body = response.body;
+        return response.statusCode === 401;
       });
 
-      const status = data.status();
-      const url = data.url();
-      const body = await data.text();
-
-      assert(status === 401, `did not reject partial sign in - ${status} - ${url} - ${body}`);
-
-      const context = WebExecuter.getJavascriptContext(body);
-
-      assert.ok(context.$ms_users_inj_post_message);
-      assert.deepEqual(context.$ms_users_inj_post_message.payload, {
+      const context = WebExecuter.extractPostMessageResponse(body);
+      assert.deepEqual(context.payload, {
         args: { 0: 'missing permissions - email' },
         message: 'An attempt was made to perform an operation without authentication: missing permissions - email',
         name: 'AuthenticationRequiredError',
@@ -619,14 +536,9 @@ describe('#facebook', function oauthFacebookSuite() {
       });
 
       it('should re-request partially returned scope endlessly', async () => {
-        const pageResponse = await fb.signInAndNavigate(partialUser, (response) => {
-          return /dialog\/oauth\?auth_type=rerequest/.test(response.url());
-        });
-
-        const url = pageResponse.url();
-        const status = pageResponse.status();
-
-        assert(/dialog\/oauth\?auth_type=rerequest/.test(url), `failed to redirect back - ${status} - ${url}`);
+        const { statusCode, headers } = await msUsers.get();
+        assert.strictEqual(statusCode, 302);
+        assert.ok(/\?auth_type=rerequest&scope=email/.test(headers.location), headers.location); // due to simulation the URL is still ours
       });
 
       after('remove', () => {
@@ -642,34 +554,18 @@ describe('#facebook', function oauthFacebookSuite() {
       });
 
       it('should login with partially returned scope and report it', async () => {
-        const data = await fb.signInAndNavigate(partialUser, (response) => {
-          return response.url().startsWith(fb._serviceLink) && response.status() === 200;
-        });
-
-        const body = await data.text();
-        const context = WebExecuter.getJavascriptContext(body);
-
+        const { body } = await msUsers.get();
+        const context = WebExecuter.extractPostMessageResponse(body);
         checkServiceMissingPermissionsResponse(context, 'signed');
       });
 
       it('should register with partially returned scope and require email verification', async () => {
-        const data = await fb.signInAndNavigate(partialUser, (response) => {
-          return response.url().startsWith(fb._serviceLink) && response.status() === 200;
-        });
-
-        const status = data.status();
-        const url = data.url();
-        const body = await data.text();
-
-        assert(status === 200, `failed to redirect back - ${status} - ${url} - ${body}`);
-
-        const context = WebExecuter.getJavascriptContext(body);
-
+        const { body } = await msUsers.get();
+        const context = WebExecuter.extractPostMessageResponse(body);
         checkServiceMissingPermissionsResponse(context, 'signed');
 
         const { requiresActivation, id } = await createAccount(
-          context.$ms_users_inj_post_message.payload.token,
-          { username: 'unverified@makeomatic.ca' }
+          context.payload.token, { username: 'unverified@makeomatic.ca' }
         );
 
         assert.strictEqual(requiresActivation, true);

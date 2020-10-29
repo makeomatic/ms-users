@@ -285,6 +285,11 @@ class WebExecuter {
     vmScript.runInContext(context);
     return context;
   }
+
+  static extractPostMessageResponse(body) {
+    const data = this.getJavascriptContext(body);
+    return data.$ms_users_inj_post_message;
+  }
 }
 
 module.exports = WebExecuter;

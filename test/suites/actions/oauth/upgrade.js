@@ -57,6 +57,9 @@ describe('oauth#upgrade', function oauthFacebookSuite() {
    */
   function createAccount(sso, overwrite = {}) {
     const payload = JSON.parse(Buffer.from(sso.split('.')[1], 'base64'));
+
+    assert(payload.email || overwrite.username, `email is not associated with the fb token: ${JSON.stringify({ payload, overwrite })}`);
+
     const opts = {
       username: payload.email,
       password: 'mynicepassword',

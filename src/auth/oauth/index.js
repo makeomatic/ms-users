@@ -26,21 +26,26 @@ const isHTMLRedirect = ({ statusCode, source }) => statusCode === 200 && source;
  * @param {Object} credentials
  * @returns {Array<HttpClientResponse, Credentials>}
  */
-async function oauthVerification({ service, transportRequest, config, strategy }, response, credentials) {
+function oauthVerification({
+  service,
+  transportRequest,
+  config,
+  strategy,
+}, error, credentials) {
   service.log.debug({
-    statusCode: response && response.statusCode,
-    headers: response && response.headers,
+    statusCode: error && error.statusCode,
+    headers: error && error.headers,
     credentials,
   }, 'service oauth verification');
 
-  if (response) {
-    if (isError(response) || isHTMLRedirect(response)) {
-      throw response;
+  if (error) {
+    if (isError(error) || isHTMLRedirect(error)) {
+      throw error;
     }
 
-    if (isRedirect(response)) {
+    if (isRedirect(error)) {
       // set redirect uri to rewrite the response in the hapi's preResponse hook
-      const redirectUri = get(response, 'headers.location');
+      const redirectUri = get(error, 'headers.location');
       throw new Redirect(redirectUri);
     }
   }
@@ -60,9 +65,9 @@ async function oauthVerification({ service, transportRequest, config, strategy }
     }
 
     if (retryOnMissingPermissions !== false) {
-      const error = new Errors.AuthenticationRequiredError(`missing permissions - ${missingPermissions.join(',')}`);
-      error.missingPermissions = missingPermissions;
-      throw error;
+      const authError = new Errors.AuthenticationRequiredError(`missing permissions - ${missingPermissions.join(',')}`);
+      authError.missingPermissions = missingPermissions;
+      throw authError;
     }
   }
 
@@ -78,6 +83,11 @@ async function oauthVerification({ service, transportRequest, config, strategy }
   return credentials;
 }
 
+/**
+ * @param {{ server: Mservice, transportRequest: HapiRequest }} ctx
+ * @param {{ uid: string }} credentials
+ * @returns {Promise<{user: User, jwt: string, account: { uid: string, profile: any, internals: any }}>}
+ */
 async function mserviceVerification({ service, transportRequest }, credentials) {
   // query on initial request is recorded and is available via credentials.query
   // https://github.com/hapijs/bell/blob/63603c9e897f3607efeeca87b6ef3c02b939884b/lib/oauth.js#L261
@@ -129,7 +139,7 @@ async function mserviceVerification({ service, transportRequest }, credentials) 
  * @param  {MserviceRequest} request
  * @returns {Promise}
  */
-module.exports = async function authHandler({ action, transportRequest }) {
+async function authHandler({ action, transportRequest }) {
   const { http, config } = this;
   const { strategy } = action;
 
@@ -154,6 +164,7 @@ module.exports = async function authHandler({ action, transportRequest }) {
 
       // Error thrown when user declines OAuth
       if (message.startsWith('App rejected')) {
+        this.log.debug({ err }, 'http.auth.test app rejected');
         throw Errors.AuthenticationRequiredError(`OAuth ${err.message}`, err);
       }
 
@@ -163,6 +174,11 @@ module.exports = async function authHandler({ action, transportRequest }) {
     response = [err];
   }
 
-  const credentials = await oauthVerification(ctx, ...response);
+  const credentials = oauthVerification(ctx, ...response);
   return mserviceVerification(ctx, credentials);
-};
+}
+
+authHandler.oauthVerification = oauthVerification;
+authHandler.mserviceVerification = mserviceVerification;
+
+module.exports = authHandler;

@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const defaults = require('lodash/defaults');
-const uuid = require('uuid');
+const uuidv4 = require('uuid').v4;
 const { USERS_ADMIN_ROLE, CHALLENGE_TYPE_EMAIL } = require('../constants');
 
 module.exports = function initAccounts() {
@@ -34,7 +34,7 @@ module.exports = function initAccounts() {
         return { params: userData };
       }
 
-      userData.referral = uuid.v4();
+      userData.referral = uuidv4();
 
       // this will be performed each time on startup, but shouldnt be a problem due to NX
       // and lack of side-effect

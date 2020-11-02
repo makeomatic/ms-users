@@ -1,12 +1,23 @@
+/* eslint-disable no-bitwise */
 const request = require('request-promise');
 const assert = require('assert');
+
+const baseOpts = {
+  baseUrl: 'https://graph.facebook.com/v8.0',
+  headers: {
+    Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
+  },
+  json: true,
+  timeout: 40000,
+};
+
 /**
  * Class wraps Facebook Graph API requests
  */
 class GraphAPI {
   /**
    * Just to be sure that correct user passed
-   * @param user
+   * @param {{ id: string, access_token?: string }} user
    */
   static checkUser(user) {
     assert(user, 'No user provided');
@@ -60,8 +71,8 @@ class GraphAPI {
 
   /**
    * Delete any Application permission from user.
-   * @param facebook user
-   * @param permission
+   * @param {{ id: string }} user
+   * @param {string}
    * @returns {Promise<*>}
    */
   static deletePermission(user, permission) {
@@ -73,15 +84,81 @@ class GraphAPI {
       method: 'DELETE',
     });
   }
+
+  /**
+   * Associates user with facebook app and provides permissions
+   * @param {{ id: string }} user
+   * @param {string[]} permissions
+   */
+  static associateUser(user, permissions = []) {
+    this.checkUser(user);
+    assert(Array.isArray(permissions));
+    return this.graphApi({
+      uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
+      method: 'POST',
+      body: {
+        uid: user.id,
+        owner_access_token: process.env.FACEBOOK_APP_TOKEN,
+        installed: permissions.length > 0,
+        permissions: permissions.length > 0 ? permissions.join(',') : undefined,
+      },
+    });
+  }
+
+  /**
+   * Returns existing test user with correct permissions or creates a new one
+   * @param {string[]} permissions
+   * @param {string} [next] - url for fetching test user data
+   * @returns {Promise<{ id: string, access_token: string | undefined, login_url: string, email?: string }>}
+   */
+  static async _getTestUserWithPermissions(permissions, next = `${baseOpts.baseUrl}/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`) {
+    const { data, paging: { next: nextPage } } = await this.graphApi({
+      baseUrl: '',
+      uri: next,
+      method: 'GET',
+    });
+
+    if (data.length === 0) {
+      return this.createTestUser({
+        installed: Array.isArray(permissions) && permissions.length > 0,
+        permissions: Array.isArray(permissions) && permissions.length > 0 ? permissions.join(',') : undefined,
+      });
+    }
+
+    if (!Array.isArray(permissions) || permissions.length === 0) {
+      const users = data.filter((x) => !x.access_token);
+      const user = users[users.length * Math.random() | 0];
+      if (!user) {
+        return this.getTestUserWithPermissions(permissions, nextPage);
+      }
+
+      return user;
+    }
+
+    const user = data[data.length * Math.random() | 0];
+    await this.deAuthApplication(user);
+    return this.associateUser(user, permissions);
+  }
+
+  /**
+   * ensures that every test user has email
+   * @param {string[]} permissions
+   */
+  static async getTestUserWithPermissions(permissions) {
+    const user = await this._getTestUserWithPermissions(permissions);
+
+    const hasPermission = Array.isArray(permissions) && permissions.length > 0;
+    const needsEmail = hasPermission ? permissions.includes('email') : true;
+
+    if (needsEmail && !user.email) {
+      await this.deleteTestUser(user);
+      return this.getTestUserWithPermissions(permissions);
+    }
+
+    return user;
+  }
 }
 
-GraphAPI.graphApi = request.defaults({
-  baseUrl: 'https://graph.facebook.com/v4.0',
-  headers: {
-    Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
-  },
-  json: true,
-  timeout: 40000,
-});
+GraphAPI.graphApi = request.defaults(baseOpts);
 
 module.exports = GraphAPI;

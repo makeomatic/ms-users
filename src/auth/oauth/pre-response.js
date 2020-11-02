@@ -9,7 +9,10 @@ const { Redirect } = require('./utils/errors');
 const { ErrorTotpRequired } = require('../../constants');
 const { getSignedToken } = require('./utils/get-signed-token');
 
-const isOauthAttachRoute = (route) => route.endsWith('oauth.facebook');
+const isOauthAttachRoute = (route) => (
+  route.endsWith('oauth.facebook')
+  || route.endsWith('oauth.upgrade')
+);
 
 module.exports = [{
   point: 'preResponse',
@@ -64,6 +67,7 @@ module.exports = [{
       this.log.warn({ error: message.payload }, 'oauth error');
     }
 
+    let statusCode = 200;
     if (error) {
       // erase stack
       if (typeof message.payload.stack !== 'undefined') {
@@ -74,6 +78,24 @@ module.exports = [{
       if (message.payload.inner_error == null) {
         delete message.payload.inner_error;
       }
+
+      // NOTE: ensure that 401 errors will be kept
+      switch (error.constructor) {
+        case AuthenticationRequiredError:
+          statusCode = 401;
+          break;
+
+        default:
+          statusCode = error.statusCode || 500;
+      }
+    }
+
+    if (!request.route.endsWith('oauth.facebook')) {
+      const response = request.transportRequest
+        .generateResponse(message)
+        .code(statusCode);
+
+      return Promise.all([null, response, request]);
     }
 
     let response = request.transportRequest.sendView('providerAttached', {
@@ -84,17 +106,6 @@ module.exports = [{
     });
 
     if (error) {
-      // NOTE: ensure that 401 errors will be kept
-      let statusCode;
-      switch (error.constructor) {
-        case AuthenticationRequiredError:
-          statusCode = 401;
-          break;
-
-        default:
-          statusCode = error.statusCode || 500;
-      }
-
       const reply = await response;
       response = reply.code(statusCode);
     }

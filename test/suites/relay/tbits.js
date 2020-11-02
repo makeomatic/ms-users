@@ -2,7 +2,7 @@ const assert = require('assert');
 const got = require('got');
 
 const msUsers = got.extend({
-  prefixUrl: 'http://ms-users.local/users/relay/tbits',
+  prefixUrl: 'https://ms-users.local/users/relay/tbits',
   responseType: 'json',
   https: { rejectUnauthorized: false },
 });

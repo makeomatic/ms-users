@@ -1,3 +1,10 @@
+# [14.12.0](https://github.com/makeomatic/ms-users/compare/v14.11.0...v14.12.0) (2020-11-02)
+
+
+### Features
+
+* sso token upgrade flow ([#451](https://github.com/makeomatic/ms-users/issues/451)) ([77d820b](https://github.com/makeomatic/ms-users/commit/77d820b3bee690dbb5cb8a67eb82e783d8b6dd67))
+
 # [14.11.0](https://github.com/makeomatic/ms-users/compare/v14.10.2...v14.11.0) (2020-09-16)
 
 

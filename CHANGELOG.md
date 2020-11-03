@@ -1,3 +1,10 @@
+## [14.12.1](https://github.com/makeomatic/ms-users/compare/v14.12.0...v14.12.1) (2020-11-03)
+
+
+### Bug Fixes
+
+* organization members ([#477](https://github.com/makeomatic/ms-users/issues/477)) ([4628b3e](https://github.com/makeomatic/ms-users/commit/4628b3e7b2676dfb80156f938cdc1264989d7f4f)), closes [#475](https://github.com/makeomatic/ms-users/issues/475) [#476](https://github.com/makeomatic/ms-users/issues/476) [#479](https://github.com/makeomatic/ms-users/issues/479) [#474](https://github.com/makeomatic/ms-users/issues/474)
+
 # [14.12.0](https://github.com/makeomatic/ms-users/compare/v14.11.0...v14.12.0) (2020-11-02)
 
 

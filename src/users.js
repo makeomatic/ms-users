@@ -3,7 +3,7 @@ const Mailer = require('ms-mailer-client');
 const merge = require('lodash/merge');
 const assert = require('assert');
 const fsort = require('redis-filtered-sort');
-const TokenManager = require('ms-token');
+const { TokenManager } = require('ms-token');
 const LockManager = require('dlock');
 const Flakeless = require('ms-flakeless');
 

@@ -5,6 +5,7 @@ const { Agent: HttpsAgent } = require('https');
 const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');
 const { USERS_INVALID_TOKEN, lockTbits, ErrorConflictUserExists } = require('../../constants');
+const contacts = require('../contacts');
 
 const toCamelCase = (obj) => {
   const response = Object.create(null);
@@ -33,6 +34,9 @@ const schema = {
       type: 'string',
     },
     lastName: {
+      type: 'string',
+    },
+    name: {
       type: 'string',
     },
     email: {
@@ -66,26 +70,20 @@ const schema = {
     isSubscribed: {
       type: 'boolean',
     },
-    isOptout: typeOrNull('boolean'),
-    isPhoneSubscribed: {
-      type: 'boolean',
-    },
     rating: typeOrNull('number'),
-    phone: typeOrNull('string', {
-      description: 'optional ?? returned as null',
-    }),
+    phone: typeOrNull('string'),
     birthDate: typeOrNull('string', {
       description: 'optional ?? returned as null',
     }),
     metroArea: typeOrNull('string'),
     postalCode: typeOrNull('string'),
-    displayName: {
-      type: 'string',
-      description: 'optional ?? returned as null',
+    fields: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
     },
-    lastUpdateTimestamp: {
-      type: 'number',
-    },
+    imageUrl: typeOrNull('string'),
     gender: typeOrNull('string', {
       enum: ['male', 'female'],
     }),
@@ -98,9 +96,6 @@ const schema = {
     resetUid: typeOrNull('string', {
       description: 'optional ?? returned as null - not sure what it means/used as',
     }),
-    isConfirmed: {
-      type: 'boolean',
-    },
   },
 };
 
@@ -116,7 +111,7 @@ class TbitsService {
   constructor(service) {
     this.service = service;
     this.req = got.extend({
-      prefixUrl: 'https://fanxp.tradablebits.com/api',
+      prefixUrl: 'https://tradablebits.com/api/v1',
       responseType: 'json',
       agent: {
         https: new HttpsAgent({
@@ -130,8 +125,8 @@ class TbitsService {
     this.audience = this.service.config.jwt.defaultAudience;
   }
 
-  async authenticate(sessionUid) {
-    const userProfile = await this.retrieveUser(sessionUid);
+  async authenticate(sessionUid, apiKey) {
+    const userProfile = await this.retrieveUser(sessionUid, apiKey);
     return this.registerAndLogin(userProfile);
   }
 
@@ -140,6 +135,10 @@ class TbitsService {
     try {
       const registeredUser = await this.service.dlock.fanout(lockTbits(userProfile), 5000, this.registerUser, userProfile);
       if (registeredUser) {
+        if (userProfile.phone) {
+          await contacts.add.call(this, { contact: { type: 'phone', value: userProfile.phone }, userId: registeredUser.id });
+        }
+
         return registeredUser;
       }
     } catch (e) {
@@ -197,15 +196,14 @@ class TbitsService {
   /**
    * Validates & retrieves tbits fan profile, as well as transforms it into camel case
    * @param {string} sessionUid - tbits authentication token
+   * @param {string} apiKey - tbits public api key
    */
-  async retrieveUser(sessionUid) {
+  async retrieveUser(sessionUid, apiKey) {
     let response;
+
     try {
-      const { statusCode, body } = await this.req('fans/details', {
-        searchParams: {
-          session_uid: sessionUid,
-        },
-      });
+      const searchParams = { api_key: apiKey };
+      const { statusCode, body } = await this.req(`sessions/${sessionUid}/fan`, { searchParams });
 
       assert.equal(statusCode, 200);
 

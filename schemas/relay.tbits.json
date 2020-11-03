@@ -2,10 +2,16 @@
   "$id": "relay.tbits",
   "description": "tbits relay validation",
   "required": [
-    "sessionUid"
+    "sessionUid",
+    "apiKey"
   ],
   "properties": {
     "sessionUid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "apiKey": {
       "type": "string",
       "minLength": 1,
       "maxLength": 128

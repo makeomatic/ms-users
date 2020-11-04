@@ -1089,6 +1089,13 @@
     uuid "^8.2.0"
     yargs-parser "^18.1.3"
 
+"@microfleet/plugin-consul@^2.2.12":
+  version "2.2.12"
+  resolved "https://registry.yarnpkg.com/@microfleet/plugin-consul/-/plugin-consul-2.2.12.tgz#d10af992f3824b1b3dedf417e91027d85757a369"
+  integrity sha512-7C1sAPi6XlPnM2cqLHpXYY9ls9v/5xpzOBIIsvTyt4cMzubavXiWIxcEkWPjbhXDcd/DIMtkcW+Gt2IDVGWI1Q==
+  dependencies:
+    consul "^0.37.0"
+
 "@microfleet/plugin-logger@^0.5.4":
   version "0.5.4"
   resolved "https://registry.yarnpkg.com/@microfleet/plugin-logger/-/plugin-logger-0.5.4.tgz#b9e50d3636007c1787256ff59221ac5ec20009e7"
@@ -1097,13 +1104,6 @@
     pino "^6.3.2"
     pino-multi-stream "^5.0.0"
     sonic-boom "^1.0.1"
-
-"@microfleet/plugin-consul@^2.2.12":
-  version "2.2.12"
-  resolved "https://registry.yarnpkg.com/@microfleet/plugin-consul/-/plugin-consul-2.2.12.tgz#d10af992f3824b1b3dedf417e91027d85757a369"
-  integrity sha512-7C1sAPi6XlPnM2cqLHpXYY9ls9v/5xpzOBIIsvTyt4cMzubavXiWIxcEkWPjbhXDcd/DIMtkcW+Gt2IDVGWI1Q==
-  dependencies:
-    consul "^0.37.0"
 
 "@microfleet/transport-amqp@^15.2.2":
   version "15.2.2"
@@ -6796,10 +6796,10 @@ ms-mailer-templates@^1.17.0:
     common-errors "^1.0.5"
     handlebars "^4.2.0"
 
-ms-token@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/ms-token/-/ms-token-5.0.0.tgz#155a1717ad48bbe5ad4100bce70823696702f495"
-  integrity sha512-lnFLbAEHHl1+ZzZ1qP61c9kvqIPHexEolEwe/QAZ88e7aHdpjc/HQigPbOIUserRz3KJUcnJfNdCYf7JP5aLUw==
+ms-token@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/ms-token/-/ms-token-5.0.1.tgz#05b68dfe6a0f1d3d7e276cda3dbcaebaf3bd9947"
+  integrity sha512-eLLfrG4Z+GcJAATe/0pJkgEgBwcRi0bbtBjyclFVjEOeaj5COxsAMR6WZoVhgj5g+5fojBQvLDNylGBptelrng==
   dependencies:
     base64-url "^2.3.3"
     chance "^1.1.7"

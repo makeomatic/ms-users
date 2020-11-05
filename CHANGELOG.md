@@ -1,3 +1,11 @@
+## [14.12.2](https://github.com/makeomatic/ms-users/compare/v14.12.1...v14.12.2) (2020-11-05)
+
+
+### Bug Fixes
+
+* update ms-token version ([69eb027](https://github.com/makeomatic/ms-users/commit/69eb02732460d3b48573c04f2623f44d072668ee))
+* upgrade deps ([f1aeefd](https://github.com/makeomatic/ms-users/commit/f1aeefdd599e624293818d6d75683cce4047a4a6))
+
 ## [14.12.1](https://github.com/makeomatic/ms-users/compare/v14.12.0...v14.12.1) (2020-11-03)
 
 

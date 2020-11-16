@@ -2856,7 +2856,7 @@ commander@2.11.x:
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.11.0.tgz#157152fd1e7a6c8d98a5b715cf376df928004563"
   integrity sha512-b0553uYA5YAEGgyYIGYROzKQ7X5RAqedkfjiZxwi0kL1g3bOaBNNZfYkzt/CL0umgD5wc9Jec2FbB98CjkMRvQ==
 
-commander@^2.20.0, commander@~2.20.3:
+commander@^2.20.0:
   version "2.20.3"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
   integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
@@ -2866,12 +2866,7 @@ commander@^4.0.1:
   resolved "https://registry.yarnpkg.com/commander/-/commander-4.1.1.tgz#9fd602bd936294e9e9ef46a3f4d6964044b18068"
   integrity sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==
 
-common-errors@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/common-errors/-/common-errors-1.0.5.tgz#13f8aa9727ca71595d0067895e98ef4ba7fc994e"
-  integrity sha1-E/iqlyfKcVldAGeJXpjvS6f8mU4=
-
-common-errors@^1.2.0:
+common-errors@^1.0.5, common-errors@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/common-errors/-/common-errors-1.2.0.tgz#5e3903f66fe58d691c1fc1ff881ec692e4a69442"
   integrity sha512-HtLF1V6LRACyueMEs+MLwf++1Q7cJLC0FFVStFErYZXXCNuTyVwXp67MTn7Mf7+lAaA5HfUe4cREPTwo0LAXkg==
@@ -6788,9 +6783,9 @@ ms-mailer-client@^8.0.2:
     lodash.merge "^4.6.2"
 
 ms-mailer-templates@^1.17.0:
-  version "1.17.0"
-  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.17.0.tgz#2a6c0f0b1b301dc6bc42683d79646c71938ccd64"
-  integrity sha512-yOEmIoZjhURZbd//E3Ekl81JA9/3Z5mOOw2vluB5zcqhqnFWimBZ24zjvnwJml+BcvJOfRWUBiZH6zg+hK4XBw==
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.18.0.tgz#324ec20bb3e09d52d24e1170c9a4f5872d054696"
+  integrity sha512-3sp7H+nTRegWTA8ntV+ZnizzJfS9U/exXedT62JITaOmFuzPA1I+f2d8cnH0Cn0zRXoEaszuej8PZerAp2fvTg==
   dependencies:
     bluebird "^3.5.5"
     common-errors "^1.0.5"
@@ -6888,9 +6883,9 @@ ndjson@^1.3.0:
     through2 "^2.0.3"
 
 neo-async@^2.6.0:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.1.tgz#ac27ada66167fa8849a6addd837f6b189ad2081c"
-  integrity sha512-iyam8fBuCUpWeKPGpaNMetEocMt364qkCsfL9JuhjXX6dRnguRVOfk2GZaDpPjcOKiiXCPINZC1GczQ7iTq3Zw==
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
+  integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
 nerf-dart@^1.0.0:
   version "1.0.0"
@@ -9707,11 +9702,9 @@ uc.micro@^1.0.1, uc.micro@^1.0.5:
   integrity sha512-8Y75pvTYkLJW2hWQHXxoqRgV7qb9B+9vFEtidML+7koHUFapnVJAZ6cKs+Qjz5Aw3aZWHMC6u0wJE3At+nSGwA==
 
 uglify-js@^3.1.4:
-  version "3.9.2"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.9.2.tgz#012b74fb6a2e440d9ba1f79110a479d3b1f2d48d"
-  integrity sha512-zGVwKslUAD/EeqOrD1nQaBmXIHl1Vw371we8cvS8I6mYK9rmgX5tv8AAeJdfsQ3Kk5mGax2SVV/AizxdNGhl7Q==
-  dependencies:
-    commander "~2.20.3"
+  version "3.11.6"
+  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.11.6.tgz#144b50d3e05eadd3ad4dd047c60ca541a8cd4e9c"
+  integrity sha512-oASI1FOJ7BBFkSCNDZ446EgkSuHkOZBuqRFrwXIKWCoXw8ZXQETooTQjkAcBS03Acab7ubCKsXnwuV2svy061g==
 
 uid-number@0.0.6:
   version "0.0.6"

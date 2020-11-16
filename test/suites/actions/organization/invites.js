@@ -60,10 +60,9 @@ describe('#invite organization', function registerSuite() {
       .then(inspectPromise())
       .then(({ data }) => {
         // At this point we're expecting to have 3 users:
-        // - root, created together with the organization
         // - root, created at a test case above
         // - member, also created at a test case
-        assert.equal(data.length, 3);
+        assert.equal(data.length, 2);
         for (const invite of data) {
           assert(invite.id);
           assert(invite.type);

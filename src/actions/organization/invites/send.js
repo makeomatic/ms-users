@@ -5,7 +5,9 @@ const { checkOrganizationExists } = require('../../../utils/organization');
 const {
   ORGANIZATIONS_NAME_FIELD,
   ORGANIZATIONS_ID_FIELD,
+  USERS_ACTION_ORGANIZATION_INVITE,
 } = require('../../../constants');
+const getUserId = require('../../../utils/userData/get-user-id');
 
 /**
  * @api {amqp} <prefix>.invites.send Send invitation
@@ -26,10 +28,19 @@ const {
 async function sendOrganizationInvite({ params }) {
   const { member, organizationId } = params;
   const organization = await getInternalData.call(this, organizationId);
+  let userExist = false;
+
+  try {
+    await getUserId.call(this, member.email);
+    userExist = true;
+  } catch (e) {
+    this.log.info('invited user not exist');
+  }
 
   return sendInviteMail.call(this, {
     email: member.email,
     ctx: {
+      skipPassword: userExist,
       firstName: member.firstName,
       lastName: member.lastName,
       permissions: member.permissions,
@@ -37,7 +48,7 @@ async function sendOrganizationInvite({ params }) {
       organizationId: organization[ORGANIZATIONS_ID_FIELD],
       organization: organization[ORGANIZATIONS_NAME_FIELD],
     },
-  });
+  }, USERS_ACTION_ORGANIZATION_INVITE);
 }
 
 sendOrganizationInvite.allowed = checkOrganizationExists;

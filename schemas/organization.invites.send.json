@@ -14,7 +14,21 @@
         "permissions",
         "email"
       ],
-      "$ref": "common.json#/definitions/organizationMember"
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array"
+        }
+      }
     }
   }
 }

@@ -93,6 +93,7 @@ module.exports = exports = {
   USERS_ACTION_INVITE: 'invite',
   USERS_ACTION_ORGANIZATION_INVITE: 'organization-user-invite',
   USERS_ACTION_ORGANIZATION_REGISTER: 'organization-user-register',
+  USERS_ACTION_ORGANIZATION_ADD: 'organization-user-add',
 
   // invitations constants
   INVITATIONS_INDEX: 'user-invitations',

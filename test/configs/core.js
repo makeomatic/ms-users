@@ -10,6 +10,7 @@ module.exports = {
       register: 'cpst-register',
       invite: 'rfx-invite',
       'organization-user-invite': 'sl-accept-invite',
+      'organization-user-add': 'sl-registration-notify',
       'organization-user-register': 'sl-registration-notify',
     },
   },

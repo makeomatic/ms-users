@@ -12,7 +12,10 @@ const {
   USERS_METADATA,
   ORGANIZATIONS_NAME_FIELD,
   ORGANIZATIONS_ID_FIELD,
+  USERS_ACTION_ORGANIZATION_REGISTER,
+  USERS_ACTION_ORGANIZATION_ADD,
 } = require('../../constants.js');
+const generateEmail = require('../challenges/email/generate.js');
 
 const JSONStringify = (data) => JSON.stringify(data);
 
@@ -43,19 +46,29 @@ async function addMember({ password, ...member }) {
   pipe.zadd(membersKey, stringifyMember.invited, memberKey);
 }
 
-function sendInvite(member) {
-  return sendInviteMail.call(this, {
+async function sendInvite(member) {
+  const ctx = {
     email: member.email,
-    ctx: {
-      email: member.email,
-      firstName: member.firstName,
-      lastName: member.lastName,
-      password: member.password,
-      permissions: member.permissions,
-      organizationId: this.organization[ORGANIZATIONS_ID_FIELD],
-      organization: this.organization[ORGANIZATIONS_NAME_FIELD],
-    },
-  });
+    firstName: member.firstName,
+    lastName: member.lastName,
+    password: member.password,
+    permissions: member.permissions,
+    organizationId: this.organization[ORGANIZATIONS_ID_FIELD],
+    organization: this.organization[ORGANIZATIONS_NAME_FIELD],
+  };
+
+  if (ctx.password) {
+    return sendInviteMail.call(this, { ctx, email: member.email }, USERS_ACTION_ORGANIZATION_REGISTER);
+  }
+
+  // if user already exist, just send info email, about new org
+  const res = await generateEmail.call(this, member.email, USERS_ACTION_ORGANIZATION_ADD, ctx, { wait: true, send: true });
+
+  if (res.err) {
+    this.log.error(res, 'send organization add mail result');
+  }
+
+  return res;
 }
 
 /**

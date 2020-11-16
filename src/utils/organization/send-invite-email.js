@@ -5,19 +5,18 @@ const {
   TOKEN_METADATA_FIELD_CONTEXT,
   TOKEN_METADATA_FIELD_SENDED_AT,
   USERS_ACTION_ORGANIZATION_INVITE,
-  USERS_ACTION_ORGANIZATION_REGISTER,
   TOKEN_METADATA_FIELD_METADATA,
 } = require('../../constants.js');
 
-module.exports = async function sendInviteMail(params) {
+module.exports = async function sendInviteMail(params, action = USERS_ACTION_ORGANIZATION_INVITE) {
   const { redis, tokenManager } = this;
   const { email, ctx } = params;
   const now = Date.now();
 
   const token = await tokenManager
     .create({
+      action,
       id: inviteId(ctx.organizationId, email),
-      action: USERS_ACTION_ORGANIZATION_INVITE,
       regenerate: true,
       metadata: {
         [TOKEN_METADATA_FIELD_METADATA]: { permissions: ctx.permissions },
@@ -26,12 +25,13 @@ module.exports = async function sendInviteMail(params) {
       },
     });
 
-  const emailType = ctx.password ? USERS_ACTION_ORGANIZATION_REGISTER : USERS_ACTION_ORGANIZATION_INVITE;
-  const res = await generateEmail.call(this, email, emailType, { ...ctx, token }, { wait: true, send: true });
+  const res = await generateEmail.call(this, email, action, { ...ctx, token }, { wait: true, send: true });
 
   if (res.err) {
     this.log.error(res, 'send invite mail result');
   }
 
-  await redis.sadd(organizationInvite(ctx.organizationId), email);
+  if (action === USERS_ACTION_ORGANIZATION_INVITE) {
+    await redis.sadd(organizationInvite(ctx.organizationId), email);
+  }
 };

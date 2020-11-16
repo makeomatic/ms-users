@@ -16,6 +16,7 @@ const {
   USERS_ACTION_INVITE,
   USERS_ACTION_ORGANIZATION_INVITE,
   USERS_ACTION_ORGANIZATION_REGISTER,
+  USERS_ACTION_ORGANIZATION_ADD,
 } = require('../../../constants.js');
 
 // will be replaced later
@@ -40,6 +41,15 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
       context.qs = `?q=${context.token.secret}`;
       context.link = generateLink(server, paths[type]);
       break;
+    case USERS_ACTION_ORGANIZATION_ADD:
+      context.qs = `?${stringify({
+        login: ctx.email,
+        firstName: ctx.firstName,
+        lastName: ctx.lastName,
+        organizationId: ctx.organizationId,
+      })}`;
+      context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_ADD]);
+      break;
     case USERS_ACTION_ORGANIZATION_REGISTER:
       context.qs = `?${stringify({
         password: ctx.password,
@@ -57,6 +67,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
         username: ctx.email,
         firstName: ctx.firstName,
         lastName: ctx.lastName,
+        skipPassword: ctx.skipPassword,
       })}`;
       context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_INVITE]);
       break;

@@ -1,3 +1,10 @@
+## [14.12.3-rc.2](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.1...v14.12.3-rc.2) (2020-11-18)
+
+
+### Bug Fixes
+
+* added new props form email config in validation scheme ([6625eb6](https://github.com/makeomatic/ms-users/commit/6625eb6bad53243037044a96a013b162375041fe))
+
 ## [14.12.3-rc.1](https://github.com/makeomatic/ms-users/compare/v14.12.2...v14.12.3-rc.1) (2020-11-16)
 
 ### Bug Fixes

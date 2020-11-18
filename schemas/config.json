@@ -180,107 +180,16 @@
       ],
       "properties": {
         "paths": {
-          "type": "object",
-          "required": [
-            "activate",
-            "reset"
-          ],
-          "properties": {
-            "activate": {
-              "type": "string"
-            },
-            "reset": {
-              "type": "string"
-            },
-            "organization-user-invite": {
-              "type": "string"
-            },
-            "organization-user-register": {
-              "type": "string"
-            },
-            "organization-user-add": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/emailTypes"
         },
         "senders": {
-          "required": [
-            "activate",
-            "reset",
-            "password"
-          ],
-          "type": "object",
-          "properties": {
-            "activate": {
-              "type": "string"
-            },
-            "reset": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            },
-            "organization-user-invite": {
-              "type": "string"
-            },
-            "organization-user-register": {
-              "type": "string"
-            },
-            "organization-user-add": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/emailTypes"
         },
         "subjects": {
-          "required": [
-            "activate",
-            "reset",
-            "password"
-          ],
-          "type": "object",
-          "properties": {
-            "activate": {
-              "type": "string"
-            },
-            "reset": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            },
-            "organization-user-invite": {
-              "type": "string"
-            },
-            "organization-user-register": {
-              "type": "string"
-            },
-            "organization-user-add": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/emailTypes"
         },
         "templates": {
-          "type": "object",
-          "properties": {
-            "activate": {
-              "type": "string"
-            },
-            "reset": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            },
-            "organization-user-invite": {
-              "type": "string"
-            },
-            "organization-user-register": {
-              "type": "string"
-            },
-            "organization-user-add": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/emailTypes"
         },
         "email": {
           "oneOf": [{
@@ -833,6 +742,34 @@
               }
             }
           }
+        }
+      }
+    },
+    "emailTypes": {
+      "type": "object",
+      "required": [
+        "activate",
+        "reset",
+        "password"
+      ],
+      "properties": {
+        "activate": {
+          "type": "string"
+        },
+        "reset": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "organizationUserInvite": {
+          "type": "string"
+        },
+        "organizationUserRegister": {
+          "type": "string"
+        },
+        "organizationUserAdd": {
+          "type": "string"
         }
       }
     }

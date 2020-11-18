@@ -191,6 +191,15 @@
             },
             "reset": {
               "type": "string"
+            },
+            "organization-user-invite": {
+              "type": "string"
+            },
+            "organization-user-register": {
+              "type": "string"
+            },
+            "organization-user-add": {
+              "type": "string"
             }
           }
         },
@@ -209,6 +218,15 @@
               "type": "string"
             },
             "password": {
+              "type": "string"
+            },
+            "organization-user-invite": {
+              "type": "string"
+            },
+            "organization-user-register": {
+              "type": "string"
+            },
+            "organization-user-add": {
               "type": "string"
             }
           }
@@ -229,6 +247,15 @@
             },
             "password": {
               "type": "string"
+            },
+            "organization-user-invite": {
+              "type": "string"
+            },
+            "organization-user-register": {
+              "type": "string"
+            },
+            "organization-user-add": {
+              "type": "string"
             }
           }
         },
@@ -242,6 +269,15 @@
               "type": "string"
             },
             "password": {
+              "type": "string"
+            },
+            "organization-user-invite": {
+              "type": "string"
+            },
+            "organization-user-register": {
+              "type": "string"
+            },
+            "organization-user-add": {
               "type": "string"
             }
           }

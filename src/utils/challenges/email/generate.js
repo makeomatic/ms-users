@@ -87,6 +87,8 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
     actions.updatePassword = updatePassword.call(this, email, context.password);
   }
 
+  this.log.info('Generated mail %s', templateName);
+
   return Promise
     .props({
       ...actions,

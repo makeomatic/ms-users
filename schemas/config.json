@@ -747,11 +747,6 @@
     },
     "emailTypes": {
       "type": "object",
-      "required": [
-        "activate",
-        "reset",
-        "password"
-      ],
       "properties": {
         "activate": {
           "type": "string"

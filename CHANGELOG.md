@@ -1,3 +1,10 @@
+## [14.12.3-rc.4](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.3...v14.12.3-rc.4) (2020-11-20)
+
+
+### Bug Fixes
+
+* allow any types for user permission ([be0d9dc](https://github.com/makeomatic/ms-users/commit/be0d9dc24f3a0c644945c9a0a02b04de7fe03dc1))
+
 ## [14.12.3-rc.3](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.2...v14.12.3-rc.3) (2020-11-18)
 
 

@@ -1,3 +1,10 @@
+## [14.12.3-rc.5](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.4...v14.12.3-rc.5) (2020-11-23)
+
+
+### Bug Fixes
+
+* remove invite after accept ([287f7b3](https://github.com/makeomatic/ms-users/commit/287f7b3b55877b40c6a3f9e130658c8eb240b1c8))
+
 ## [14.12.3-rc.4](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.3...v14.12.3-rc.4) (2020-11-20)
 
 

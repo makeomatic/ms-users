@@ -3,7 +3,8 @@ const Promise = require('bluebird');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const { organizationInvite, inviteId, USERS_ACTION_ORGANIZATION_INVITE, TOKEN_METADATA_FIELD_METADATA } = require('../../../constants');
 
-const mapUser = ({ id, created, metadata }) => {
+const mapUser = ({ id, created, metadata } = {}) => {
+  if (!id || id === '') return false;
   const [, userId] = id.split(':');
 
   return {
@@ -17,7 +18,7 @@ function getTokenInfo(email) {
   return this.tokenManager.info({
     id: inviteId(this.organizationId, email),
     action: USERS_ACTION_ORGANIZATION_INVITE,
-  });
+  }).catch((e) => this.log.error('resolve token info error: %o', e));
 }
 
 /**
@@ -33,11 +34,11 @@ function getTokenInfo(email) {
 async function listOrganizationInvite({ params }) {
   const { organizationId } = params;
   const invitesIds = await this.redis.smembers(organizationInvite(organizationId));
-  const getInvitesInfo = invitesIds.map(getTokenInfo, { tokenManager: this.tokenManager, organizationId });
+  const getInvitesInfo = invitesIds.map(getTokenInfo, { log: this.log, tokenManager: this.tokenManager, organizationId });
   const invites = await Promise.all(getInvitesInfo);
 
   return {
-    data: invites.map(mapUser),
+    data: invites.map(mapUser).filter((f) => f),
   };
 }
 

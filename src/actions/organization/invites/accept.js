@@ -5,6 +5,7 @@ const {
   ErrorInvitationExpiredOrUsed,
   TOKEN_METADATA_FIELD_METADATA,
   inviteId,
+  organizationInvite,
 } = require('../../../constants');
 const addOrganizationMembers = require('../../../utils/organization/add-organization-members');
 
@@ -44,11 +45,16 @@ async function acceptOrganizationMember({ params }) {
   member.permissions = memberInviteMetadata.permissions;
   member.password = password;
 
-  return addOrganizationMembers.call(this, {
+  const response = await addOrganizationMembers.call(this, {
     organizationId,
     audience,
     members: [member],
   });
+
+  await this.tokenManager.remove({ id: inviteId(organizationId, member.email), action: USERS_ACTION_ORGANIZATION_INVITE });
+  await this.redis.srem(organizationInvite(organizationId), member.email);
+
+  return response;
 }
 
 acceptOrganizationMember.allowed = checkOrganizationExists;

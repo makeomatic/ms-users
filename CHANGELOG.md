@@ -1,3 +1,10 @@
+## [14.12.3](https://github.com/makeomatic/ms-users/compare/v14.12.2...v14.12.3) (2020-11-23)
+
+
+### Bug Fixes
+
+* bump mail-templates + deps upgrade ([#482](https://github.com/makeomatic/ms-users/issues/482)) ([27367cc](https://github.com/makeomatic/ms-users/commit/27367cc7b6de54610c85d38757e63927520c4623))
+
 ## [14.12.2](https://github.com/makeomatic/ms-users/compare/v14.12.1...v14.12.2) (2020-11-05)
 
 

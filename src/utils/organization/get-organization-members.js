@@ -22,3 +22,4 @@ async function getOrganizationMembers(organizationId) {
 }
 
 module.exports = getOrganizationMembers;
+module.exports.getMemberData = getMemberData;

@@ -4795,7 +4795,7 @@ growl@1.10.5:
   resolved "https://registry.yarnpkg.com/growl/-/growl-1.10.5.tgz#f2735dc2283674fa67478b10181059355c369e5e"
   integrity sha512-qBr4OuELkhPenW6goKVXiv47US3clb3/IbuWF9KNKEijAy9oeHxU9IgzjvJhHkUzhaj7rOUD7+YGWqUjLp5oSA==
 
-handlebars@^4.2.0, handlebars@^4.4.0, handlebars@^4.7.3, handlebars@^4.7.6:
+handlebars@^4.4.0, handlebars@^4.7.3, handlebars@^4.7.6:
   version "4.7.6"
   resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.7.6.tgz#d4c05c1baf90e9945f77aa68a7a219aa4a7df74e"
   integrity sha512-1f2BACcBfiwAfStCKZNrUCgqNZkGsAT7UM3kkYtXuLo0KnaVfjKOyf7PRzB6++aK9STyT1Pd2ZCPe3EGOXleXA==
@@ -6783,13 +6783,13 @@ ms-mailer-client@^8.0.2:
     lodash.merge "^4.6.2"
 
 ms-mailer-templates@^1.17.0:
-  version "1.18.0"
-  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.18.0.tgz#324ec20bb3e09d52d24e1170c9a4f5872d054696"
-  integrity sha512-3sp7H+nTRegWTA8ntV+ZnizzJfS9U/exXedT62JITaOmFuzPA1I+f2d8cnH0Cn0zRXoEaszuej8PZerAp2fvTg==
+  version "1.19.1"
+  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.19.1.tgz#a38c21dd1a652aed5b0f0fc9c209f8ec7317a879"
+  integrity sha512-0/w8aoSqAtSVk1xkOIpewerglz6G9Wt9MC369Pz/QZpHrTm4cqgyVBZC3JoYvR4jIxiEIhRoxVl4okoeqXEAZw==
   dependencies:
-    bluebird "^3.5.5"
-    common-errors "^1.0.5"
-    handlebars "^4.2.0"
+    bluebird "^3.7.2"
+    common-errors "^1.2.0"
+    handlebars "^4.7.6"
 
 ms-token@^5.0.1:
   version "5.0.1"
@@ -9702,9 +9702,9 @@ uc.micro@^1.0.1, uc.micro@^1.0.5:
   integrity sha512-8Y75pvTYkLJW2hWQHXxoqRgV7qb9B+9vFEtidML+7koHUFapnVJAZ6cKs+Qjz5Aw3aZWHMC6u0wJE3At+nSGwA==
 
 uglify-js@^3.1.4:
-  version "3.11.6"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.11.6.tgz#144b50d3e05eadd3ad4dd047c60ca541a8cd4e9c"
-  integrity sha512-oASI1FOJ7BBFkSCNDZ446EgkSuHkOZBuqRFrwXIKWCoXw8ZXQETooTQjkAcBS03Acab7ubCKsXnwuV2svy061g==
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.12.0.tgz#b943f129275c41d435eb54b643bbffee71dccf57"
+  integrity sha512-8lBMSkFZuAK7gGF8LswsXmir8eX8d2AAMOnxSDWjKBx/fBR6MypQjs78m6ML9zQVp1/hD4TBdfeMZMC7nW1TAA==
 
 uid-number@0.0.6:
   version "0.0.6"

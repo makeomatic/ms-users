@@ -60,10 +60,9 @@ describe('#invite organization', function registerSuite() {
       .then(inspectPromise())
       .then(({ data }) => {
         // At this point we're expecting to have 3 users:
-        // - root, created together with the organization
         // - root, created at a test case above
         // - member, also created at a test case
-        assert.equal(data.length, 3);
+        assert.equal(data.length, 2);
         for (const invite of data) {
           assert(invite.id);
           assert(invite.type);
@@ -129,6 +128,32 @@ describe('#invite organization', function registerSuite() {
       .then(inspectPromise());
   });
 
+  it('must be able to get invites list without invited user', async function test() {
+    return this.dispatch('users.organization.invites.list', { organizationId: this.organization.id })
+      .reflect()
+      .then(inspectPromise())
+      .then(({ data }) => {
+        // At this point we're expecting to have 3 users:
+        // - root, created at a test case above
+        // - member, also created at a test case
+        assert.equal(data.length, 1);
+        for (const invite of data) {
+          assert(invite.id);
+          assert(invite.type);
+          assert(invite.attributes);
+          assert(invite.attributes.id);
+          assert(invite.attributes.created);
+          assert(invite.attributes.metadata);
+          assert(invite.attributes.metadata.permissions);
+        }
+
+        const admin = data.find(({ id }) => id === this.admin.email);
+
+        assert(admin);
+        assert.deepStrictEqual(admin.attributes.metadata.permissions, this.admin.permissions);
+      });
+  });
+
   it('must be able to revoke invite to admin', async function test() {
     const opts = {
       organizationId: this.organization.id,
@@ -154,6 +179,15 @@ describe('#invite organization', function registerSuite() {
     await this.dispatch('users.organization.invites.accept', opts)
       .reflect()
       .then(inspectPromise(false));
+  });
+
+  it('must be able to get invites list without revoked user', async function test() {
+    return this.dispatch('users.organization.invites.list', { organizationId: this.organization.id })
+      .reflect()
+      .then(inspectPromise())
+      .then(({ data }) => {
+        assert.equal(data.length, 0);
+      });
   });
 
   it('must return error on expired token', async function test() {

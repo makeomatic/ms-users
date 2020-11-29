@@ -1,5 +1,40 @@
-## [14.12.3](https://github.com/makeomatic/ms-users/compare/v14.12.2...v14.12.3) (2020-11-23)
+## [14.12.3-rc.5](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.4...v14.12.3-rc.5) (2020-11-23)
 
+
+### Bug Fixes
+
+* remove invite after accept ([287f7b3](https://github.com/makeomatic/ms-users/commit/287f7b3b55877b40c6a3f9e130658c8eb240b1c8))
+
+## [14.12.3-rc.4](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.3...v14.12.3-rc.4) (2020-11-20)
+
+
+### Bug Fixes
+
+* allow any types for user permission ([be0d9dc](https://github.com/makeomatic/ms-users/commit/be0d9dc24f3a0c644945c9a0a02b04de7fe03dc1))
+
+## [14.12.3-rc.3](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.2...v14.12.3-rc.3) (2020-11-18)
+
+
+### Bug Fixes
+
+* edit emal types in validate config ([43896ba](https://github.com/makeomatic/ms-users/commit/43896ba2ba856568e2e77479e9c8e0af3b4899c2))
+* fix test config ([0db5127](https://github.com/makeomatic/ms-users/commit/0db5127bc650ab0f47732ac793ab7e86ab6f2a45))
+* omit required email types in validation config ([f2b16de](https://github.com/makeomatic/ms-users/commit/f2b16dee5bf9c096a1e92c9f7de75f023a38578a))
+
+## [14.12.3-rc.2](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.1...v14.12.3-rc.2) (2020-11-18)
+
+
+### Bug Fixes
+
+* added new props form email config in validation scheme ([6625eb6](https://github.com/makeomatic/ms-users/commit/6625eb6bad53243037044a96a013b162375041fe))
+
+## [14.12.3-rc.1](https://github.com/makeomatic/ms-users/compare/v14.12.2...v14.12.3-rc.1) (2020-11-16)
+
+### Bug Fixes
+
+* edited actions for the organization members and invites ([#481](https://github.com/makeomatic/ms-users/issues/481)) ([a3f2627](https://github.com/makeomatic/ms-users/commit/a3f26273633a67a2d04c79b8b027427b5bbb12c8))
+*
+## [14.12.3](https://github.com/makeomatic/ms-users/compare/v14.12.2...v14.12.3) (2020-11-23)
 
 ### Bug Fixes
 

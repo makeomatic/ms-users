@@ -1,4 +1,36 @@
+# [14.13.0-rc.1](https://github.com/makeomatic/ms-users/compare/v14.12.3...v14.13.0-rc.1) (2020-11-29)
+
+
+### Bug Fixes
+
+* added new props form email config in validation scheme ([c11d040](https://github.com/makeomatic/ms-users/commit/c11d040414b0e8da6717663c59cee92a1a21d5f7))
+* allow any types for user permission ([2c708e9](https://github.com/makeomatic/ms-users/commit/2c708e950e8f4682358d2b90f5179f7b308fb6ba))
+* edit emal types in validate config ([b162bdf](https://github.com/makeomatic/ms-users/commit/b162bdf46f1b5021b241e4cb6aaec871bba8ecba))
+* edited actions for the organization members and invites ([#481](https://github.com/makeomatic/ms-users/issues/481)) ([cc276bc](https://github.com/makeomatic/ms-users/commit/cc276bc6acc86e3983f8a8bb7ee842a89f58febb))
+* fix test config ([c1f88e1](https://github.com/makeomatic/ms-users/commit/c1f88e115c83af4ed28495f9cb06a8c4210fd47b))
+* omit required email types in validation config ([a05b4fd](https://github.com/makeomatic/ms-users/commit/a05b4fd89f511b4aac3e2fff4a4cfd916e81bf27))
+* remove invite after accept ([2eac8c4](https://github.com/makeomatic/ms-users/commit/2eac8c47ca5b484fc912ac3bdd4a8d699e082e47))
+
+
+### Features
+
+* added get and update actions for organization member ([#484](https://github.com/makeomatic/ms-users/issues/484)) ([6d59440](https://github.com/makeomatic/ms-users/commit/6d59440f868af50ef124accbb821ebf10b0ed0b0))
+
 ## [14.12.3-rc.5](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.4...v14.12.3-rc.5) (2020-11-23)
+
+
+### Bug Fixes
+
+* remove invite after accept ([287f7b3](https://github.com/makeomatic/ms-users/commit/287f7b3b55877b40c6a3f9e130658c8eb240b1c8))
+
+## [14.12.3-rc.4](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.3...v14.12.3-rc.4) (2020-11-20)
+
+
+### Bug Fixes
+
+* allow any types for user permission ([be0d9dc](https://github.com/makeomatic/ms-users/commit/be0d9dc24f3a0c644945c9a0a02b04de7fe03dc1))
+
+## [14.12.3-rc.3](https://github.com/makeomatic/ms-users/compare/v14.12.3-rc.2...v14.12.3-rc.3) (2020-11-18)
 
 
 ### Bug Fixes

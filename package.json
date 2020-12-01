@@ -2,7 +2,7 @@
   "name": "ms-users",
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
-  "version": "14.12.3-rc.5",
+  "version": "14.13.0-rc.1",
   "scripts": {
     "compile": "rimraf ./lib; babel -d ./lib --copy-files ./src",
     "pretest": "yarn compile",

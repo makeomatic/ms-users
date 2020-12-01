@@ -1,3 +1,11 @@
+# [14.13.0](https://github.com/makeomatic/ms-users/compare/v14.12.3...v14.13.0) (2020-12-01)
+
+
+### Features
+
+* merge pull request [#485](https://github.com/makeomatic/ms-users/issues/485) staging to master ([37645a5](https://github.com/makeomatic/ms-users/commit/37645a5d29595fc699e9b4be1591d749ffc527dd)), closes [#481](https://github.com/makeomatic/ms-users/issues/481) [#481](https://github.com/makeomatic/ms-users/issues/481) [#484](https://github.com/makeomatic/ms-users/issues/484)
+* merge pull request [#486](https://github.com/makeomatic/ms-users/issues/486) staging to master ([19b4576](https://github.com/makeomatic/ms-users/commit/19b457607a069b3e372fea836f08e441c79c29b5))
+
 # [14.13.0-rc.1](https://github.com/makeomatic/ms-users/compare/v14.12.3...v14.13.0-rc.1) (2020-11-29)
 
 

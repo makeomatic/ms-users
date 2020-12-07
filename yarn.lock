@@ -6820,9 +6820,9 @@ ms-mailer-client@^8.0.2:
     lodash.merge "^4.6.2"
 
 ms-mailer-templates@^1.19.0:
-  version "1.19.0"
-  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.19.0.tgz#619760e7697b770371eb813a3515fad7860a532d"
-  integrity sha512-NKfaVZ+ZD0WK1BuL+Ex2lAFrN3gChpjRHoIb6F+avyuLmodPpVzQhtbA+O1SmsVKKMC/WYNbQV80R0Vc0uMVPA==
+  version "1.19.2"
+  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.19.2.tgz#56ea88341fca7232e056604aefc954715d5169ff"
+  integrity sha512-wEoXuXbhP8nQQIgM3wHX4886rp4q5fv6FToWKDktuPQiDS04HmxG8g8UHdFw86OwA0HKM70SKwKZJdJkYwUQzg==
   dependencies:
     bluebird "^3.7.2"
     common-errors "^1.2.0"
@@ -9739,9 +9739,9 @@ uc.micro@^1.0.1, uc.micro@^1.0.5:
   integrity sha512-8Y75pvTYkLJW2hWQHXxoqRgV7qb9B+9vFEtidML+7koHUFapnVJAZ6cKs+Qjz5Aw3aZWHMC6u0wJE3At+nSGwA==
 
 uglify-js@^3.1.4:
-  version "3.12.0"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.12.0.tgz#b943f129275c41d435eb54b643bbffee71dccf57"
-  integrity sha512-8lBMSkFZuAK7gGF8LswsXmir8eX8d2AAMOnxSDWjKBx/fBR6MypQjs78m6ML9zQVp1/hD4TBdfeMZMC7nW1TAA==
+  version "3.12.1"
+  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.12.1.tgz#78307f539f7b9ca5557babb186ea78ad30cc0375"
+  integrity sha512-o8lHP20KjIiQe5b/67Rh68xEGRrc2SRsCuuoYclXXoC74AfSRGblU1HKzJWH3HxPZ+Ort85fWHpSX7KwBUC9CQ==
 
 uid-number@0.0.6:
   version "0.0.6"

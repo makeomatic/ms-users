@@ -1,3 +1,10 @@
+## [14.13.2](https://github.com/makeomatic/ms-users/compare/v14.13.1...v14.13.2) (2020-12-17)
+
+
+### Bug Fixes
+
+* **deps:** update ms-mailer-templates version ([82d2cff](https://github.com/makeomatic/ms-users/commit/82d2cff507f3cb954378c2bef4fc2615b87f005a))
+
 ## [14.13.1](https://github.com/makeomatic/ms-users/compare/v14.13.0...v14.13.1) (2020-12-17)
 
 

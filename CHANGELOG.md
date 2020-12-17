@@ -1,3 +1,10 @@
+## [14.13.1](https://github.com/makeomatic/ms-users/compare/v14.13.0...v14.13.1) (2020-12-17)
+
+
+### Bug Fixes
+
+* **pkgs:** update ms-mailer-templaes dep ([3fc40b9](https://github.com/makeomatic/ms-users/commit/3fc40b977344dfa05dee6f2d7ae8d8f74911eab3))
+
 # [14.13.0](https://github.com/makeomatic/ms-users/compare/v14.12.3...v14.13.0) (2020-12-01)
 
 

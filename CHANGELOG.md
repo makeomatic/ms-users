@@ -1,6 +1,5 @@
 # [14.14.0-rc.1](https://github.com/makeomatic/ms-users/compare/v14.13.0...v14.14.0-rc.1) (2020-12-07)
 
-
 ### Bug Fixes
 
 * added new props form email config in validation scheme ([c11d040](https://github.com/makeomatic/ms-users/commit/c11d040414b0e8da6717663c59cee92a1a21d5f7))
@@ -13,10 +12,38 @@
 * omit required email types in validation config ([a05b4fd](https://github.com/makeomatic/ms-users/commit/a05b4fd89f511b4aac3e2fff4a4cfd916e81bf27))
 * remove invite after accept ([2eac8c4](https://github.com/makeomatic/ms-users/commit/2eac8c47ca5b484fc912ac3bdd4a8d699e082e47))
 
-
 ### Features
 
 * added get and update actions for organization member ([#484](https://github.com/makeomatic/ms-users/issues/484)) ([6d59440](https://github.com/makeomatic/ms-users/commit/6d59440f868af50ef124accbb821ebf10b0ed0b0))
+
+## [14.13.4](https://github.com/makeomatic/ms-users/compare/v14.13.3...v14.13.4) (2020-12-18)
+
+
+### Bug Fixes
+
+=======
+* **deps:** update ms-mailer-templates ([7ee1777](https://github.com/makeomatic/ms-users/commit/7ee177763783d379301b532a6ad19802a95d934a))
+
+## [14.13.3](https://github.com/makeomatic/ms-users/compare/v14.13.2...v14.13.3) (2020-12-17)
+
+
+### Bug Fixes
+
+* **deps:** update ms-mailer-templates dep ([4641b00](https://github.com/makeomatic/ms-users/commit/4641b00e13a05f595a84c990f4403bb945f9d8a2))
+
+## [14.13.2](https://github.com/makeomatic/ms-users/compare/v14.13.1...v14.13.2) (2020-12-17)
+
+
+### Bug Fixes
+
+* **deps:** update ms-mailer-templates version ([82d2cff](https://github.com/makeomatic/ms-users/commit/82d2cff507f3cb954378c2bef4fc2615b87f005a))
+
+## [14.13.1](https://github.com/makeomatic/ms-users/compare/v14.13.0...v14.13.1) (2020-12-17)
+
+
+### Bug Fixes
+
+* **pkgs:** update ms-mailer-templaes dep ([3fc40b9](https://github.com/makeomatic/ms-users/commit/3fc40b977344dfa05dee6f2d7ae8d8f74911eab3))
 
 # [14.13.0](https://github.com/makeomatic/ms-users/compare/v14.12.3...v14.13.0) (2020-12-01)
 

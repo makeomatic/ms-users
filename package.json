@@ -56,7 +56,7 @@
     "ms-conf": "^7.0.2",
     "ms-flakeless": "^4.4.1",
     "ms-mailer-client": "^8.0.2",
-    "ms-mailer-templates": "^1.20.4",
+    "ms-mailer-templates": "^1.20.5",
     "ms-token": "^5.0.1",
     "otplib": "^12.0.1",
     "p-retry": "^4.2.0",

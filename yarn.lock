@@ -6819,10 +6819,10 @@ ms-mailer-client@^8.0.2:
   dependencies:
     lodash.merge "^4.6.2"
 
-ms-mailer-templates@^1.20.4:
-  version "1.20.4"
-  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.20.4.tgz#b89795dc11b375dabee509c96df3ad069250d8b8"
-  integrity sha512-EMmpZzdjKx9HabmwEHFTdCEtjZfN4Nsnc84/HjysBqzs6YOuTsWrJKjy3C3fr9/vUxtoyh3czMsdJcfNZ858DQ==
+ms-mailer-templates@^1.20.5:
+  version "1.20.5"
+  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.20.5.tgz#7ebd75ad1246232837b3615d683705052cbfa7f4"
+  integrity sha512-p3xeIPTXkqzlyfrXde+kbV8LcHEedUbwz/g9FxDnJGnaNZCTeKgtDTR1gOY7+oa+Am0xx2J6NCGXirjAZWqfvw==
   dependencies:
     bluebird "^3.7.2"
     common-errors "^1.2.0"

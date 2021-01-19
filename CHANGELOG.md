@@ -1,3 +1,13 @@
+## [14.13.5](https://github.com/makeomatic/ms-users/compare/v14.13.4...v14.13.5) (2021-01-19)
+
+
+### Bug Fixes
+
+* **ci:** fix ci tests ([69b92ba](https://github.com/makeomatic/ms-users/commit/69b92ba5f74af53744e58cc6fb4bface0f3990be))
+* **deps:** update mailer templates ([83d8b5a](https://github.com/makeomatic/ms-users/commit/83d8b5a6bd86d3eaabc68216eadee7a39fcefdd5))
+* **deps:** update mailer templates ([f202c55](https://github.com/makeomatic/ms-users/commit/f202c55978ff1f94c48915ce0f93a9a112e15494))
+* **tests:** skip relay/tbits tests for a while ([9a6086a](https://github.com/makeomatic/ms-users/commit/9a6086a22ea063f2bc0314a0ab9be8f0fde24dc8))
+
 ## [14.13.4](https://github.com/makeomatic/ms-users/compare/v14.13.3...v14.13.4) (2020-12-18)
 
 

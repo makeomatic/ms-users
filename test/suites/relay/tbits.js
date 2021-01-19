@@ -14,7 +14,7 @@ const tbitsAPI = got.extend({
   method: 'post',
 });
 
-describe('/relay/tbits', function verifySuite() {
+describe.skip('/relay/tbits', function verifySuite() {
   const username = 'microfleet@makeomatic.ca';
   const password = 'Demopassword1';
   const apiKey = process.env.TBITS_API_KEY;

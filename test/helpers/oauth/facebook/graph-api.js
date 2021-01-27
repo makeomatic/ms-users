@@ -112,7 +112,7 @@ class GraphAPI {
    * @returns {Promise<{ id: string, access_token: string | undefined, login_url: string, email?: string }>}
    */
   static async _getTestUserWithPermissions(permissions, next = `${baseOpts.baseUrl}/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`) {
-    const { data, paging: { next: nextPage } } = await this.graphApi({
+    const { data, paging } = await this.graphApi({
       baseUrl: '',
       uri: next,
       method: 'GET',
@@ -128,8 +128,9 @@ class GraphAPI {
     if (!Array.isArray(permissions) || permissions.length === 0) {
       const users = data.filter((x) => !x.access_token);
       const user = users[users.length * Math.random() | 0];
+
       if (!user) {
-        return this.getTestUserWithPermissions(permissions, nextPage);
+        return this._getTestUserWithPermissions(permissions, paging.next);
       }
 
       return user;

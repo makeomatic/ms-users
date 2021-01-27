@@ -3,7 +3,7 @@ const request = require('request-promise');
 const assert = require('assert');
 
 const baseOpts = {
-  baseUrl: 'https://graph.facebook.com/v8.0',
+  baseUrl: 'https://graph.facebook.com/v9.0',
   headers: {
     Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
   },

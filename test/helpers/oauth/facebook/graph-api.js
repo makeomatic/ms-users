@@ -117,12 +117,11 @@ class GraphAPI {
       uri: next,
       method: 'GET',
     });
+    const installed = Array.isArray(permissions) && permissions.length > 0;
+    const permissionsParam = Array.isArray(permissions) && permissions.length > 0 ? permissions.join(',') : undefined;
 
     if (data.length === 0) {
-      return this.createTestUser({
-        installed: Array.isArray(permissions) && permissions.length > 0,
-        permissions: Array.isArray(permissions) && permissions.length > 0 ? permissions.join(',') : undefined,
-      });
+      return this.createTestUser({ installed, permissions: permissionsParam });
     }
 
     if (!Array.isArray(permissions) || permissions.length === 0) {
@@ -130,6 +129,10 @@ class GraphAPI {
       const user = users[users.length * Math.random() | 0];
 
       if (!user) {
+        if (paging === undefined || paging.next === undefined) {
+          return this.createTestUser({ installed, permissions: permissionsParam });
+        }
+
         return this._getTestUserWithPermissions(permissions, paging.next);
       }
 

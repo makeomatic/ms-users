@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const render = require('ms-mailer-templates');
 const generatePassword = require('password-generator');
 const { stringify } = require('qs');
 const partial = require('lodash/partial');
@@ -32,6 +31,8 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   const context = { ...ctx };
   const actions = {};
   const templateName = validation.templates[type] || type;
+
+  context.lng = context.i18nLocale;
 
   switch (type) {
     case USERS_ACTION_ACTIVATE:
@@ -96,7 +97,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
       email,
       context,
       nodemailer,
-      emailTemplate: render(templateName, context),
+      templateName,
     })
     .bind(this)
     .then((output) => (send ? [output, wait] : [output]))

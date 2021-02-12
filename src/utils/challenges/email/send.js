@@ -3,22 +3,24 @@
  */
 module.exports = exports = function definedSubjectAndSend(props, wait = false) {
   const {
-    email, type, context, emailTemplate, nodemailer = {},
+    email, type, context, templateName, nodemailer = {},
   } = props;
   const { config, mailer } = this;
   const { validation } = config;
   const { subjects, senders, email: mailingAccount } = validation;
 
-  const mail = {
-    ...nodemailer,
-    subject: subjects[type] || '',
-    from: senders[type] || 'noreply <support@example.com>',
-    to: email,
-    html: emailTemplate,
+  const ctx = {
+    nodemailer: {
+      ...nodemailer,
+      subject: subjects[type] || '',
+      from: senders[type] || 'noreply <support@example.com>',
+      to: email,
+    },
+    template: context,
   };
 
   const mailSent = mailer
-    .send(mailingAccount, mail)
+    .sendTemplate(mailingAccount, templateName, ctx)
     .return({ sent: true, context })
     .catch((err) => ({
       context,

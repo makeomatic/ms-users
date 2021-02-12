@@ -6812,21 +6812,12 @@ ms-flakeless@^4.4.1:
   dependencies:
     nan "^2.14.2"
 
-ms-mailer-client@^8.0.2:
-  version "8.0.2"
-  resolved "https://registry.yarnpkg.com/ms-mailer-client/-/ms-mailer-client-8.0.2.tgz#9eb979cd60beec0a8d444a5dee031108e82393a5"
-  integrity sha512-O9tCC0MCnzBHx6Oc5PR40oUful6Wu5Qm7TZ0DvRLijNEckVKv+EOx41ekDDNdKHwMo0LAN/EweKtSY2lYgCKnw==
+ms-mailer-client@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/ms-mailer-client/-/ms-mailer-client-8.1.0.tgz#bac93ae9cab2d8ff568c7e9cab6a18363638a80a"
+  integrity sha512-JL0kkxUIBP0luuSIXN4h9UzbSciDILGwvdHhidlJXe+PWVtRpiQ0T4GbI3wNouoNXrea+SpzBMP2TjZjcbxxog==
   dependencies:
     lodash.merge "^4.6.2"
-
-ms-mailer-templates@^1.20.6:
-  version "1.20.6"
-  resolved "https://registry.yarnpkg.com/ms-mailer-templates/-/ms-mailer-templates-1.20.6.tgz#a54eaa5c7ba7fea150c5b9192ba53ffe2b88cecb"
-  integrity sha512-vVMZHwbXqSLafMg0CwANFdhx9dDoTbFgE8OTbyyhb12P25o9K0bxNS/+QWUJ5bT7lSszzj+lj8neFV7cI28GnA==
-  dependencies:
-    bluebird "^3.7.2"
-    common-errors "^1.2.0"
-    handlebars "^4.7.6"
 
 ms-token@^5.0.1:
   version "5.0.1"

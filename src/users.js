@@ -134,6 +134,15 @@ class Users extends Microfleet {
       attachPasswordKeyword(this);
     });
 
+    this.bypass = {};
+
+    if (this.config.bypass.pumpJack.enabled) {
+      this.addConnector(ConnectorsTypes.essential, () => {
+        const PumpJackService = require('./utils/bypass/pump-jack');
+        this.bypass.pumpJack = new PumpJackService(this);
+      }, 'bypass.pumpJack');
+    }
+
     if (this.config.tbits.enabled) {
       this.addConnector(ConnectorsTypes.essential, () => {
         const TbitsRelay = require('./utils/tbits');

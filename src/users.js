@@ -143,13 +143,6 @@ class Users extends Microfleet {
       }, 'bypass.pumpJack');
     }
 
-    if (this.config.tbits.enabled) {
-      this.addConnector(ConnectorsTypes.essential, () => {
-        const TbitsRelay = require('./utils/tbits');
-        this.tbits = new TbitsRelay(this);
-      }, 'tbits');
-    }
-
     if (this.config.cfAccessList.enabled) {
       if (!this.hasPlugin('consul')) {
         const consul = require('@microfleet/plugin-consul');

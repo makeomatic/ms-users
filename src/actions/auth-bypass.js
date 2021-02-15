@@ -2,7 +2,7 @@ const { ActionTransport } = require('@microfleet/core');
 const { HttpStatusError } = require('common-errors');
 
 /**
- * @api {amqp} <prefix>.auth-bypass Relay Tbits Authentication
+ * @api {amqp} <prefix>.auth-bypass Authentication through 3rd party api
  * @apiVersion 1.0.0
  *
  * @apiDescription Verifies 3rd party auth, creates "shadow" microfleet user if not exist, login and issues JWT token if everything is in order

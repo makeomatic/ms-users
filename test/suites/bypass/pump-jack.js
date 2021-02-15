@@ -46,7 +46,17 @@ describe('/bypass/pump-jack', function verifySuite() {
     }));
     after(() => global.clearRedis());
 
-    it.skip('rejects on invalidd session uid', async () => {
+    it('signs in with valid session, non-existent user', async () => {
+      const pristine = await msUsers.post({ json: msg });
+      console.info('%j', pristine.body);
+    });
+
+    it('signs in with valid session, existing user', async () => {
+      const second = await msUsers.post({ json: msg });
+      console.info('%j', second.body);
+    });
+
+    it('rejects on invalidd session uid', async () => {
       await assert.rejects(msUsers.post({ json: { ...msg, userKey: 'invalid' } }), (e) => {
         assert.deepStrictEqual(e.response.body, {
           statusCode: 403,
@@ -56,16 +66,6 @@ describe('/bypass/pump-jack', function verifySuite() {
         });
         return true;
       });
-    });
-
-    it('signs in with valid session, non-existent user', async () => {
-      const pristine = await msUsers.post({ json: msg });
-      console.info('%j', pristine.body);
-    });
-
-    it('signs in with valid session, existing user', async () => {
-      const second = await msUsers.post({ json: msg });
-      console.info('%j', second.body);
     });
   });
 });

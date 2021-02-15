@@ -118,7 +118,6 @@ module.exports = exports = {
   lockAlias: (alias) => `users:alias:${alias}`,
   lockRegister: (username) => `users:register:${username}`,
   lockOrganization: (organizationName) => `organizations:create:${organizationName}`,
-  lockTbits: (profile) => `tbits:${profile.accountId}:${profile.fanId}`,
   lockBypass: (provider, userId) => `bypass:${provider}:${userId}`,
   lockContact: (contact) => `contact:${contact}`,
 };

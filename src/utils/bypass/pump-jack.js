@@ -122,7 +122,7 @@ class PumpJackService {
       );
 
       if (registeredUser) {
-        await contacts.add.call(this.servicecode, { contact: { type: 'phone', value: userProfile.phone }, userId: registeredUser.id });
+        await contacts.add.call(this.service, { contact: { type: 'phone', value: userProfile.phone }, userId: registeredUser.id });
 
         return registeredUser;
       }
@@ -186,7 +186,7 @@ class PumpJackService {
     let response;
 
     try {
-      const { body } = await got('/fanxp-integration/getUser', {
+      const { body } = await this.req(this.service.config.bypass.pumpJack.authUrl, {
         json: { profileToken },
         method: 'POST',
       });

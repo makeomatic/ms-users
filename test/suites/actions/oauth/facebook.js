@@ -74,7 +74,7 @@ const getSimulatedRequestForUser = (service, user) => async (request) => {
   return clone(profileCache[initialReq.token]);
 };
 
-describe('#facebook', function oauthFacebookSuite() {
+describe.skip('#facebook', function oauthFacebookSuite() {
   let service;
   let simulateReq;
 

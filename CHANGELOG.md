@@ -1,35 +1,9 @@
-# [14.15.0](https://github.com/makeomatic/ms-users/compare/v14.14.1...v14.15.0) (2021-02-25)
-
-
-### Bug Fixes
-
-* **tests:** adjust tests ([fef5d11](https://github.com/makeomatic/ms-users/commit/fef5d11f86ad0938a286ecf5fecf69605e484388))
+# [14.14.0-rc.1](https://github.com/makeomatic/ms-users/compare/v14.13.5...v14.14.0-rc.1) (2021-02-15)
 
 
 ### Features
 
-* **i18n:** pass lng context option, support mailer-client send template method ([382e187](https://github.com/makeomatic/ms-users/commit/382e187ab8a13cc1952784f353747e16fbd8421f))
-
-## [14.14.1](https://github.com/makeomatic/ms-users/compare/v14.14.0...v14.14.1) (2021-02-24)
-
-
-### Bug Fixes
-
-* handle error for migration ([#493](https://github.com/makeomatic/ms-users/issues/493)) ([ffb0eef](https://github.com/makeomatic/ms-users/commit/ffb0eef976c3233b91a0e0f483fb108e6ad9119f))
-
-# [14.14.0](https://github.com/makeomatic/ms-users/compare/v14.13.6...v14.14.0) (2021-02-24)
-
-
-### Features
-
-* **migration:** user id to meta ([#490](https://github.com/makeomatic/ms-users/issues/490)) ([5e60690](https://github.com/makeomatic/ms-users/commit/5e60690248156d014565b6f3c43f09e720521906))
-
-## [14.13.6](https://github.com/makeomatic/ms-users/compare/v14.13.5...v14.13.6) (2021-02-18)
-
-
-### Bug Fixes
-
-* CF list pending operations processing ([#492](https://github.com/makeomatic/ms-users/issues/492)) ([ffcc548](https://github.com/makeomatic/ms-users/commit/ffcc548c5ba2f30845abdf7c0350c45fb863224e))
+* implemented bypass-api, pump-jack integration, removed tbits, skip facebook test ([#491](https://github.com/makeomatic/ms-users/issues/491)) ([516275a](https://github.com/makeomatic/ms-users/commit/516275ab22e0bc945b2aca3e7941fd41c9615141))
 
 ## [14.13.5](https://github.com/makeomatic/ms-users/compare/v14.13.4...v14.13.5) (2021-01-19)
 

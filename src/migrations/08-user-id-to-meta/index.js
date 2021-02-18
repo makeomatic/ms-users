@@ -29,7 +29,7 @@ async function userIdToMeta({ redis, config, log }) {
 
           usersCount += 1;
           log.info(`${usersCount} HSETNX ${redisKey} ${USERS_ID_FIELD} ${JSON.stringify(userId)}`);
-          // pipeline.hsetnx(redisKey, USERS_ID_FIELD, JSON.stringify(userId));
+          pipeline.hsetnx(redisKey, USERS_ID_FIELD, JSON.stringify(userId));
         }
       }
 
@@ -43,10 +43,8 @@ async function userIdToMeta({ redis, config, log }) {
 
     stream.on('error', reject);
     stream.on('end', () => {
-      log.info(`process ${usersCount} users`);
-      // debug
-      reject(new Error('Not today'));
-      // resolve();
+      log.info(`Process ${usersCount} users`);
+      resolve();
     });
   }));
 }

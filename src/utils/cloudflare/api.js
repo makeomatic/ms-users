@@ -65,14 +65,14 @@ class CloudflareAPI {
   async getLists() {
     const { accountId } = this.props;
     const response = await this.http.get(ruleListUrl({ accountId }));
-    return processResponse(response)
+    return processResponse(response);
   }
 
   async getListItems(listId, cursor) {
     const { accountId } = this.props;
     const url = ruleItemListUrl({ accountId, listId });
     const response = this.http.get(url, { searchParams: { cursor } });
-    return processResponse(response)
+    return processResponse(response);
   }
 
   async waitListOperation(operationId) {
@@ -99,7 +99,6 @@ class CloudflareAPI {
           if (e instanceof BulkOperationError || e instanceof CloudflareAPIError) {
             throw new pRetry.AbortError(e);
           }
-          console.debug()
           throw e;
         }
       },
@@ -112,7 +111,7 @@ class CloudflareAPI {
 
     const { accountId } = this.props;
     const url = ruleItemListUrl({ accountId, listId });
-    const response = await this.http.post(url, { json: items })
+    const response = await this.http.post(url, { json: items });
 
     const { result: { operation_id: operationId } } = processResponse(response);
 

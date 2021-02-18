@@ -43,7 +43,7 @@ function checkServiceMissingPermissionsResponse(context) {
   assert.strictEqual(context.payload.provider, 'facebook');
 }
 
-describe('oauth#upgrade', function oauthFacebookSuite() {
+describe.skip('oauth#upgrade', function oauthFacebookSuite() {
   let service;
   let generalUser;
   let token;

@@ -4,6 +4,7 @@ const {
   USERS_ID_FIELD,
 } = require('../../constants');
 const makeRedisKey = require('../../utils/key');
+const handlePipeline = require('../../utils/pipeline-error');
 
 async function userIdToMeta({ redis, config, log }) {
   const { migrations, jwt } = config;
@@ -38,6 +39,7 @@ async function userIdToMeta({ redis, config, log }) {
           stream.resume();
           return true;
         })
+        .then(handlePipeline)
         .catch(reject);
     });
 

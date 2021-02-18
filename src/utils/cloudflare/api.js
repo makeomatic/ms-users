@@ -3,6 +3,7 @@ const pRetry = require('p-retry');
 const { helpers: { generateClass } } = require('common-errors');
 
 const assertStringNotEmpty = require('../asserts/string-not-empty');
+const { CloudflareAPIError } = require('./error');
 
 const BulkOperationError = generateClass('BulkOperationError', {
   args: ['message', 'response'],
@@ -32,6 +33,13 @@ const defaultRetryConfig = {
   factor: 0.5,
 };
 
+function processResponse(response) {
+  if (response.success === false) {
+    throw new CloudflareAPIError(response.messages, response.errors);
+  }
+  return response;
+}
+
 class CloudflareAPI {
   constructor(cfClient, config = {}, withProps = {}) {
     assert(cfClient, 'CloudflareClient required');
@@ -48,21 +56,23 @@ class CloudflareAPI {
   async createList(name, kind = 'ip', description = '') {
     const { accountId } = this.props;
     const url = ruleListUrl({ accountId });
-    const { result } = await this.http.post(url, {
+    const response = await this.http.post(url, {
       json: { name, kind, description },
     });
-    return result;
+    return processResponse(response).result;
   }
 
   async getLists() {
     const { accountId } = this.props;
-    return this.http.get(ruleListUrl({ accountId }));
+    const response = await this.http.get(ruleListUrl({ accountId }));
+    return processResponse(response)
   }
 
   async getListItems(listId, cursor) {
     const { accountId } = this.props;
     const url = ruleItemListUrl({ accountId, listId });
-    return this.http.get(url, { searchParams: { cursor } });
+    const response = this.http.get(url, { searchParams: { cursor } });
+    return processResponse(response)
   }
 
   async waitListOperation(operationId) {
@@ -74,15 +84,22 @@ class CloudflareAPI {
       async () => {
         try {
           const response = await this.http.get(url);
-          const { result: { status, error } } = response;
+          const { result: { status, error } } = processResponse(response);
+
           if (status === 'failed') {
             throw new BulkOperationError(error, response);
           }
+
+          if (status === 'pending') {
+            throw new Error('Opearation pending');
+          }
+
           return response;
         } catch (e) {
-          if (e instanceof BulkOperationError) {
+          if (e instanceof BulkOperationError || e instanceof CfAPIError) {
             throw new pRetry.AbortError(e);
           }
+          console.debug()
           throw e;
         }
       },
@@ -95,9 +112,9 @@ class CloudflareAPI {
 
     const { accountId } = this.props;
     const url = ruleItemListUrl({ accountId, listId });
+    const response = await this.http.post(url, { json: items })
 
-    const { result: { operation_id: operationId } } = await this.http
-      .post(url, { json: items });
+    const { result: { operation_id: operationId } } = processResponse(response);
 
     return this.waitListOperation(operationId);
   }
@@ -109,8 +126,8 @@ class CloudflareAPI {
     const url = ruleItemListUrl({ accountId, listId });
     const toDelete = items.map((id) => ({ id }));
 
-    const { result: { operation_id: operationId } } = await this.http
-      .delete(url, { json: { items: toDelete } });
+    const response = await this.http.delete(url, { json: { items: toDelete } });
+    const { result: { operation_id: operationId } } = processResponse(response);
 
     return this.waitListOperation(operationId);
   }

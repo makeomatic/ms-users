@@ -1,3 +1,10 @@
+## [14.13.6](https://github.com/makeomatic/ms-users/compare/v14.13.5...v14.13.6) (2021-02-18)
+
+
+### Bug Fixes
+
+* CF list pending operations processing ([#492](https://github.com/makeomatic/ms-users/issues/492)) ([ffcc548](https://github.com/makeomatic/ms-users/commit/ffcc548c5ba2f30845abdf7c0350c45fb863224e))
+
 ## [14.13.5](https://github.com/makeomatic/ms-users/compare/v14.13.4...v14.13.5) (2021-01-19)
 
 

@@ -56,6 +56,11 @@ function nockCfApi() {
     modified_on: (new Date()).toISOString(),
   });
 
+  function createResponse(code, result) {
+    const defaultResult = { success: true, result: null, errors: [], messages: [] };
+    return [code, { ...defaultResult, ...result }];
+  }
+
   function createList(_, body) {
     const { name, kind = 'ip' } = body;
     const newList = {
@@ -169,16 +174,27 @@ function nockCfApi() {
       return [404, 'Simulated Not Found error'];
     }
 
-    const result = id.startsWith('fail')
-      ? { status: 'failed', error: 'Simulated error' }
-      : { status: 'completed' };
+    if (id.startsWith('successfalse')) {
+      return [200, {
+        success: false,
+        errors: [{ code: 1003, message: 'Invalid something' }],
+        messages: [],
+        result: null,
+      }];
+    }
 
-    return [200, {
-      success: true,
-      errors: [],
-      messages: [],
-      result: { ...result, id, completed: (new Date()).toISOString() },
-    }];
+    const baseResult = { id, completed: (new Date()).toISOString() };
+
+    if (!storage.operations[`pendingOnce-${id}`] && id.startsWith('pending')) {
+      storage.operations[`pendingOnce-${id}`] = true;
+      return createResponse(200, { result: { status: 'pending', ...baseResult } });
+    }
+
+    if (id.startsWith('fail')) {
+      return createResponse(200, { result: { status: 'failed', error: 'Simulated error', ...baseResult } });
+    }
+
+    return createResponse(200, { result: { status: 'completed', ...baseResult } });
   }
 
   if (!nock.isActive()) nock.activate();

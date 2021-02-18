@@ -17,7 +17,7 @@ module.exports = {
     api: {
       retry: {
         retries: 20,
-        factor: 0.5,
+        factor: 2,
       },
     },
   },

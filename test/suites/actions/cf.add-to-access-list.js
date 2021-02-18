@@ -24,7 +24,9 @@ describe('#cloudflare.add-to-list action', () => {
 
   after('stop', async () => {
     const toDelete = createdIps.map((({ id }) => id));
-    await this.users.cfAccessList.cfApi.deleteListItems(usedList, toDelete);
+    if (toDelete.length > 0) {
+      await this.users.cfAccessList.cfApi.deleteListItems(usedList, toDelete);
+    }
     await global.clearRedis.call(this, false);
   });
 
@@ -35,7 +37,6 @@ describe('#cloudflare.add-to-list action', () => {
     for await (const ip of ipsGenerator) {
       ips.push(...ip);
     }
-
     createdIps.push(...ips.filter(({ comment }) => comment === jobId));
     assert.deepStrictEqual(createdIps.length, 1);
   });

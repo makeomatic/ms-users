@@ -75,6 +75,22 @@ describe('#cloudflare access-list stubbed', () => {
     await list.addIP({ ip: '5.6.7.8' });
   });
 
+  it('should handle `success: false` operation response', async () => {
+    const list = createCfList(service);
+    await list.cfApi.createList('test_successfalse_bulk_operation');
+
+    await assert.rejects(
+      list.addIP({ ip: '5.6.7.8' }),
+      /CfApiError: \[1003\] Invalid something/
+    );
+  });
+
+  it('should handle `pending` operation response', async () => {
+    const list = createCfList(service);
+    await list.cfApi.createList('test_pending_bulk_operation');
+    await list.addIP({ ip: '5.6.7.8' });
+  });
+
   it('should panic when all lists full', async () => {
     const list = createCfList(service);
     const { id: ipList } = await list.cfApi.createList('test_full_list');

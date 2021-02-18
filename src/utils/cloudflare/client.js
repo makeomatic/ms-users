@@ -1,19 +1,7 @@
 const assert = require('assert');
 const got = require('got');
-const { helpers: { generateClass } } = require('common-errors');
 
 const API_URL = 'https://api.cloudflare.com/client/v4/';
-
-// https://api.cloudflare.com/#getting-started-responses
-const CfAPIError = generateClass('CfAPIError', {
-  args: ['messages', 'errors'],
-  generateMessage() {
-    const errors = this.errors ? this.errors.map((e) => `[${e.code}] ${e.message}`) : '';
-    const messages = this.messages ? ` Messages: ${this.messages.join(',')}` : '';
-    const message = `${errors}${messages}`;
-    return `CfApiError: ${message}`;
-  },
-});
 
 const has = (obj, prop) => Object.hasOwnProperty.call(obj, prop);
 
@@ -26,22 +14,11 @@ class CloudflareClient {
       prefixUrl: API_URL,
       responseType: 'json',
       resolveBodyOnly: true,
-      hooks: {
-        afterResponse: [CloudflareClient.processResponse],
-      },
     });
   }
 
   getHttpClient() {
     return this.client;
-  }
-
-  static processResponse(response) {
-    const { body } = response;
-    if (body.success === false) {
-      throw new CfAPIError(body.messages, body.errors);
-    }
-    return response;
   }
 
   static getHeaders(connectionOpts) {
@@ -74,5 +51,4 @@ class CloudflareClient {
 
 module.exports = {
   CloudflareClient,
-  CfAPIError,
 };

@@ -77,21 +77,4 @@ describe('Cloudflare client', () => {
     }, /configuration required/);
   });
   /* eslint-enable no-unused-vars */
-
-  it('handles cloudflare error', async () => {
-    // https://api.cloudflare.com/#getting-started-responses
-    scope.post(/erroneous/).reply(200, {
-      success: false,
-      errors: [{ code: 777, message: 'simulated error' }],
-    });
-
-    const cf = new CloudflareClient({ token: 'x' });
-    await assert.rejects(
-      cf.client.post('erroneous', {
-        json: { some: 42 },
-        searchParams: { page: 3 },
-      }),
-      /CfApiError: \[777\] simulated error/
-    );
-  });
 });

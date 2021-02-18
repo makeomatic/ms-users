@@ -96,7 +96,7 @@ class CloudflareAPI {
 
           return response;
         } catch (e) {
-          if (e instanceof BulkOperationError || e instanceof CfAPIError) {
+          if (e instanceof BulkOperationError || e instanceof CloudflareAPIError) {
             throw new pRetry.AbortError(e);
           }
           console.debug()

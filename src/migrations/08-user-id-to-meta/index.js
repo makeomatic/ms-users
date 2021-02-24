@@ -35,11 +35,11 @@ async function userIdToMeta({ redis, config, log }) {
       }
 
       pipeline.exec()
+        .then(handlePipeline)
         .then(() => {
           stream.resume();
           return true;
         })
-        .then(handlePipeline)
         .catch(reject);
     });
 

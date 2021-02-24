@@ -1,3 +1,10 @@
+# [14.14.0](https://github.com/makeomatic/ms-users/compare/v14.13.6...v14.14.0) (2021-02-24)
+
+
+### Features
+
+* **migration:** user id to meta ([#490](https://github.com/makeomatic/ms-users/issues/490)) ([5e60690](https://github.com/makeomatic/ms-users/commit/5e60690248156d014565b6f3c43f09e720521906))
+
 ## [14.13.6](https://github.com/makeomatic/ms-users/compare/v14.13.5...v14.13.6) (2021-02-18)
 
 

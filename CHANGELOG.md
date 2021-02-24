@@ -1,3 +1,10 @@
+## [14.14.1](https://github.com/makeomatic/ms-users/compare/v14.14.0...v14.14.1) (2021-02-24)
+
+
+### Bug Fixes
+
+* handle error for migration ([#493](https://github.com/makeomatic/ms-users/issues/493)) ([ffb0eef](https://github.com/makeomatic/ms-users/commit/ffb0eef976c3233b91a0e0f483fb108e6ad9119f))
+
 # [14.14.0](https://github.com/makeomatic/ms-users/compare/v14.13.6...v14.14.0) (2021-02-24)
 
 

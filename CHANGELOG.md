@@ -1,3 +1,15 @@
+# [14.15.0](https://github.com/makeomatic/ms-users/compare/v14.14.1...v14.15.0) (2021-02-25)
+
+
+### Bug Fixes
+
+* **tests:** adjust tests ([fef5d11](https://github.com/makeomatic/ms-users/commit/fef5d11f86ad0938a286ecf5fecf69605e484388))
+
+
+### Features
+
+* **i18n:** pass lng context option, support mailer-client send template method ([382e187](https://github.com/makeomatic/ms-users/commit/382e187ab8a13cc1952784f353747e16fbd8421f))
+
 ## [14.14.1](https://github.com/makeomatic/ms-users/compare/v14.14.0...v14.14.1) (2021-02-24)
 
 

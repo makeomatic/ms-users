@@ -95,7 +95,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
 
   describe('with challenge type equals `email`', () => {
     it('should be able to regenerate invitation from uid', async () => {
-      const mailerStub = sinon.stub(this.users.mailer, 'send');
+      const mailerStub = sinon.stub(this.users.mailer, 'sendTemplate');
       mailerStub.withArgs('support@example.com')
         .resolves();
 
@@ -112,7 +112,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         });
 
         assert.ok(resp1.queued);
-        assert.ok(mailerStub.args[0][1].html.includes(resp1.context.token.secret));
+        assert.ok(mailerStub.args[0][2].template.qs.includes(resp1.context.token.secret));
 
         const response = await this.dispatch('users.regenerate-token', {
           challengeType: 'email',
@@ -123,7 +123,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         assert.ok(response.uid);
 
         const token = await this.users.tokenManager.info({ uid: response.uid });
-        assert.ok(mailerStub.args[1][1].html.includes(token.secret));
+        assert.ok(mailerStub.args[1][2].template.qs.includes(token.secret));
       } finally {
         mailerStub.restore();
       }

@@ -39,7 +39,10 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
     case USERS_ACTION_RESET:
     case USERS_ACTION_INVITE:
       // generate secret
-      context.qs = `?q=${context.token.secret}`;
+      context.qs = `?${stringify({
+        q: context.token.secret,
+        lng: context.lng,
+      })}`;
       context.link = generateLink(server, paths[type]);
       break;
     case USERS_ACTION_ORGANIZATION_ADD:
@@ -48,6 +51,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
         firstName: ctx.firstName,
         lastName: ctx.lastName,
         organizationId: ctx.organizationId,
+        lng: context.lng,
       })}`;
       context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_ADD]);
       break;
@@ -58,6 +62,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
         firstName: ctx.firstName,
         lastName: ctx.lastName,
         organizationId: ctx.organizationId,
+        lng: context.lng,
       })}`;
       context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_REGISTER]);
       break;
@@ -69,6 +74,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
         firstName: ctx.firstName,
         lastName: ctx.lastName,
         skipPassword: ctx.skipPassword,
+        lng: context.lng,
       })}`;
       context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_INVITE]);
       break;

@@ -573,11 +573,25 @@
         }
       }
     },
-    "tbits": {
+    "bypass": {
       "type": "object",
       "properties": {
-        "enabled": {
-          "type": "boolean"
+        "pumpJack": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "baseUrl": {
+              "type": "string"
+            },
+            "authUrl": {
+              "type": "string"
+            },
+            "apiKey": {
+              "type": "string"
+            }
+          }
         }
       }
     },

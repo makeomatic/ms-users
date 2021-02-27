@@ -1,0 +1,16 @@
+{
+  "$id": "auth-bypass",
+  "description": "authenticate through 3rd party api",
+  "required": ["schema", "userKey"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "enum": ["pumpJack"]
+    },
+    "userKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    }
+  }
+}

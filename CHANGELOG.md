@@ -1,3 +1,10 @@
+## [14.17.1](https://github.com/makeomatic/ms-users/compare/v14.17.0...v14.17.1) (2021-03-05)
+
+
+### Bug Fixes
+
+* fix validation pump-jack response ([7c37f1a](https://github.com/makeomatic/ms-users/commit/7c37f1a2cf6d32a5a5b9291fb895d94fa6a8d270))
+
 ## [14.17.1-rc.1](https://github.com/makeomatic/ms-users/compare/v14.17.0...v14.17.1-rc.1) (2021-03-05)
 
 

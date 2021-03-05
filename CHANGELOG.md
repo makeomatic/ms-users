@@ -1,3 +1,17 @@
+# [14.17.0](https://github.com/makeomatic/ms-users/compare/v14.16.0...v14.17.0) (2021-03-01)
+
+
+### Features
+
+* **emails:** add lng parameter to email links ([aa1f6b3](https://github.com/makeomatic/ms-users/commit/aa1f6b38dad640c99504981a774df48b1b0960ef))
+
+# [14.16.0](https://github.com/makeomatic/ms-users/compare/v14.15.0...v14.16.0) (2021-02-27)
+
+
+### Features
+
+* implemented bypass-api, pump-jack integration, removed tbits ([#491](https://github.com/makeomatic/ms-users/issues/491)) ([277190c](https://github.com/makeomatic/ms-users/commit/277190cee8016fde0a66b8bd4b23aad6adb1cd0b))
+
 # [14.15.0](https://github.com/makeomatic/ms-users/compare/v14.14.1...v14.15.0) (2021-02-25)
 
 

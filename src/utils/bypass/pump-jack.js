@@ -6,72 +6,18 @@ const { pick } = require('lodash');
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists } = require('../../constants');
 const contacts = require('../contacts');
 
-const typeOrNull = (type, extra = {}) => ({
-  anyOf: [{ type: 'null' }, { type, ...extra }],
-});
-
 const schema = {
   $id: 'pump-jack.profile',
   type: 'object',
-  required: ['phone'],
+  required: ['phone', 'firstName', 'lastName'],
   properties: {
-    city: {
-      type: 'string',
-    },
-    country: {
-      type: 'string',
-    },
-    dob: {
-      type: 'string', // timestamp
-    },
     firstName: {
       type: 'string',
     },
     lastName: {
       type: 'string',
     },
-    gender: typeOrNull('string'),
-    state: {
-      type: 'string',
-    },
-    zipCode: {
-      type: 'string',
-    },
     phone: {
-      type: 'string',
-    },
-    email: {
-      type: 'string',
-    },
-    creationStamp: {
-      type: 'string',
-    },
-    hasAvatar: {
-      type: 'boolean',
-    },
-    jerseyName: {
-      type: 'string',
-    },
-    jerseyNumber: {
-      type: 'string',
-    },
-    isSubscribedToTextAlerts: {
-      type: 'boolean',
-    },
-    isNotificationEnabled: {
-      type: 'boolean',
-    },
-    status: {
-      type: 'number',
-    },
-    phoneCountry: typeOrNull('string'),
-    nationality: {
-      type: 'string',
-    },
-    residency: {
-      type: 'string',
-    },
-    avatarUrl: {
       type: 'string',
     },
   },

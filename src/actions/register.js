@@ -17,7 +17,6 @@ const mxExists = require('../utils/mx-exists');
 const checkCaptcha = require('../utils/check-captcha');
 const { getUserId } = require('../utils/userData');
 const aliasExists = require('../utils/alias-exists');
-const assignAlias = require('./alias');
 const checkLimits = require('../utils/check-ip-limits');
 const generateChallenge = require('../utils/challenges/challenge');
 const handlePipeline = require('../utils/pipeline-error');
@@ -252,7 +251,7 @@ async function performRegistration({ service, params }) {
 
   // assign alias
   if (alias) {
-    await assignAlias.call(service, { params: { username, alias, internal: true } });
+    await service.dispatch('alias', { params: { username, alias, internal: true } });
   }
 
   if (activate === true || temporaryActivationEnabled === true) {

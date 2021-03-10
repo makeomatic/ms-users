@@ -2,9 +2,8 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../utils/userData');
-const isActive = require('../utils/is-active');
+const { isActive, makeNotActiveError } = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
-const DetailedHttpStatusError = require('../utils/detailed-error');
 const key = require('../utils/key');
 const handlePipeline = require('../utils/pipeline-error');
 const {
@@ -33,7 +32,8 @@ const {
  *
  */
 async function assignAlias({ params }) {
-  const { redis, config: { jwt: { defaultAudience } } } = this;
+  const { redis, config } = this;
+  const { jwt: { defaultAudience } } = config;
   const { username, internal } = params;
 
   // lowercase alias
@@ -50,10 +50,10 @@ async function assignAlias({ params }) {
 
   // determine if user is active
   const userId = data[USERS_ID_FIELD];
-  const activeUser = isActive(data, true);
+  const activeUser = isActive(config, data);
 
   if (!activeUser && !internal) {
-    return Promise.reject(DetailedHttpStatusError(412, 'Account hasn\'t been activated', { username: data[USERS_USERNAME_FIELD] }));
+    throw makeNotActiveError(data[USERS_USERNAME_FIELD]);
   }
 
   let lock;

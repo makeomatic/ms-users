@@ -4,7 +4,8 @@ const { ActionTransport } = require('@microfleet/core');
 const jwt = require('../utils/jwt');
 const getMetadata = require('../utils/get-metadata');
 const { getInternalData } = require('../utils/userData');
-const { USERS_MFA_FLAG } = require('../constants');
+const { USERS_MFA_FLAG, USERS_ID_FIELD } = require('../constants');
+const { assertIsActive } = require('../utils/is-active');
 
 /**
  * Internal functions
@@ -21,31 +22,24 @@ async function decodedToken({ username, userId }) {
   }
 
   const { audience, defaultAudience, service } = this;
+  const internalData = await getInternalData.call(service, userId || username);
+  const resolvedUserId = userId || internalData[USERS_ID_FIELD];
+
+  // needs for checking temporary activation
+  assertIsActive(service.config, internalData);
 
   // push extra audiences
   if (audience.indexOf(defaultAudience) === -1) {
     audience.push(defaultAudience);
   }
 
-  let resolveduserId = userId;
-  let hasMFA;
-  if (resolveduserId == null) {
-    const internalData = await getInternalData.call(service, username);
-    resolveduserId = internalData.id;
-    hasMFA = !!internalData[USERS_MFA_FLAG];
-  }
+  const metadata = await getMetadata.call(service, resolvedUserId, audience);
 
-  const metadata = await getMetadata.call(service, resolveduserId, audience);
-  const response = {
-    id: resolveduserId,
+  return {
     metadata,
+    id: resolvedUserId,
+    mfa: !!internalData[USERS_MFA_FLAG],
   };
-
-  if (hasMFA !== undefined) {
-    response.mfa = hasMFA;
-  }
-
-  return response;
 }
 
 /**

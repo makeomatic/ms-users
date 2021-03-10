@@ -19,7 +19,7 @@ const { getUserId } = require('../utils/userData');
 const aliasExists = require('../utils/alias-exists');
 const assignAlias = require('./alias');
 const checkLimits = require('../utils/check-ip-limits');
-const challenge = require('../utils/challenges/challenge');
+const generateChallenge = require('../utils/challenges/challenge');
 const handlePipeline = require('../utils/pipeline-error');
 const hashPassword = require('../utils/register/password/hash');
 const {
@@ -37,6 +37,7 @@ const {
   USERS_REFERRAL_FIELD,
   USERS_REFERRAL_META_FIELD,
   USERS_ACTIVATED_FIELD,
+  USERS_TEMP_ACTIVATED_TIME_FIELD,
   lockAlias,
   lockRegister,
   USERS_ACTION_INVITE,
@@ -152,11 +153,9 @@ async function performRegistration({ service, params }) {
     metadata,
     challengeType,
   } = params;
-
-  const {
-    config,
-    redis,
-  } = service;
+  const { config, redis } = service;
+  const { deleteInactiveAccounts, temporaryActivation, token: tokenConfig } = config;
+  const { enabled: temporaryActivationEnabled } = temporaryActivation;
 
   // do verifications of DB state
   await Promise.bind(service, username)
@@ -190,6 +189,14 @@ async function performRegistration({ service, params }) {
     [USERS_USERNAME_FIELD]: username,
     [USERS_ACTIVE_FLAG]: activate,
   };
+  const challengeParams = [
+    {
+      id: username,
+      action: USERS_ACTION_ACTIVATE,
+      ...tokenConfig[challengeType],
+    },
+    { ...metadata[creatorAudience] },
+  ];
 
   if (params.skipPassword === false) {
     // this will be passed as context if we need to send an email
@@ -203,20 +210,24 @@ async function performRegistration({ service, params }) {
 
   if (sso) {
     const { provider, uid, credentials } = sso;
-
     // inject sensitive provider info to internal data
     basicInfo[provider] = JSON.stringify(credentials.internals);
-
     // link uid to username
     pipeline.hset(USERS_SSO_TO_ID, uid, userId);
+  }
+
+  // this field will be unset when activate user
+  if (temporaryActivationEnabled === true && activate === false) {
+    basicInfo[USERS_TEMP_ACTIVATED_TIME_FIELD] = Date.now();
   }
 
   const userDataKey = redisKey(userId, USERS_DATA);
   pipeline.hmset(userDataKey, basicInfo);
   pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
 
-  if (activate === false && config.deleteInactiveAccounts >= 0) {
-    pipeline.expire(userDataKey, config.deleteInactiveAccounts);
+  // do not expire if temporaryActivationEnabled === true because user will be added to USERS_INDEX
+  if (activate === false && temporaryActivationEnabled === false && deleteInactiveAccounts >= 0) {
+    pipeline.expire(userDataKey, deleteInactiveAccounts);
   }
 
   handlePipeline(await pipeline.exec());
@@ -241,16 +252,10 @@ async function performRegistration({ service, params }) {
 
   // assign alias
   if (alias) {
-    await assignAlias.call(service, {
-      params: {
-        username,
-        alias,
-        internal: true,
-      },
-    });
+    await assignAlias.call(service, { params: { username, alias, internal: true } });
   }
 
-  if (activate === true) {
+  if (activate === true || temporaryActivationEnabled === true) {
     // perform instant activation
     // internal username index
     const regPipeline = redis.pipeline().sadd(USERS_INDEX, userId);
@@ -262,42 +267,29 @@ async function performRegistration({ service, params }) {
       regPipeline.sadd(`${USERS_REFERRAL_INDEX}:${ref}`, userId);
     }
 
-    return regPipeline
-      .exec()
-      .then(handlePipeline)
-      // custom actions
-      .bind(service)
-      .return(['users:activate', userId, params, metadata])
-      .spread(service.hook)
-      // login & return JWT
-      .return([userId, creatorAudience])
-      .spread(jwt.login);
+    await regPipeline.exec().then(handlePipeline);
+    await service.hook.call(service, 'users:activate', userId, params, metadata);
+
+    if (temporaryActivationEnabled === true && challengeType === CHALLENGE_TYPE_EMAIL) {
+      await generateChallenge.call(service, challengeType, ...challengeParams);
+    }
+
+    return jwt.login.call(service, userId, creatorAudience);
   }
 
-  const challengeOpts = {
-    id: username,
-    action: USERS_ACTION_ACTIVATE,
-    ...config.token[challengeType],
+  const response = { id: userId, requiresActivation: true };
+
+  // don't create challenge
+  if (params.skipChallenge === true) {
+    return response;
+  }
+
+  const challenge = await generateChallenge.call(service, challengeType, ...challengeParams);
+
+  return {
+    ...response,
+    uid: challenge.context.token.uid,
   };
-
-  const metaCopy = {
-    ...metadata[creatorAudience],
-  };
-
-  const challengeResponse = params.skipChallenge
-    ? null
-    : await challenge.call(service, challengeType, challengeOpts, metaCopy);
-
-  return challengeResponse
-    ? {
-      id: userId,
-      requiresActivation: true,
-      uid: challengeResponse.context.token.uid,
-    }
-    : {
-      id: userId,
-      requiresActivation: true,
-    };
 }
 
 /**

@@ -19,6 +19,7 @@ const {
   USERS_USERNAME_FIELD,
   USERS_ACTION_ACTIVATE,
   USERS_ACTIVATED_FIELD,
+  USERS_TEMP_ACTIVATED_TIME_FIELD,
 } = require('../constants.js');
 
 // cache error
@@ -140,6 +141,8 @@ async function activateAccount(data, metadata) {
     .pipeline()
     .hget(userKey, USERS_ACTIVE_FLAG)
     .hset(userKey, USERS_ACTIVE_FLAG, 'true')
+    // unsets USERS_TEMP_ACTIVATED_TIME_FIELD used for temporary activation
+    .hdel(userKey, USERS_TEMP_ACTIVATED_TIME_FIELD)
     .persist(userKey)
     .sadd(USERS_INDEX, userId);
 

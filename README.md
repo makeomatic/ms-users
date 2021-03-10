@@ -21,6 +21,11 @@ that contains description of routes and their capabilities. Aims to provide a co
 
 TODO
 
+### Temporary activation
+
+`config.temporaryActivation.enabled` - Enable/disable temporary activation, default `false`.
+`config.temporaryActivation.validTimeMs` - Temporary activation time, default 10 days.
+
 ## Endpoint description
 
 Currently available on github pages

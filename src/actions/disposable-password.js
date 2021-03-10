@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
 const challenge = require('../utils/challenges/challenge');
 const { getInternalData } = require('../utils/userData');
-const isActive = require('../utils/is-active');
+const { isActiveTap } = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
 const hasNotPassword = require('../utils/has-no-password');
 const { USERS_ACTION_DISPOSABLE_PASSWORD, USERS_USERNAME_FIELD } = require('../constants');
@@ -24,7 +24,7 @@ module.exports = function disposablePassword(request) {
   return Promise
     .bind(this, id)
     .then(getInternalData)
-    .tap(isActive)
+    .tap(isActiveTap)
     .tap(isBanned)
     .tap(hasNotPassword)
     .then((data) => ([challengeType, {

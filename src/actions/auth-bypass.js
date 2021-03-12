@@ -12,14 +12,14 @@ const { HttpStatusError } = require('common-errors');
  */
 async function authBypass({ params, log }) {
   const { schema, userKey } = params;
-
-  const api = this.bypass[schema];
+  const [schemaName, account] = schema.split(':');
+  const api = this.bypass[schemaName];
 
   if (!api) {
-    throw new HttpStatusError(412, `${schema} auth disabled`);
+    throw new HttpStatusError(412, `${schemaName} auth disabled`);
   }
 
-  const response = await api.authenticate(userKey);
+  const response = await api.authenticate(userKey, account);
   log.debug({ response }, 'verified session & signed in');
   return response;
 }

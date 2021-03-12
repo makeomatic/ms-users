@@ -43,17 +43,14 @@ class PumpJackService {
           maxFreeSockets: 32,
         }),
       },
-      headers: {
-        'pjd-fanxp-integration-key': this.service.config.bypass.pumpJack.apiKey,
-      },
     });
     this.registerUser = this.registerUser.bind(this);
     this.service.validator.ajv.addSchema(schema);
     this.audience = this.service.config.jwt.defaultAudience;
   }
 
-  async authenticate(profileToken) {
-    const userProfile = await this.retrieveUser(profileToken);
+  async authenticate(profileToken, account) {
+    const userProfile = await this.retrieveUser(profileToken, account);
     return this.registerAndLogin(userProfile);
   }
 
@@ -128,13 +125,21 @@ class PumpJackService {
    * Validates & retrieves pump-jack profile
    * @param {string} profileToken - pump-jack profile token
    */
-  async retrieveUser(profileToken) {
+  async retrieveUser(profileToken, account) {
+    const apiKey = this.service.config.bypass.pumpJack.credentials[account];
+    if (!apiKey) {
+      throw new HttpStatusError(412, `unknown account: ${account}`);
+    }
+
     let response;
 
     try {
       const { body } = await this.req(this.service.config.bypass.pumpJack.authUrl, {
         json: { profileToken },
         method: 'POST',
+        headers: {
+          'pjd-fanxp-integration-key': apiKey,
+        },
       });
 
       assert(!body.hasError);

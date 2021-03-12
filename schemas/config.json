@@ -588,8 +588,8 @@
             "authUrl": {
               "type": "string"
             },
-            "apiKey": {
-              "type": "string"
+            "credentials": {
+              "type": "object"
             }
           }
         }

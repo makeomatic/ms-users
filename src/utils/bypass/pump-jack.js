@@ -35,7 +35,6 @@ class PumpJackService {
   constructor(service) {
     this.service = service;
     this.req = got.extend({
-      prefixUrl: this.service.config.bypass.pumpJack.baseUrl,
       responseType: 'json',
       agent: {
         https: new HttpsAgent({
@@ -126,15 +125,18 @@ class PumpJackService {
    * @param {string} profileToken - pump-jack profile token
    */
   async retrieveUser(profileToken, account) {
-    const apiKey = this.service.config.bypass.pumpJack.credentials[account];
-    if (!apiKey) {
+    const accountCredentials = this.service.config.bypass.pumpJack.credentials[account];
+
+    if (!accountCredentials) {
       throw new HttpStatusError(412, `unknown account: ${account}`);
     }
+
+    const { apiKey, baseUrl } = accountCredentials;
 
     let response;
 
     try {
-      const { body } = await this.req(this.service.config.bypass.pumpJack.authUrl, {
+      const { body } = await this.req(`${baseUrl}${this.service.config.bypass.pumpJack.authUrl}`, {
         json: { profileToken },
         method: 'POST',
         headers: {

@@ -1,3 +1,10 @@
+# [14.18.0-rc.2](https://github.com/makeomatic/ms-users/compare/v14.18.0-rc.1...v14.18.0-rc.2) (2021-03-15)
+
+
+### Bug Fixes
+
+* edit pump-jack config ([36ad3d1](https://github.com/makeomatic/ms-users/commit/36ad3d1712c2c62c07296156a8dcfa5628506ce9))
+
 # [14.18.0-rc.1](https://github.com/makeomatic/ms-users/compare/v14.17.1...v14.18.0-rc.1) (2021-03-12)
 
 

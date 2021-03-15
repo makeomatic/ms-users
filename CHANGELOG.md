@@ -1,3 +1,23 @@
+# [14.18.0-rc.2](https://github.com/makeomatic/ms-users/compare/v14.18.0-rc.1...v14.18.0-rc.2) (2021-03-15)
+
+
+### Bug Fixes
+
+* edit pump-jack config ([36ad3d1](https://github.com/makeomatic/ms-users/commit/36ad3d1712c2c62c07296156a8dcfa5628506ce9))
+
+# [14.18.0-rc.1](https://github.com/makeomatic/ms-users/compare/v14.17.1...v14.18.0-rc.1) (2021-03-12)
+
+
+### Bug Fixes
+
+* clear changelog [skip ci] ([af3ec44](https://github.com/makeomatic/ms-users/commit/af3ec448b2ec45e79e83c6c877cd5b4634e92fe7))
+* fix validation pump-jack response ([71fa789](https://github.com/makeomatic/ms-users/commit/71fa7890a9f5600be7f53241b4d7fbe922afeeae))
+
+
+### Features
+
+* added pump-jack account ([e1d34f1](https://github.com/makeomatic/ms-users/commit/e1d34f1699dbc7c8f868c3352fc2ac392417e3b1))
+
 ## [14.17.1](https://github.com/makeomatic/ms-users/compare/v14.17.0...v14.17.1) (2021-03-05)
 
 

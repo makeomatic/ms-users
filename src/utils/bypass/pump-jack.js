@@ -35,7 +35,6 @@ class PumpJackService {
   constructor(service) {
     this.service = service;
     this.req = got.extend({
-      prefixUrl: this.service.config.bypass.pumpJack.baseUrl,
       responseType: 'json',
       agent: {
         https: new HttpsAgent({
@@ -43,17 +42,14 @@ class PumpJackService {
           maxFreeSockets: 32,
         }),
       },
-      headers: {
-        'pjd-fanxp-integration-key': this.service.config.bypass.pumpJack.apiKey,
-      },
     });
     this.registerUser = this.registerUser.bind(this);
     this.service.validator.ajv.addSchema(schema);
     this.audience = this.service.config.jwt.defaultAudience;
   }
 
-  async authenticate(profileToken) {
-    const userProfile = await this.retrieveUser(profileToken);
+  async authenticate(profileToken, account) {
+    const userProfile = await this.retrieveUser(profileToken, account);
     return this.registerAndLogin(userProfile);
   }
 
@@ -128,13 +124,24 @@ class PumpJackService {
    * Validates & retrieves pump-jack profile
    * @param {string} profileToken - pump-jack profile token
    */
-  async retrieveUser(profileToken) {
+  async retrieveUser(profileToken, account) {
+    const accountCredentials = this.service.config.bypass.pumpJack.credentials[account];
+
+    if (!accountCredentials) {
+      throw new HttpStatusError(412, `unknown account: ${account}`);
+    }
+
+    const { apiKey, baseUrl } = accountCredentials;
+
     let response;
 
     try {
-      const { body } = await this.req(this.service.config.bypass.pumpJack.authUrl, {
+      const { body } = await this.req(`${baseUrl}${this.service.config.bypass.pumpJack.authUrl}`, {
         json: { profileToken },
         method: 'POST',
+        headers: {
+          'pjd-fanxp-integration-key': apiKey,
+        },
       });
 
       assert(!body.hasError);

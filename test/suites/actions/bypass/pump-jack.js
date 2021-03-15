@@ -10,7 +10,7 @@ const msUsers = got.extend({
 describe('/bypass/pump-jack', function verifySuite() {
   const profileToken = process.env.PUMP_JACK_PROFILE_TOKEN;
   const msg = {
-    schema: 'pumpJack',
+    schema: 'pumpJack:imcf',
     userKey: profileToken,
   };
 
@@ -23,7 +23,7 @@ describe('/bypass/pump-jack', function verifySuite() {
         assert.deepStrictEqual(e.response.body, {
           statusCode: 412,
           error: 'Precondition Failed',
-          message: `${msg.schema} auth disabled`,
+          message: 'pumpJack auth disabled',
           name: 'HttpStatusError',
         });
         return true;

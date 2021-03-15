@@ -582,14 +582,11 @@
             "enabled": {
               "type": "boolean"
             },
-            "baseUrl": {
-              "type": "string"
-            },
             "authUrl": {
               "type": "string"
             },
-            "apiKey": {
-              "type": "string"
+            "credentials": {
+              "type": "object"
             }
           }
         }

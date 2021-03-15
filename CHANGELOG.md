@@ -1,3 +1,10 @@
+# [14.18.0](https://github.com/makeomatic/ms-users/compare/v14.17.1...v14.18.0) (2021-03-15)
+
+
+### Features
+
+* added pump-jack account ([735a484](https://github.com/makeomatic/ms-users/commit/735a484ec0fbf0d72f3ac54636214f8370560f11))
+
 # [14.18.0-rc.2](https://github.com/makeomatic/ms-users/compare/v14.18.0-rc.1...v14.18.0-rc.2) (2021-03-15)
 
 

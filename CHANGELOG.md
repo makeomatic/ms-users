@@ -1,3 +1,10 @@
+## [14.18.1](https://github.com/makeomatic/ms-users/compare/v14.18.0...v14.18.1) (2021-03-23)
+
+
+### Bug Fixes
+
+* remove validate token length for bypass ([67a1cba](https://github.com/makeomatic/ms-users/commit/67a1cba9878dbd7a174fb6ad98b0ce7d830c0ba9))
+
 # [14.18.0](https://github.com/makeomatic/ms-users/compare/v14.17.1...v14.18.0) (2021-03-15)
 
 

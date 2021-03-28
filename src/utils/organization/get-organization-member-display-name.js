@@ -1,11 +1,9 @@
-const capitalize = require('lodash/capitalize');
 const { getMemberData } = require('./get-organization-members');
 const { ORGANIZATIONS_MEMBERS } = require('../../constants');
 const redisKey = require('../key');
 
 const buildDisplayName = ({ firstName, lastName, username } = {}) => {
   const displayName = [firstName, lastName]
-    .map(capitalize)
     .join(' ')
     .trim();
 

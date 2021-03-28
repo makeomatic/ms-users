@@ -10,7 +10,7 @@ describe('#invite organization', function registerSuite() {
   this.timeout(50000);
 
   before(global.startService);
-  before(function pretest() {
+  before(async function pretest() {
     this.admin = {
       email: faker.internet.email(),
       permissions: ['root'],
@@ -23,15 +23,21 @@ describe('#invite organization', function registerSuite() {
 
     this.spy = sinon.spy(generateEmail, 'call');
 
-    return createOrganization.call(this);
+    const org = await createOrganization.call(this);
+    const [root] = org.members;
+    this.rootAdmin = root;
+
+    return org;
   });
   after(global.clearRedis);
 
   it('must be able to send invite to admin', async function test() {
     const opts = {
       organizationId: this.organization.id,
+      senderId: this.rootAdmin.id,
       member: this.admin,
     };
+
     await this.dispatch('users.organization.invites.send', opts);
     this.admin.token = this.spy.lastCall.args[3].token;
   });
@@ -39,15 +45,30 @@ describe('#invite organization', function registerSuite() {
   it('must be able to send invite to member', async function test() {
     const opts = {
       organizationId: this.organization.id,
+      senderId: this.rootAdmin.id,
+      member: this.member,
+    };
+
+    await this.dispatch('users.organization.invites.send', opts);
+    this.member.token = this.spy.lastCall.args[3].token;
+  });
+
+  it('includes sender display name to the invitation email', async function test() {
+    const opts = {
+      organizationId: this.organization.id,
+      senderId: this.rootAdmin.id,
       member: this.member,
     };
     await this.dispatch('users.organization.invites.send', opts);
-    this.member.token = this.spy.lastCall.args[3].token;
+    const { firstName, lastName } = this.rootAdmin;
+    const expectedName = `${firstName} ${lastName}`;
+    assert.strictEqual(this.spy.lastCall.args[3].senderName, expectedName);
   });
 
   it('must be able to resend invite to member', async function test() {
     const opts = {
       organizationId: this.organization.id,
+      senderId: this.rootAdmin.id,
       member: this.member,
     };
     await this.dispatch('users.organization.invites.send', opts);
@@ -209,6 +230,7 @@ describe('#invite organization', function registerSuite() {
   it('must return organization not found error', async function test() {
     const opts = {
       organizationId: faker.company.companyName(),
+      senderId: this.rootAdmin.id,
       member: this.member,
     };
 

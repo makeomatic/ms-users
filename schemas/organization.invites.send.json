@@ -2,12 +2,17 @@
   "type": "object",
   "required": [
     "organizationId",
+    "senderId",
     "member"
   ],
   "additionalProperties": false,
   "properties": {
     "organizationId": {
       "type": "string"
+    },
+    "senderId": {
+      "type": "string",
+      "minLength": 1
     },
     "member": {
       "required": [

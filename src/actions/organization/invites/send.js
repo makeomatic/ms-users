@@ -1,7 +1,10 @@
 const { ActionTransport } = require('@microfleet/core');
 const sendInviteMail = require('../../../utils/organization/send-invite-email');
-const getInternalData = require('../../../utils/organization/get-internal-data');
-const { checkOrganizationExists } = require('../../../utils/organization');
+const {
+  getInternalData,
+  checkOrganizationExists,
+  getOrganizationMemberDisplayName,
+} = require('../../../utils/organization');
 const {
   ORGANIZATIONS_NAME_FIELD,
   ORGANIZATIONS_ID_FIELD,
@@ -24,9 +27,10 @@ const getUserId = require('../../../utils/userData/get-user-id');
  * @apiParam (Payload) {String} member.firstName - member first name.
  * @apiParam (Payload) {String} member.lastName - member last name.
  * @apiParam (Payload) {String[]} member.permissions - member permission list.
+ * @apiParam (Payload) {String} senderId - invitation sender id.
  */
 async function sendOrganizationInvite({ params }) {
-  const { member, organizationId } = params;
+  const { member, organizationId, senderId } = params;
   const organization = await getInternalData.call(this, organizationId);
   let userExist = false;
 
@@ -36,6 +40,8 @@ async function sendOrganizationInvite({ params }) {
   } catch (e) {
     this.log.info('invited user not exist');
   }
+
+  const displayName = await getOrganizationMemberDisplayName.call(this, organizationId, senderId);
 
   return sendInviteMail.call(this, {
     email: member.email,
@@ -47,6 +53,7 @@ async function sendOrganizationInvite({ params }) {
       email: member.email,
       organizationId: organization[ORGANIZATIONS_ID_FIELD],
       organization: organization[ORGANIZATIONS_NAME_FIELD],
+      senderName: displayName,
     },
   }, USERS_ACTION_ORGANIZATION_INVITE);
 }

@@ -65,6 +65,16 @@ describe('#invite organization', function registerSuite() {
     assert.strictEqual(this.spy.lastCall.args[3].senderName, expectedName);
   });
 
+  it('returns empty for unknown sender', async function test() {
+    const opts = {
+      organizationId: this.organization.id,
+      senderId: 'unknown-sender-id',
+      member: this.member,
+    };
+    await this.dispatch('users.organization.invites.send', opts);
+    assert.strictEqual(this.spy.lastCall.args[3].senderName, undefined);
+  });
+
   it('must be able to resend invite to member', async function test() {
     const opts = {
       organizationId: this.organization.id,

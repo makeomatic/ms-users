@@ -11,14 +11,9 @@ const buildDisplayName = ({ firstName, lastName, username } = {}) => {
 };
 
 async function getOrganizationMemberDisplayName(organizationId, userId) {
-  try {
-    const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
-    const data = await getMemberData.call(this, memberKey);
+  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
+  const data = await getMemberData.call(this, memberKey);
 
-    return buildDisplayName(data);
-  } catch (e) {
-    this.log.info('unable to get member data');
-  }
-  return null;
+  return buildDisplayName(data);
 }
 module.exports = getOrganizationMemberDisplayName;

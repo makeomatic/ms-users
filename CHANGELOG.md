@@ -1,3 +1,10 @@
+# [14.19.0](https://github.com/makeomatic/ms-users/compare/v14.18.2...v14.19.0) (2021-04-05)
+
+
+### Features
+
+* add sender info to invitation email ([6452d67](https://github.com/makeomatic/ms-users/commit/6452d67ab196ef6ee6813fc103d3b76bf60333f2))
+
 # [14.19.0-rc.1](https://github.com/makeomatic/ms-users/compare/v14.18.0...v14.19.0-rc.1) (2021-03-30)
 
 

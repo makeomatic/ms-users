@@ -9,10 +9,9 @@ const { Redirect } = require('./utils/errors');
 const { ErrorTotpRequired } = require('../../constants');
 const { getSignedToken } = require('./utils/get-signed-token');
 
-const isOauthAttachRoute = (route) => (
-  route.endsWith('oauth.facebook')
-  || route.endsWith('oauth.upgrade')
-);
+const isOauthAttachRoute = (route) => route.endsWith('oauth.facebook')
+  || route.endsWith('oauth.apple')
+  || route.endsWith('oauth.upgrade');
 
 module.exports = [{
   point: 'preResponse',

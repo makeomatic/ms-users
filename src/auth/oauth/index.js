@@ -76,6 +76,7 @@ function oauthVerification({
 
   // create uid and inject it inside account && internal data
   const uid = getUid(credentials);
+
   credentials.uid = uid;
   credentials.profile.uid = uid;
   credentials.internals.uid = uid;

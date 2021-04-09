@@ -51,7 +51,7 @@ function getSecretKey(iss, sub, keyId, privateKey) {
 function getJwkFromResponse(header, callback) {
   jwksClient.getSigningKey(header.kid, (error, key) => {
     if (error) {
-      callback(error);
+      return callback(error);
     }
 
     callback(null, key.publicKey || key.rsaPublicKey);
@@ -69,7 +69,6 @@ async function getProfile(credentials, params) {
     is_private_email: isPrivateEmail,
   } = response;
 
-  // it is no way to get user name using bell
   credentials.profile = { id: sub, email };
   credentials.internals = {
     email,

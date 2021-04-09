@@ -54,7 +54,7 @@ function getJwkFromResponse(header, callback) {
       return callback(error);
     }
 
-    callback(null, key.publicKey || key.rsaPublicKey);
+    return callback(null, key.publicKey || key.rsaPublicKey);
   });
 }
 

@@ -87,6 +87,8 @@ function getProvider(options, server) {
     keyId,
     privateKey,
     password,
+    isSameSite,
+    cookie,
   } = options;
 
   // adds the "code" parameter to the query string for bell to work correctly
@@ -95,6 +97,8 @@ function getProvider(options, server) {
   return {
     password,
     clientId,
+    isSameSite,
+    cookie,
     clientSecret: () => getSecretKey(teamId, clientId, keyId, privateKey),
     forceHttps: true,
     providerParams: {

@@ -32,6 +32,7 @@ module.exports = function mixPlan(userId, params) {
             modelPrice: subscription.price,
             subscriptionPrice: '0',
             subscriptionInterval: 'month',
+            subscriptionType: 'free',
           },
         },
       };

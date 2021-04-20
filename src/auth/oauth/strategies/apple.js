@@ -12,7 +12,7 @@ function transformAccountToResponseFormat(account) {
 }
 
 function fixAppleCallbackForBell(request, h) {
-  if (request.method === 'post' && request.path === '/users/oauth/apple') {
+  if (request.method === 'post' && request.path.endsWith('/oauth/apple')) {
     const { raw: { req } } = request;
     let payload = '';
 
@@ -22,7 +22,7 @@ function fixAppleCallbackForBell(request, h) {
         payload += chunk;
       });
       req.on('end', () => {
-        request.setUrl(`/users/oauth/apple?${payload}`);
+        request.setUrl(`${request.path}?${payload}`);
         resolve(h.continue);
       });
     });

@@ -508,7 +508,7 @@
               "isSameSite": {
                 "oneOf": [{
                   "type": "string",
-                  "enum": ["Lax", "Strict"]
+                  "enum": ["Lax", "Strict", "None"]
                 }, {
                   "type": "boolean",
                   "const": false

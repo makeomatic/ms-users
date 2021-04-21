@@ -89,7 +89,7 @@ module.exports = [{
       }
     }
 
-    if (!request.route.endsWith('oauth.facebook')) {
+    if (!request.route.endsWith('oauth.facebook') && !request.route.endsWith('oauth.apple')) {
       const response = request.transportRequest
         .generateResponse(message)
         .code(statusCode);

@@ -50,6 +50,7 @@ module.exports = exports = {
   USERS_REFERRAL_FIELD: 'referral',
   USERS_REFERRAL_META_FIELD: 'referralMeta',
   USERS_SSO_FACEBOOK_FIELD: 'facebook',
+  USERS_SSO_APPLE_FIELD: 'apple',
   ORGANIZATIONS_ID_FIELD: 'id',
   ORGANIZATIONS_CREATED_FIELD: 'created',
   ORGANIZATIONS_NAME_FIELD: 'name',
@@ -130,8 +131,10 @@ exports.ErrorSecretRequired.code = 'E_TOTP_NOSECRET';
 
 exports.SSO_PROVIDERS = [
   exports.USERS_SSO_FACEBOOK_FIELD,
+  exports.USERS_SSO_APPLE_FIELD,
 ];
 
 exports.FIELDS_TO_STRINGIFY = [
   exports.USERS_SSO_FACEBOOK_FIELD,
+  exports.USERS_SSO_APPLE_FIELD,
 ];

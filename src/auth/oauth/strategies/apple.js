@@ -69,6 +69,7 @@ async function getProfile(credentials, params) {
     is_private_email: isPrivateEmail,
   } = response;
 
+  credentials.email = email;
   credentials.profile = { id: sub, email };
   credentials.internals = {
     email,

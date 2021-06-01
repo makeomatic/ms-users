@@ -13,6 +13,10 @@
     "referral": {
       "type": "string",
       "minLength": 1
+    },
+    "metadata": {
+      "type": "object",
+      "minProperties": 1
     }
   }
 }

@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const render = require('ms-mailer-templates');
 const generatePassword = require('password-generator');
 const { stringify } = require('qs');
 const partial = require('lodash/partial');
@@ -16,6 +15,7 @@ const {
   USERS_ACTION_INVITE,
   USERS_ACTION_ORGANIZATION_INVITE,
   USERS_ACTION_ORGANIZATION_REGISTER,
+  USERS_ACTION_ORGANIZATION_ADD,
 } = require('../../../constants.js');
 
 // will be replaced later
@@ -32,30 +32,51 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   const actions = {};
   const templateName = validation.templates[type] || type;
 
+  context.lng = context.i18nLocale;
+
   switch (type) {
     case USERS_ACTION_ACTIVATE:
     case USERS_ACTION_RESET:
     case USERS_ACTION_INVITE:
       // generate secret
-      context.qs = `?q=${context.token.secret}`;
+      context.qs = `?${stringify({
+        q: context.token.secret,
+        lng: context.lng,
+      })}`;
       context.link = generateLink(server, paths[type]);
       break;
+    case USERS_ACTION_ORGANIZATION_ADD:
+      context.qs = `?${stringify({
+        login: ctx.email,
+        firstName: ctx.firstName,
+        lastName: ctx.lastName,
+        organizationId: ctx.organizationId,
+        lng: context.lng,
+      })}`;
+      context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_ADD]);
+      break;
+    case USERS_ACTION_ORGANIZATION_REGISTER:
+      context.qs = `?${stringify({
+        password: ctx.password,
+        login: ctx.email,
+        firstName: ctx.firstName,
+        lastName: ctx.lastName,
+        organizationId: ctx.organizationId,
+        lng: context.lng,
+      })}`;
+      context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_REGISTER]);
+      break;
     case USERS_ACTION_ORGANIZATION_INVITE:
-      // generate secret
       context.qs = `?${stringify({
         q: context.token.secret,
         organizationId: ctx.organizationId,
         username: ctx.email,
+        firstName: ctx.firstName,
+        lastName: ctx.lastName,
+        skipPassword: ctx.skipPassword,
+        lng: context.lng,
       })}`;
-      context.link = generateLink(server, paths[type]);
-      break;
-    case USERS_ACTION_ORGANIZATION_REGISTER:
-      // generate secret
-      context.qs = `?${stringify({
-        password: ctx.password,
-        login: ctx.email,
-      })}`;
-      context.link = generateLink(server, paths[type]);
+      context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_INVITE]);
       break;
 
     case USERS_ACTION_PASSWORD:
@@ -73,6 +94,8 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
     actions.updatePassword = updatePassword.call(this, email, context.password);
   }
 
+  this.log.info('Generated mail %s', templateName);
+
   return Promise
     .props({
       ...actions,
@@ -80,7 +103,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
       email,
       context,
       nodemailer,
-      emailTemplate: render(templateName, context),
+      templateName,
     })
     .bind(this)
     .then((output) => (send ? [output, wait] : [output]))

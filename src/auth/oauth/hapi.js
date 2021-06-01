@@ -1,6 +1,7 @@
 const is = require('is');
 const assert = require('assert');
 const defaults = require('lodash/defaults');
+const { providers: Providers } = require('@hapi/bell');
 const strategies = require('./providers');
 
 // helpers
@@ -28,6 +29,8 @@ module.exports = function OauthHandler(server, config) {
 
   server.ext('onPreResponse', hapiOauthHandler);
 
+  server.app.oauthProviderSettings = Object.create(null);
+
   for (const [name, options] of Object.entries(config.oauth.providers)) {
     const strategy = strategies[name];
 
@@ -35,9 +38,7 @@ module.exports = function OauthHandler(server, config) {
       continue; // eslint-disable-line no-continue
     }
 
-    if (!strategy) {
-      throw new Error(`OAuth: unknown strategy ${name}`);
-    }
+    assert(strategy, new Error(`OAuth: unknown strategy ${name}`));
 
     let provider;
     const defaultOptions = strategy.options;
@@ -78,8 +79,24 @@ module.exports = function OauthHandler(server, config) {
       provider = name;
     }
 
+    // settings obj
+    const settings = { provider, ...rest };
+
     // init strategy
-    server.auth.strategy(name, 'bell', { provider, ...rest });
+    server.auth.strategy(name, 'bell', settings);
+
+    // https://github.com/hapijs/bell/blob/master/lib/index.js#L125-L135
+    // repeats the code from here to get another settings object and reuse it
+    // this doesn't set defaults, but we don't need them either
+    if (typeof settings.provider === 'object') {
+      settings.name = settings.provider.name || 'custom';
+    } else {
+      settings.name = settings.provider;
+      settings.provider = Providers[settings.provider].call(null, settings.config);
+    }
+
+    // to be reused later via service.oauth.app.oauthProviderSettings[provider]
+    server.app.oauthProviderSettings[name] = settings;
 
     if (isSameSite || isSameSite === false) {
       // NOTE: this overwrites the default from bell

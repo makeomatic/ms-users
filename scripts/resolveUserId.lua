@@ -10,8 +10,8 @@ local function makeUsersDataKey (userId, template, placeholder)
   return template:gsub(placeholder, userId, 1);
 end
 
-local function getUserData (userId, usersDataKey, fetchData)
-  if fetchData == "0" then
+local function getUserData (userId, usersDataKey, needFetchData)
+  if needFetchData == "0" then
     return { userId };
   end
 

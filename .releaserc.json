@@ -1,5 +1,8 @@
 {
-  "branch": "master",
+  "branches": [
+    { "name": "master" },
+    { "name": "staging", "prerelease": "rc" }
+  ],
   "verifyConditions": [
     "@semantic-release/changelog",
     "@semantic-release/git",
@@ -9,7 +12,7 @@
     { "path": "@semantic-release/exec", "cmd": "./scripts/docs.sh" },
     "@semantic-release/changelog",
     "@semantic-release/npm",
-    { "path": "@semantic-release/exec", "cmd": "yarn docker-release" },
+    { "path": "@semantic-release/exec", "cmd": "yarn docker-release --tl --include_node false" },
     "@semantic-release/git"
   ],
   "publish": [

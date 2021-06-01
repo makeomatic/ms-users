@@ -13,7 +13,8 @@
     "pwdReset",
     "hooks",
     "token",
-    "phone"
+    "phone",
+    "rateLimiters"
   ],
   "properties": {
     "deleteInactiveAccounts": {
@@ -144,10 +145,6 @@
         "secret",
         "ttl",
         "defaultAudience",
-        "keepLoginAttempts",
-        "keepGlobalLoginAttempts",
-        "lockAfterAttempts",
-        "globalLockAfterAttempts",
         "issuer"
       ],
       "properties": {
@@ -166,22 +163,6 @@
           "type": "string",
           "minLength": 1
         },
-        "keepLoginAttempts": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "lockAfterAttempts": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "globalLockAfterAttempts": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "keepGlobalLoginAttempts": {
-          "type": "integer",
-          "minimum": 0
-        },
         "issuer": {
           "type": "string",
           "minLength": 1
@@ -199,71 +180,16 @@
       ],
       "properties": {
         "paths": {
-          "type": "object",
-          "required": [
-            "activate",
-            "reset"
-          ],
-          "properties": {
-            "activate": {
-              "type": "string"
-            },
-            "reset": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/emailTypes"
         },
         "senders": {
-          "required": [
-            "activate",
-            "reset",
-            "password"
-          ],
-          "type": "object",
-          "properties": {
-            "activate": {
-              "type": "string"
-            },
-            "reset": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/emailTypes"
         },
         "subjects": {
-          "required": [
-            "activate",
-            "reset",
-            "password"
-          ],
-          "type": "object",
-          "properties": {
-            "activate": {
-              "type": "string"
-            },
-            "reset": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/emailTypes"
         },
         "templates": {
-          "type": "object",
-          "properties": {
-            "activate": {
-              "type": "string"
-            },
-            "reset": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/emailTypes"
         },
         "email": {
           "oneOf": [{
@@ -633,6 +559,223 @@
               }
             }
           }
+        }
+      }
+    },
+    "rateLimiters": {
+      "type": "object",
+      "required": [
+        "userLogin"
+      ],
+      "properties": {
+        "userLogin" : {
+          "$ref": "#/definitions/userLoginRateLimiter"
+        }
+      }
+    },
+    "bypass": {
+      "type": "object",
+      "properties": {
+        "pumpJack": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "authUrl": {
+              "type": "string"
+            },
+            "credentials": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "cfAccessList": {
+      "$ref": "#/definitions/cfAccessList"
+    }
+  },
+  "definitions": {
+    "slidingWindowRateLimiter": {
+      "type": "object",
+      "required": [
+        "windowInterval",
+        "windowLimit",
+        "blockInterval"
+      ],
+      "properties": {
+        "windowInterval": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "windowLimit": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "blockInterval": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "if" : {
+        "properties": {
+          "windowInterval": {
+            "const": 0
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "blockInterval": {
+            "const": 0
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "blockInterval": {
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "userLoginRateLimiter": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "limitIp",
+        "limitUserIp"
+      ],
+      "properties":{
+        "enabled": {
+          "type": "boolean"
+        },
+        "limitIp": {
+          "$ref": "#/definitions/slidingWindowRateLimiter"
+        },
+        "limitUserIp": {
+          "$ref": "#/definitions/slidingWindowRateLimiter"
+        }
+      }
+    },
+    "cfAccessList": {
+      "type": "object",
+      "description": "Cloudflare account and access list configuration",
+      "required": [ "enabled" ],
+      "if": {"properties": { "enabled": { "const": true } } },
+      "then": {
+        "required": [ "auth", "accessList", "worker" ],
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "auth": {
+            "description": "API access configuration [https://api.cloudflare.com/#getting-started-requests]",
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [ "token" ],
+                "properties": {
+                  "token": { "type": "string", "minLength": 10, "maxLength": 128 }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["serviceKey"],
+                "properties": {
+                  "serviceKey": { "type": "string", "minLength": 10, "maxLength": 128 }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [ "email", "key" ],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "key": { "type": "string", "minLength": 10, "maxLength": 128 }
+                }
+              }
+            ]
+          },
+          "api": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "retry": {
+                "type": "object",
+                "description": "Bulk operation wait configuration [https://www.npmjs.com/package/p-retry#options]"
+              }
+            }
+          },
+          "accessList": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [ "accountId", "ttl", "listCacheTTL" ],
+            "properties": {
+              "prefix": {
+                "type": "string",
+                "description": "Use only lists that start with a prefix"
+              },
+              "accountId": {
+                "type": "string",
+                "description": "Cloudflare account id with managed lists",
+                "minLength": 10,
+                "maxLength": 128
+              },
+              "ttl": {
+                "type": "number",
+                "description": "Milliseconds to hold the IP address in access list",
+                "minimum": 60000
+              },
+              "listCacheTTL": {
+                "type": "number",
+                "description": "Milliseconds to wait before dropping cached lists information",
+                "minimum": 15000
+              }
+            }
+          },
+          "worker": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [ "cleanupInterval", "concurrency", "enabled" ],
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "cleanupInterval": {
+                "type": "number",
+                "description": "Milliseconds to wait between lists cleanup",
+                "minimum": 2000
+              },
+              "concurrency": {
+                "type": "number",
+                "description": "The number of lists to process in parallel",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "emailTypes": {
+      "type": "object",
+      "properties": {
+        "activate": {
+          "type": "string"
+        },
+        "reset": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "organizationUserInvite": {
+          "type": "string"
+        },
+        "organizationUserRegister": {
+          "type": "string"
+        },
+        "organizationUserAdd": {
+          "type": "string"
         }
       }
     }

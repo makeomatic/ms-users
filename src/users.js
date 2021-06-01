@@ -3,23 +3,19 @@ const Mailer = require('ms-mailer-client');
 const merge = require('lodash/merge');
 const assert = require('assert');
 const fsort = require('redis-filtered-sort');
-const TokenManager = require('ms-token');
+const { TokenManager } = require('ms-token');
 const LockManager = require('dlock');
 const Flakeless = require('ms-flakeless');
+
 const conf = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
+const { CloudflareWorker } = require('./utils/cloudflare/worker');
 
 /**
  * @namespace Users
  */
-module.exports = class Users extends Microfleet {
-  /**
-   * Configuration options for the service
-   * @type {Object}
-   */
-  static defaultOpts = conf.get('/', { env: process.env.NODE_ENV });
-
+class Users extends Microfleet {
   /**
    * @namespace Users
    * @param  {Object} opts
@@ -27,6 +23,18 @@ module.exports = class Users extends Microfleet {
    */
   constructor(opts = {}) {
     super(merge({}, Users.defaultOpts, opts));
+
+    /**
+     * Initializes Admin accounts
+     * @returns {Promise}
+     */
+    this.initAdminAccounts = require('./accounts/init-admin');
+
+    /**
+     * Initializes fake account for dev purposes
+     * @returns {Promise}
+     */
+    this.initFakeAccounts = require('./accounts/init-dev');
 
     // cached ref
     const { config } = this;
@@ -69,7 +77,9 @@ module.exports = class Users extends Microfleet {
 
       // init token manager
       const tokenManagerOpts = { backend: { connection: redis } };
-      this.tokenManager = new TokenManager(merge({}, config.tokenManager, tokenManagerOpts));
+      const tmOpts = merge({}, config.tokenManager, tokenManagerOpts);
+
+      this.tokenManager = new TokenManager(tmOpts);
     });
 
     this.on('plugin:start:http', (server) => {
@@ -124,6 +134,32 @@ module.exports = class Users extends Microfleet {
       attachPasswordKeyword(this);
     });
 
+    this.bypass = {};
+
+    if (this.config.bypass.pumpJack.enabled) {
+      this.addConnector(ConnectorsTypes.essential, () => {
+        const PumpJackService = require('./utils/bypass/pump-jack');
+        this.bypass.pumpJack = new PumpJackService(this);
+      }, 'bypass.pumpJack');
+    }
+
+    if (this.config.cfAccessList.enabled) {
+      if (!this.hasPlugin('consul')) {
+        const consul = require('@microfleet/plugin-consul');
+        this.initPlugin(consul, this.config.consul);
+      }
+
+      this.addConnector(ConnectorsTypes.application, () => {
+        this.cfWorker = new CloudflareWorker(this, this.config.cfAccessList);
+        this.cfAccessList = this.cfWorker.cfList;
+        this.cfWorker.start();
+      });
+
+      this.addDestructor(ConnectorsTypes.application, () => {
+        this.cfWorker.stop();
+      });
+    }
+
     // init account seed
     this.addConnector(ConnectorsTypes.application, () => (
       this.initAdminAccounts()
@@ -136,16 +172,12 @@ module.exports = class Users extends Microfleet {
       ), 'dev accounts');
     }
   }
+}
 
-  /**
-   * Initializes Admin accounts
-   * @returns {Promise}
-   */
-  initAdminAccounts = require('./accounts/init-admin');
+/**
+ * Configuration options for the service
+ * @type {Object}
+ */
+Users.defaultOpts = conf.get('/', { env: process.env.NODE_ENV });
 
-  /**
-   * Initializes fake account for dev purposes
-   * @returns {Promise}
-   */
-  initFakeAccounts = require('./accounts/init-dev');
-};
+module.exports = Users;

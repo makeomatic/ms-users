@@ -4,12 +4,35 @@
     "organizationId",
     "member"
   ],
+  "additionalProperties": false,
   "properties": {
     "organizationId": {
       "type": "string"
     },
+    "senderId": {
+      "type": "string",
+      "minLength": 1
+    },
     "member": {
-      "$ref": "common.json#/definitions/organizationMember"
+      "required": [
+        "permissions",
+        "email"
+      ],
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array"
+        }
+      }
     }
   }
 }

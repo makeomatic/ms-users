@@ -10,6 +10,7 @@ async function createMembers(totalUsers = 1, register = false) {
       email: faker.internet.email(),
       firstName: faker.name.firstName(),
       lastName: faker.name.lastName(),
+      permissions: ['root'],
     });
   });
 

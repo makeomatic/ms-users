@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "remoteip": {
+      "type": "string",
+      "format": "ipv4"
+    },
+    "comment": {
+      "type": "string",
+      "maxLength": 256
+    }
+  }
+}

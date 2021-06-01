@@ -8,10 +8,6 @@ exports.jwt = {
   issuer: 'ms-users',
   secret: 'i-hope-that-you-change-this-long-default-secret-in-your-app',
   ttl: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
-  lockAfterAttempts: 5,
-  globalLockAfterAttempts: 15,
-  keepLoginAttempts: 2 * 60 * 60, // 2 hours
-  keepGlobalLoginAttempts: 60 * 60 * 24 * 7, // 7 days
   cookies: {
     enabled: false,
     name: 'jwt',

@@ -1,6 +1,5 @@
-const Promise = require('bluebird');
-const Errors = require('common-errors');
-const partialRight = require('lodash/partialRight');
+const { HttpStatusError } = require('common-errors');
+
 const scrypt = require('../utils/scrypt');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
@@ -15,44 +14,40 @@ const {
   USERS_PASSWORD_FIELD,
   USERS_ID_FIELD,
 } = require('../constants');
+const UserLoginRateLimiter = require('../utils/rate-limiters/user-login-rate-limiter');
 
 // cache error
-const Forbidden = new Errors.HttpStatusError(403, 'invalid token');
+const Forbidden = new HttpStatusError(403, 'invalid token');
 
 /**
  * Verify that username and password match
+ * @param {Object} service
  * @param {String} username
  * @param {String} password
  */
-function usernamePasswordReset(username, password) {
-  return Promise
-    .bind(this, username)
-    .then(getInternalData)
-    .tap(isActive)
-    .tap(isBanned)
-    .tap(hasPassword)
-    .tap((data) => scrypt.verify(data.password, password))
-    .then((data) => data[USERS_ID_FIELD]);
+async function usernamePasswordReset(service, username, password) {
+  const internalData = await getInternalData.call(service, username);
+
+  await isActive(internalData);
+  await isBanned(internalData);
+  await hasPassword(internalData);
+
+  await scrypt.verify(internalData.password, password);
+
+  return internalData[USERS_ID_FIELD];
 }
 
 /**
  * Sets new password for a given username
- * @param {String} username
+ * @param {Object} service
+ * @param {String} userId
  * @param {String} password
  */
-function setPassword(_username, password) {
-  const { redis } = this;
+async function setPassword(service, userId, password) {
+  const { redis } = service;
+  const hash = await scrypt.hash(password);
 
-  return Promise
-    .bind(this, _username)
-    .then(getUserId)
-    .then((userId) => Promise.props({
-      userId,
-      hash: scrypt.hash(password),
-    }))
-    .then(({ userId, hash }) => redis
-      .hset(redisKey(userId, USERS_DATA), USERS_PASSWORD_FIELD, hash)
-      .return(userId));
+  return redis.hset(redisKey(userId, USERS_DATA), USERS_PASSWORD_FIELD, hash);
 }
 
 /**
@@ -71,48 +66,45 @@ function setPassword(_username, password) {
  * @apiParam (Payload) {Boolean} [invalidateTokens=false] - if set to `true` will invalidate issued tokens
  * @apiParam (Payload) {String} [remoteip] - will be used for rate limiting if supplied
  */
-function updatePassword(request) {
-  const { redis } = this;
-  const { newPassword: password, remoteip } = request.params;
+async function updatePassword(request) {
+  const { config, redis, tokenManager } = this;
+  const { newPassword: password, remoteip = false } = request.params;
   const invalidateTokens = !!request.params.invalidateTokens;
+  const loginRateLimiter = new UserLoginRateLimiter(redis, config.rateLimiters.userLogin);
+
+  let userId;
 
   // 2 cases - token reset and current password reset
-  let promise;
   if (request.params.resetToken) {
-    // Refactor Me If You Can
-    promise = Promise
-      .resolve(this.tokenManager.verify(request.params.resetToken, {
+    try {
+      const tokenData = await tokenManager.verify(request.params.resetToken, {
         erase: true,
         control: { action: USERS_ACTION_RESET },
-      }))
-      .catchThrow(Forbidden)
-      .get('id')
-      .bind(this);
+      });
+
+      // get real user id
+      userId = await getUserId.call(this, tokenData.id);
+    } catch (e) {
+      throw Forbidden;
+    }
   } else {
-    promise = Promise
-      .bind(this, [request.params.username, request.params.currentPassword])
-      .spread(usernamePasswordReset);
+    userId = await usernamePasswordReset(this, request.params.username, request.params.currentPassword);
   }
 
   // update password
-  promise = promise.then(partialRight(setPassword, password));
+  await setPassword(this, userId, password);
 
   if (invalidateTokens) {
-    promise = promise.tap(jwt.reset);
+    await jwt.reset(userId);
   }
 
-  if (remoteip) {
-    promise = promise.tap(function resetLock(username) {
-      return redis.del(redisKey(username, 'ip', remoteip));
-    });
+  if (remoteip !== false && loginRateLimiter.isEnabled()) {
+    await loginRateLimiter.cleanupForUserIp(userId, remoteip);
   }
 
-  return promise.return({ success: true });
+  return { success: true };
 }
 
-/**
- * Public API
- */
 module.exports = updatePassword;
 module.exports.updatePassword = setPassword;
 module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

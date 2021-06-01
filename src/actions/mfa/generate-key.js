@@ -1,9 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
-const authenticator = require('otplib/authenticator');
-const crypto = require('crypto');
+const { authenticator } = require('otplib');
 const { USERS_ALIAS_FIELD, USERS_USERNAME_FIELD } = require('../../constants');
-
-authenticator.options = { crypto };
 
 /**
  * @api {amqp} <prefix>.generate-key Generates secret key

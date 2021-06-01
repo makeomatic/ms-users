@@ -1,6 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const setOrganizationMetadata = require('../../utils/set-organization-metadata');
 const { checkOrganizationExists, getOrganizationMetadata } = require('../../utils/organization');
+const { ORGANIZATIONS_INDEX } = require('../../constants');
 
 /**
  * @api {amqp} <prefix>.updateMetadata Update metadata organization
@@ -20,7 +21,7 @@ const { checkOrganizationExists, getOrganizationMetadata } = require('../../util
  * @apiSuccess (Response) {Object} data.attributes - organization metadata
  */
 async function updateOrganizationMetadata({ params }) {
-  const { config } = this;
+  const { config, redis } = this;
   const { metadata, organizationId, audience } = params;
   const { audience: defaultAudience } = config.organizations;
 
@@ -32,7 +33,12 @@ async function updateOrganizationMetadata({ params }) {
     });
   }
 
+  // clear cache
+  const now = Date.now();
+  await redis.fsortBust(ORGANIZATIONS_INDEX, now);
+
   const data = await getOrganizationMetadata.call(this, organizationId, audience);
+
   return {
     data: {
       id: organizationId,

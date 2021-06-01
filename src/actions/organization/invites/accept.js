@@ -1,32 +1,28 @@
 const { ActionTransport } = require('@microfleet/core');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const {
-  ErrorUserNotMember,
-  ORGANIZATIONS_MEMBERS,
   USERS_ACTION_ORGANIZATION_INVITE,
   ErrorInvitationExpiredOrUsed,
+  TOKEN_METADATA_FIELD_METADATA,
+  inviteId,
+  organizationInvite,
 } = require('../../../constants');
-const redisKey = require('../../../utils/key');
-const getUserId = require('../../../utils/userData/get-user-id');
+const addOrganizationMembers = require('../../../utils/organization/add-organization-members');
 
 /**
  * Token verification function, on top of it returns extra metadata
  * @return {Promise}
  */
-async function verifyToken(tokenManager, params) {
-  // we must ensure that token matches supplied ID
-  // it can be overwritten by sending `anyUsername: true`
-  const control = {
-    action: USERS_ACTION_ORGANIZATION_INVITE,
-    id: params.username,
-  };
+async function verifyToken(tokenManager, token, username, organizationId) {
+  const control = { action: USERS_ACTION_ORGANIZATION_INVITE, id: inviteId(organizationId, username) };
 
-  const token = await tokenManager
-    .verify(params.inviteToken, { erase: false, control });
+  const tokenData = await tokenManager.verify(token, { erase: false, control });
 
-  if (!token.isFirstVerification) {
+  if (!tokenData.isFirstVerification) {
     throw ErrorInvitationExpiredOrUsed;
   }
+
+  return tokenData.metadata[TOKEN_METADATA_FIELD_METADATA];
 }
 
 /**
@@ -41,25 +37,24 @@ async function verifyToken(tokenManager, params) {
  * @apiParam (Payload) {String} username - member email.
  */
 async function acceptOrganizationMember({ params }) {
-  const { redis } = this;
-  const { username, organizationId } = params;
+  const { config } = this;
+  const { member, inviteToken, password, organizationId } = params;
+  const { audience } = config.organizations;
 
-  const userId = await getUserId.call(this, username);
-  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
-  const userInOrganization = await redis.hget(memberKey, 'username');
-  if (!userInOrganization) {
-    throw ErrorUserNotMember;
-  }
+  const memberInviteMetadata = await verifyToken(this.tokenManager, inviteToken, member.email, organizationId);
+  member.permissions = memberInviteMetadata.permissions;
+  member.password = password;
 
-  await verifyToken(this.tokenManager, params);
+  const response = await addOrganizationMembers.call(this, {
+    organizationId,
+    audience,
+    members: [member],
+  });
 
-  const userAlreadyAccepted = await redis.hget(memberKey, 'accepted');
+  await this.tokenManager.remove({ id: inviteId(organizationId, member.email), action: USERS_ACTION_ORGANIZATION_INVITE });
+  await this.redis.srem(organizationInvite(organizationId), member.email);
 
-  if (userAlreadyAccepted) {
-    return true;
-  }
-
-  return redis.hset(memberKey, 'accepted', Date.now());
+  return response;
 }
 
 acceptOrganizationMember.allowed = checkOrganizationExists;

@@ -1,11 +1,11 @@
 const { ActionTransport } = require('@microfleet/core');
 const sendInviteMail = require('../../../utils/organization/send-invite-email');
-const getInternalData = require('../../../utils/organization/get-internal-data');
-const redisKey = require('../../../utils/key');
-const { checkOrganizationExists } = require('../../../utils/organization');
 const {
-  ORGANIZATIONS_MEMBERS,
-  ErrorUserNotMember,
+  getInternalData,
+  checkOrganizationExists,
+  getOrganizationMemberDisplayName,
+} = require('../../../utils/organization');
+const {
   ORGANIZATIONS_NAME_FIELD,
   ORGANIZATIONS_ID_FIELD,
   USERS_ACTION_ORGANIZATION_INVITE,
@@ -27,31 +27,35 @@ const getUserId = require('../../../utils/userData/get-user-id');
  * @apiParam (Payload) {String} member.firstName - member first name.
  * @apiParam (Payload) {String} member.lastName - member last name.
  * @apiParam (Payload) {String[]} member.permissions - member permission list.
+ * @apiParam (Payload) {String} senderId - invitation sender id.
  */
 async function sendOrganizationInvite({ params }) {
-  const service = this;
-  const { member, organizationId } = params;
-
-  const userId = await getUserId.call(this, member.email);
-  const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
-  const userInOrganization = await service.redis.hget(memberKey, 'username');
-  if (!userInOrganization) {
-    throw ErrorUserNotMember;
-  }
+  const { member, organizationId, senderId } = params;
   const organization = await getInternalData.call(this, organizationId);
+  let userExist = false;
+
+  try {
+    await getUserId.call(this, member.email);
+    userExist = true;
+  } catch (e) {
+    this.log.info('invited user not exist');
+  }
+
+  const displayName = await getOrganizationMemberDisplayName.call(this, organizationId, senderId);
 
   return sendInviteMail.call(this, {
     email: member.email,
-    action: USERS_ACTION_ORGANIZATION_INVITE,
     ctx: {
+      skipPassword: userExist,
       firstName: member.firstName,
       lastName: member.lastName,
-      password: member.password,
+      permissions: member.permissions,
       email: member.email,
       organizationId: organization[ORGANIZATIONS_ID_FIELD],
       organization: organization[ORGANIZATIONS_NAME_FIELD],
+      senderName: displayName,
     },
-  });
+  }, USERS_ACTION_ORGANIZATION_INVITE);
 }
 
 sendOrganizationInvite.allowed = checkOrganizationExists;

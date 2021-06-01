@@ -1,52 +1,13 @@
-version: '2'
+version: '3'
 
 volumes:
   certs:
   vhost:
   html:
 
-networks:
-  static:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: 172.16.238.0/24
-
 services:
-  redis:
-    image: redis:5-alpine
-    hostname: redis
-    expose:
-      - "6379"
-    networks:
-      static:
-        ipv4_address: 172.16.238.10
-
-  redis-sentinel:
-    depends_on:
-      - redis
-    volumes:
-      - ./helpers/redis-sentinel:/etc/redis-sentinel
-    image: redis:5-alpine
-    hostname: redis-sentinel
-    expose:
-      - "26379"
-    command: redis-server /etc/redis-sentinel/redis-sentinel.conf --sentinel
-    networks:
-      static:
-        ipv4_address: 172.16.238.15
-
-  rabbitmq:
-    image: rabbitmq:3.7-alpine
-    hostname: rabbitmq
-    networks:
-      static:
-        ipv4_address: 172.16.238.11
-
   nginx-proxy:
-    hostname: ms-users.local
-    image: jwilder/nginx-proxy
+    image: jwilder/nginx-proxy:alpine
     expose:
       - "80"
       - "443"
@@ -57,35 +18,40 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     labels:
       - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
+    environment:
+      DHPARAM_GENERATION: "false"
     networks:
-      static:
-        ipv4_address: 172.16.238.12
+      default:
+        aliases:
+        - ms-users.local
 
   proxy-companion:
     image: jrcs/letsencrypt-nginx-proxy-companion
-    volumes_from:
+    depends_on:
       - nginx-proxy
+    environment:
+      NGINX_PROXY_CONTAINER: nginx-proxy
     volumes:
       - certs:/etc/nginx/certs:rw
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      static:
-        ipv4_address: 172.16.238.13
+
+  consul:
+    image: consul:1.6
+    hostname: consul
 
   tester:
-    shm_size: 512m
+    shm_size: 128m
     expose:
       - "3000"
-    image: makeomatic/node:12.13.0-chrome-tester
     links:
-      - redis
+      - redis-sentinel
       - rabbitmq
     working_dir: /src
     volumes:
       - ${PWD}:/src:cached
-      - ./configs:/configs:cached
-    extra_hosts:
-      - "ms-users.local:172.16.238.12"
+      - ${PWD}/test/configs:/configs:cached
     environment:
       NODE_ENV: "test"
       NCONF_FILE_PATH: '["/configs/amqp.js", "/configs/core.js","/configs/redis.sentinel.js"]'
@@ -94,11 +60,12 @@ services:
       FACEBOOK_APP_TOKEN: ${FACEBOOK_APP_TOKEN}
       FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
       FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
+      PUMP_JACK_PROFILE_TOKEN: ${PUMP_JACK_PROFILE_TOKEN}
+      PUMP_JACK_API_KEY: ${PUMP_JACK_API_KEY}
+      CF_TOKEN: ${CF_TOKEN}
+      CF_ACCOUNT_ID: ${CF_ACCOUNT_ID}
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
       VIRTUAL_HOST: ms-users.local
       VIRTUAL_PORT: 3000
       CERT_NAME: default
     command: tail -f /dev/null
-    networks:
-      static:
-        ipv4_address: 172.16.238.14

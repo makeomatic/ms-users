@@ -1,11 +1,11 @@
 const partial = require('lodash/partial');
 const moment = require('moment');
-const { HttpStatusError } = require('common-errors');
 const generateEmail = require('./email/generate.js');
 const {
   CHALLENGE_TYPE_EMAIL,
   CHALLENGE_TYPE_PHONE,
 } = require('../../constants.js');
+const DetailedHttpStatusError = require('../detailed-error');
 const sendSms = require('./phone/send');
 
 // contains challenges
@@ -34,9 +34,12 @@ async function generateChallenge(type, opts, ctx = {}, wait = false) {
     ctx.token = token;
   } catch (error) {
     if (error.message === '429') {
-      const duration = moment().add(opts.ttl, 'seconds').toNow(true);
+      const { mailto: email } = this.config.validation;
+      const duration = moment().add(opts.throttle, 'seconds').toNow(true);
       const msg = `We've already sent you an email, if it doesn't come - please try again in ${duration} or send us an email`;
-      throw new HttpStatusError(429, msg);
+      const reason = { ...error.reason, duration: opts.throttle, email };
+
+      throw DetailedHttpStatusError(429, msg, reason);
     }
 
     throw error;

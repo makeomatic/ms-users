@@ -1,8 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const assert = require('assert');
-const uuid = require('uuid/v4');
-const authenticator = require('otplib/authenticator');
-const crypto = require('crypto');
+const uuidv4 = require('uuid').v4;
+const { authenticator } = require('otplib');
 const { HttpStatusError } = require('common-errors');
 const { getInternalData } = require('./userData');
 const redisKey = require('./key');
@@ -18,15 +17,13 @@ const {
   MFA_TYPE_DISABLED,
 } = require('../constants');
 
-authenticator.options = { crypto };
-
 /**
  * Generates recovery codes
  * @param  {number}  length
  * @returns {Array}
  */
 function generateRecoveryCodes(length = 10) {
-  return Array.from({ length }, () => uuid());
+  return Array.from({ length }, () => uuidv4());
 }
 
 /**

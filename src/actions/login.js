@@ -1,17 +1,19 @@
 const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
-const Errors = require('common-errors');
+const { HttpStatusError } = require('common-errors');
 const moment = require('moment');
-const noop = require('lodash/noop');
 const is = require('is');
 const scrypt = require('../utils/scrypt');
-const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
-const handlePipeline = require('../utils/pipeline-error');
+
 const { checkMFA } = require('../utils/mfa');
 const { verifySignedToken } = require('../auth/oauth/utils/get-signed-token');
+
+const UserLoginRateLimiter = require('../utils/rate-limiters/user-login-rate-limiter');
+const { STATUS_FOREVER } = require('../utils/sliding-window-limiter/redis');
+
 const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_DISPOSABLE_PASSWORD_MIA,
@@ -28,88 +30,71 @@ const {
  */
 const is404 = (e) => parseInt(e.message, 10) === 404;
 
-const globalLoginAttempts = async (ctx) => {
-  const { config } = ctx;
-  const pipeline = ctx.redis.pipeline();
-  const globalRemoteIpKey = ctx.globalRemoteIpKey = redisKey('gl!ip!ctr', ctx.remoteip);
-
-  pipeline.incrby(globalRemoteIpKey, 1);
-
-  if (config.keepGlobalLoginAttempts > 0) {
-    pipeline.expire(globalRemoteIpKey, config.keepGlobalLoginAttempts);
+const handleRateLimitError = (error) => {
+  let message;
+  if (error instanceof UserLoginRateLimiter.RateLimitError) {
+    if (error.reset === STATUS_FOREVER) {
+      message = `You are locked from making login attempts forever from ipaddress '${error.ip}'`;
+    } else {
+      const duration = moment().add(error.reset, 'milliseconds').toNow(true);
+      message = `You are locked from making login attempts for ${duration} from ipaddress '${error.ip}'`;
+    }
+    throw new HttpStatusError(429, message);
   }
 
-  const [globalAttempts] = await pipeline.exec().then(handlePipeline);
-
-  ctx.globalLoginAttempts = globalAttempts;
-
-  // globally scoped go next
-  if (globalAttempts > ctx.globalLockAfterAttempts) {
-    const duration = moment().add(config.keepGlobalLoginAttempts, 'seconds').toNow(true);
-    const msg = `You are locked from making login attempts for the next ${duration} from ipaddress '${ctx.remoteip}'`;
-    throw new Errors.HttpStatusError(429, msg);
-  }
+  throw error;
 };
 
-const localLoginAttempts = async (ctx, data) => {
-  const { config } = ctx;
-  const pipeline = ctx.redis.pipeline();
-  const userId = data[USERS_ID_FIELD];
-  const remoteipKey = ctx.remoteipKey = redisKey(userId, 'ip', ctx.remoteip);
-
-  pipeline.incrby(remoteipKey, 1);
-
-  if (config.keepLoginAttempts > 0) {
-    pipeline.expire(remoteipKey, config.keepLoginAttempts);
+/**
+ * Increments login attempts counter or throws if limit is reached
+ */
+const checkLoginAttempts = async (ctx, data) => {
+  if (!ctx.rateLimiterEnabled) {
+    return;
   }
 
-  const [scopeAttempts] = await pipeline.exec().then(handlePipeline);
+  const userId = data[USERS_ID_FIELD];
 
-  ctx.loginAttempts = scopeAttempts;
-
-  // locally scoped login attempts are prioritized
-  if (scopeAttempts > ctx.lockAfterAttempts) {
-    const duration = moment().add(config.keepLoginAttempts, 'seconds').toNow(true);
-    const msg = `You are locked from making login attempts for the next ${duration} from ipaddress '${ctx.remoteip}'`;
-    throw new Errors.HttpStatusError(429, msg);
+  try {
+    await ctx.loginRateLimiter.reserveForUserIp(userId, ctx.remoteip);
+  } catch (e) {
+    handleRateLimitError(e);
   }
 };
 
 /**
- * Checks if login attempts from remote ip have exceeded allowed
- * limits
+ * Drops login limiter tokens
  */
-async function checkLoginAttempts(dataOrError) {
-  const promises = [globalLoginAttempts(this)];
-
-  if ((dataOrError instanceof Error) === false) {
-    promises.push(localLoginAttempts(this, dataOrError));
+const cleanupRateLimits = async (ctx, internalData) => {
+  if (!ctx.rateLimiterEnabled) {
+    return;
   }
 
-  await Promise.all(promises);
-}
+  await ctx.loginRateLimiter
+    .cleanupForUserIp(internalData[USERS_ID_FIELD], ctx.remoteip);
+};
 
 /**
  * Verifies passed hash
  */
-function verifyHash({ password }, comparableInput) {
+const verifyHash = ({ password }, comparableInput) => {
   return scrypt.verify(password, comparableInput);
-}
+};
 
-async function verifyOAuthToken({ id }, token) {
-  const providerData = await verifySignedToken.call(this, token);
+const verifyOAuthToken = async (ctx, { id }, token) => {
+  const providerData = await verifySignedToken.call(ctx.service, token);
 
   if (providerData.profile.userId !== id) {
     throw USERS_INVALID_TOKEN;
   }
 
   return true;
-}
+};
 
 /**
  * Checks onу-time password
  */
-async function verifyDisposablePassword(ctx, data) {
+const verifyDisposablePassword = async (ctx, data) => {
   try {
     return await ctx.tokenManager.verify({
       action: USERS_ACTION_DISPOSABLE_PASSWORD,
@@ -123,71 +108,44 @@ async function verifyDisposablePassword(ctx, data) {
 
     throw e;
   }
-}
+};
 
 /**
  * Determines which strategy to use
  */
-function getVerifyStrategy(data) {
-  if (this.isSSO === true) {
+const performAuthentication = async (ctx, data) => {
+  if (ctx.isSSO === true) {
     return null;
   }
 
-  if (is.string(this.password) !== true || this.password.length < 1) {
-    throw new Errors.HttpStatusError(400, 'should supply password');
+  if (is.string(ctx.password) !== true || ctx.password.length < 1) {
+    throw new HttpStatusError(400, 'should supply password');
   }
 
-  if (this.isDisposablePassword === true) {
-    return verifyDisposablePassword(this, data);
+  if (ctx.isDisposablePassword === true) {
+    return verifyDisposablePassword(ctx, data);
   }
 
-  if (this.isOAuthFollowUp === true) {
-    return verifyOAuthToken.call(this.service, data, this.password);
+  if (ctx.isOAuthFollowUp === true) {
+    return verifyOAuthToken(ctx, data, ctx.password);
   }
 
-  return verifyHash(data, this.password);
-}
-
-/**
- * Drops login attempts counter
- */
-function dropLoginCounter() {
-  this.loginAttempts = 0;
-  this.globalLoginAttempts = 0;
-
-  return this.redis
-    .dropLoginCounter(2, this.remoteipKey, this.globalRemoteIpKey);
-}
+  return verifyHash(data, ctx.password);
+};
 
 /**
  * Returns user info
  */
-async function getUserInfo(internalData) {
+const getUserInfo = async (ctx, internalData) => {
   const datum = await Promise
-    .bind(this.service, [internalData.id, this.audience])
+    .bind(ctx.service, [internalData.id, ctx.audience])
     .spread(jwt.login);
 
   // NOTE: transformed to boolean
   datum.mfa = !!internalData[USERS_MFA_FLAG];
 
   return datum;
-}
-
-/**
- * Enriches error with amount of login attempts
- */
-function enrichError(err) {
-  if (this.remoteip) {
-    err.loginAttempts = this.loginAttempts;
-    err.globalLoginAttempts = this.globalLoginAttempts;
-  }
-
-  throw err;
-}
-
-function verifyInternalData(data) {
-  if (!data) throw ErrorUserNotFound;
-}
+};
 
 /**
  * @api {amqp} <prefix>.login User Authentication
@@ -205,58 +163,65 @@ function verifyInternalData(data) {
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
  */
-function login({ params, locals }) {
-  const config = this.config.jwt;
-  const { redis, tokenManager } = this;
-  const { isOAuthFollowUp, isDisposablePassword, isSSO, password } = params;
-  const { lockAfterAttempts, globalLockAfterAttempts, defaultAudience } = config;
-  const audience = params.audience || defaultAudience;
-  const remoteip = params.remoteip || false;
-  const verifyIp = remoteip && lockAfterAttempts > 0;
+async function login({ params, locals }) {
+  const { redis, tokenManager, config } = this;
+  const { jwt: { defaultAudience }, rateLimiters: rateLimitersConfig } = config;
+  const { isOAuthFollowUp, isDisposablePassword, isSSO, password, audience = defaultAudience, remoteip = false } = params;
+  const loginRateLimiter = new UserLoginRateLimiter(redis, rateLimitersConfig.userLogin);
+  const rateLimiterEnabled = remoteip !== false && loginRateLimiter.isEnabled();
 
-  // build context
   const ctx = {
-    // service data
     service: this,
     tokenManager,
     redis,
     config,
-
-    // counters
-    loginAttempts: 0,
-    globalLoginAttempts: 0,
-
-    // business logic params
+    loginRateLimiter,
     params,
     isOAuthFollowUp,
     isDisposablePassword,
     isSSO,
     password,
-    lockAfterAttempts,
-    globalLockAfterAttempts,
     audience,
     remoteip,
-    verifyIp,
+    rateLimiterEnabled,
   };
 
-  return Promise
-    .bind(ctx, locals.internalData)
-    // verify that locals.internalData exists
-    .tap(verifyInternalData)
-    // record global login attempt even on 404
-    .tapCatch(verifyIp ? checkLoginAttempts : noop)
-    .tap(verifyIp ? checkLoginAttempts : noop)
-    // different auth strategies
-    .tap(getVerifyStrategy)
-    // pass-through or drop counter
-    .tap(verifyIp ? dropLoginCounter : noop)
-    // do verifications on the logged in account
-    .tap(isActive)
-    .tap(isBanned)
-    // fetch final user information
-    .then(getUserInfo)
-    // enriches and rethrows
-    .catch(enrichError);
+  if (rateLimiterEnabled) {
+    try {
+      await loginRateLimiter.reserveForIp(remoteip);
+    } catch (e) {
+      handleRateLimitError(e);
+    }
+  }
+
+  const { internalData } = locals;
+
+  // verify that locals.internalData exists
+  if (!internalData) {
+    throw ErrorUserNotFound;
+  }
+
+  // check login attempts from passed ipaddress or noop
+  await checkLoginAttempts(ctx, internalData);
+
+  // selects auth strategy and verifies passed data
+  await performAuthentication(ctx, internalData);
+
+  // cleans up counters in case of success
+  await cleanupRateLimits(ctx, internalData);
+
+  // verifies that the user is active, rejects by default
+  await isActive(internalData);
+
+  // verifies that user is not banned, sync action - throws
+  isBanned(internalData);
+
+  // retrieves complete information and returns it
+  const userInfo = await getUserInfo(ctx, internalData);
+
+  await this.hook('users:login', userInfo, ctx);
+
+  return userInfo;
 }
 
 login.mfa = MFA_TYPE_OPTIONAL;

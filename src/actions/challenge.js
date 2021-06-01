@@ -1,5 +1,3 @@
-const Promise = require('bluebird');
-const passThrough = require('lodash/identity');
 const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
@@ -9,59 +7,8 @@ const {
   USERS_ACTION_ACTIVATE,
   USER_ALREADY_ACTIVE,
   USERS_USERNAME_FIELD,
+  USERS_ID_FIELD,
 } = require('../constants');
-
-/**
- * Predicate for inactive status
- */
-const inactiveStatus = { statusCode: 412 };
-
-/**
- * Assigns data to passed context
- */
-function assignInternalData(data) {
-  this.internalData = data;
-}
-
-/**
- * fetches internal data
- */
-function fetchInternalData() {
-  return getInternalData
-    .call(this.service, this[USERS_USERNAME_FIELD])
-    .bind(this)
-    .tap(assignInternalData);
-}
-
-/**
- * Returns username from internal data
- */
-function fetchMetadata() {
-  // remap to the actual username
-  const username = this[USERS_USERNAME_FIELD] = this.internalData[USERS_USERNAME_FIELD];
-
-  // fetch all the required metadata
-  return getMetadata
-    .call(this.service, username, this.defaultAudience)
-    .get(this.defaultAudience);
-}
-
-/**
- * Creates actual challenge
- */
-function createChallenge(metadata) {
-  return challenge.call(
-    this.service,
-    this.type,
-    {
-      id: this[USERS_USERNAME_FIELD],
-      action: USERS_ACTION_ACTIVATE,
-      ttl: this.ttl,
-      throttle: this.throttle,
-    },
-    metadata
-  );
-}
 
 /**
  * @api {amqp} <prefix>.challenge Creates user challenges
@@ -79,7 +26,7 @@ function createChallenge(metadata) {
  * @apiParam (Payload) {String} [metadata] - not used, but in the future this would be associated with user when challenge is required
  *
  */
-module.exports = function sendChallenge({ params }) {
+module.exports = async function sendChallenge({ params }) {
   // TODO: record all attempts
   // TODO: add metadata processing on successful email challenge
 
@@ -87,24 +34,27 @@ module.exports = function sendChallenge({ params }) {
   const { config } = service;
   const { defaultAudience } = config.jwt;
   const { throttle, ttl } = config.token[params.type];
+  const { username, type } = params;
 
-  const ctx = {
-    service,
-    throttle,
+  const internalData = await getInternalData.call(service, username);
+
+  if (isActive(internalData, true)) throw USER_ALREADY_ACTIVE;
+
+  const userId = internalData[USERS_ID_FIELD];
+  const resolvedUsername = internalData[USERS_USERNAME_FIELD];
+
+  const metadata = await getMetadata
+    .call(service, userId, defaultAudience)
+    .get(defaultAudience);
+
+  const challengeOpts = {
     ttl,
-    defaultAudience,
-    type: params.type,
-    [USERS_USERNAME_FIELD]: params.username,
+    throttle,
+    action: USERS_ACTION_ACTIVATE,
+    id: resolvedUsername,
   };
 
-  return Promise
-    .bind(ctx)
-    .then(fetchInternalData)
-    .tap(isActive)
-    .throw(USER_ALREADY_ACTIVE)
-    .catch(inactiveStatus, passThrough)
-    .then(fetchMetadata)
-    .then(createChallenge);
+  return challenge.call(service, type, challengeOpts, metadata);
 };
 
 module.exports.transports = [ActionTransport.amqp];

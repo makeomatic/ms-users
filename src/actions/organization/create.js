@@ -101,9 +101,13 @@ async function createOrganizationAction({ params, locals }) {
     organizationId,
     audience,
     members,
-  });
+  }, true);
 
   const organization = await getOrganizationMetadataAndMembers.call(this, organizationId);
+
+  // clear cache
+  const now = Date.now();
+  await service.redis.fsortBust(ORGANIZATIONS_INDEX, now);
 
   return {
     data: {

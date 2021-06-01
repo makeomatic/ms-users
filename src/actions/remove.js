@@ -27,6 +27,7 @@ const {
   USERS_ACTION_REGISTER,
   THROTTLE_PREFIX,
   SSO_PROVIDERS,
+  ORGANIZATIONS_MEMBERS,
 } = require('../constants');
 
 // intersection of priority users
@@ -42,15 +43,34 @@ function addMetadata(userData) {
     .then((metadata) => [userData, metadata]);
 }
 
+async function removeOrganizationUser(userId) {
+  const { redis, config } = this;
+  const { audience } = config.organizations;
+
+  const userOrganizationsKey = key(userId, USERS_METADATA, audience);
+  const userOrganizations = await redis.hgetall(userOrganizationsKey);
+
+  if (userOrganizations) {
+    const pipeline = redis.pipeline();
+
+    for (const organizationId of Object.keys(userOrganizations)) {
+      const memberKey = key(organizationId, ORGANIZATIONS_MEMBERS, userId);
+      pipeline.zrem(key(organizationId, ORGANIZATIONS_MEMBERS), memberKey);
+    }
+
+    await pipeline.exec().then(handlePipeline);
+  }
+}
+
 /**
  * @api {amqp} <prefix>.remove Remove User
  * @apiVersion 1.0.0
  * @apiName RemoveUser
  * @apiGroup Users
  *
- * @apiDescription Removes user from system. Be careful as this operation is not revertable.
+ * @apiDescription Removes user from system. Be careful as this operation is not revertible.
  *
- * @apiParam (Payload) {String} username - currently only email is supported
+ * @apiParam (Payload) {String} username - user's email or id
  */
 async function removeUser({ params }) {
   const audience = this.config.jwt.defaultAudience;
@@ -113,6 +133,9 @@ async function removeUser({ params }) {
   const removeResult = await transaction
     .exec()
     .then(handlePipeline);
+
+  // remove user from organizations
+  await removeOrganizationUser.call(this, userId);
 
   // clear cache
   const now = Date.now();

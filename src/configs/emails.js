@@ -26,6 +26,7 @@ exports.validation = {
     // specify template names here
   },
   email: 'support@example.com',
+  mailto: 'mailto@example.com',
 };
 
 /**

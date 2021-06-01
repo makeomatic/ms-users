@@ -9,6 +9,9 @@ module.exports = {
       generateUsersIds: {
         audiences: [],
       },
+      userIdToMeta: {
+        audiences: [],
+      },
     },
   },
 };

@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "required": [
+    "organizationId",
+    "username",
+    "data"
+  ],
+  "properties": {
+    "organizationId": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "data": {
+      "$ref": "common.json#/definitions/metadata"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-operators */
-const OrganizationMetadata = require('../utils/metadata/organization');
+const OrganizationMetadata = require('./metadata/organization');
 
 /**
  * Updates metadata on a organization object

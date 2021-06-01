@@ -5,7 +5,7 @@
   "properties": {
     "provider": {
       "type": "string",
-      "enum": ["facebook"]
+      "enum": ["facebook", "apple"]
     },
     "token": {
       "type": "string",

@@ -1,6 +1,7 @@
 const assert = require('assert');
 const { isRedis } = require('../../asserts/redis');
 const isNotEmptyString = require('../../asserts/string-not-empty');
+const notEmptyStringOrArray = require('../../asserts/string-or-array');
 const isValidId = require('../../asserts/id');
 
 /**
@@ -13,7 +14,7 @@ class Audience {
    */
   constructor(redis, audienceKeyBase) {
     assert(isRedis(redis), 'must be ioredis instance');
-    assert(isNotEmptyString(audienceKeyBase), 'must be not empty string');
+    isNotEmptyString(audienceKeyBase, 'must be not empty string');
     this.redis = redis;
     this.audienceKeyBase = audienceKeyBase;
   }
@@ -38,7 +39,7 @@ class Audience {
    */
   add(id, audience, redis = this.redis) {
     assert(isRedis(redis), 'must be ioredis instance');
-    assert(isNotEmptyString(audience) || Array.isArray(audience), 'must be not empty string or Array');
+    notEmptyStringOrArray(audience, 'must be not empty string or Array');
     return redis.sadd(this.getAudienceKey(id), audience);
   }
 
@@ -51,7 +52,7 @@ class Audience {
    */
   delete(id, audience, redis = this.redis) {
     assert(isRedis(redis), 'must be ioredis instance');
-    assert(isNotEmptyString(audience) || Array.isArray(audience), 'must be not empty string or Array');
+    notEmptyStringOrArray(audience, 'must be not empty string or Array');
     return redis.srem(this.getAudienceKey(id), audience);
   }
 
@@ -74,7 +75,7 @@ class Audience {
    */
   resyncSet(id, metadataKeyTemplate, redis = this.redis) {
     assert(isRedis(this.redis), 'must be ioredis instance');
-    assert(isNotEmptyString(metadataKeyTemplate), 'must be not empty string');
+    isNotEmptyString(metadataKeyTemplate, 'must be not empty string');
     const luaScript = `
       local audiences = redis.call("SMEMBERS", KEYS[1])
       for _, audience in pairs(audiences) do

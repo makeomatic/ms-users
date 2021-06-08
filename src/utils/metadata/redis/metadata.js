@@ -6,6 +6,7 @@ const handlePipeline = require('../../pipeline-error');
 const sha256 = require('../../sha256');
 const { isRedis, isRedisPipeline } = require('../../asserts/redis');
 const isNotEmptyString = require('../../asserts/string-not-empty');
+const notEmptyStringOrArray = require('../../asserts/string-or-array');
 const isValidId = require('../../asserts/id');
 
 const JSONStringify = (data) => JSON.stringify(data);
@@ -20,7 +21,7 @@ class Metadata {
    */
   constructor(redis, metadataKeyBase) {
     assert(isRedis(redis), 'must be ioredis instance');
-    assert(isNotEmptyString(metadataKeyBase), 'must be not empty string');
+    isNotEmptyString(metadataKeyBase, 'must be not empty string');
     this.redis = redis;
     this.metadataKeyBase = metadataKeyBase;
   }
@@ -34,7 +35,7 @@ class Metadata {
    */
   getMetadataKey(id, audience) {
     assert(isValidId(id), 'must be valid Id');
-    assert(isNotEmptyString(audience), 'must be not empty string');
+    isNotEmptyString(audience, 'must be not empty string');
     return `${id}!${this.metadataKeyBase}!${audience}`;
   }
 
@@ -48,7 +49,7 @@ class Metadata {
    * @returns {Promise|Pipeline}
    */
   update(id, audience, key, value, redis = this.redis) {
-    assert(isNotEmptyString(key), 'must be not empty string');
+    isNotEmptyString(key, 'must be not empty string');
     assert(isRedis(redis), 'must be ioredis instance');
     assert(value, 'must not be empty');
 
@@ -77,7 +78,7 @@ class Metadata {
    * @returns {Promise|Pipeline}
    */
   delete(id, audience, key, redis = this.redis) {
-    assert(isNotEmptyString(key) || Array.isArray(key), 'must be not empty string or Array');
+    notEmptyStringOrArray(key, 'must be not empty string or Array');
     assert(isRedis(redis), 'must be ioredis instance');
     return redis.hdel(this.getMetadataKey(id, audience), key);
   }

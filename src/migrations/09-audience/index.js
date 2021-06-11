@@ -1,3 +1,4 @@
+const fs = require('fs');
 const {
   USERS_INDEX,
   ORGANIZATIONS_INDEX,
@@ -6,31 +7,31 @@ const {
   USERS_AUDIENCE,
   ORGANIZATIONS_AUDIENCE,
 } = require('../../constants');
-const Audience = require('../../utils/metadata/redis/audience');
+const getRedisMasterNode = require('../utils/get-redis-master-node');
 
-const script = async ({ config, redis, log }) => {
-  const { keyPrefix } = config.redis.options;
-  const usersAudience = new Audience(redis, USERS_AUDIENCE);
-  const organizationAudience = new Audience(redis, ORGANIZATIONS_AUDIENCE);
+const SCRIPT = fs.readFileSync(`${__dirname}/migrate.lua`, 'utf8');
+const USERS_KEYS = [
+  USERS_INDEX,
+  `id!${USERS_METADATA}!`,
+  `id!${USERS_AUDIENCE}`,
+];
+const USERS_ARGS = [
+  `.*id!${USERS_METADATA}!`,
+];
+const ORGANIZATIONS_KEYS = [
+  ORGANIZATIONS_INDEX,
+  `id!${ORGANIZATIONS_METADATA}!`,
+  `id!${ORGANIZATIONS_AUDIENCE}`,
+];
+const ORGANIZATIONS_ARGS = [
+  `.*id!${USERS_METADATA}!`,
+];
 
-  const process = (audience, metadata) => (ids) => {
-    ids.forEach((id) => {
-      const prefix = `${keyPrefix}${id}!${metadata}!`;
-      redis.keys(`*${prefix}*`)
-        .map((key) => key.replace(prefix, ''))
-        .map((audienceString) => {
-          return audience.add(id, audienceString);
-        });
-    });
-  };
+const script = async ({ config, redis }) => {
+  const masterNode = getRedisMasterNode(redis, config);
 
-  await redis.smembers(USERS_INDEX)
-    .tap(({ length }) => log.info('Users to be processed:', length))
-    .map(process(usersAudience, USERS_METADATA));
-
-  await redis.smembers(ORGANIZATIONS_INDEX)
-    .tap(({ length }) => log.info('Organizations to be processed:', length))
-    .map(process(organizationAudience, ORGANIZATIONS_METADATA));
+  await masterNode.eval(SCRIPT, USERS_KEYS.length, USERS_KEYS, USERS_ARGS);
+  await masterNode.eval(SCRIPT, ORGANIZATIONS_KEYS.length, ORGANIZATIONS_KEYS, ORGANIZATIONS_ARGS);
 };
 
 module.exports = {

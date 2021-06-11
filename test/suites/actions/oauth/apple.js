@@ -88,7 +88,8 @@ describe('sign in with apple', function suite() {
       strictSSL: false,
     });
 
-    const body = JSON.parse(response.body);
+    // extract JSON from html response
+    const body = JSON.parse(response.body.match(/{".+"}/)[0].replace('undefined', 'null'));
     const data = decode(body.payload.token);
 
     strictEqual(body.payload.provider, 'apple');

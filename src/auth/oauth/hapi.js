@@ -98,12 +98,11 @@ module.exports = function OauthHandler(server, config) {
     // to be reused later via service.oauth.app.oauthProviderSettings[provider]
     server.app.oauthProviderSettings[name] = settings;
 
-    // @todo rest.isSameSite is undefined; why override?
-    // if (isSameSite || isSameSite === false) {
-    //   // NOTE: this overwrites the default from bell
-    //   // must be specified, defaults to mf_bfb
-    //   server.states.cookies[rest.cookie].isSameSite = rest.isSameSite;
-    // }
+    if (isSameSite || isSameSite === false) {
+      // NOTE: this overwrites the default from bell
+      // must be specified, defaults to mf_bfb
+      server.states.cookies[rest.cookie].isSameSite = rest.isSameSite;
+    }
   }
 
   return server;

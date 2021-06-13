@@ -30,8 +30,8 @@ async function isAllowed(request) {
           last: lastName,
         };
       }
-    } catch (error) {
-      log.error({ error, message: 'Failed to parse user data from apple' });
+    } catch (err) {
+      log.error({ err, message: 'Failed to parse user data from apple' });
     }
   }
 }

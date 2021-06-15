@@ -1,3 +1,10 @@
+# [14.20.0](https://github.com/makeomatic/ms-users/compare/v14.19.0...v14.20.0) (2021-06-15)
+
+
+### Features
+
+* sign in with apple (web) ([#503](https://github.com/makeomatic/ms-users/issues/503)) ([dd0969e](https://github.com/makeomatic/ms-users/commit/dd0969e430572d532f00e3c4e103a706b643a1ae))
+
 # [14.19.0](https://github.com/makeomatic/ms-users/compare/v14.18.2...v14.19.0) (2021-04-05)
 
 

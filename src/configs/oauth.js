@@ -44,5 +44,16 @@ exports.oauth = {
         production: '',
       },
     },
+    apple: {
+      enabled: false,
+      clientId: 'com.test.service', // service id from apple
+      clientSecret: 'just-for-validation', // not used
+      teamId: 'TEAM_ID',
+      keyId: 'KEY_ID',
+      privateKey: 'PRIVATE_KEY',
+      password: 'very-long-encryption-password-that-needs-to-be-changed',
+      cookie: 'mf_bapp',
+      isSameSite: 'Lax',
+    },
   },
 };

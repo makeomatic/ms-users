@@ -60,7 +60,8 @@ module.exports = function OauthHandler(server, config) {
       rest.allowRuntimeProviderParams = true;
     }
 
-    if (defaultOptions) {
+    // @todo refactor oauth config and setting creation
+    if (defaultOptions && name !== 'apple') {
       const configuredOptions = {
         name,
         scope: stringToArray(scope),
@@ -68,9 +69,7 @@ module.exports = function OauthHandler(server, config) {
       };
 
       if (is.fn(defaultOptions)) {
-        provider = defaultOptions({
-          ...configuredOptions, apiVersion, fields, profileHandler,
-        });
+        provider = defaultOptions({ ...configuredOptions, apiVersion, fields, profileHandler });
       } else {
         provider = defaults(configuredOptions, defaultOptions);
       }
@@ -80,7 +79,8 @@ module.exports = function OauthHandler(server, config) {
     }
 
     // settings obj
-    const settings = { provider, ...rest };
+    // @todo refactor oauth config and setting creation
+    const settings = name === 'apple' ? defaultOptions(options, server) : { provider, ...rest };
 
     // init strategy
     server.auth.strategy(name, 'bell', settings);

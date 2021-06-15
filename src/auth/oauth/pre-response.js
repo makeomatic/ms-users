@@ -9,10 +9,9 @@ const { Redirect } = require('./utils/errors');
 const { ErrorTotpRequired } = require('../../constants');
 const { getSignedToken } = require('./utils/get-signed-token');
 
-const isOauthAttachRoute = (route) => (
-  route.endsWith('oauth.facebook')
-  || route.endsWith('oauth.upgrade')
-);
+const isOauthAttachRoute = (route) => route.endsWith('oauth.facebook')
+  || route.endsWith('oauth.apple')
+  || route.endsWith('oauth.upgrade');
 
 module.exports = [{
   point: 'preResponse',
@@ -90,7 +89,7 @@ module.exports = [{
       }
     }
 
-    if (!request.route.endsWith('oauth.facebook')) {
+    if (!request.route.endsWith('oauth.facebook') && !request.route.endsWith('oauth.apple')) {
       const response = request.transportRequest
         .generateResponse(message)
         .code(statusCode);

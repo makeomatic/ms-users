@@ -4,6 +4,7 @@
 const Redis = require('ioredis');
 const assert = require('assert');
 const conf = require('../lib/config');
+const UserData = require('../lib/utils/data/user');
 const { updatePassword } = require('../lib/actions/updatePassword');
 
 const config = conf.get('/', { env: process.env.NODE_ENV });
@@ -32,7 +33,8 @@ const main = async (username, password) => {
 
   try {
     await redis.connect();
-    await updatePassword({ redis }, username, password);
+    const userData = new UserData(redis);
+    await updatePassword({ userData }, username, password);
   } catch (err) {
     setImmediate(() => {
       throw err;

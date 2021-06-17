@@ -1,7 +1,6 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const generatePassword = require('password-generator');
-const redisKey = require('../key.js');
 const handlePipeline = require('../pipeline-error');
 const {
   USERS_CREATED_FIELD,
@@ -9,7 +8,6 @@ const {
   USERS_ACTIVE_FLAG,
   USERS_PASSWORD_FIELD,
   USERS_ACTIVATED_FIELD,
-  USERS_DATA,
   USERS_USERNAME_TO_ID,
   USERS_INDEX,
   USERS_ID_FIELD,
@@ -23,7 +21,6 @@ async function registerOrganizationMember(member) {
   const { email } = member;
 
   const userId = this.flake.next();
-  const pipeline = redis.pipeline();
   const createdAt = Date.now();
   const basicInfo = {
     [USERS_CREATED_FIELD]: createdAt,
@@ -33,8 +30,7 @@ async function registerOrganizationMember(member) {
   const password = member.password || generatePassword(pwdReset.length, pwdReset.memorable);
   basicInfo[USERS_PASSWORD_FIELD] = await scrypt.hash(password);
 
-  const userDataKey = redisKey(userId, USERS_DATA);
-  pipeline.hmset(userDataKey, basicInfo);
+  const pipeline = this.userData.registerInOrganization(userId, basicInfo);
   pipeline.hset(USERS_USERNAME_TO_ID, email, userId);
   handlePipeline(await pipeline.exec());
 

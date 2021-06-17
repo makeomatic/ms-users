@@ -81,9 +81,9 @@ function getList(userId) {
  */
 function listTokens({ params }) {
   const { username, page, pageSize } = params;
-  const { redis, config } = this;
+  const { redis, config, userData } = this;
   const context = {
-    redis, config, page, pageSize,
+    redis, config, page, pageSize, userData,
   };
 
   return Promise

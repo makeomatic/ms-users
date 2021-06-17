@@ -49,8 +49,8 @@ function storeData(userId) {
  */
 function createToken({ params }) {
   const { username, name } = params;
-  const { redis, config } = this;
-  const context = { name, redis, config };
+  const { redis, config, userData } = this;
+  const context = { name, redis, config, userData };
 
   return Promise
     .bind(context, username)

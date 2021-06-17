@@ -1,21 +1,15 @@
 const Errors = require('common-errors');
 
 const get = require('../../../utils/get-value');
-const redisKey = require('../../../utils/key');
 const UserMetadata = require('../../../utils/metadata/user');
 const handlePipeline = require('../../../utils/pipeline-error');
 
-const {
-  USERS_SSO_TO_ID,
-  USERS_DATA,
-} = require('../../../constants');
+const { USERS_SSO_TO_ID } = require('../../../constants');
 
 module.exports = async function detach(provider, userData) {
   const { id: userId } = userData;
   const { redis, config } = this;
   const audience = get(config, 'jwt.defaultAudience');
-  const userDataKey = redisKey(userId, USERS_DATA);
-  const pipeline = redis.pipeline();
 
   const uid = get(userData, [provider, 'uid'], { default: false });
   if (!uid) {
@@ -23,7 +17,7 @@ module.exports = async function detach(provider, userData) {
   }
 
   // delete internal account data
-  pipeline.hdel(userDataKey, provider);
+  const pipeline = this.userData.delProvider(userId, provider);
 
   // delete account reference
   pipeline.hdel(USERS_SSO_TO_ID, uid);

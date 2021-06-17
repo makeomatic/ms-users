@@ -10,6 +10,7 @@ const Flakeless = require('ms-flakeless');
 const conf = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
+const UserData = require('./utils/data/user');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
 
 /**
@@ -80,6 +81,7 @@ class Users extends Microfleet {
       const tmOpts = merge({}, config.tokenManager, tokenManagerOpts);
 
       this.tokenManager = new TokenManager(tmOpts);
+      this.userData = new UserData(redis);
     });
 
     this.on('plugin:start:http', (server) => {
@@ -100,6 +102,7 @@ class Users extends Microfleet {
     this.on(`plugin:close:${this.redisType}`, () => {
       this.dlock = null;
       this.tokenManager = null;
+      this.userData = null;
     });
 
     // add migration connector

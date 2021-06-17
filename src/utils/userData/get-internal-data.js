@@ -53,8 +53,8 @@ function reduceData(data) {
 }
 
 function getInternalData(userKey, fetchData = true) {
-  const { redis } = this;
-  const context = { redis, userKey };
+  const { userData } = this;
+  const context = { userData, userKey };
 
   return Promise
     .bind(context, [userKey, fetchData])

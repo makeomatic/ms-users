@@ -6,9 +6,7 @@ const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipeline-error');
 const UserMetadata = require('../utils/metadata/user');
 
-const {
-  USERS_DATA, USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
-} = require('../constants.js');
+const { USERS_TOKENS, USERS_BANNED_DATA } = require('../constants.js');
 
 // helper
 const stringify = (data) => JSON.stringify(data);
@@ -16,7 +14,7 @@ const stringify = (data) => JSON.stringify(data);
 function lockUser({
   id, reason, whom, remoteip,
 }) {
-  const { redis, config } = this;
+  const { config } = this;
   const { jwt: { defaultAudience } } = config;
   const data = {
     banned: true,
@@ -26,9 +24,7 @@ function lockUser({
       remoteip: remoteip || '',
     },
   };
-  const pipeline = redis.pipeline();
-
-  pipeline.hset(redisKey(id, USERS_DATA), USERS_BANNED_FLAG, 'true');
+  const pipeline = this.userData.lock(id);
   // set .banned on metadata for filtering & sorting users by that field
   UserMetadata
     .using(id, defaultAudience, pipeline)
@@ -39,11 +35,9 @@ function lockUser({
 }
 
 function unlockUser({ id }) {
-  const { redis, config } = this;
+  const { config } = this;
   const { jwt: { defaultAudience } } = config;
-  const pipeline = redis.pipeline();
-
-  pipeline.hdel(redisKey(id, USERS_DATA), USERS_BANNED_FLAG);
+  const pipeline = this.userData.unLock(id);
   // remove .banned on metadata for filtering & sorting users by that field
   UserMetadata
     .using(id, defaultAudience, pipeline)

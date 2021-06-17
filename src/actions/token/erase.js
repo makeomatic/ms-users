@@ -35,8 +35,8 @@ function eraseData(userId) {
  */
 function eraseToken({ params }) {
   const { username, token } = params;
-  const { redis, config } = this;
-  const context = { token, redis, config };
+  const { redis, config, userData } = this;
+  const context = { token, redis, config, userData };
 
   return Promise
     .bind(context, username)

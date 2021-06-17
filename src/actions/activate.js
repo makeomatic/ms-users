@@ -1,7 +1,6 @@
 const { ActionTransport } = require('@microfleet/core');
 const { HttpStatusError } = require('common-errors');
 const Promise = require('bluebird');
-const redisKey = require('../utils/key.js');
 const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
@@ -10,7 +9,6 @@ const UserMetadata = require('../utils/metadata/user');
 
 const {
   USERS_INDEX,
-  USERS_DATA,
   USERS_REFERRAL_INDEX,
   USERS_PUBLIC_INDEX,
   USERS_ACTIVE_FLAG,
@@ -119,17 +117,9 @@ async function activateAccount(data, metadata) {
   const userId = data[USERS_ID_FIELD];
   const alias = data[USERS_ALIAS_FIELD];
   const referral = metadata[USERS_REFERRAL_FIELD];
-  const userKey = redisKey(userId, USERS_DATA);
   const { defaultAudience, service } = this;
-  const { redis } = service;
-  // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
-  // set to active & persist
-  const pipeline = redis
-    .pipeline()
-    .hget(userKey, USERS_ACTIVE_FLAG)
-    .hset(userKey, USERS_ACTIVE_FLAG, 'true')
-    .persist(userKey)
-    .sadd(USERS_INDEX, userId);
+  const pipeline = service.userData.activate(userId);
+  pipeline.sadd(USERS_INDEX, userId);
 
   UserMetadata
     .using(userId, defaultAudience, pipeline)

@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const { USERS_REFERRAL_INDEX } = require('../../constants.js');
 const { getUserId } = require('../../utils/userData');
 const getRedisMasterNode = require('../utils/get-redis-master-node');
+const UserData = require('../../../lib/utils/data/user');
 
 /**
  *
@@ -10,6 +11,7 @@ function referralsUsersIds({ redis, config, log }) {
   const { keyPrefix } = config.redis.options;
   const masterNode = getRedisMasterNode(redis, config);
   const pipeline = redis.pipeline();
+  const userData = new UserData(redis);
 
   return masterNode
     .keys(`${keyPrefix}${USERS_REFERRAL_INDEX}:*`)
@@ -28,7 +30,7 @@ function referralsUsersIds({ redis, config, log }) {
         (username) => {
           log.info('Resolve user id for:', username);
 
-          return Promise.join(username, getUserId.call({ redis }, username));
+          return Promise.join(username, getUserId.call({ userData }, username));
         }
       )
     // swap username to user id

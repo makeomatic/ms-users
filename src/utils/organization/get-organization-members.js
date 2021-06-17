@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
-const { ORGANIZATIONS_MEMBERS, USERS_DATA, USERS_BANNED_FLAG } = require('../../constants');
+const { ORGANIZATIONS_MEMBERS } = require('../../constants');
 const redisKey = require('../key');
 
 const JSONParse = (d) => JSON.parse(d);
@@ -8,7 +8,7 @@ const JSONParse = (d) => JSON.parse(d);
 async function getMemberData(organizationMemberId) {
   const [, , userId] = organizationMemberId.split('!');
   const organization = await this.redis.hgetall(organizationMemberId);
-  const banned = await this.redis.hget(redisKey(userId, USERS_DATA), USERS_BANNED_FLAG);
+  const banned = await this.userData.getBanned(userId);
 
   return mapValues({ ...organization, banned }, JSONParse);
 }

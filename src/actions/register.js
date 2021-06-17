@@ -9,7 +9,7 @@ const reduce = require('lodash/reduce');
 const last = require('lodash/last');
 
 // internal deps
-const setMetadata = require('../utils/update-metadata');
+const UserMetadata = require('../utils/metadata/user');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const isDisposable = require('../utils/is-disposable');
@@ -231,13 +231,13 @@ async function performRegistration({ service, params }) {
     commonMeta[USERS_ACTIVATED_FIELD] = Date.now();
   }
 
-  await setMetadata.call(service, {
-    userId,
-    audience,
-    metadata: audience.map((metaAudience) => ({
-      $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && commonMeta),
-    })),
-  });
+  await UserMetadata
+    .using(userId, audience, service.redis)
+    .batchUpdate({
+      metadata: audience.map((metaAudience) => ({
+        $set: Object.assign(metadata[metaAudience] || {}, metaAudience === defaultAudience && commonMeta),
+      })),
+    });
 
   // assign alias
   if (alias) {

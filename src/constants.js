@@ -22,6 +22,7 @@ module.exports = exports = {
   USERS_DATA: 'data',
   USERS_METADATA: 'metadata',
   USERS_CONTACTS: 'contacts',
+  USERS_AUDIENCE: 'users-audiences',
   USERS_TOKENS: 'tokens',
   USERS_API_TOKENS: 'api-tokens',
   USERS_API_TOKENS_ZSET: 'api-tokens-set',
@@ -30,6 +31,7 @@ module.exports = exports = {
   USERS_ORGANIZATIONS: 'user-organizations',
   ORGANIZATIONS_DATA: 'data',
   ORGANIZATIONS_METADATA: 'metadata',
+  ORGANIZATIONS_AUDIENCE: 'organization-audiences',
   ORGANIZATIONS_MEMBERS: 'members',
 
   // standard JWT with TTL

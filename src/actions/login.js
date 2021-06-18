@@ -5,7 +5,7 @@ const moment = require('moment');
 const is = require('is');
 const scrypt = require('../utils/scrypt');
 const jwt = require('../utils/jwt');
-const isActive = require('../utils/is-active');
+const { assertIsActive } = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
 
 const { checkMFA } = require('../utils/mfa');
@@ -211,7 +211,7 @@ async function login({ params, locals }) {
   await cleanupRateLimits(ctx, internalData);
 
   // verifies that the user is active, rejects by default
-  await isActive(internalData);
+  assertIsActive(config, internalData);
 
   // verifies that user is not banned, sync action - throws
   isBanned(internalData);

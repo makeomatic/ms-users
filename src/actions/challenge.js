@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/core');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
-const isActive = require('../utils/is-active');
+const { isActive } = require('../utils/is-active');
 const challenge = require('../utils/challenges/challenge');
 const {
   USERS_ACTION_ACTIVATE,
@@ -38,7 +38,7 @@ module.exports = async function sendChallenge({ params }) {
 
   const internalData = await getInternalData.call(service, username);
 
-  if (isActive(internalData, true)) throw USER_ALREADY_ACTIVE;
+  if (isActive(config, internalData)) throw USER_ALREADY_ACTIVE;
 
   const userId = internalData[USERS_ID_FIELD];
   const resolvedUsername = internalData[USERS_USERNAME_FIELD];

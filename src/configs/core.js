@@ -122,3 +122,8 @@ exports.mfa = {
     window: 10,
   },
 };
+
+exports.temporaryActivation = {
+  enabled: false,
+  validTimeMs: 10 * 24 * 60 * 60 * 1000,
+};

@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const { USERS_REFERRAL_INDEX } = require('../../constants.js');
 const { getUserId } = require('../../utils/userData');
 const getRedisMasterNode = require('../utils/get-redis-master-node');
-const UserData = require('../../../lib/utils/data/user');
+const UserData = require('../../utils/data/user');
 
 /**
  *

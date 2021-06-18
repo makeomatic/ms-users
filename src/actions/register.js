@@ -22,12 +22,12 @@ const checkLimits = require('../utils/check-ip-limits');
 const challenge = require('../utils/challenges/challenge');
 const handlePipeline = require('../utils/pipeline-error');
 const hashPassword = require('../utils/register/password/hash');
+const UserData = require('../utils/data/user');
 const {
   USERS_REF,
   USERS_REF_METADATA,
   USERS_INDEX,
   USERS_SSO_TO_ID,
-  USERS_DATA,
   USERS_USERNAME_TO_ID,
   USERS_ACTIVE_FLAG,
   USERS_ID_FIELD,
@@ -211,13 +211,9 @@ async function performRegistration({ service, params }) {
     pipeline.hset(USERS_SSO_TO_ID, uid, userId);
   }
 
-  const userDataKey = redisKey(userId, USERS_DATA);
-  pipeline.hmset(userDataKey, basicInfo);
-  pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
+  UserData.register(userId, pipeline, basicInfo, activate, config.deleteInactiveAccounts);
 
-  if (activate === false && config.deleteInactiveAccounts >= 0) {
-    pipeline.expire(userDataKey, config.deleteInactiveAccounts);
-  }
+  pipeline.hset(USERS_USERNAME_TO_ID, username, userId);
 
   handlePipeline(await pipeline.exec());
 

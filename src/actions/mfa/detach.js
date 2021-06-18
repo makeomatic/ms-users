@@ -2,19 +2,19 @@ const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipeline-error');
+const UserData = require('../../utils/data/user');
 const { checkMFA } = require('../../utils/mfa');
 const {
-  USERS_DATA,
-  USERS_MFA_FLAG,
   USERS_MFA_RECOVERY,
   MFA_TYPE_REQUIRED,
 } = require('../../constants');
 
 async function removeData(userId) {
-  return this.redis
+  const pipeline = this.redis
     .pipeline()
-    .del(redisKey(userId, USERS_MFA_RECOVERY))
-    .hdel(redisKey(userId, USERS_DATA), USERS_MFA_FLAG)
+    .del(redisKey(userId, USERS_MFA_RECOVERY));
+
+  return UserData.delMFA(userId, pipeline)
     .exec()
     .then(handlePipeline)
     .return({ enabled: false });

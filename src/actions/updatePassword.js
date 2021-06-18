@@ -1,7 +1,6 @@
 const { HttpStatusError } = require('common-errors');
 
 const scrypt = require('../utils/scrypt');
-const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/is-active');
@@ -9,9 +8,7 @@ const isBanned = require('../utils/is-banned');
 const hasPassword = require('../utils/has-password');
 const { getUserId } = require('../utils/userData');
 const {
-  USERS_DATA,
   USERS_ACTION_RESET,
-  USERS_PASSWORD_FIELD,
   USERS_ID_FIELD,
 } = require('../constants');
 const UserLoginRateLimiter = require('../utils/rate-limiters/user-login-rate-limiter');
@@ -44,10 +41,8 @@ async function usernamePasswordReset(service, username, password) {
  * @param {String} password
  */
 async function setPassword(service, userId, password) {
-  const { redis } = service;
   const hash = await scrypt.hash(password);
-
-  return redis.hset(redisKey(userId, USERS_DATA), USERS_PASSWORD_FIELD, hash);
+  return service.userData.setPassword(userId, hash);
 }
 
 /**

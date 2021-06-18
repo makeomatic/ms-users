@@ -8,6 +8,7 @@ const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const handlePipeline = require('../utils/pipeline-error');
 const UserMetadata = require('../utils/metadata/user');
+const UserData = require('../utils/data/user');
 const {
   USERS_INDEX,
   USERS_PUBLIC_INDEX,
@@ -15,7 +16,6 @@ const {
   USERS_SSO_TO_ID,
   USERS_USERNAME_TO_ID,
   USERS_USERNAME_FIELD,
-  USERS_DATA,
   USERS_METADATA,
   USERS_TOKENS,
   USERS_ID_FIELD,
@@ -75,8 +75,8 @@ async function removeOrganizationUser(userId) {
  */
 async function removeUser({ params }) {
   const audience = this.config.jwt.defaultAudience;
-  const { redis } = this;
-  const context = { redis, audience };
+  const { redis, userData } = this;
+  const context = { redis, audience, userData };
   const { username } = params;
 
   const [internal, meta] = await Promise
@@ -116,7 +116,7 @@ async function removeUser({ params }) {
   transaction.srem(USERS_INDEX, userId);
 
   // remove metadata & internal data
-  transaction.del(key(userId, USERS_DATA));
+  UserData.deleteUserData(userId, transaction);
   for (const metaAudience of metaAudiences) {
     userMetadata.deleteMetadata(metaAudience);
   }

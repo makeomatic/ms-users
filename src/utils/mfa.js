@@ -9,7 +9,6 @@ const {
   ErrorTotpRequired,
   ErrorTotpInvalid,
   ErrorSecretRequired,
-  USERS_DATA,
   USERS_MFA_FLAG,
   USERS_MFA_RECOVERY,
   MFA_TYPE_REQUIRED,
@@ -31,8 +30,7 @@ function generateRecoveryCodes(length = 10) {
  * @returns {Boolean}
  */
 async function isMFAEnabled(userId) {
-  const secret = await this.redis
-    .hget(redisKey(userId, USERS_DATA), USERS_MFA_FLAG);
+  const secret = await this.userData.getMFA(userId);
 
   if (secret) {
     return secret;

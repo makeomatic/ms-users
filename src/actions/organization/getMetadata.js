@@ -28,5 +28,6 @@ async function organizationMetadata({ params }) {
 }
 
 organizationMetadata.allowed = checkOrganizationExists;
+organizationMetadata.readonly = true;
 organizationMetadata.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = organizationMetadata;

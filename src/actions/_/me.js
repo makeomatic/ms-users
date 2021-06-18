@@ -19,6 +19,7 @@ async function Me({ auth }) {
   return { id, mfa, metadata };
 }
 
+Me.readonly = true;
 Me.auth = {
   name: 'bearer',
   strategy: 'required',

@@ -54,4 +54,5 @@ module.exports = function iterateOverInvites(request) {
     }));
 };
 
+module.exports.readonly = true;
 module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];

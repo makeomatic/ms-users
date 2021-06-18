@@ -92,6 +92,7 @@ function listTokens({ params }) {
     .then(getList);
 }
 
+listTokens.readonly = true;
 listTokens.transports = [require('@microfleet/core').ActionTransport.amqp];
 
 module.exports = listTokens;

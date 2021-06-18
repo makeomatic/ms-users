@@ -24,6 +24,7 @@ function verify() {
   return { valid: true };
 }
 
+verify.readonly = true;
 verify.mfa = MFA_TYPE_REQUIRED;
 verify.allowed = checkMFA;
 verify.transports = [ActionTransport.amqp, ActionTransport.internal];

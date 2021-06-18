@@ -34,9 +34,8 @@ describe('#ban', function banSuite() {
 
     it('must be able to ban an existing user', async function test() {
       const response = await this.dispatch('users.ban', { username, ban: true });
-
       assert.equal(response[0], 1);
-      assert.equal(response[1], 'OK');
+      assert.equal(response[2], 'OK');
     });
 
     it('requesting metadata with a special flag verifies ban state and throws', async function test() {

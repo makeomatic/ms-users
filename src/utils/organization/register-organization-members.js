@@ -15,7 +15,7 @@ const {
   USERS_ID_FIELD,
 } = require('../../constants.js');
 const scrypt = require('../scrypt');
-const setMetadata = require('../update-metadata');
+const UserMetadata = require('../metadata/user');
 
 async function registerOrganizationMember(member) {
   const { redis, config } = this;
@@ -36,20 +36,21 @@ async function registerOrganizationMember(member) {
   const userDataKey = redisKey(userId, USERS_DATA);
   pipeline.hmset(userDataKey, basicInfo);
   pipeline.hset(USERS_USERNAME_TO_ID, email, userId);
-  await pipeline.exec().then(handlePipeline);
+  handlePipeline(await pipeline.exec());
 
-  await setMetadata.call(this, {
-    userId,
-    audience,
-    metadata: [{
-      $set: {
-        [USERS_ID_FIELD]: userId,
-        [USERS_USERNAME_FIELD]: email,
-        [USERS_CREATED_FIELD]: basicInfo[USERS_CREATED_FIELD],
-        [USERS_ACTIVATED_FIELD]: createdAt,
-      },
-    }],
-  });
+  await UserMetadata
+    .using(userId, audience, redis)
+    .batchUpdate({
+      metadata: [{
+        $set: {
+          [USERS_ID_FIELD]: userId,
+          [USERS_USERNAME_FIELD]: email,
+          [USERS_CREATED_FIELD]: basicInfo[USERS_CREATED_FIELD],
+          [USERS_ACTIVATED_FIELD]: createdAt,
+        },
+      }],
+    });
+
   // perform instant activation
   // internal username index
   const regPipeline = redis.pipeline().sadd(USERS_INDEX, userId);

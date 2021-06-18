@@ -3,6 +3,7 @@ const snakeCase = require('lodash/snakeCase');
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipeline-error');
 const { checkOrganizationExists, getInternalData } = require('../../utils/organization');
+const OrganizationMetadata = require('../../utils/metadata/organization');
 const {
   ORGANIZATIONS_DATA,
   ORGANIZATIONS_METADATA,
@@ -32,11 +33,15 @@ async function deleteOrganization({ params }) {
   const organizationMembersListKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const organizationMembersIds = await redis.zrange(organizationMembersListKey, 0, -1);
   const organization = await getInternalData.call(this, organizationId);
+  const organizationMetadata = new OrganizationMetadata(redis);
 
   const pipeline = redis.pipeline();
 
   pipeline.del(redisKey(organizationId, ORGANIZATIONS_DATA));
   pipeline.del(redisKey(organizationId, ORGANIZATIONS_METADATA, audience));
+  // delete organization audiences index
+  pipeline.del(organizationMetadata.audience.getAudienceKey(organizationId));
+
   pipeline.srem(ORGANIZATIONS_INDEX, organizationId);
   if (organizationMembersIds) {
     organizationMembersIds.forEach((memberId) => {

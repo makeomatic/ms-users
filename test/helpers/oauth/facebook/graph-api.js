@@ -3,7 +3,7 @@ const request = require('request-promise');
 const assert = require('assert');
 
 const baseOpts = {
-  baseUrl: 'https://graph.facebook.com/v8.0',
+  baseUrl: 'https://graph.facebook.com/v9.0',
   headers: {
     Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
   },
@@ -112,24 +112,28 @@ class GraphAPI {
    * @returns {Promise<{ id: string, access_token: string | undefined, login_url: string, email?: string }>}
    */
   static async _getTestUserWithPermissions(permissions, next = `${baseOpts.baseUrl}/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`) {
-    const { data, paging: { next: nextPage } } = await this.graphApi({
+    const { data, paging } = await this.graphApi({
       baseUrl: '',
       uri: next,
       method: 'GET',
     });
+    const installed = Array.isArray(permissions) && permissions.length > 0;
+    const permissionsParam = Array.isArray(permissions) && permissions.length > 0 ? permissions.join(',') : undefined;
 
     if (data.length === 0) {
-      return this.createTestUser({
-        installed: Array.isArray(permissions) && permissions.length > 0,
-        permissions: Array.isArray(permissions) && permissions.length > 0 ? permissions.join(',') : undefined,
-      });
+      return this.createTestUser({ installed, permissions: permissionsParam });
     }
 
     if (!Array.isArray(permissions) || permissions.length === 0) {
       const users = data.filter((x) => !x.access_token);
       const user = users[users.length * Math.random() | 0];
+
       if (!user) {
-        return this.getTestUserWithPermissions(permissions, nextPage);
+        if (paging === undefined || paging.next === undefined) {
+          return this.createTestUser({ installed, permissions: permissionsParam });
+        }
+
+        return this._getTestUserWithPermissions(permissions, paging.next);
       }
 
       return user;

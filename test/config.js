@@ -56,6 +56,7 @@ function initFakeAccounts() {
   return this.users.initFakeAccounts();
 }
 
+// *resetService?
 async function clearRedis(doNotClose = false) {
   const service = this.users;
 

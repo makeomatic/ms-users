@@ -3,6 +3,7 @@ exports.auto_compose = true;
 exports.with_local_compose = true;
 exports.tester_flavour = "chrome-tester";
 exports.rebuild = ['ms-flakeless'];
+exports.extras = { env_file: '.env' };
 
 switch (process.env.DB_SRV) {
   case 'redisCluster':

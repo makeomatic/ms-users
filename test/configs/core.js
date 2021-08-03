@@ -65,6 +65,9 @@ module.exports = {
   consul: {
     base: {
       host: 'consul',
+      // we should probably deny access to setting this config variable from outside of the service,
+      // because it depends on how does the code work
+      promisify: true,
     },
   },
 };

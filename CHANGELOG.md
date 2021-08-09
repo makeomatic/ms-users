@@ -1,3 +1,10 @@
+# [14.21.0](https://github.com/makeomatic/ms-users/compare/v14.20.0...v14.21.0) (2021-08-09)
+
+
+### Features
+
+* set subscriptionType to free on cpst-activate hook ([#505](https://github.com/makeomatic/ms-users/issues/505)) ([4785d46](https://github.com/makeomatic/ms-users/commit/4785d46865984f7f81ea2b478fa26bb5bd2e2600))
+
 # [14.20.0](https://github.com/makeomatic/ms-users/compare/v14.19.0...v14.20.0) (2021-06-15)
 
 

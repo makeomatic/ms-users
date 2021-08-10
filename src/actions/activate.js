@@ -6,7 +6,8 @@ const jwt = require('../utils/jwt.js');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const handlePipeline = require('../utils/pipeline-error');
-const setMetadata = require('../utils/update-metadata');
+const UserMetadata = require('../utils/metadata/user');
+
 const {
   USERS_INDEX,
   USERS_DATA,
@@ -19,7 +20,7 @@ const {
   USERS_USERNAME_FIELD,
   USERS_ACTION_ACTIVATE,
   USERS_ACTIVATED_FIELD,
-} = require('../constants.js');
+} = require('../constants');
 
 // cache error
 const Forbidden = new HttpStatusError(403, 'invalid token');
@@ -121,19 +122,6 @@ async function activateAccount(data, metadata) {
   const userKey = redisKey(userId, USERS_DATA);
   const { defaultAudience, service } = this;
   const { redis } = service;
-
-  // if this goes through, but other async calls fail its ok to repeat that
-  // adds activation field
-  await setMetadata.call(service, {
-    userId,
-    audience: defaultAudience,
-    metadata: {
-      $set: {
-        [USERS_ACTIVATED_FIELD]: Date.now(),
-      },
-    },
-  });
-
   // WARNING: `persist` is very important, otherwise we will lose user's information in 30 days
   // set to active & persist
   const pipeline = redis
@@ -142,6 +130,10 @@ async function activateAccount(data, metadata) {
     .hset(userKey, USERS_ACTIVE_FLAG, 'true')
     .persist(userKey)
     .sadd(USERS_INDEX, userId);
+
+  UserMetadata
+    .using(userId, defaultAudience, pipeline)
+    .update(USERS_ACTIVATED_FIELD, Date.now());
 
   if (alias) {
     pipeline.sadd(USERS_PUBLIC_INDEX, userId);

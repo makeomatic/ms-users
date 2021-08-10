@@ -2,7 +2,7 @@ const Errors = require('common-errors');
 
 const get = require('../../../utils/get-value');
 const redisKey = require('../../../utils/key');
-const updateMetadata = require('../../../utils/update-metadata');
+const UserMetadata = require('../../../utils/metadata/user');
 const handlePipeline = require('../../../utils/pipeline-error');
 
 const {
@@ -30,13 +30,15 @@ module.exports = async function detach(provider, userData) {
 
   handlePipeline(await pipeline.exec());
 
-  return updateMetadata.call(this, {
-    userId,
-    audience,
+  const updateParams = {
     metadata: {
       $remove: [
         provider,
       ],
     },
-  });
+  };
+
+  return UserMetadata
+    .using(userId, audience, redis)
+    .batchUpdate(updateParams);
 };

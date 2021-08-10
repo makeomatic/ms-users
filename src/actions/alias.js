@@ -7,9 +7,10 @@ const isBanned = require('../utils/is-banned');
 const DetailedHttpStatusError = require('../utils/detailed-error');
 const key = require('../utils/key');
 const handlePipeline = require('../utils/pipeline-error');
+const UserMetadata = require('../utils/metadata/user');
+
 const {
   USERS_DATA,
-  USERS_METADATA,
   USERS_ALIAS_TO_ID,
   USERS_ID_FIELD,
   USERS_ALIAS_FIELD,
@@ -71,10 +72,12 @@ async function assignAlias({ params }) {
       return Promise.reject(err);
     }
 
-    const pipeline = redis.pipeline([
-      ['hset', key(userId, USERS_DATA), USERS_ALIAS_FIELD, alias],
-      ['hset', key(userId, USERS_METADATA, defaultAudience), USERS_ALIAS_FIELD, JSON.stringify(alias)],
-    ]);
+    const pipeline = redis.pipeline();
+
+    pipeline.hset(key(userId, USERS_DATA), USERS_ALIAS_FIELD, alias);
+    UserMetadata
+      .using(userId, defaultAudience, pipeline)
+      .update(USERS_ALIAS_FIELD, JSON.stringify(alias));
 
     if (activeUser) {
       pipeline.sadd(USERS_PUBLIC_INDEX, username);

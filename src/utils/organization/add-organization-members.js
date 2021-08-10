@@ -7,9 +7,10 @@ const sendInviteMail = require('./send-invite-email');
 const getInternalData = require('./get-internal-data');
 const registerOrganizationMembers = require('./register-organization-members');
 const handlePipeline = require('../pipeline-error');
+const UserMetadata = require('../metadata/user');
+
 const {
   ORGANIZATIONS_MEMBERS,
-  USERS_METADATA,
   ORGANIZATIONS_NAME_FIELD,
   ORGANIZATIONS_ID_FIELD,
   USERS_ACTION_ORGANIZATION_REGISTER,
@@ -32,7 +33,6 @@ async function addMember({ password, ...member }) {
   const { organizationId, audience, pipe, membersKey } = this;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
-  const memberOrganizations = redisKey(member.id, USERS_METADATA, audience);
 
   member.username = member.email;
   member.invited = Date.now();
@@ -42,7 +42,9 @@ async function addMember({ password, ...member }) {
   const stringifyMember = mapValues(member, JSONStringify);
 
   pipe.hmset(memberKey, stringifyMember);
-  pipe.hset(memberOrganizations, organizationId, stringifyMember.permissions);
+  UserMetadata
+    .using(member.id, audience, pipe)
+    .update(organizationId, stringifyMember.permissions);
   pipe.zadd(membersKey, stringifyMember.invited, memberKey);
 }
 
@@ -74,6 +76,7 @@ async function sendInvite(member) {
 /**
  * Updates metadata on a organization object
  * @param  {Object} opts
+ * @param  {Boolean} sendInviteFlag
  * @return {Promise}
  */
 async function addOrganizationMembers({ organizationId, members, audience }, sendInviteFlag = false) {

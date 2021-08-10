@@ -43,6 +43,7 @@ module.exports = exports = {
   USERS_BANNED_DATA: 'bannedData',
   USERS_CREATED_FIELD: 'created',
   USERS_ACTIVATED_FIELD: 'aa',
+  USERS_TEMP_ACTIVATED_TIME_FIELD: 'tempActivatedTime',
   USERS_USERNAME_FIELD: 'username',
   USERS_IS_ORG_FIELD: 'org',
   USERS_PASSWORD_FIELD: 'password',

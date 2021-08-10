@@ -4,7 +4,7 @@ const scrypt = require('../utils/scrypt');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const { getInternalData } = require('../utils/userData');
-const isActive = require('../utils/is-active');
+const { assertIsActive } = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
 const hasPassword = require('../utils/has-password');
 const { getUserId } = require('../utils/userData');
@@ -28,7 +28,7 @@ const Forbidden = new HttpStatusError(403, 'invalid token');
 async function usernamePasswordReset(service, username, password) {
   const internalData = await getInternalData.call(service, username);
 
-  await isActive(internalData);
+  assertIsActive(service.config, internalData);
   await isBanned(internalData);
   await hasPassword(internalData);
 

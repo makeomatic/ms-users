@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const { getInternalData } = require('../utils/userData');
-const isActive = require('../utils/is-active');
+const { isActiveTap } = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
 const hasPassword = require('../utils/has-password');
 const getMetadata = require('../utils/get-metadata');
@@ -38,7 +38,7 @@ module.exports = function requestPassword(request) {
   return Promise
     .bind(this, usernameOrAlias)
     .then(getInternalData)
-    .tap(isActive)
+    .tap(isActiveTap)
     .tap(isBanned)
     .tap(hasPassword)
     .then((data) => [data[USERS_ID_FIELD], defaultAudience])

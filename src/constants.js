@@ -121,6 +121,9 @@ module.exports = exports = {
   lockOrganization: (organizationName) => `organizations:create:${organizationName}`,
   lockBypass: (provider, userId) => `bypass:${provider}:${userId}`,
   lockContact: (contact) => `contact:${contact}`,
+
+  // consul keys & prefixes
+  KEY_PREFIX_INVOCATION_RULES: 'invocation-rules/',
 };
 
 // embed error codes

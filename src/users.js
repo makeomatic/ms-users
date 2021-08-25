@@ -11,6 +11,8 @@ const conf = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
+const { ConsulWatcher } = require('./utils/consul-watcher');
+const { InvocationRulesStorage } = require('./utils/invocation-rules-storage');
 
 /**
  * @namespace Users
@@ -144,10 +146,7 @@ class Users extends Microfleet {
     }
 
     if (this.config.cfAccessList.enabled) {
-      if (!this.hasPlugin('consul')) {
-        const consul = require('@microfleet/plugin-consul');
-        this.initPlugin(consul, this.config.consul);
-      }
+      this.initConsul();
 
       this.addConnector(ConnectorsTypes.application, () => {
         this.cfWorker = new CloudflareWorker(this, this.config.cfAccessList);
@@ -158,6 +157,10 @@ class Users extends Microfleet {
       this.addDestructor(ConnectorsTypes.application, () => {
         this.cfWorker.stop();
       });
+    }
+
+    if (this.config.invocationRulesStorage.syncEnabled) {
+      this.initInvocationRulesStorage();
     }
 
     // init account seed
@@ -171,6 +174,29 @@ class Users extends Microfleet {
         this.initFakeAccounts()
       ), 'dev accounts');
     }
+  }
+
+  initConsul() {
+    if (!this.hasPlugin('consul')) {
+      const consul = require('@microfleet/plugin-consul');
+      this.initPlugin(consul, this.config.consul);
+    }
+  }
+
+  initInvocationRulesStorage() {
+    this.initConsul();
+
+    const pluginName = 'InvocationRulesStorage';
+    const watcher = new ConsulWatcher(this.consul, this.log);
+    this.invocationRulesStorage = new InvocationRulesStorage(
+      watcher, this.config.invocationRulesStorage.watchOptions, this.log
+    );
+    this.addConnector(ConnectorsTypes.application, () => {
+      this.invocationRulesStorage.startSync();
+    }, pluginName);
+    this.addDestructor(ConnectorsTypes.application, () => {
+      this.invocationRulesStorage.stopSync();
+    }, pluginName);
   }
 }
 

@@ -10,7 +10,7 @@ class InvocationRulesStorage {
     this.watchOptions = watchOptions;
     this.log = log;
     this.watchInstance = null;
-    this.rules = null;
+    this.rules = [];
   }
 
   startSync() {
@@ -23,7 +23,7 @@ class InvocationRulesStorage {
     this.watchInstance = consulWatcher.watchKeyPrefix(
       KEY_PREFIX_INVOCATION_RULES,
       (data) => {
-        const value = data === undefined ? null : data;
+        const value = data === undefined ? [] : data;
         this.rules = value;
       },
       this.watchOptions

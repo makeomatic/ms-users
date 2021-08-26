@@ -55,7 +55,7 @@ describe('#Invocation Rules Sync', function InvocationRulesSyncSuite() {
     await kv.del(`${KEY_PREFIX_INVOCATION_RULES}002`);
     await kv.del(`${KEY_PREFIX_INVOCATION_RULES}003`);
 
-    await Bluebird.delay(1);
+    await Bluebird.delay(2);
 
     const rulesAfterDeletion = this.users.invocationRulesStorage.getRules();
     strictEqual(rulesAfterDeletion, null);

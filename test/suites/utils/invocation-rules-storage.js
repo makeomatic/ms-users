@@ -28,7 +28,7 @@ describe('#Invocation Rules Sync', function InvocationRulesSyncSuite() {
     const initial = await kv.get({ key: KEY_PREFIX_INVOCATION_RULES, recurse: true });
     strictEqual(initial, undefined);
     ok(invocationRulesStorage);
-    strictEqual(invocationRulesStorage.getRules(), null);
+    strictEqual(invocationRulesStorage.getRules().length, 0);
 
     await kv.set(`${KEY_PREFIX_INVOCATION_RULES}001`, 'i am rule 001');
     await kv.del(`${KEY_PREFIX_INVOCATION_RULES}001`);
@@ -57,7 +57,6 @@ describe('#Invocation Rules Sync', function InvocationRulesSyncSuite() {
 
     await Bluebird.delay(2);
 
-    const rulesAfterDeletion = this.users.invocationRulesStorage.getRules();
-    strictEqual(rulesAfterDeletion, null);
+    strictEqual(invocationRulesStorage.getRules().length, 0);
   });
 });

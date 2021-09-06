@@ -4,7 +4,7 @@ const fs = require('fs');
 const exec = require('../../helpers/exec');
 
 describe('binary: dump', function suite() {
-  const binaryPath = path.resolve(__dirname, '../../../bin/dump');
+  const binaryPath = path.resolve(__dirname, '../../../bin/dump.js');
 
   before('start service', global.startService);
   before('register fake users', global.initFakeAccounts);

@@ -3,7 +3,7 @@ const path = require('path');
 const exec = require('../../helpers/exec');
 
 describe('binary: password', function suite() {
-  const binaryPath = path.resolve(__dirname, '../../../bin/password');
+  const binaryPath = path.resolve(__dirname, '../../../bin/password.js');
   const username = 'test@test.me';
   const newPassword = 'trickynewpassword';
   // eslint-disable-next-line no-undef

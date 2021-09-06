@@ -1,3 +1,11 @@
+## [14.21.1](https://github.com/makeomatic/ms-users/compare/v14.21.0...v14.21.1) (2021-09-06)
+
+
+### Bug Fixes
+
+* python ([4de339d](https://github.com/makeomatic/ms-users/commit/4de339d88a124f7256f845fca94cf854b8370854))
+* split users.list fsort into 2 calls ([bbd2ea7](https://github.com/makeomatic/ms-users/commit/bbd2ea70120d1f4134f175bdfb1c20e1b44b6754))
+
 # [14.21.0](https://github.com/makeomatic/ms-users/compare/v14.20.0...v14.21.0) (2021-08-09)
 
 

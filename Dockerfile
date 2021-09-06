@@ -9,7 +9,7 @@ COPY package.json yarn.lock ./
 RUN \
   apk --update add --virtual .buildDeps \
     build-base \
-    python \
+    python3 \
     git \
     curl \
     openssl \

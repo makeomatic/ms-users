@@ -1,8 +1,6 @@
 const { assert } = require('chai');
 const { once } = require('events');
 const sinon = require('sinon');
-
-const { CloudflareWorker } = require('../../../../src/utils/cloudflare/worker');
 const Users = require('../../../../src');
 
 const { nockCfApi, restoreCfApi } = require('../../../helpers/cloudflare/api-stub');

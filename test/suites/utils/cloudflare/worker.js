@@ -34,12 +34,12 @@ describe('#cloudflare access-list worker', () => {
         },
       },
     });
-    const startSpy = sinon.spy(CloudflareWorker.prototype, 'start');
 
     await this.users.connect();
     await this.users.cfAccessList.cfApi.createList('test_worker_test_list');
 
     const { cfWorker } = this.users;
+    const startSpy = sinon.spy(cfWorker, 'start');
     assert(cfWorker.next instanceof Timeout);
 
     await once(cfWorker, 'done');

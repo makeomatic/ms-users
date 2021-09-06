@@ -31,8 +31,8 @@ module.exports = {
     providers: {
       facebook: {
         enabled: true,
-        clientId: process.env.FACEBOOK_CLIENT_ID,
-        clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+        clientId: process.env.FACEBOOK_CLIENT_ID || '-------------------',
+        clientSecret: process.env.FACEBOOK_CLIENT_SECRET || '------------------',
         location: 'https://ms-users.local',
         password: 'lB4wlZByzpp2R9mGefiLeaZUwVooUuX7G7uctaoeNgxvUs3W',
         apiVersion: 'v8.0',

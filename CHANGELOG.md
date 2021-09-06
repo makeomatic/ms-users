@@ -1,3 +1,10 @@
+## [14.21.2](https://github.com/makeomatic/ms-users/compare/v14.21.1...v14.21.2) (2021-09-06)
+
+
+### Bug Fixes
+
+* glob as dep ([b44034a](https://github.com/makeomatic/ms-users/commit/b44034af228dc41edc2cd3fb24c35e77da387d6b))
+
 ## [14.21.1](https://github.com/makeomatic/ms-users/compare/v14.21.0...v14.21.1) (2021-09-06)
 
 

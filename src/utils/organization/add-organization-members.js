@@ -1,7 +1,7 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
-const redisKey = require('../key.js');
+const redisKey = require('../key');
 const getUserId = require('../userData/get-user-id');
 const sendInviteMail = require('./send-invite-email');
 const getInternalData = require('./get-internal-data');
@@ -14,8 +14,8 @@ const {
   ORGANIZATIONS_ID_FIELD,
   USERS_ACTION_ORGANIZATION_REGISTER,
   USERS_ACTION_ORGANIZATION_ADD,
-} = require('../../constants.js');
-const generateEmail = require('../challenges/email/generate.js');
+} = require('../../constants');
+const generateEmail = require('../challenges/email/generate');
 
 const JSONStringify = (data) => JSON.stringify(data);
 

@@ -2,12 +2,12 @@ const { deepStrictEqual, strictEqual } = require('assert');
 const { expect } = require('chai');
 const { inspectPromise } = require('@makeomatic/deploy');
 
-const redisKey = require('../../../src/utils/key.js');
+const redisKey = require('../../../src/utils/key');
 const simpleDispatcher = require('../../helpers/simple-dispatcher');
 
 describe('#updatePassword', function updatePasswordSuite() {
-  const challenge = require('../../../src/utils/challenges/challenge.js');
-  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../../src/constants.js');
+  const challenge = require('../../../src/utils/challenges/challenge');
+  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../../src/constants');
 
   const username = 'v@makeomatic.ru';
   const password = '123';

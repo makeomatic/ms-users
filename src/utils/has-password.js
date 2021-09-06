@@ -1,7 +1,7 @@
 const Errors = require('common-errors');
 const is = require('is');
 const Promise = require('bluebird');
-const { USERS_PASSWORD_FIELD } = require('../constants.js');
+const { USERS_PASSWORD_FIELD } = require('../constants');
 
 function hasPassword(data) {
   if (is.undefined(data[USERS_PASSWORD_FIELD]) === true) {

@@ -3,7 +3,7 @@ const { HttpStatusError } = require('common-errors');
 const {
   INVITATIONS_INDEX,
   USERS_ACTION_INVITE,
-} = require('../constants.js');
+} = require('../constants');
 
 /**
  * @api {amqp} <prefix>.invite-remove Generate User Invitation

@@ -7,7 +7,7 @@ const {
   USERS_REFERRAL_INDEX,
   USERS_REFERRAL_FIELD,
   USERS_METADATA,
-} = require('../../constants.js');
+} = require('../../constants');
 
 const SCRIPT = fs.readFileSync(`${__dirname}/migrate.lua`, 'utf8');
 

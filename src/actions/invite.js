@@ -1,12 +1,12 @@
 const Promise = require('bluebird');
-const generateEmail = require('../utils/challenges/email/generate.js');
+const generateEmail = require('../utils/challenges/email/generate');
 const {
   INVITATIONS_INDEX,
   TOKEN_METADATA_FIELD_METADATA,
   TOKEN_METADATA_FIELD_CONTEXT,
   TOKEN_METADATA_FIELD_SENDED_AT,
   USERS_ACTION_INVITE,
-} = require('../constants.js');
+} = require('../constants');
 
 /**
  * @api {amqp} <prefix>.invite Generate User Invitation

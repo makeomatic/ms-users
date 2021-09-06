@@ -1,7 +1,7 @@
 /* eslint-disable no-mixed-operators */
 const Promise = require('bluebird');
 const generatePassword = require('password-generator');
-const redisKey = require('../key.js');
+const redisKey = require('../key');
 const handlePipeline = require('../pipeline-error');
 const {
   USERS_CREATED_FIELD,
@@ -13,7 +13,7 @@ const {
   USERS_USERNAME_TO_ID,
   USERS_INDEX,
   USERS_ID_FIELD,
-} = require('../../constants.js');
+} = require('../../constants');
 const scrypt = require('../scrypt');
 const setMetadata = require('../update-metadata');
 

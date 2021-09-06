@@ -1,8 +1,8 @@
 const { ActionTransport } = require('@microfleet/core');
 const { HttpStatusError } = require('common-errors');
 const Promise = require('bluebird');
-const redisKey = require('../utils/key.js');
-const jwt = require('../utils/jwt.js');
+const redisKey = require('../utils/key');
+const jwt = require('../utils/jwt');
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const handlePipeline = require('../utils/pipeline-error');
@@ -19,7 +19,7 @@ const {
   USERS_USERNAME_FIELD,
   USERS_ACTION_ACTIVATE,
   USERS_ACTIVATED_FIELD,
-} = require('../constants.js');
+} = require('../constants');
 
 // cache error
 const Forbidden = new HttpStatusError(403, 'invalid token');

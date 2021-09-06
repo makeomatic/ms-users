@@ -8,7 +8,7 @@ const {
   USERS_METADATA,
   USERS_CREATED_FIELD,
   USERS_NEXT_CYCLE_FIELD,
-} = require('../../constants.js');
+} = require('../../constants');
 
 const SCRIPT = fs.readFileSync(`${__dirname}/migrate.lua`, 'utf8');
 

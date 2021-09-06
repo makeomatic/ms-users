@@ -3,7 +3,7 @@ const path = require('path');
 const exec = require('../../helpers/exec');
 
 describe('binary: batch-register', function suite() {
-  const binaryPath = path.resolve(__dirname, '../../../bin/batch-register.js');
+  const binaryPath = path.resolve(__dirname, '../../../bin/batch-register');
 
   before(global.startService);
   after(global.clearRedis);

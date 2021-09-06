@@ -2,7 +2,7 @@ const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const { expect } = require('chai');
 const ld = require('lodash');
-const redisKey = require('../../../src/utils/key.js');
+const redisKey = require('../../../src/utils/key');
 
 describe('#list', function listSuite() {
   this.timeout(50000);

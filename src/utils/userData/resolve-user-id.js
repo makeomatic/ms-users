@@ -1,4 +1,4 @@
-const makeKey = require('../key.js');
+const makeKey = require('../key');
 const {
   USERS_ID_FIELD,
   USERS_ALIAS_TO_ID,

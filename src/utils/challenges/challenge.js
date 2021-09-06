@@ -1,10 +1,10 @@
 const partial = require('lodash/partial');
 const moment = require('moment');
-const generateEmail = require('./email/generate.js');
+const generateEmail = require('./email/generate');
 const {
   CHALLENGE_TYPE_EMAIL,
   CHALLENGE_TYPE_PHONE,
-} = require('../../constants.js');
+} = require('../../constants');
 const DetailedHttpStatusError = require('../detailed-error');
 const sendSms = require('./phone/send');
 

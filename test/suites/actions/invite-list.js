@@ -12,7 +12,7 @@ describe('#invite', function registerSuite() {
     TOKEN_METADATA_FIELD_METADATA,
     TOKEN_METADATA_FIELD_SENDED_AT,
     TOKEN_METADATA_FIELD_CONTEXT,
-  } = require('../../../src/constants.js');
+  } = require('../../../src/constants');
 
   before(function init() {
     return Promise.all(times(100, (n) => this.dispatch('users.invite', {

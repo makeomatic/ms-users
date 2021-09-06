@@ -2,4 +2,4 @@
  * Exports users service
  * @return {Users}
  */
-module.exports = require('./users.js');
+module.exports = require('./users');

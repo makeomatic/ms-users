@@ -1,5 +1,5 @@
 const { HttpStatusError } = require('common-errors');
-const { USERS_ALIAS_TO_ID } = require('../constants.js');
+const { USERS_ALIAS_TO_ID } = require('../constants');
 
 async function resolveAlias(alias) {
   const userId = await this.redis.hget(USERS_ALIAS_TO_ID, alias);

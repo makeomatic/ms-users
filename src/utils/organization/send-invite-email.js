@@ -1,4 +1,4 @@
-const generateEmail = require('../challenges/email/generate.js');
+const generateEmail = require('../challenges/email/generate');
 const {
   organizationInvite,
   inviteId,
@@ -6,7 +6,7 @@ const {
   TOKEN_METADATA_FIELD_SENDED_AT,
   USERS_ACTION_ORGANIZATION_INVITE,
   TOKEN_METADATA_FIELD_METADATA,
-} = require('../../constants.js');
+} = require('../../constants');
 
 module.exports = async function sendInviteMail(params, action = USERS_ACTION_ORGANIZATION_INVITE) {
   const { redis, tokenManager } = this;

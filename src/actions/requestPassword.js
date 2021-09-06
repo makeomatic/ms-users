@@ -10,7 +10,7 @@ const {
   USERS_ACTION_RESET,
   USERS_ID_FIELD,
   USERS_USERNAME_FIELD,
-} = require('../constants.js');
+} = require('../constants');
 
 /**
  * @api {amqp} <prefix>.requestPassword Reset Password

@@ -8,7 +8,7 @@ const redisKey = require('../../../src/utils/key');
 describe('#requestPassword', function requestPasswordSuite() {
   const username = 'v@makeomatic.ru';
   const audience = 'requestPassword';
-  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../../src/constants.js');
+  const { USERS_BANNED_FLAG, USERS_ACTIVE_FLAG, USERS_DATA } = require('../../../src/constants');
 
   let userId;
 

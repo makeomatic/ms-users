@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const calcSlot = require('cluster-key-slot');
-const { USERS_REFERRAL_INDEX } = require('../../constants.js');
+const { USERS_REFERRAL_INDEX } = require('../../constants');
 const { getUserId } = require('../../utils/userData');
 
 /**

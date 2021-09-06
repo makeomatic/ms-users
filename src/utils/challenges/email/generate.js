@@ -16,7 +16,7 @@ const {
   USERS_ACTION_ORGANIZATION_INVITE,
   USERS_ACTION_ORGANIZATION_REGISTER,
   USERS_ACTION_ORGANIZATION_ADD,
-} = require('../../../constants.js');
+} = require('../../../constants');
 
 // will be replaced later
 const { placeholder } = partial;

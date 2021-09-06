@@ -1,4 +1,4 @@
-const redisKey = require('../key.js');
+const redisKey = require('../key');
 const {
   ORGANIZATIONS_ID_FIELD,
   ORGANIZATIONS_DATA,

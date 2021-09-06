@@ -1,6 +1,6 @@
 // This migrations adds external ids to the existings users
 //
-const { USERS_ALIAS_TO_ID } = require('../../constants.js');
+const { USERS_ALIAS_TO_ID } = require('../../constants');
 
 // migration configuration
 exports.min = 0;

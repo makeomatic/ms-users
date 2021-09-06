@@ -1,13 +1,13 @@
 const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/core');
 const mapValues = require('lodash/mapValues');
-const redisKey = require('../utils/key.js');
+const redisKey = require('../utils/key');
 const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipeline-error');
 const {
   USERS_DATA, USERS_METADATA,
   USERS_BANNED_FLAG, USERS_TOKENS, USERS_BANNED_DATA,
-} = require('../constants.js');
+} = require('../constants');
 
 // helper
 const stringify = (data) => JSON.stringify(data);

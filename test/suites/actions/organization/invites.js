@@ -4,7 +4,7 @@ const assert = require('assert');
 const faker = require('faker');
 const sinon = require('sinon');
 const { createOrganization } = require('../../../helpers/organization');
-const generateEmail = require('../../../../src/utils/challenges/email/generate.js');
+const generateEmail = require('../../../../src/utils/challenges/email/generate');
 
 describe('#invite organization', function registerSuite() {
   this.timeout(50000);

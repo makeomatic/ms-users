@@ -39,7 +39,7 @@ describe('#verify', function verifySuite() {
   });
 
   describe('valid token', function suite() {
-    const jwt = require('../../../src/utils/jwt.js');
+    const jwt = require('../../../src/utils/jwt');
 
     beforeEach(async function pretest() {
       const { user } = await this.dispatch('users.register', {

@@ -10,13 +10,13 @@ const {
   USERS_PUBLIC_INDEX,
   USERS_REFERRAL_INDEX,
   USERS_METADATA,
-} = require('../constants.js');
+} = require('../constants');
 
 // helper
 const JSONParse = (data) => JSON.parse(data);
 
 // fetches basic ids
-function fetchIds() {
+async function fetchIds() {
   const {
     redis,
     keys,
@@ -26,6 +26,16 @@ function fetchIds() {
 
   // ensure that we have keyOnly set to true, otherwise undefined
   if (keyOnly) args.push('1');
+
+  /**
+   * args -> [criteria, order, strFilter, currentTime, offset, limit, expiration, keyOnly]
+   */
+  const preFilter = [...args];
+  preFilter[2] = '{}';
+  const result = await redis.fsort(keys, preFilter);
+  if (args[2] === '{}') {
+    return result;
+  }
 
   return redis.fsort(keys, args);
 }

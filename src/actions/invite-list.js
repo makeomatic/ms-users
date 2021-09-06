@@ -4,7 +4,7 @@ const is = require('is');
 const {
   INVITATIONS_INDEX,
   USERS_ACTION_INVITE,
-} = require('../constants.js');
+} = require('../constants');
 
 /**
  * @api {amqp} <prefix>.invite-list Retrieve list of sent invitations

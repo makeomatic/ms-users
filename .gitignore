@@ -42,3 +42,4 @@ ss
 # Other files
 .vscode
 .npmrc
+/.idea

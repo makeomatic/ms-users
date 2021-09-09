@@ -37,6 +37,8 @@ async function getMember({ params }) {
 
   return {
     data: {
+      id: member.id,
+      type: 'organizationMember',
       attributes: member,
     },
   };

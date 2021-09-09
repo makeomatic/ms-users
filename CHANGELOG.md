@@ -1,3 +1,10 @@
+## [14.21.3](https://github.com/makeomatic/ms-users/compare/v14.21.2...v14.21.3) (2021-09-09)
+
+
+### Bug Fixes
+
+* add id and type to getMember() ([#524](https://github.com/makeomatic/ms-users/issues/524)) ([884dcf7](https://github.com/makeomatic/ms-users/commit/884dcf7eff95ba14d412f52db362658534706c9d))
+
 ## [14.21.2](https://github.com/makeomatic/ms-users/compare/v14.21.1...v14.21.2) (2021-09-06)
 
 

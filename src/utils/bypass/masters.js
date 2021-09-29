@@ -1,7 +1,6 @@
 const got = require('got');
 const { Agent: HttpsAgent } = require('https');
 const { HttpStatusError } = require('common-errors');
-const assert = require('assert');
 const { pick } = require('lodash');
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists } = require('../../constants');
 const contacts = require('../contacts');
@@ -37,6 +36,9 @@ class MastersService {
           keepAlive: true,
           maxFreeSockets: 32,
         }),
+      },
+      headers: {
+        'User-Agent': 'got',
       },
     });
     this.registerUser = this.registerUser.bind(this);
@@ -130,9 +132,7 @@ class MastersService {
         method: 'GET',
       });
 
-      assert(!body.hasError);
-
-      response = body.data;
+      response = body;
     } catch (e) {
       this.service.log.warn({ err: e }, 'failed to get user from masters');
       throw USERS_INVALID_TOKEN;

@@ -73,7 +73,9 @@ class MastersService {
       skipPassword: true,
       metadata: {
         ...pick(userProfile, MastersService.sharedFields),
-        external_id: userProfile.userId,
+        masters: {
+          id: userProfile.userId,
+        },
       },
     };
 

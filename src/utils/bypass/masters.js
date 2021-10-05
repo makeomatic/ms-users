@@ -8,8 +8,12 @@ const contacts = require('../contacts');
 const schema = {
   $id: 'masters.profile',
   type: 'object',
-  required: ['firstName', 'lastName', 'email'],
+  required: ['userId', 'firstName', 'lastName', 'email'],
   properties: {
+    userId: {
+      type: 'string',
+      format: 'uuid',
+    },
     firstName: {
       type: 'string',
     },
@@ -18,6 +22,7 @@ const schema = {
     },
     email: {
       type: 'string',
+      format: 'email',
     },
   },
 };

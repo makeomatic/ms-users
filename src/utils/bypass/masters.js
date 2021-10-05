@@ -65,6 +65,11 @@ class MastersService {
     }
   }
 
+  /**
+   * register user
+   * @param {object} userProfile
+   * @returns {Promise<{status: boolean, data?: object}>}
+   */
   async registerUser(userProfile) {
     const params = {
       activate: true, // externally validated, no challenge
@@ -80,36 +85,34 @@ class MastersService {
     };
 
     try {
-      return await this.service.dispatch('register', { params });
+      const userData = await this.service.dispatch('register', { params });
+      return { status: true, data: userData };
     } catch (e) {
-      // if user is already registered - that is fine, sign in
-      // but if not - irrecoverable error
-      if (e.code !== ErrorConflictUserExists.code) {
-        this.service.log.error({ err: e }, 'failed to register masters user');
-        throw e;
+      // normal situation: user already exists
+      if (e.code === ErrorConflictUserExists.code) {
+        return { status: false };
       }
+      this.service.log.error({ err: e }, 'failed to register masters user');
+      throw e;
     }
-
-    return false;
   }
 
   async registerAndLogin(userProfile) {
     // must be able to lock
     try {
-      const registeredUser = await this.service.dlock.fanout(
+      const { status, data } = await this.service.dlock.fanout(
         lockBypass('masters', MastersService.userId(userProfile)),
         5000,
         this.registerUser,
         userProfile
       );
 
-      if (registeredUser) {
+      if (status) {
         await contacts.add.call(this.service, {
           contact: { type: 'email', value: userProfile.email },
-          userId: registeredUser.id,
+          userId: data.id,
         });
-
-        return registeredUser;
+        return data;
       }
     } catch (e) {
       this.service.log.error({ err: e }, 'masters registration failed');
@@ -134,7 +137,6 @@ class MastersService {
       const { body } = await this.req(`${baseUrl}${config.authUrl}?token=${profileToken}`, {
         method: 'GET',
       });
-
       response = body;
     } catch (e) {
       this.service.log.warn({ err: e }, 'failed to get user from masters');

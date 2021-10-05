@@ -56,7 +56,7 @@ describe('/bypass/pump-jack', function verifySuite() {
       console.info('%j', second.body);
     });
 
-    it('rejects on invalidd session uid', async () => {
+    it('rejects on invalid session uid', async () => {
       await assert.rejects(msUsers.post({ json: { ...msg, userKey: 'invalid' } }), (e) => {
         assert.deepStrictEqual(e.response.body, {
           statusCode: 403,

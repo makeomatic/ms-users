@@ -47,16 +47,18 @@ describe('/bypass/masters', function verifySuite() {
     after(() => global.clearRedis());
 
     it('signs in with valid session, non-existent user', async () => {
-      const pristine = await msUsers.post({ json: msg });
-      console.info('%j', pristine.body);
+      const reply = await msUsers.post({ json: msg });
+      console.info('%j', reply.body);
+      assert(reply.body.jwt);
     });
 
     it('signs in with valid session, existing user', async () => {
-      const second = await msUsers.post({ json: msg });
-      console.info('%j', second.body);
+      const reply = await msUsers.post({ json: msg });
+      console.info('%j', reply.body);
+      assert(reply.body.jwt);
     });
 
-    it('rejects on invalidd session uid', async () => {
+    it('rejects on invalid session uid', async () => {
       await assert.rejects(msUsers.post({ json: { ...msg, userKey: 'invalid' } }), (e) => {
         assert.deepStrictEqual(e.response.body, {
           statusCode: 403,

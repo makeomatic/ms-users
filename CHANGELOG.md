@@ -1,3 +1,10 @@
+# [14.23.0](https://github.com/makeomatic/ms-users/compare/v14.22.0...v14.23.0) (2021-10-06)
+
+
+### Features
+
+* add masters to bypass ([#527](https://github.com/makeomatic/ms-users/issues/527)) ([ffc6985](https://github.com/makeomatic/ms-users/commit/ffc6985e88eadfa9eb94401f7acf0d39555de202))
+
 # [14.22.0](https://github.com/makeomatic/ms-users/compare/v14.21.3...v14.22.0) (2021-09-28)
 
 

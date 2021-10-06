@@ -9,4 +9,13 @@ exports.bypass = {
       },
     },
   },
+  masters: {
+    enabled: false,
+    authUrl: '/auth/services/id/validateToken',
+    credentials: {
+      imcf: {
+        baseUrl: 'https://simulation.masters.com',
+      },
+    },
+  },
 };

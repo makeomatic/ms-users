@@ -7,14 +7,14 @@ const msUsers = got.extend({
   https: { rejectUnauthorized: false },
 });
 
-describe('/bypass/pump-jack', function verifySuite() {
-  const profileToken = process.env.PUMP_JACK_PROFILE_TOKEN;
+describe('/bypass/masters', function verifySuite() {
+  const profileToken = process.env.MASTERS_PROFILE_TOKEN;
   const msg = {
-    schema: 'pumpJack:imcf',
+    schema: 'masters:imcf',
     userKey: profileToken,
   };
 
-  describe('pump-jack disabled', () => {
+  describe('masters disabled', () => {
     before(() => global.startService());
     after(() => global.clearRedis());
 
@@ -23,7 +23,7 @@ describe('/bypass/pump-jack', function verifySuite() {
         assert.deepStrictEqual(e.response.body, {
           statusCode: 412,
           error: 'Precondition Failed',
-          message: 'pumpJack auth disabled',
+          message: 'masters auth disabled',
           name: 'HttpStatusError',
         });
         return true;
@@ -31,10 +31,10 @@ describe('/bypass/pump-jack', function verifySuite() {
     });
   });
 
-  describe('pump-jack enabled', () => {
+  describe('masters enabled', () => {
     before(() => global.startService({
       bypass: {
-        pumpJack: {
+        masters: {
           enabled: true,
         },
       },
@@ -47,13 +47,15 @@ describe('/bypass/pump-jack', function verifySuite() {
     after(() => global.clearRedis());
 
     it('signs in with valid session, non-existent user', async () => {
-      const pristine = await msUsers.post({ json: msg });
-      console.info('%j', pristine.body);
+      const reply = await msUsers.post({ json: msg });
+      console.info('%j', reply.body);
+      assert(reply.body.jwt);
     });
 
     it('signs in with valid session, existing user', async () => {
-      const second = await msUsers.post({ json: msg });
-      console.info('%j', second.body);
+      const reply = await msUsers.post({ json: msg });
+      console.info('%j', reply.body);
+      assert(reply.body.jwt);
     });
 
     it('rejects on invalid session uid', async () => {

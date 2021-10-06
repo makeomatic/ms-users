@@ -143,6 +143,13 @@ class Users extends Microfleet {
       }, 'bypass.pumpJack');
     }
 
+    if (this.config.bypass.masters.enabled) {
+      this.addConnector(ConnectorsTypes.essential, () => {
+        const MastersService = require('./utils/bypass/masters');
+        this.bypass.masters = new MastersService(this);
+      });
+    }
+
     if (this.config.cfAccessList.enabled) {
       if (!this.hasPlugin('consul')) {
         const consul = require('@microfleet/plugin-consul');

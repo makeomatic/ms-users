@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "revoke-rule.get",
+  "type": "object",
+  "required": [ "rule" ],
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rule": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

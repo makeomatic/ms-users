@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "revoke-rule.update",
+  "type": "object",
+  "required": [ "rule" ],
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "params": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "type": "object",
+            "description": "Rule spec for Radix filter"
+          }
+        }
+      }
+    }
+  }
+}

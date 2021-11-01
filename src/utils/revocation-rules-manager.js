@@ -8,28 +8,37 @@ const DONE_EVENT = 'ir-job-done';
 
 const TRX_LIMIT = 64;
 
-const userRule = (userId, ruleId) => `u:${userId}:${ruleId}`;
-const globalRule = (ruleId) => `g:${ruleId}`;
+const userRule = (userId, ruleId) => `u/${userId}/${ruleId}`;
+const globalRule = (ruleId) => `g/${ruleId}`;
+const extractId = (consulRule) => consulRule.Key.split('/').pop();
+const extractRule = (consulRule) => ({
+  rule: extractId(consulRule),
+  params: {
+    ...JSON.parse(consulRule.Value),
+    ttl: consulRule.Flags,
+  },
+});
 
 class RevocationRulesManager {
-  constructor(service, log) {
-    this.service = service;
-    this.consul = service.consul;
+  constructor(config, whenLeader, consul, log) {
     this.log = log;
-
+    this.consul = consul;
     this.prefix = KEY_PREFIX_INVOCATION_RULES;
     this.expireJob = null;
+    this.config = config;
+    this.whenLeader = whenLeader;
   }
 
   _getKey(key) {
-    return `${this.prefix}/${key}`;
+    return `${this.prefix}${key}`;
   }
 
-  async list(prefix) {
-    return this.consul.kv.get({
+  async list(prefix = '', recurse = true) {
+    const params = {
       key: this._getKey(prefix),
-      recurse: true,
-    });
+      recurse,
+    };
+    return this.consul.kv.get(params);
   }
 
   async get(key) {
@@ -38,57 +47,64 @@ class RevocationRulesManager {
     });
   }
 
-  async set(key, obj, flag = 0) {
-    return this.consul.set({
+  async set(key, obj, flags = 0) {
+    const response = await this.consul.kv.set({
       key: this._getKey(key),
       value: obj,
-      flag,
+      flags,
     });
+
+    return response;
   }
 
   async batchDelete(keys) {
-    return this.batchDelete(keys.map((k) => this._getKey(k)));
+    return this._batchDelete(keys.map((k) => this._getKey(k)));
   }
 
   async _batchDelete(keys) {
     assert(Array.isArray(keys), 'keys should be array');
 
     if (keys.length === 0) return null;
+    const operations = keys.map((k) => ({
+      KV: {
+        Verb: 'delete-tree',
+        Key: k.replace(/\/$/, ''),
+      },
+    }));
+    const result = await this.consul.transaction.create(operations);
 
-    return this.consul.transaction.create({
-      operations: keys.map((k) => ({
-        KV: {
-          Verb: 'delete',
-          Key: k,
-        },
-      })),
-    });
+    return result;
   }
 
-  async expire(prefix, ttl) {
-    const allKeys = await this.list(this._getKey(prefix));
-    const expiredKeys = allKeys.filter(({ flags }) => flags > 0 && flags < ttl);
+  async expire(ttl) {
+    const allKeys = await this.list();
+    const expiredKeys = allKeys
+      .filter(({ Flags }) => Flags > 0 && Flags < ttl)
+      .map(({ Key }) => Key);
 
     const chunks = chunk(expiredKeys, TRX_LIMIT);
 
-    const promises = chunks.map((c) => this.batchDelete(c).catch((err) => {
-      this.log.info({ err }, 'Batch delete error');
-    }));
+    const promises = chunks
+      .map((c) => this._batchDelete(c).catch((err) => {
+        this.log.info({ err }, 'Batch delete error');
+      }));
 
     await Promise.all(promises);
   }
 
   async scheduleExpire() {
     try {
-      if (await this.service.whenLeader()) {
+      if (await this.whenLeader()) {
+        this.log.debug('performing rule cleanup');
         this.active = true;
-        this.expire('', Date.now());
+
+        await this.expire(Date.now());
       }
     } catch (err) {
       this.log({ err }, 'recurrent expire job error');
     } finally {
       this.active = false;
-      this.expireJob = setTimeout(() => {}, 10000);
+      this.expireJob = setTimeout(this.scheduleExpire.bind(this), this.config.cleanupInterval);
       this.service.emit(DONE_EVENT);
     }
   }
@@ -109,4 +125,6 @@ module.exports = {
   RevocationRulesManager,
   userRule,
   globalRule,
+  extractId,
+  extractRule,
 };

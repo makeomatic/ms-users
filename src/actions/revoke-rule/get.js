@@ -1,13 +1,19 @@
 const { ActionTransport } = require('@microfleet/core');
-const { userRule, globalRule } = require('../../utils/revocation-rules-manager');
+const { NotFoundError } = require('common-errors');
+const { userRule, globalRule, extractRule } = require('../../utils/revocation-rules-manager');
 
 async function getRevokeRule({ params }) {
   const { revocationRulesManager } = this;
-  const { user, rule } = params;
+  const { username, rule } = params;
 
-  const ruleKey = user ? userRule(user, rule) : globalRule(rule);
+  const ruleKey = username ? userRule(username, rule) : globalRule(rule);
 
-  return revocationRulesManager.get(ruleKey);
+  const dbRule = await revocationRulesManager.get(ruleKey);
+  if (!dbRule) {
+    throw NotFoundError(`rule: ${rule}: ${ruleKey}`);
+  }
+
+  return extractRule(dbRule);
 }
 
 getRevokeRule.transports = [ActionTransport.amqp, ActionTransport.internal];

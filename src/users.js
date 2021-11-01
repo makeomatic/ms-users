@@ -182,7 +182,7 @@ class Users extends Microfleet {
   }
 
   initConsul() {
-    if (!this.hasPlugin('consul')) {
+    if (!this.hasPlugin('consul') && !this.consul) {
       const consul = require('@microfleet/plugin-consul');
       this.initPlugin(consul, this.config.consul);
     }
@@ -205,20 +205,22 @@ class Users extends Microfleet {
   }
 
   initRevocationRulesManager() {
-    if (!this.consul) {
-      this.initConsul();
-    }
+    this.initConsul();
 
     const pluginName = 'RevocationRulesManager';
-    this.revocationRulesManager = new RevocationRulesManager(this.consul, this.log);
-    if (this.config.revocationRulesManager.enableJobs) {
-      this.addConnector(ConnectorsTypes.application, () => {
-        this.revocationRulesManager.startRecurrentJobs();
-      }, pluginName);
-      this.addDestructor(ConnectorsTypes.application, async () => {
-        await this.revocationRulesManager.stopRecurrentJobs();
-      }, pluginName);
-    }
+    const { jobsEnabled } = this.config.revocationRulesManager;
+
+    this.addConnector(ConnectorsTypes.application, () => {
+      this.revocationRulesManager = new RevocationRulesManager(
+        this.config.revocationRulesManager, this.whenLeader.bind(this),
+        this.consul, this.log
+      );
+      if (jobsEnabled) this.revocationRulesManager.startRecurrentJobs();
+    }, pluginName);
+
+    this.addDestructor(ConnectorsTypes.application, async () => {
+      await this.revocationRulesManager.stopRecurrentJobs();
+    }, pluginName);
   }
 }
 

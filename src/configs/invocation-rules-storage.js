@@ -7,6 +7,7 @@ exports.invocationRulesStorage = {
 };
 
 exports.revocationRulesManager = {
-  enabled: true,
-  enableJobs: true,
+  enabled: false,
+  jobsEnabled: false,
+  cleanupInterval: 10 * 60 * 1000, // 10 minutes
 };

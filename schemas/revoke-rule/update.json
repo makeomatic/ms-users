@@ -3,6 +3,7 @@
   "$id": "revoke-rule.update",
   "type": "object",
   "required": [ "rule" ],
+  "additionalProperties": false,
   "properties": {
     "username": {
       "type": "string",
@@ -10,18 +11,17 @@
     },
     "rule": {
       "type": "object",
+      "required": [ "params" ],
+      "additionalProperties": false,
       "properties": {
         "id": {
           "type": "string",
           "minLength": 1
         },
         "params": {
-          "type": "array",
-          "minItems": 0,
-          "items": {
-            "type": "object",
-            "description": "Rule spec for Radix filter"
-          }
+          "type": "object",
+          "description": "Rule spec for Radix filter",
+          "minProperties": 1
         }
       }
     }

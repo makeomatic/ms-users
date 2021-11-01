@@ -3,6 +3,7 @@
   "$id": "revoke-rule.delete",
   "type": "object",
   "required": [ "rule" ],
+  "additionalProperties": false,
   "properties": {
     "username": {
       "type": "string",

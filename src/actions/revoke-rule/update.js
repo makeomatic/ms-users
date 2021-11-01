@@ -3,11 +3,11 @@ const { userRule, globalRule } = require('../../utils/revocation-rules-manager')
 
 async function createOrUpdateRevokeRule({ params }) {
   const { revocationRulesManager } = this;
-  const { user, rule } = params;
+  const { username, rule: { id, params: ruleParams } } = params;
 
-  const ruleKey = user ? userRule(user, rule) : globalRule(rule);
+  const ruleKey = username ? userRule(username, id) : globalRule(id);
 
-  return revocationRulesManager.set(ruleKey, rule);
+  return revocationRulesManager.set(ruleKey, ruleParams, ruleParams.ttl);
 }
 
 createOrUpdateRevokeRule.transports = [ActionTransport.amqp, ActionTransport.internal];

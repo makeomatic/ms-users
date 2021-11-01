@@ -27,6 +27,9 @@
     "url": "https://github.com/makeomatic/ms-users/issues"
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
+  "resolutions": {
+    "consul": "^0.40.0"
+  },
   "dependencies": {
     "@hapi/bell": "^12.2.0",
     "@hapi/hapi": "^20.1.2",

@@ -13,6 +13,7 @@ const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
 const { ConsulWatcher } = require('./utils/consul-watcher');
 const { InvocationRulesStorage } = require('./utils/invocation-rules-storage');
+const { InvocationRulesManager } = require('./utils/invocation-rules-manager');
 
 /**
  * @namespace Users
@@ -163,6 +164,10 @@ class Users extends Microfleet {
       this.initInvocationRulesStorage();
     }
 
+    if (this.config.invocationRulesManager.enabled) {
+      this.initInvocationRulesManager();
+    }
+
     // init account seed
     this.addConnector(ConnectorsTypes.application, () => (
       this.initAdminAccounts()
@@ -197,6 +202,23 @@ class Users extends Microfleet {
     this.addDestructor(ConnectorsTypes.application, () => {
       this.invocationRulesStorage.stopSync();
     }, pluginName);
+  }
+
+  initInvocationRulesManager() {
+    if (!this.consul) {
+      this.initConsul();
+    }
+
+    const pluginName = 'InvocationRulesManager';
+    this.invocationRulesManager = new InvocationRulesManager(this.consul, this.log);
+    if (this.config.invocationRulesManager.enableJobs) {
+      this.addConnector(ConnectorsTypes.application, () => {
+        this.invocationRulesManager.startRecurrentJobs();
+      }, pluginName);
+      this.addDestructor(ConnectorsTypes.application, async () => {
+        await this.invocationRulesStorage.stopRecurrentJobs();
+      }, pluginName);
+    }
   }
 }
 

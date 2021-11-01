@@ -5,3 +5,8 @@ exports.invocationRulesStorage = {
     backoffMax: 30000,
   },
 };
+
+exports.invocationRulesManager = {
+  enabled: true,
+  enableJobs: true,
+};

@@ -8,7 +8,10 @@ const DONE_EVENT = 'ir-job-done';
 
 const TRX_LIMIT = 64;
 
-class InvocationRulesManager {
+const userRule = (userId, ruleId) => `u:${userId}:${ruleId}`;
+const globalRule = (ruleId) => `g:${ruleId}`;
+
+class RevocationRulesManager {
   constructor(service, log) {
     this.service = service;
     this.consul = service.consul;
@@ -24,7 +27,7 @@ class InvocationRulesManager {
 
   async list(prefix) {
     return this.consul.kv.get({
-      key: prefix,
+      key: this._getKey(prefix),
       recurse: true,
     });
   }
@@ -35,10 +38,10 @@ class InvocationRulesManager {
     });
   }
 
-  async set(key, obj, flag) {
+  async set(key, obj, flag = 0) {
     return this.consul.set({
       key: this._getKey(key),
-      value: JSON.stringify(obj),
+      value: obj,
       flag,
     });
   }
@@ -64,7 +67,7 @@ class InvocationRulesManager {
 
   async expire(prefix, ttl) {
     const allKeys = await this.list(this._getKey(prefix));
-    const expiredKeys = allKeys.filter(({ flags }) => flags < ttl);
+    const expiredKeys = allKeys.filter(({ flags }) => flags > 0 && flags < ttl);
 
     const chunks = chunk(expiredKeys, TRX_LIMIT);
 
@@ -103,5 +106,7 @@ class InvocationRulesManager {
 }
 
 module.exports = {
-  InvocationRulesManager,
+  RevocationRulesManager,
+  userRule,
+  globalRule,
 };

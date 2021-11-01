@@ -6,7 +6,7 @@ exports.invocationRulesStorage = {
   },
 };
 
-exports.invocationRulesManager = {
+exports.revocationRulesManager = {
   enabled: true,
   enableJobs: true,
 };

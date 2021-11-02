@@ -7,7 +7,7 @@ const getAction = 'users.revoke-rule.get';
 const listAction = 'users.revoke-rule.list';
 const deleteAction = 'users.revoke-rule.delete';
 
-describe('#revoke-rule.* actions', () => {
+describe('#revoke-rule.* actions and RevocationRulesManager', () => {
   before('start', async () => {
     await global.startService.call(this, {
       revocationRulesManager: {
@@ -138,8 +138,6 @@ describe('ttl cleanup', () => {
         },
       },
     });
-
-    console.debug('RULE CREATED');
 
     const waitDelete = async () => {
       try {

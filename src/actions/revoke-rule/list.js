@@ -8,7 +8,7 @@ async function listRevokeRules({ params }) {
 
   const ruleKey = user ? userRule(user, '') : globalRule('');
 
-  const raw = await revocationRulesManager.list(ruleKey);
+  const raw = await revocationRulesManager.list(ruleKey, true);
   return raw.map((data) => extractRule(data));
 }
 

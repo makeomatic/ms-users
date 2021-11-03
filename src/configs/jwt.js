@@ -24,4 +24,5 @@ exports.jwt = {
       isSameSite: 'Lax',
     },
   },
+  stateless: false,
 };

@@ -10,7 +10,6 @@ const {
   USERS_TOKENS,
   USERS_API_TOKENS,
   USERS_ID_FIELD,
-  USERS_INVALID_TOKEN,
   USERS_USERNAME_FIELD,
   USERS_AUDIENCE_MISMATCH,
   USERS_MALFORMED_TOKEN,
@@ -27,23 +26,14 @@ const mapJWT = (props) => ({
   },
 });
 
-function verifyData(token, tokenOptions, extraOpts = {}) {
-  return jwt.verifyAsync(token, tokenOptions.secret, {
-    ...tokenOptions.extra,
-    ...extraOpts,
-    issuer: tokenOptions.issuer,
-    algorithms: [tokenOptions.hashingFunction],
-  });
-}
-
 /**
  * Logs user in and returns JWT and User Object
  * @param  {String}  username
  * @param  {String}  _audience
  * @return {Promise}
  */
-exports.login = function login(userId, _audience) {
-  const { redis, config, flake } = this;
+exports.login = function login(service, userId, _audience) {
+  const { redis, config, flake } = service;
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, defaultAudience, secret } = jwtConfig;
   let audience = _audience || defaultAudience;
@@ -68,18 +58,10 @@ exports.login = function login(userId, _audience) {
       lastAccessUpdated: redis.zadd(redisKey(userId, USERS_TOKENS), Date.now(), token),
       jwt: token,
       userId,
-      metadata: getMetadata.call(this, userId, audience),
+      metadata: getMetadata.call(service, userId, audience),
     })
     .then(mapJWT);
 };
-
-/**
- * Logs error & then throws
- */
-function remapInvalidTokenError(err) {
-  this.log.debug('error decoding token', err);
-  return Promise.reject(USERS_INVALID_TOKEN);
-}
 
 /**
  * Erases the token
@@ -94,13 +76,11 @@ function eraseToken(decoded) {
  * @param  {String} audience
  * @return {Promise}
  */
-exports.logout = function logout(token, audience) {
-  const { redis, config } = this;
+exports.logout = function logout(service, encodedToken, decodedToken) {
+  const { redis } = service;
 
-  return verifyData(token, config.jwt, { audience })
-    .bind(this)
-    .catch(remapInvalidTokenError)
-    .bind({ redis, token })
+  return Promise.resolve(decodedToken)
+    .bind({ redis, token: encodedToken })
     .then(eraseToken)
     .return({ success: true });
 };
@@ -109,8 +89,8 @@ exports.logout = function logout(token, audience) {
  * Removes all issued tokens for a given user
  * @param {String} username
  */
-exports.reset = function reset(userId) {
-  return this.redis.del(redisKey(userId, USERS_TOKENS));
+exports.reset = function reset(service, userId) {
+  return service.redis.del(redisKey(userId, USERS_TOKENS));
 };
 
 /**
@@ -164,20 +144,20 @@ async function verifyDecodedToken(decoded) {
  * @param  {String} [overrideSecret]
  * @return {Promise}
  */
-exports.verify = function verifyToken(token, audience, peek) {
-  const jwtConfig = this.config.jwt;
+exports.verify = function verifyToken(service, encodedToken, token, audience, peek) {
+  const jwtConfig = service.config.jwt;
   const ctx = {
     audience,
-    token,
+    token: encodedToken,
     peek,
-    redis: this.redis,
-    log: this.log,
+    redis: service.redis,
+    log: service.log,
     ttl: jwtConfig.ttl,
   };
 
-  return verifyData(token, jwtConfig)
+  return Promise
+    .resolve(token)
     .bind(ctx)
-    .catch(remapInvalidTokenError)
     .then(verifyDecodedToken);
 };
 
@@ -236,11 +216,3 @@ exports.signData = function signData(payload, tokenOptions) {
   } = tokenOptions;
   return jwt.sign(payload, secret, { ...extra, algorithm, issuer });
 };
-
-/**
- * Verify data
- * @param  {String} token
- * @param  {Object} tokenOptions
- * @return {Promise}
- */
-exports.verifyData = verifyData;

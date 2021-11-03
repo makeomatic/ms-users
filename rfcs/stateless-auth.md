@@ -1,8 +1,63 @@
 # Statefull JWT auth upgrade
 
+This feature will provide additional security to the User JWT tokens management and should not break existing intergration.
+
+### Compatibility
+
+This feature should be considered as plugin and should be easily enabled without losing any user authorisations.
+
+
+
 ## Refresh and access tokens
 
-**TBD.**
+### Refresh token
+
+Long living token, used when creating new `Access` tokens during token refresh process.
+Should be passed only to `users.refresh` and `users.logout` actions.
+
+```ts
+type RefreshToken = {
+  // global payload
+  cs: number; // token id
+  iat: number; // issued at timestamp
+  irt: number; // always 1, as it's a refresh token
+  exp: number; // expire timestamp
+
+  // app specific payload
+  aud: string; // audience
+  username: string; // userId
+}
+```
+
+#### Refresh token lifecycle
+
+* Created on `user.login`, `users.refresh`
+* Expires on `exp` date.
+* Expires on `users.refresh`.
+* Expires on `users.logout`.
+
+### Access token
+
+The token with short TTL, generally passed with all requests, except `users.refresh` and `users.logout`.
+
+```ts
+type AccessToken = {
+  cs: number;
+  iat: number;
+  exp: number;
+  rt: number; // RefreshToken id that created this token
+  
+  // app specific payload
+  aud: string; // audience
+  username: string; // userId
+}
+```
+
+#### Access token lifecycle
+
+* Created on `users.login`, `users.refresh`.
+* Always expires on `RefreshToken.exp`.
+* Expires when `RefreshToken` revoked.
 
 ## Revoke lists
 
@@ -75,21 +130,3 @@ All rules are stored in `ZSET` where `member` is stringified rule and `score` is
 * Watches specified `consul.kv` prefix and invalidates rule and result caches.
 * Provides in-memory rule search for token validation. Loads rules from Redis.
 
-## Token validation process
-
-`users.verify` endpoint should be updated and use provided `RevocationRuleStorage` to check token validation. 
-
-1. Should prepare any required data: 
-
-   ```javascript
-   const data = {
-       // ... decoded token data
-     }
-   }
-   ```
-
-2. Execute `RevocationRuleStorage.verify(userId, data): boolean` to perform validation:
-
-   - If `data` matched any of the rules, we should consider that token is invalid
-   - If there is no match - the token is valid
-   

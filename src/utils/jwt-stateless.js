@@ -6,7 +6,6 @@ const {
   USERS_USERNAME_FIELD,
   USERS_ID_FIELD,
   USERS_INVALID_TOKEN,
-  USERS_AUDIENCE_MISMATCH,
 } = require('../constants');
 
 const mapJWT = (props) => ({
@@ -35,7 +34,7 @@ const assertRefreshToken = (token) => {
 function createToken(service, audience, payload) {
   const { config, flake } = service;
   const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, secret } = jwtConfig;
+  const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
 
   const cs = flake.next();
 
@@ -47,7 +46,7 @@ function createToken(service, audience, payload) {
   };
 
   return {
-    token: jwt.sign(finalPayload, secret, { algorithm, audience, issuer: jwtConfig.issuer }),
+    token: jwt.sign(finalPayload, secret, { algorithm, audience, issuer }),
     cs,
   };
 }
@@ -107,12 +106,8 @@ async function logout(_service, token) {
   return { success: true };
 }
 
-async function verify(_service, decodedToken, audience) {
+async function verify(_service, decodedToken) {
   assertAccessToken(decodedToken);
-
-  if (audience.indexOf(decodedToken.aud) === -1) {
-    throw USERS_AUDIENCE_MISMATCH;
-  }
 
   // radix verify
   const ruleCheck = false;

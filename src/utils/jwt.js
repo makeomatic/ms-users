@@ -5,6 +5,7 @@ const jwtLib = Promise.promisifyAll(require('jsonwebtoken'));
 const {
   USERS_INVALID_TOKEN,
   USERS_ID_FIELD,
+  USERS_AUDIENCE_MISMATCH,
 } = require('../constants');
 const getMetadata = require('./get-metadata');
 
@@ -109,11 +110,15 @@ exports.verify = async function verifyToken(token, audience, peek) {
 
   assertAccessToken(decodedToken);
 
-  if (!isStatelessToken(decodedToken)) {
-    await legacyJWT.verify(this, token, decodedToken, audience, peek);
+  if (audience.indexOf(decodedToken.aud) === -1) {
+    throw USERS_AUDIENCE_MISMATCH;
   }
 
-  return statelessJWT.verify(this, decodedToken, audience);
+  if (!isStatelessToken(decodedToken)) {
+    await legacyJWT.verify(this, token, decodedToken, peek);
+  }
+
+  return statelessJWT.verify(this, decodedToken);
 };
 
 exports.reset = async function reset(userId) {

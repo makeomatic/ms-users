@@ -10,7 +10,6 @@ const {
   USERS_TOKENS,
   USERS_API_TOKENS,
   USERS_USERNAME_FIELD,
-  USERS_AUDIENCE_MISMATCH,
   USERS_MALFORMED_TOKEN,
   BEARER_USERNAME_FIELD,
   BEARER_LEGACY_USERNAME_FIELD,
@@ -76,49 +75,6 @@ exports.reset = function reset(service, userId) {
 };
 
 /**
- * Parse last access
- */
-function getLastAccess(_score) {
-  // parseResponse
-  const score = _score * 1;
-
-  // throw if token not found or expired
-  if (_score == null || Date.now() > score + this.ttl) {
-    throw new Errors.HttpStatusError(403, 'token has expired or was forged');
-  }
-
-  return score;
-}
-
-/**
- * Refreshes last access token
- */
-function refreshLastAccess() {
-  return this.redis.zadd(this.tokensHolder, Date.now(), this.token);
-}
-
-/**
- * Verify decoded token
- */
-async function verifyDecodedToken(decoded) {
-  if (this.audience.indexOf(decoded.aud) === -1) {
-    return Promise.reject(USERS_AUDIENCE_MISMATCH);
-  }
-
-  const username = decoded[USERS_USERNAME_FIELD];
-  const tokensHolder = this.tokensHolder = redisKey(username, USERS_TOKENS);
-
-  const score = await this.redis.zscore(tokensHolder, this.token);
-  const lastAccess = await getLastAccess.call(this, score);
-
-  if (!this.peek) {
-    await refreshLastAccess.call(this, lastAccess);
-  }
-
-  return decoded;
-}
-
-/**
  * Verifies token and returns decoded version of it
  * @param  {String} token
  * @param  {Array} audience
@@ -126,21 +82,23 @@ async function verifyDecodedToken(decoded) {
  * @param  {String} [overrideSecret]
  * @return {Promise}
  */
-exports.verify = function verifyToken(service, encodedToken, token, audience, peek) {
+exports.verify = async function verifyToken(service, encodedToken, token, peek) {
   const jwtConfig = service.config.jwt;
-  const ctx = {
-    audience,
-    token: encodedToken,
-    peek,
-    redis: service.redis,
-    log: service.log,
-    ttl: jwtConfig.ttl,
-  };
 
-  return Promise
-    .resolve(token)
-    .bind(ctx)
-    .then(verifyDecodedToken);
+  const username = token[USERS_USERNAME_FIELD];
+  const tokensHolder = redisKey(username, USERS_TOKENS);
+
+  const score = (await service.redis.zscore(tokensHolder, encodedToken)) * 1;
+
+  if (score == null || Date.now() > score + jwtConfig.ttl) {
+    throw new Errors.HttpStatusError(403, 'token has expired or was forged');
+  }
+
+  if (!peek) {
+    service.redis.zadd(tokensHolder, Date.now(), encodedToken);
+  }
+
+  return token;
 };
 
 /**

@@ -2,8 +2,6 @@ const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 const { HttpStatusError } = require('common-errors');
 
-const getMetadata = require('./get-metadata');
-
 const {
   USERS_USERNAME_FIELD,
   USERS_ID_FIELD,
@@ -20,22 +18,16 @@ const mapJWT = (props) => ({
   },
 });
 
-const getAudience = (audience, defaultAudience) => {
-  if (audience !== defaultAudience) {
-    return [audience, defaultAudience];
-  }
-
-  return [audience];
-};
+const isStatelessToken = (token) => !!token.st;
 
 const assertAccessToken = (token) => {
-  if (token.irt) {
+  if (token.st && token.irt) {
     throw new HttpStatusError(401, 'access token required');
   }
 };
 
 const assertRefreshToken = (token) => {
-  if (!token.irt) {
+  if (token.st && !token.irt) {
     throw new HttpStatusError(401, 'refresh token required');
   }
 };
@@ -81,31 +73,22 @@ function createAccessToken(service, refreshToken, payload, audience) {
   });
 }
 
-async function login(service, userId, _audience) {
-  const { config } = service;
-  const { jwt: { defaultAudience } } = config;
-  const audience = getAudience(_audience, defaultAudience);
-
+async function login(service, userId, audience) {
   const payload = {
     [USERS_USERNAME_FIELD]: userId,
   };
 
-  const { token: jwtRefresh } = createRefreshToken(service, payload, audience[0]);
-  const { token: accessToken } = createAccessToken(service, jwtRefresh, payload, audience[0]);
+  const { token: jwtRefresh } = createRefreshToken(service, payload, audience);
+  const { token: accessToken } = createAccessToken(service, jwtRefresh, payload, audience);
 
-  const props = await Promise.props({
+  return {
     jwt: accessToken,
     jwtRefresh,
     userId,
-    metadata: getMetadata.call(service, userId, audience),
-  });
-
-  return mapJWT(props);
+  };
 }
 
 async function refresh(service, token, audience) {
-  assertRefreshToken(token);
-
   const userId = token[USERS_USERNAME_FIELD];
   const props = await login(service, userId, audience);
 
@@ -124,7 +107,7 @@ async function logout(_service, token) {
   return { success: true };
 }
 
-async function verify(_service, audience, decodedToken) {
+async function verify(_service, decodedToken, audience) {
   assertAccessToken(decodedToken);
 
   if (audience.indexOf(decodedToken.aud) === -1) {
@@ -153,4 +136,7 @@ module.exports = {
   verify,
   reset,
   refresh,
+  assertRefreshToken,
+  assertAccessToken,
+  isStatelessToken,
 };

@@ -4,12 +4,11 @@ const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 // internal modules
 const redisKey = require('./key');
-const getMetadata = require('./get-metadata');
+
 const { verify: verifyHMAC } = require('./signatures');
 const {
   USERS_TOKENS,
   USERS_API_TOKENS,
-  USERS_ID_FIELD,
   USERS_USERNAME_FIELD,
   USERS_AUDIENCE_MISMATCH,
   USERS_MALFORMED_TOKEN,
@@ -17,26 +16,16 @@ const {
   BEARER_LEGACY_USERNAME_FIELD,
 } = require('../constants');
 
-// cache this to not recreate all the time
-const mapJWT = (props) => ({
-  jwt: props.jwt,
-  user: {
-    [USERS_ID_FIELD]: props.userId,
-    metadata: props.metadata,
-  },
-});
-
 /**
  * Logs user in and returns JWT and User Object
  * @param  {String}  username
  * @param  {String}  _audience
  * @return {Promise}
  */
-exports.login = function login(service, userId, _audience) {
+exports.login = async function login(service, userId, audience) {
   const { redis, config, flake } = service;
   const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, defaultAudience, secret } = jwtConfig;
-  let audience = _audience || defaultAudience;
+  const { hashingFunction: algorithm, secret } = jwtConfig;
 
   // will have iat field, which is when this token was issued
   // we can check last access and verify the expiration date based on it
@@ -47,20 +36,13 @@ exports.login = function login(service, userId, _audience) {
 
   const token = jwt.sign(payload, secret, { algorithm, audience, issuer: 'ms-users' });
 
-  if (audience !== defaultAudience) {
-    audience = [audience, defaultAudience];
-  } else {
-    audience = [audience];
-  }
+  const lastAccessUpdated = await redis.zadd(redisKey(userId, USERS_TOKENS), Date.now(), token);
 
-  return Promise
-    .props({
-      lastAccessUpdated: redis.zadd(redisKey(userId, USERS_TOKENS), Date.now(), token),
-      jwt: token,
-      userId,
-      metadata: getMetadata.call(service, userId, audience),
-    })
-    .then(mapJWT);
+  return {
+    lastAccessUpdated,
+    userId,
+    jwt: token,
+  };
 };
 
 /**

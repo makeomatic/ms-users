@@ -2,10 +2,19 @@ const Promise = require('bluebird');
 const { HttpStatusError } = require('common-errors');
 const jwtLib = Promise.promisifyAll(require('jsonwebtoken'));
 
+const {
+  USERS_INVALID_TOKEN,
+  USERS_ID_FIELD,
+} = require('../constants');
+const getMetadata = require('./get-metadata');
+
 const legacyJWT = require('./jwt-legacy');
 const statelessJWT = require('./jwt-stateless');
 
-const { USERS_INVALID_TOKEN } = require('../constants');
+const {
+  assertRefreshToken, assertAccessToken,
+  isStatelessToken,
+} = statelessJWT;
 
 const {
   verifyData,
@@ -18,6 +27,15 @@ module.exports = exports = {
   signData,
   internal,
 };
+
+const mapJWT = (userId, { jwt, jwtRefresh }, metadata) => ({
+  jwt,
+  jwtRefresh,
+  user: {
+    [USERS_ID_FIELD]: userId,
+    metadata,
+  },
+});
 
 /**
  * Verify data
@@ -46,40 +64,65 @@ const statelessAvailable = (service) => {
   return service.config.jwt.stateless;
 };
 
-exports.login = function login(userId, audience) {
-  if (this.config.jwt.stateless) {
-    return statelessJWT.login(this, userId, audience);
+const getAudience = (defaultAudience, audience) => {
+  if (audience !== defaultAudience) {
+    return [audience, defaultAudience];
   }
 
-  return legacyJWT.login(this, userId, audience);
+  return [audience];
+};
+
+exports.login = async function login(userId, _audience, stateless = false) {
+  const { defaultAudience } = this.config.jwt;
+
+  const audience = _audience || defaultAudience;
+  const metadataAudience = getAudience(defaultAudience, audience);
+
+  const tokenFlow = stateless
+    ? () => statelessJWT.login(this, userId, audience)
+    : () => legacyJWT.login(this, userId, audience);
+
+  const [flowResult, metadata] = await Promise.all([
+    tokenFlow(),
+    getMetadata.call(this, userId, metadataAudience),
+  ]);
+
+  return mapJWT(userId, flowResult, metadata);
 };
 
 exports.logout = async function logout(token, audience) {
   const decodedToken = await decodeAndVerify(this, token, audience);
 
-  if (statelessAvailable(this)) {
-    return statelessJWT.logout(this, decodedToken);
-  }
+  assertRefreshToken(decodedToken);
 
-  return legacyJWT.logout(this, token, decodedToken);
+  await Promise.all([
+    legacyJWT.logout(this, token, decodedToken),
+    statelessJWT.logout(this, decodedToken),
+  ]);
+
+  return { success: true };
 };
 
+// Should check old tokens and new tokens
 exports.verify = async function verifyToken(token, audience, peek) {
   const decodedToken = await decodeAndVerify(this, token, audience);
 
-  if (statelessAvailable(this)) {
-    return statelessJWT.verify(this, decodedToken, audience, peek);
+  assertAccessToken(decodedToken);
+
+  if (!isStatelessToken(decodedToken)) {
+    await legacyJWT.verify(this, token, decodedToken, audience, peek);
   }
 
-  return legacyJWT.verify(this, token, decodedToken, audience, peek);
+  return statelessJWT.verify(this, decodedToken, audience);
 };
 
-exports.reset = function reset(userId) {
-  if (this.config.jwt.stateless) {
-    return statelessJWT.reset(this, userId);
-  }
+exports.reset = async function reset(userId) {
+  const resetResult = await Promise.all([
+    statelessJWT.reset(this, userId),
+    legacyJWT.reset(this, userId),
+  ]);
 
-  return legacyJWT.reset(this, userId);
+  return resetResult;
 };
 
 exports.refresh = async function refresh(token, audience) {
@@ -88,5 +131,14 @@ exports.refresh = async function refresh(token, audience) {
   }
 
   const decodedToken = await decodeAndVerify(this, token, audience);
-  return statelessJWT.refresh(this, decodedToken, audience);
+
+  assertRefreshToken(decodedToken);
+
+  const userId = decodedToken[USERS_ID_FIELD];
+  const [refreshResult, metadata] = await Promise.all([
+    statelessJWT.refresh(this, decodedToken, audience),
+    getMetadata.call(this, userId, audience),
+  ]);
+
+  return mapJWT(userId, refreshResult, metadata);
 };

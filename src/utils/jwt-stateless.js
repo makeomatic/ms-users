@@ -51,6 +51,7 @@ function createToken(service, audience, payload) {
     ...payload,
     cs,
     iat: Date.now(),
+    st: 1,
   };
 
   return {

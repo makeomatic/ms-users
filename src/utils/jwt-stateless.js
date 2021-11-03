@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
+const { HttpStatusError } = require('common-errors');
 
 const getMetadata = require('./get-metadata');
 
@@ -27,7 +28,19 @@ const getAudience = (audience, defaultAudience) => {
   return [audience];
 };
 
-async function createToken(service, audience, payload) {
+const assertAccessToken = (token) => {
+  if (token.irt) {
+    throw new HttpStatusError(401, 'access token required');
+  }
+};
+
+const assertRefreshToken = (token) => {
+  if (!token.irt) {
+    throw new HttpStatusError(401, 'refresh token required');
+  }
+};
+
+function createToken(service, audience, payload) {
   const { config, flake } = service;
   const { jwt: jwtConfig } = config;
   const { hashingFunction: algorithm, secret } = jwtConfig;
@@ -46,22 +59,38 @@ async function createToken(service, audience, payload) {
   };
 }
 
+function createRefreshToken(service, payload, audience) {
+  const ttl = Date.now() + service.config.jwt.refreshTTL;
+  return createToken(service, audience, {
+    ...payload,
+    exp: ttl,
+    irt: 1,
+  });
+}
+
+function createAccessToken(service, refreshToken, payload, audience) {
+  const ttl = Date.now() + service.config.jwt.ttl;
+
+  return createToken(service, audience, {
+    ...payload,
+    // should not exceed refreshToken exp
+    exp: ttl > refreshToken.exp ? refreshToken.exp : ttl,
+    // refresh token id
+    rt: refreshToken.cs,
+  });
+}
+
 async function login(service, userId, _audience) {
   const { config } = service;
-  const { jwt: jwtConfig } = config;
-  const { defaultAudience } = jwtConfig;
+  const { jwt: { defaultAudience } } = config;
   const audience = getAudience(_audience, defaultAudience);
 
   const payload = {
     [USERS_USERNAME_FIELD]: userId,
   };
 
-  const { token: jwtRefresh, cs } = createToken(service, audience[0], payload);
-  const { token: accessToken } = createToken(service, audience[0], {
-    ...payload,
-    st: 1,
-    rt: cs,
-  });
+  const { token: jwtRefresh } = createRefreshToken(service, payload, audience[0]);
+  const { token: accessToken } = createAccessToken(service, jwtRefresh, payload, audience[0]);
 
   const props = await Promise.props({
     jwt: accessToken,
@@ -74,19 +103,29 @@ async function login(service, userId, _audience) {
 }
 
 async function refresh(service, token, audience) {
-  const newTokenData = await login(service, token[USERS_USERNAME_FIELD], audience);
-  // set user rule { cs: token.cs } | { rt: token.cs }
-  return newTokenData;
+  assertRefreshToken(token);
+
+  const userId = token[USERS_USERNAME_FIELD];
+  const props = await login(service, userId, audience);
+
+  // -- invalidate previous refresh token and mark all issued access tokens as invalid
+  // set user rule { rt: token.cs } || { cs: token.cs }
+
+  return mapJWT(props);
 }
 
-// expect access token
 // eslint-disable-next-line no-unused-vars
-async function logout(_service, _decodedToken) {
+async function logout(_service, token) {
+  assertRefreshToken(token);
+
+  // -- invalidate current refresh token and all tokens issued by this refresh token
   // set user rule { cs: { in: [verifiedToken.cs, verifiedToken.rt] }
   return { success: true };
 }
 
 async function verify(_service, audience, decodedToken) {
+  assertAccessToken(decodedToken);
+
   if (audience.indexOf(decodedToken.aud) === -1) {
     return Promise.reject(USERS_AUDIENCE_MISMATCH);
   }

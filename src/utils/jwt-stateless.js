@@ -127,7 +127,7 @@ async function verify(_service, audience, decodedToken) {
   assertAccessToken(decodedToken);
 
   if (audience.indexOf(decodedToken.aud) === -1) {
-    return Promise.reject(USERS_AUDIENCE_MISMATCH);
+    throw USERS_AUDIENCE_MISMATCH;
   }
 
   // radix verify

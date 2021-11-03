@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const { HttpStatusError } = require('common-errors');
 const jwtLib = Promise.promisifyAll(require('jsonwebtoken'));
 
 const legacyJWT = require('./jwt-legacy');
@@ -79,4 +80,13 @@ exports.reset = function reset(userId) {
   }
 
   return legacyJWT.reset(this, userId);
+};
+
+exports.refresh = async function refresh(token, audience) {
+  if (!statelessAvailable(this)) {
+    throw new HttpStatusError(501, '`stateless` should be enabled');
+  }
+
+  const decodedToken = await decodeAndVerify(this, token, audience);
+  return statelessJWT.refresh(this, decodedToken, audience);
 };

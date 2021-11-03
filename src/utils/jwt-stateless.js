@@ -73,6 +73,12 @@ async function login(service, userId, _audience) {
   return mapJWT(props);
 }
 
+async function refresh(service, token, audience) {
+  const newTokenData = await login(service, token[USERS_USERNAME_FIELD], audience);
+  // set user rule { cs: token.cs } | { rt: token.cs }
+  return newTokenData;
+}
+
 // expect access token
 // eslint-disable-next-line no-unused-vars
 async function logout(_service, _decodedToken) {
@@ -106,4 +112,5 @@ module.exports = {
   logout,
   verify,
   reset,
+  refresh,
 };

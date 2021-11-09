@@ -1,6 +1,14 @@
 const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
 const { ConsulWatcher } = require('./consul-watcher');
 
+const { ListFilter } = require('./radix-filter/list-filter');
+const { RadixStorage } = require('./radix-filter/storage');
+
+const newListFilter = (log) => {
+  const storage = new RadixStorage();
+  return new ListFilter(storage, log);
+};
+
 /**
  * Memory storage
  */
@@ -10,7 +18,13 @@ class RevocationRulesStorage {
     this.watchOptions = watchOptions;
     this.log = log;
     this.watchInstance = null;
-    this.rules = [];
+    this.filter = newListFilter(log);
+  }
+
+  _reloadRules(data) {
+    const newList = newListFilter(this.log);
+    newList.addRaw(data);
+    this.filter = newList;
   }
 
   startSync() {
@@ -24,7 +38,15 @@ class RevocationRulesStorage {
       KEY_PREFIX_REVOCATION_RULES,
       (data) => {
         const value = data === undefined ? [] : data;
-        this.rules = value;
+
+        const asRule = value.map(({ Key: key, Value: params }) => (
+          {
+            key: key.substring(KEY_PREFIX_REVOCATION_RULES.length),
+            params,
+          }
+        ));
+
+        this._reloadRules(asRule);
       },
       this.watchOptions
     );
@@ -38,8 +60,8 @@ class RevocationRulesStorage {
   /**
    * Raw unserialized
    */
-  getRules() {
-    return this.rules;
+  getFilter() {
+    return this.filter;
   }
 }
 

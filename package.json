@@ -85,6 +85,7 @@
     "password-generator": "^2.3.2",
     "prom-client": "^14.0.1",
     "qs": "^6.10.3",
+    "radix-trie-js": "^1.0.5",
     "redis-filtered-sort": "^2.4.0",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",

@@ -27,6 +27,68 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
     await assert.rejects(this.dispatch(deleteAction, {}), /data should have required property 'rule'/);
     await assert.rejects(this.dispatch(updateAction, {}), /data should have required property 'rule'/);
     await assert.rejects(this.dispatch(updateAction, { rule: {} }), /data.rule should have required property 'params'/);
+
+    await this.dispatch(updateAction, {
+      rule: {
+        params: {
+          _or: true,
+          uname: 'some',
+          otherFld: {
+            xf: 10, // invalid op
+          },
+        },
+      },
+    });
+
+    await assert.rejects(
+      this.dispatch(updateAction, {
+        rule: {
+          params: {
+            _or: true,
+            uname: 'some',
+            otherFld: {
+              xf: 10, // invalid op
+            },
+          },
+        },
+      }),
+      /ddbb/
+    );
+
+    await assert.rejects(
+      this.dispatch(updateAction, {
+        rule: {
+          params: {
+            _or: 1,
+          },
+        },
+      }),
+      /ddbb/
+    );
+
+    await assert.rejects(
+      this.dispatch(updateAction, {
+        rule: {
+          params: {
+            otherFld: {
+              eq: {}, // valid op, but no object match for now
+            },
+          },
+        },
+      }),
+      /ddbb/
+    );
+
+    await assert.rejects(
+      this.dispatch(updateAction, {
+        rule: {
+          params: {
+            nextFld: false, // no boolean
+          },
+        },
+      }),
+      /ddbb/
+    );
   });
 
   it('should create/update global rule', async () => {

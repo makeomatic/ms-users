@@ -12,6 +12,7 @@ const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
 const { ConsulWatcher } = require('./utils/consul-watcher');
 const { InvocationRulesStorage } = require('./utils/invocation-rules-storage');
+const { RevocationRulesManager } = require('./utils/revocation-rules-manager');
 
 /**
  * @namespace Users
@@ -142,6 +143,10 @@ class Users extends Microfleet {
       this.initInvocationRulesStorage();
     }
 
+    if (this.config.revocationRulesManager.enabled) {
+      this.initRevocationRulesManager();
+    }
+
     // init account seed
     this.addConnector(ConnectorsTypes.application, () => (
       this.initAdminAccounts()
@@ -156,7 +161,7 @@ class Users extends Microfleet {
   }
 
   initConsul() {
-    if (!this.hasPlugin('consul')) {
+    if (!this.hasPlugin('consul') && !this.consul) {
       const consul = require('@microfleet/plugin-consul');
       this.initPlugin(consul, this.config.consul);
     }
@@ -175,6 +180,25 @@ class Users extends Microfleet {
     }, pluginName);
     this.addDestructor(ConnectorsTypes.application, () => {
       this.invocationRulesStorage.stopSync();
+    }, pluginName);
+  }
+
+  initRevocationRulesManager() {
+    this.initConsul();
+
+    const pluginName = 'RevocationRulesManager';
+    const { jobsEnabled } = this.config.revocationRulesManager;
+
+    this.addConnector(ConnectorsTypes.application, () => {
+      this.revocationRulesManager = new RevocationRulesManager(
+        this.config.revocationRulesManager, this.whenLeader.bind(this),
+        this.consul, this.log
+      );
+      if (jobsEnabled) this.revocationRulesManager.startRecurrentJobs();
+    }, pluginName);
+
+    this.addDestructor(ConnectorsTypes.application, async () => {
+      await this.revocationRulesManager.stopRecurrentJobs();
     }, pluginName);
   }
 }

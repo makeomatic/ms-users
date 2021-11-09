@@ -38,7 +38,7 @@ describe('#Invocation Rules Sync', function InvocationRulesSyncSuite() {
     await kv.set(`${KEY_PREFIX_INVOCATION_RULES}003`, 'i am rule 003 updated once again');
 
     // await for the last key sync before stopping watching
-    await Bluebird.delay(1);
+    await Bluebird.delay(100);
 
     const rules = this.users.invocationRulesStorage.getRules();
     strictEqual(rules.length, 2);

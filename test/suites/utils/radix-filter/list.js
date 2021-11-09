@@ -68,7 +68,7 @@ describe('#radix-list filter', () => {
   });
 
   describe('lookupchecks', () => {
-    before(() => {
+    beforeEach(() => {
       list.addBatch([
         { key: 'gte', params: { fld: { gte: 10 } } },
         { key: 'lte', params: { fld: { lte: 10 } } },
@@ -76,6 +76,8 @@ describe('#radix-list filter', () => {
         { key: 'or-top', params: { _or: true, fld: 'bar', fld2: 'foo' } },
         { key: 'or-lower', params: { fld: { _or: true, gte: 3, lte: 7 } } },
         { key: 'strict', params: { fld: 'foo' } },
+        { key: 'regex', params: { rfld: { regex: '^hello' } } },
+        { key: 'sw', params: { swfld: { sw: 'hello' } } },
       ]);
     });
 
@@ -104,6 +106,16 @@ describe('#radix-list filter', () => {
     it('handle strict', () => {
       match('strict', { fld: 'foo' });
       match('strict', { fld: 'fo' }, false);
+    });
+
+    it('handle regex', () => {
+      match('regex', { rfld: 'hello world' });
+      match('regex', { rfld: 'bye world' }, false);
+    });
+
+    it('handle sw', () => {
+      match('sw', { swfld: 'hello world' });
+      match('sw', { swfld: 'bye world' }, false);
     });
 
     it('using empty aka global', () => {

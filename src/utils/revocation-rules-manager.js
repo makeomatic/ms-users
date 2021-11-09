@@ -34,18 +34,16 @@ const extractRule = (consulRule) => ({
  */
 class RevocationRulesManager {
   /**
-   * @param {Objec} config revocationRulesManager section
-   * @param {*} whenLeader bound microfleet.whenLeader
-   * @param {*} consul plugin-consul reference
-   * @param {*} log plugin-log
+   * @param {Object} config revocationRulesManager section
+   * @param {Microfleet} microfleet service
    */
-  constructor(config, whenLeader, consul, log) {
-    this.log = log;
-    this.consul = consul;
+  constructor(config, service) {
+    this.service = service;
+    this.log = service.log;
+    this.consul = service.consul;
     this.prefix = KEY_PREFIX_REVOCATION_RULES;
     this.expireRuleJob = null;
     this.config = config;
-    this.whenLeader = whenLeader;
   }
 
   _getKey(key) {
@@ -64,7 +62,6 @@ class RevocationRulesManager {
       recurse,
     };
     const rules = await this.consul.kv.get(params);
-    console.debug('list', params);
     return rules || [];
   }
 
@@ -74,7 +71,6 @@ class RevocationRulesManager {
    * @returns Object
    */
   async get(key) {
-    console.debug('get', this._getKey(key));
     return this.consul.kv.get({
       key: this._getKey(key),
     });
@@ -148,7 +144,7 @@ class RevocationRulesManager {
    */
   async scheduleExpire() {
     try {
-      if (await this.whenLeader()) {
+      if (await this.service.whenLeader()) {
         this.log.debug('performing rule cleanup');
         this.active = true;
 
@@ -169,7 +165,7 @@ class RevocationRulesManager {
 
   async stopRecurrentJobs() {
     if (this.active) {
-      await once(DONE_EVENT);
+      await once(this.service, DONE_EVENT);
     }
     clearTimeout(this.expireRuleJob);
   }
@@ -181,4 +177,5 @@ module.exports = {
   globalRule,
   extractId,
   extractRule,
+  DONE_EVENT,
 };

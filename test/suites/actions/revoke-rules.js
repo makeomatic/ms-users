@@ -1,6 +1,4 @@
 const assert = require('assert');
-const { delay } = require('bluebird');
-const { NotFoundError } = require('common-errors');
 
 const updateAction = 'users.revoke-rule.update';
 const getAction = 'users.revoke-rule.get';
@@ -185,54 +183,5 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
       this.dispatch(deleteAction, { username: 'nobody', rule: 'doesnotexists' }),
       /rule: doesnotexists: u\/nobody\/doesnotexists/
     );
-  });
-});
-
-describe('ttl cleanup', () => {
-  before('start', async () => {
-    await global.startService.call(this, {
-      revocationRulesManager: {
-        enabled: true,
-        jobsEnabled: true,
-        cleanupInterval: 2000,
-      },
-    });
-
-    await this.users.revocationRulesManager.batchDelete(['']);
-  });
-
-  after('stop', async () => {
-    await global.clearRedis.call(this, false);
-  });
-
-  it('should perform cleanup', async () => {
-    const createdRule = await this.dispatch(updateAction, {
-      username: 'some',
-      rule: {
-        params: {
-          iat: { lte: 1212 },
-          ttl: Date.now() - 10000,
-        },
-      },
-    });
-
-    const waitDelete = async () => {
-      try {
-        const rule = await this.dispatch(getAction, { username: 'some', rule: createdRule.rule });
-        if (rule) {
-          await delay(200);
-          return waitDelete();
-        }
-      } catch (e) {
-        if (e instanceof NotFoundError) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    const waitResult = await waitDelete();
-
-    assert.strictEqual(waitResult, true);
   });
 });

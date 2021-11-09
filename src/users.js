@@ -212,8 +212,7 @@ class Users extends Microfleet {
 
     this.addConnector(ConnectorsTypes.application, () => {
       this.revocationRulesManager = new RevocationRulesManager(
-        this.config.revocationRulesManager, this.whenLeader.bind(this),
-        this.consul, this.log
+        this.config.revocationRulesManager, this
       );
       if (jobsEnabled) this.revocationRulesManager.startRecurrentJobs();
     }, pluginName);

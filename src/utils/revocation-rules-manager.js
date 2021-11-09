@@ -63,7 +63,9 @@ class RevocationRulesManager {
       key: this._getKey(key),
       recurse,
     };
-    return this.consul.kv.get(params);
+    const rules = await this.consul.kv.get(params);
+    console.debug('list', params);
+    return rules || [];
   }
 
   /**
@@ -72,6 +74,7 @@ class RevocationRulesManager {
    * @returns Object
    */
   async get(key) {
+    console.debug('get', this._getKey(key));
     return this.consul.kv.get({
       key: this._getKey(key),
     });

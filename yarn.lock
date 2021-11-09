@@ -8394,6 +8394,11 @@ qw@~1.0.1:
   resolved "https://registry.yarnpkg.com/qw/-/qw-1.0.1.tgz#efbfdc740f9ad054304426acb183412cc8b996d4"
   integrity sha1-77/cdA+a0FQwRCassYNBLMi5ltQ=
 
+radix-trie-js@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/radix-trie-js/-/radix-trie-js-1.0.5.tgz#ae124b88515520902793d4b9e79d229387e2b061"
+  integrity sha512-3Olqy+P8cM5G2x+mnhD231bRM8c2uxAyU7uLS/dORgwzmr2CJKhT6DeQGqZyjsfWuqCYeX415xlMr1J6Xt7M9Q==
+
 ramda@^0.27.1:
   version "0.27.1"
   resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.27.1.tgz#66fc2df3ef873874ffc2da6aa8984658abacf5c9"

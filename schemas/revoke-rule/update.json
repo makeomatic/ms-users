@@ -26,9 +26,11 @@
             "_or": { "type": "boolean" }
           },
           "additionalProperties": {
-            "oneOf": [
+            "anyOf": [
+              { "$ref": "#/definitions/opBlock" },
               { "type": "string" },
-              { "$ref": "#/definitions/opBlock" }
+              { "type": "number" },
+              { "type": "boolean" }
             ]
           }
         }

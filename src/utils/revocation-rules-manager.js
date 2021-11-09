@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const { chunk } = require('lodash');
 const { once } = require('events');
 
-const { KEY_PREFIX_INVOCATION_RULES } = require('../constants');
+const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
 
 const DONE_EVENT = 'rrm-ttl-job-done';
 
@@ -42,7 +42,7 @@ class RevocationRulesManager {
   constructor(config, whenLeader, consul, log) {
     this.log = log;
     this.consul = consul;
-    this.prefix = KEY_PREFIX_INVOCATION_RULES;
+    this.prefix = KEY_PREFIX_REVOCATION_RULES;
     this.expireRuleJob = null;
     this.config = config;
     this.whenLeader = whenLeader;

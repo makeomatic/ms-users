@@ -1,5 +1,6 @@
-const { KEY_PREFIX_INVOCATION_RULES } = require('../constants');
+const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
 const { ConsulWatcher } = require('./consul-watcher');
+
 /**
  * Memory storage
  */
@@ -20,7 +21,7 @@ class RevocationRulesStorage {
     }
 
     this.watchInstance = consulWatcher.watchKeyPrefix(
-      KEY_PREFIX_INVOCATION_RULES,
+      KEY_PREFIX_REVOCATION_RULES,
       (data) => {
         const value = data === undefined ? [] : data;
         this.rules = value;

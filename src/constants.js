@@ -123,7 +123,7 @@ module.exports = exports = {
   lockContact: (contact) => `contact:${contact}`,
 
   // consul keys & prefixes
-  KEY_PREFIX_INVOCATION_RULES: 'invocation-rules/',
+  KEY_PREFIX_REVOCATION_RULES: 'revocation-rules/',
 };
 
 // embed error codes

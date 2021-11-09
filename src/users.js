@@ -160,8 +160,8 @@ class Users extends Microfleet {
       });
     }
 
-    if (this.config.invocationRulesStorage.syncEnabled) {
-      this.initInvocationRulesStorage();
+    if (this.config.revocationRulesStorage.syncEnabled) {
+      this.initRevocationRulesStorage();
     }
 
     if (this.config.revocationRulesManager.enabled) {
@@ -188,13 +188,13 @@ class Users extends Microfleet {
     }
   }
 
-  initInvocationRulesStorage() {
+  initRevocationRulesStorage() {
     this.initConsul();
 
     const pluginName = 'InvocationRulesStorage';
     const watcher = new ConsulWatcher(this.consul, this.log);
     this.revocationRulesStorage = new RevocationRulesStorage(
-      watcher, this.config.invocationRulesStorage.watchOptions, this.log
+      watcher, this.config.revocationRulesStorage.watchOptions, this.log
     );
     this.addConnector(ConnectorsTypes.application, () => {
       this.revocationRulesStorage.startSync();

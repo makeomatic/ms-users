@@ -12,7 +12,7 @@ const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
 const { ConsulWatcher } = require('./utils/consul-watcher');
-const { InvocationRulesStorage } = require('./utils/invocation-rules-storage');
+const { RevocationRulesStorage } = require('./utils/revocation-rules-storage');
 const { RevocationRulesManager } = require('./utils/revocation-rules-manager');
 
 /**
@@ -193,14 +193,14 @@ class Users extends Microfleet {
 
     const pluginName = 'InvocationRulesStorage';
     const watcher = new ConsulWatcher(this.consul, this.log);
-    this.invocationRulesStorage = new InvocationRulesStorage(
+    this.revocationRulesStorage = new RevocationRulesStorage(
       watcher, this.config.invocationRulesStorage.watchOptions, this.log
     );
     this.addConnector(ConnectorsTypes.application, () => {
-      this.invocationRulesStorage.startSync();
+      this.revocationRulesStorage.startSync();
     }, pluginName);
     this.addDestructor(ConnectorsTypes.application, () => {
-      this.invocationRulesStorage.stopSync();
+      this.revocationRulesStorage.stopSync();
     }, pluginName);
   }
 

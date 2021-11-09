@@ -1,10 +1,9 @@
 const { KEY_PREFIX_INVOCATION_RULES } = require('../constants');
 const { ConsulWatcher } = require('./consul-watcher');
-
 /**
  * Memory storage
  */
-class InvocationRulesStorage {
+class RevocationRulesStorage {
   constructor(consulWatcher, watchOptions, log) {
     this.consulWatcher = consulWatcher;
     this.watchOptions = watchOptions;
@@ -44,5 +43,5 @@ class InvocationRulesStorage {
 }
 
 module.exports = {
-  InvocationRulesStorage,
+  RevocationRulesStorage,
 };

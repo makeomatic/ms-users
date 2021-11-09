@@ -26,19 +26,8 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
   it('schema validation', async () => {
     await assert.rejects(this.dispatch(deleteAction, {}), /data should have required property 'rule'/);
     await assert.rejects(this.dispatch(updateAction, {}), /data should have required property 'rule'/);
+    await assert.rejects(this.dispatch(getAction, {}), /data should have required property 'rule'/);
     await assert.rejects(this.dispatch(updateAction, { rule: {} }), /data.rule should have required property 'params'/);
-
-    await this.dispatch(updateAction, {
-      rule: {
-        params: {
-          _or: true,
-          uname: 'some',
-          otherFld: {
-            xf: 10, // invalid op
-          },
-        },
-      },
-    });
 
     await assert.rejects(
       this.dispatch(updateAction, {
@@ -52,18 +41,7 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
           },
         },
       }),
-      /ddbb/
-    );
-
-    await assert.rejects(
-      this.dispatch(updateAction, {
-        rule: {
-          params: {
-            _or: 1,
-          },
-        },
-      }),
-      /ddbb/
+      /compare function is required: xf/
     );
 
     await assert.rejects(
@@ -76,22 +54,12 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
           },
         },
       }),
-      /ddbb/
-    );
-
-    await assert.rejects(
-      this.dispatch(updateAction, {
-        rule: {
-          params: {
-            nextFld: false, // no boolean
-          },
-        },
-      }),
-      /ddbb/
+      // eslint-disable-next-line max-len
+      /data.rule.params\['otherFld'\].eq should be string, data.rule.params\['otherFld'\] should be string, data.rule.params\['otherFld'\] should be number, data.rule.params\['otherFld'\] should be boolean, data.rule.params\['otherFld'\] should match some schema in anyOf/
     );
   });
 
-  it('should create/update global rule', async () => {
+  it('#update should create/update global rule', async () => {
     const defaultRule = { params: { iss: 'ms-users' } };
     const createdRule = await this.dispatch(updateAction, { rule: defaultRule });
     const fromConsul = await this.dispatch(getAction, { rule: createdRule.rule });
@@ -125,7 +93,7 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
     });
   });
 
-  it('should create/update user rule', async () => {
+  it('#update should create/update user rule', async () => {
     const defaultRule = { params: { iss: 'ms-users-test' } };
     const createdRule = await this.dispatch(updateAction, { username: 'some', rule: defaultRule });
     const fromConsul = await this.dispatch(getAction, { username: 'some', rule: createdRule.rule });
@@ -162,14 +130,61 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
     });
   });
 
-  it('should list global rules', async () => {
+  it('#list should list global rules', async () => {
     const rules = await this.dispatch(listAction, {});
     assert.strictEqual(rules.length, 1);
   });
 
-  it('should list user rules', async () => {
+  it('#list should list user rules', async () => {
     const rules = await this.dispatch(listAction, { username: 'some' });
     assert.strictEqual(rules.length, 1);
+  });
+
+  it('#list should return empty list', async () => {
+    const rules = await this.dispatch(listAction, { username: 'someonewithoutrules' });
+    assert.deepStrictEqual(rules, []);
+  });
+
+  it('#delete should delete rules', async () => {
+    const rules = await this.dispatch(listAction, {});
+
+    await this.dispatch(deleteAction, { rule: rules[0].rule });
+    const rulesAfterDelete = await this.dispatch(listAction, {});
+
+    assert.deepStrictEqual(rulesAfterDelete.length, 0);
+  });
+
+  it('#delete should delete user rules', async () => {
+    const userRules = await this.dispatch(listAction, { username: 'some' });
+
+    await this.dispatch(deleteAction, { rule: userRules[0].rule, username: 'some' });
+    const userRulesAfterDelete = await this.dispatch(listAction, { username: 'some' });
+
+    assert.deepStrictEqual(userRulesAfterDelete.length, 0);
+  });
+
+  it('#get should throw 404', async () => {
+    await assert.rejects(
+      this.dispatch(getAction, { rule: 'doesnotexists' }),
+      /rule: doesnotexists: g\/doesnotexists/
+    );
+
+    await assert.rejects(
+      this.dispatch(getAction, { username: 'nobody', rule: 'doesnotexists' }),
+      /rule: doesnotexists: u\/nobody\/doesnotexists/
+    );
+  });
+
+  it('#delete should throw rule not found', async () => {
+    await assert.rejects(
+      this.dispatch(deleteAction, { rule: 'doesnotexists' }),
+      /rule: doesnotexists: g\/doesnotexists/
+    );
+
+    await assert.rejects(
+      this.dispatch(deleteAction, { username: 'nobody', rule: 'doesnotexists' }),
+      /rule: doesnotexists: u\/nobody\/doesnotexists/
+    );
   });
 });
 

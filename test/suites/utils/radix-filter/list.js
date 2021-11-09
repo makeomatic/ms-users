@@ -68,7 +68,7 @@ describe('#radix-list filter', () => {
   });
 
   describe('lookupchecks', () => {
-    beforeEach(() => {
+    before(() => {
       list.addBatch([
         { key: 'gte', params: { fld: { gte: 10 } } },
         { key: 'lte', params: { fld: { lte: 10 } } },

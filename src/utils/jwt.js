@@ -6,6 +6,7 @@ const {
   USERS_INVALID_TOKEN,
   USERS_AUDIENCE_MISMATCH,
   USERS_USERNAME_FIELD,
+  USERS_ID_FIELD,
 } = require('../constants');
 const getMetadata = require('./get-metadata');
 
@@ -33,7 +34,7 @@ const mapJWT = (userId, { jwt, jwtRefresh }, metadata) => ({
   jwt,
   jwtRefresh,
   user: {
-    [USERS_USERNAME_FIELD]: userId,
+    [USERS_ID_FIELD]: userId,
     metadata,
   },
 });

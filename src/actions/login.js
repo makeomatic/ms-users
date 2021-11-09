@@ -170,7 +170,6 @@ async function login({ params, locals }) {
   const {
     isOAuthFollowUp, isDisposablePassword, isSSO, password, audience = defaultAudience, remoteip = false, isStatelessAuth = false,
   } = params;
-  console.debug('login.act', params);
   const loginRateLimiter = new UserLoginRateLimiter(redis, rateLimitersConfig.userLogin);
   const rateLimiterEnabled = remoteip !== false && loginRateLimiter.isEnabled();
 

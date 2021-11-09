@@ -4,18 +4,8 @@ const { HttpStatusError } = require('common-errors');
 
 const {
   USERS_USERNAME_FIELD,
-  USERS_ID_FIELD,
   USERS_INVALID_TOKEN,
 } = require('../constants');
-
-const mapJWT = (props) => ({
-  jwt: props.jwt,
-  jwtRefresh: props.jwtRefresh,
-  user: {
-    [USERS_ID_FIELD]: props.userId,
-    metadata: props.metadata,
-  },
-});
 
 const isStatelessToken = (token) => !!token.st;
 
@@ -87,14 +77,23 @@ async function login(service, userId, audience) {
   };
 }
 
-async function refresh(service, token, audience) {
+async function refresh(service, encodedToken, token, audience) {
   const userId = token[USERS_USERNAME_FIELD];
-  const props = await login(service, userId, audience);
+
+  const payload = {
+    [USERS_USERNAME_FIELD]: userId,
+  };
+
+  const { token: accessToken } = createAccessToken(service, token, payload, audience);
+
+  return {
+    jwt: accessToken,
+    jwtRefresh: encodedToken,
+    userId,
+  };
 
   // -- invalidate previous refresh token and mark all issued access tokens as invalid
   // set user rule { rt: token.cs } || { cs: token.cs }
-
-  return mapJWT(props);
 }
 
 // eslint-disable-next-line no-unused-vars

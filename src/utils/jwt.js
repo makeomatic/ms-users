@@ -4,8 +4,8 @@ const jwtLib = Promise.promisifyAll(require('jsonwebtoken'));
 
 const {
   USERS_INVALID_TOKEN,
-  USERS_ID_FIELD,
   USERS_AUDIENCE_MISMATCH,
+  USERS_USERNAME_FIELD,
 } = require('../constants');
 const getMetadata = require('./get-metadata');
 
@@ -33,7 +33,7 @@ const mapJWT = (userId, { jwt, jwtRefresh }, metadata) => ({
   jwt,
   jwtRefresh,
   user: {
-    [USERS_ID_FIELD]: userId,
+    [USERS_USERNAME_FIELD]: userId,
     metadata,
   },
 });
@@ -62,7 +62,7 @@ async function decodeAndVerify(service, token, audience) {
 }
 
 const statelessAvailable = (service) => {
-  return service.config.jwt.stateless;
+  return service.config.jwt.forceStateless;
 };
 
 const getAudience = (defaultAudience, audience) => {
@@ -74,12 +74,12 @@ const getAudience = (defaultAudience, audience) => {
 };
 
 exports.login = async function login(userId, _audience, stateless = false) {
-  const { defaultAudience } = this.config.jwt;
+  const { defaultAudience, forceStateless } = this.config.jwt;
 
   const audience = _audience || defaultAudience;
   const metadataAudience = getAudience(defaultAudience, audience);
 
-  const tokenFlow = stateless
+  const tokenFlow = forceStateless || (!forceStateless && stateless)
     ? () => statelessJWT.login(this, userId, audience)
     : () => legacyJWT.login(this, userId, audience);
 
@@ -139,10 +139,14 @@ exports.refresh = async function refresh(token, audience) {
 
   assertRefreshToken(decodedToken);
 
-  const userId = decodedToken[USERS_ID_FIELD];
+  const userId = decodedToken[USERS_USERNAME_FIELD];
+
+  const { defaultAudience } = this.config.jwt;
+  const metadataAudience = getAudience(defaultAudience, audience);
+
   const [refreshResult, metadata] = await Promise.all([
-    statelessJWT.refresh(this, decodedToken, audience),
-    getMetadata.call(this, userId, audience),
+    statelessJWT.refresh(this, token, decodedToken, audience),
+    getMetadata.call(this, userId, metadataAudience),
   ]);
 
   return mapJWT(userId, refreshResult, metadata);

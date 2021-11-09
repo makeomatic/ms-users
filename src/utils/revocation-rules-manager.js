@@ -54,13 +54,13 @@ class RevocationRulesManager {
 
   /**
    * Returns list of Consul.KV keys.
-   * @param {string} prefix kv prefix
+   * @param {string} kv key
    * @param {boolean} recurse recurse tree walk
    * @returns Object[]
    */
-  async list(prefix = '', recurse = true) {
+  async list(key = '', recurse = true) {
     const params = {
-      key: this._getKey(prefix),
+      key: this._getKey(key),
       recurse,
     };
     return this.consul.kv.get(params);
@@ -152,7 +152,7 @@ class RevocationRulesManager {
         await this.expire(Date.now());
       }
     } catch (err) {
-      this.log({ err }, 'recurrent expire job error');
+      this.log.error({ err }, 'recurrent expire job error');
     } finally {
       this.active = false;
       this.expireRuleJob = setTimeout(this.scheduleExpire.bind(this), this.config.cleanupInterval);

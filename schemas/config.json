@@ -166,6 +166,10 @@
         "issuer": {
           "type": "string",
           "minLength": 1
+        },
+        "forceStateless": {
+          "type": "boolean",
+          "default": false
         }
       }
     },

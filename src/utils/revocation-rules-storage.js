@@ -31,7 +31,7 @@ class RevocationRulesStorage {
     const { consulWatcher } = this;
 
     if (this.watchInstance) {
-      throw new Error('Invocation rules sync has already been started');
+      throw new Error('Revocation rules sync has already been started');
     }
 
     this.watchInstance = consulWatcher.watchKeyPrefix(

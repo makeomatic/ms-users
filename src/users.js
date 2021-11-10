@@ -191,7 +191,7 @@ class Users extends Microfleet {
   initRevocationRulesStorage() {
     this.initConsul();
 
-    const pluginName = 'InvocationRulesStorage';
+    const pluginName = 'RevocationRulesStorage';
     const watcher = new ConsulWatcher(this.consul, this.log);
     this.revocationRulesStorage = new RevocationRulesStorage(
       watcher, this.config.revocationRulesStorage.watchOptions, this.log

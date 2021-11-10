@@ -1,5 +1,5 @@
 exports.revocationRulesStorage = {
-  syncEnabled: true,
+  syncEnabled: false,
   watchOptions: {
     backoffFactor: 100,
     backoffMax: 30000,

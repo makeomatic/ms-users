@@ -4,7 +4,7 @@ const { KEY_PREFIX_REVOCATION_RULES } = require('../../../src/constants');
 const { Rule } = require('../../../src/utils/radix-filter/rule');
 const { RuleGroup } = require('../../../src/utils/radix-filter/rule-group');
 
-const withSyncEnabled = { invocationRulesStorage: { syncEnabled: true } };
+const withSyncEnabled = { revocationRulesStorage: { syncEnabled: true } };
 async function startServiceWithSyncEnabled() {
   await global.startService.bind(this)(withSyncEnabled);
 }
@@ -19,8 +19,8 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
 
   it('Should throw error when sync has been already started', function test() {
     throws(
-      this.users.revocationRulesStorage.startSync,
-      'Revocation rules sync has already been started'
+      () => this.users.revocationRulesStorage.startSync(),
+      /Revocation rules sync has already been started/
     );
   });
 

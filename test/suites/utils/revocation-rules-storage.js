@@ -57,7 +57,7 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
     await kv.del(`${KEY_PREFIX_REVOCATION_RULES}002`);
     await kv.del(`${KEY_PREFIX_REVOCATION_RULES}003`);
 
-    await Bluebird.delay(2);
+    await Bluebird.delay(100);
 
     strictEqual(revocationRulesStorage.getFilter().rules.length(), 0);
   });

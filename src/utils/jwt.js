@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const { HttpStatusError } = require('common-errors');
 const jwtLib = Promise.promisifyAll(require('jsonwebtoken'));
 
 const {
@@ -61,10 +60,6 @@ async function decodeAndVerify(service, token, audience) {
     throw USERS_INVALID_TOKEN;
   }
 }
-
-const statelessAvailable = (service) => {
-  return service.config.jwt.forceStateless;
-};
 
 const getAudience = (defaultAudience, audience) => {
   if (audience !== defaultAudience) {
@@ -132,9 +127,7 @@ exports.reset = async function reset(userId) {
 };
 
 exports.refresh = async function refresh(token, audience) {
-  if (!statelessAvailable(this)) {
-    throw new HttpStatusError(501, '`stateless` should be enabled');
-  }
+  statelessJWT.assertStatelessJWTPossible(this);
 
   const decodedToken = await decodeAndVerify(this, token, audience);
 

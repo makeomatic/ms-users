@@ -119,9 +119,9 @@ exports.verify = async function verifyToken(token, audience, peek) {
     await legacyJWT.verify(this, token, decodedToken, peek);
   }
 
-  assertStatelessEnabled(this);
-
-  return statelessJWT.verify(this, decodedToken);
+  if (isStatelessEnabled(this)) {
+    await statelessJWT.verify(this, decodedToken);
+  }
 };
 
 exports.reset = async function reset(userId) {

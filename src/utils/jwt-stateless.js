@@ -8,6 +8,8 @@ const {
 } = require('../constants');
 const { GLOBAL_RULE_PREFIX, USER_RULE_PREFIX } = require('./revocation-rules-manager');
 
+const REVOKE_RULE_UPDATE_ACTION = 'revoke-rule.update';
+
 const isStatelessToken = (token) => !!token.st;
 
 const assertAccessToken = (token) => {
@@ -43,9 +45,8 @@ const assertStatelessJWTPossible = (service) => {
   }
 };
 
-// TODO dispatch/direct/publish call??
 const createRule = async (service, ruleSpec) => {
-  return service.dispatch('revoke-rule.update', { params: ruleSpec });
+  return service.amqp.publish(REVOKE_RULE_UPDATE_ACTION, ruleSpec, { confirm: true, mandatory: true });
 };
 
 function createToken(service, audience, payload) {

@@ -180,6 +180,7 @@ describe('#stateless-jwt', function loginSuite() {
       const response = await loginUser(false);
 
       assert.ok(response.jwt);
+      assert.ok(!response.jwtRefresh, 'should not return refresh token');
     });
 
     it('#verify should verify legacy token', async () => {

@@ -134,7 +134,7 @@ async function refresh(service, encodedToken, token, audience) {
       username: userId,
       rule: {
         params: {
-          ttl: token.iat,
+          ttl: token.exp,
           rt: token.cs,
           iat: { lte: Date.now() },
         },
@@ -159,7 +159,7 @@ async function logout(service, token) {
       username: token[USERS_USERNAME_FIELD],
       rule: {
         params: {
-          ttl: token.iat,
+          ttl: token.exp,
           _or: true,
           cs: token.cs,
           rt: token.cs,
@@ -186,7 +186,7 @@ async function reset(service, userId) {
     await createRule(service, {
       username: userId,
       params: {
-        iat: Date.now,
+        iat: { lte: Date.now() },
       },
     });
   }

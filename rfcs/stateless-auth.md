@@ -4,7 +4,7 @@ This feature will provide additional security to the User JWT tokens management 
 
 ### Compatibility
 
-This feature should be considered as plugin and should be easily enabled without losing any user authorisations.
+This feature should be considered as plugin and should be easily enabled without losing any user authorizations.
 
 
 
@@ -33,7 +33,6 @@ type RefreshToken = {
 
 * Created on `user.login`, `users.refresh`
 * Expires on `exp` date.
-* Expires on `users.refresh`.
 * Expires on `users.logout`.
 
 ### Access token
@@ -116,17 +115,132 @@ This filter uses Redis as the rule source and Consul as the rule version update 
 
 All rules are stored in `ZSET` where `member` is stringified rule and `score` is rule `ttl`.
 
-#### RevocationRuleManager
+## Implementation
+
+### RevocationRuleManager
 
 `RevocationRuleManager` class provides crud operations for Redis keys with rules.
 
 * Manages rules and TTL of the rules.
 * On rule `add` operation updates rule version in the consul storage - this forces all RuleStorage to reset their caches for the corresponding users and global group
 
-#### RevocationRuleStorage
+#### TTL of the rules
+
+The `RevocationRulemanager` setups recurrent jobs on service startup and stops them on shutdown. This job performs the rule cleanup procedure by checking the `kv.key.Flags` value.
+
+* Outdated rules should have `Flags < Date.now() && Flags !== 0`.
+* Delete is performed in transaction.
+
+#### Provided endpoits
+
+If `username` is empty, the request performs over System-Global rules.
+
+##### `revoke-rule.update`
+
+Creates or updates System-Global or User rules.
+
+```javascript
+const req = await amqp.publishAndWait('revocation-rule.update', {
+  username, // optional 
+  rule: {
+    id, // empty on create
+    params, // revocation rule definition, is required
+  }
+})
+```
+
+##### `revoke-rule.list`
+
+The action lists System-Global or User rules.
+
+```javascript
+const req = await amqp.publishAndWait('revocation-rule.list', {
+  username, // optional 
+})
+```
+
+##### `revoke-rule.get`
+
+The action gets System-Global or User rule.
+
+```javascript
+const req = await amqp.publishAndWait('revocation-rule.get', {
+  username, // optional 
+  rule, // id of the rule, is required
+})
+```
+
+##### `revoke-rule.get`
+
+The action deletes System-Global or User rule.
+
+```javascript
+const req = await amqp.publishAndWait('revocation-rule.delete', {
+  username, // optional 
+  rule, // id of the rule is required
+})
+```
+
+### RevocationRuleStorage
 
 `RevocationRuleStorage` class provides in-memory rule synchronization and validation results caching.
 
 * Watches specified `consul.kv` prefix and invalidates rule and result caches.
 * Provides in-memory rule search for token validation. Loads rules from Redis.
+
+### Stateless JWT rules
+
+All rules use the `RefreshToken.exp` value as the TTL boundary.
+
+#### Login
+
+No rules created.
+
+#### Refresh
+
+Creates rule that invalidates all previously issued tokens issued by the `RefreshToken`.
+
+```javascript
+await createRule({
+  username: userId,
+  rule: {
+    params: {
+      ttl: refreshToken.exp,
+      rt: refreshToken.cs, // id of the refresh token
+      iat: { lte: Date.now() }, // 
+    },
+  },
+});
+```
+
+#### Logout
+
+Creates rule that invalidates all issued tokens by `RefreshToken` and itself.
+
+```javascript
+await createRule(service, {
+  username: userId,
+  rule: {
+    params: {
+      ttl: refreshToken.exp,
+      _or: true,
+      cs: token.cs,
+      rt: token.cs,
+    },
+  },
+});
+```
+
+#### Reset
+
+Creates rule that invalidates all tokens issued before `Date.now()`.
+
+```javascript
+await createRule({
+  username: userId,
+  params: {
+    iat: { lte: Date.now() },
+  },
+});
+```
 

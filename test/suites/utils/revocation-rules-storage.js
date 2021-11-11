@@ -4,11 +4,12 @@ const { KEY_PREFIX_REVOCATION_RULES } = require('../../../src/constants');
 const { ListFilter } = require('../../../src/utils/jwt-filter/list-filter');
 
 const withSyncEnabled = {
-  revocationRules: {
-    enabled: true,
+  jwt: {
+    stateless: {
+      enabled: true,
+    },
   },
 };
-
 async function startServiceWithSyncEnabled() {
   await global.startService.bind(this)(withSyncEnabled);
 }

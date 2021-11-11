@@ -19,7 +19,7 @@ const assertAccessToken = (token) => {
 };
 
 const assertRefreshToken = (token) => {
-  if (token.st && !token.irt) {
+  if (token.st && typeof token.irt !== 'number') {
     throw new HttpStatusError(401, 'refresh token required');
   }
 };
@@ -46,7 +46,11 @@ const assertStatelessJWTPossible = (service) => {
 };
 
 const createRule = async (service, ruleSpec) => {
-  return service.amqp.publish(REVOKE_RULE_UPDATE_ACTION, ruleSpec, { confirm: true, mandatory: true });
+  if (managerEnabled(service)) {
+    return service.dispatch(REVOKE_RULE_UPDATE_ACTION, { params: ruleSpec });
+  }
+
+  return null;
 };
 
 function createToken(service, audience, payload) {
@@ -129,19 +133,18 @@ async function refresh(service, encodedToken, token, audience) {
 
   const { token: accessToken } = createAccessToken(service, token, payload, audience);
 
-  if (managerEnabled(service)) {
-    // -- invalidate all issued access tokens as invalid that was signed by provided refreshToken
-    await createRule(service, {
-      username: userId,
-      rule: {
-        params: {
-          ttl: token.exp,
-          rt: token.cs,
-          iat: { lte: Date.now() },
-        },
+  // -- invalidate all issued access tokens as invalid that was signed by provided refreshToken
+  const now = Date.now();
+  await createRule(service, {
+    username: userId,
+    rule: {
+      params: {
+        ttl: token.exp,
+        rt: token.cs,
+        iat: { lte: now },
       },
-    });
-  }
+    },
+  });
 
   return {
     jwt: accessToken,
@@ -153,21 +156,21 @@ async function refresh(service, encodedToken, token, audience) {
 async function logout(service, token) {
   assertRefreshToken(token);
 
-  if (managerEnabled(service)) {
-    // -- invalidate current refresh token and all tokens issued by this refresh token
-    // set user rule { cs: { in: [verifiedToken.cs, verifiedToken.rt] }
-    await createRule(service, {
-      username: token[USERS_USERNAME_FIELD],
-      rule: {
-        params: {
-          ttl: token.exp,
-          _or: true,
-          cs: token.cs,
-          rt: token.cs,
-        },
+  // -- invalidate current refresh token and all tokens issued by this refresh token
+  // set user rule { cs: { in: [verifiedToken.cs, verifiedToken.rt] }
+  // -- legacy tokens do not have exp or iat field so ttl of the rule is set to max possible ttl
+  const now = Date.now();
+  await createRule(service, {
+    username: token[USERS_USERNAME_FIELD],
+    rule: {
+      params: {
+        ttl: token.exp || now + service.config.jwt.ttl,
+        _or: true,
+        cs: token.cs,
+        rt: token.cs,
       },
-    });
-  }
+    },
+  });
 
   return { success: true };
 }

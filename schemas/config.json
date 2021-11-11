@@ -167,9 +167,8 @@
           "type": "string",
           "minLength": 1
         },
-        "forceStateless": {
-          "type": "boolean",
-          "default": false
+        "stateless": {
+          "$ref": "#/definitions/statelessJWTConfig"
         }
       }
     },
@@ -781,6 +780,52 @@
         },
         "organizationUserAdd": {
           "type": "string"
+        }
+      }
+    },
+    "statelessJWTConfig": {
+      "type": "object",
+      "required": [ "enabled" ],
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": ["manager", "force", "storage"]
+      },
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "force": {
+          "type": "boolean",
+          "default": false
+        },
+        "manager": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [ "cleanupInterval" ],
+          "properties": {
+            "cleanupInterval": {
+              "type": "number",
+              "description": "Cleanup rules interval"
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [ "watchOptions" ],
+          "properties": {
+            "watchOptions": {
+              "type": "object",
+              "description": "See https://github.com/silas/node-consul#consulwatchoptions"
+            }
+          }
         }
       }
     }

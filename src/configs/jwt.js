@@ -25,4 +25,17 @@ exports.jwt = {
       isSameSite: 'Lax',
     },
   },
+  stateless: {
+    force: false,
+    enabled: false,
+    storage: {
+      watchOptions: {
+        backoffFactor: 100,
+        backoffMax: 30000,
+      },
+    },
+    manager: {
+      cleanupInterval: 10 * 60 * 1000, // 10 minutes
+    },
+  },
 };

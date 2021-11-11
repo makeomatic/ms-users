@@ -25,12 +25,41 @@ describe('#stateless-jwt', function loginSuite() {
     return this.users.dispatch('revoke-rule.list', { params: { username } });
   };
 
+  describe('Smoke On Stateless disabled', () => {
+    before('start', async () => {
+      await global.startService.call(this, {
+        jwt: {
+          stateless: {
+            enabled: false,
+            force: true,
+          },
+        },
+      });
+    });
+
+    after('stop', async () => {
+      await global.clearRedis.call(this, false);
+    });
+
+    it('refresh should panic when stateless disabled', async () => {
+      const { jwt } = await loginUser();
+
+      await assert.rejects(
+        this.users.dispatch('refresh', { params: { token: jwt, audience: user.audience } }),
+        /`Stateless JWT` should be enabled/
+      );
+    });
+  });
+
   describe('Generic', () => {
     before('start', async () => {
       await global.startService.call(this, {
-        jwt: { forceStateless: true },
-        revocationRulesManager: { enabled: true, jobsEnabled: false },
-        revocationRulesStorage: { syncEnabled: true },
+        jwt: {
+          stateless: {
+            enabled: true,
+            force: true,
+          },
+        },
       });
 
       await this.users.revocationRulesManager.batchDelete(['']);
@@ -163,9 +192,12 @@ describe('#stateless-jwt', function loginSuite() {
   describe('Compat', () => {
     before('start', async () => {
       await global.startService.call(this, {
-        jwt: { forceStateless: false },
-        revocationRulesManager: { enabled: true, jobsEnabled: false },
-        revocationRulesStorage: { syncEnabled: true },
+        jwt: {
+          stateless: {
+            enabled: true,
+            force: false,
+          },
+        },
       });
 
       await this.users.revocationRulesManager.batchDelete(['']);

@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
-const { HttpStatusError, ValidationError } = require('common-errors');
+const { HttpStatusError } = require('common-errors');
 
 const {
   USERS_USERNAME_FIELD,
@@ -24,33 +24,19 @@ const assertRefreshToken = (token) => {
   }
 };
 
-const storageEnabled = (service) => {
-  return !!service.revocationRulesStorage;
+const isStatelessEnabled = (service) => {
+  const { jwt: { stateless: { enabled } } } = service.config;
+  return enabled;
 };
 
-const managerEnabled = (service) => {
-  return !!service.revocationRulesManager;
-};
-
-const assertJWTConfig = (config) => {
-  const { jwt: { forceStateless }, revocationRulesManager, revocationRulesStorage } = config;
-  if (forceStateless && (!revocationRulesManager.enabled || !revocationRulesStorage.enabled)) {
-    throw new ValidationError('`revocationRulesManager` and `revocationRulesStorage` should be enabled');
-  }
-};
-
-const assertStatelessJWTPossible = (service) => {
-  if (!storageEnabled(service) || !managerEnabled(service)) {
-    throw new HttpStatusError(501, '`revocationRulesManager` and `revocationRulesStorage` should be enabled');
+const assertStatelessEnabled = (service) => {
+  if (!isStatelessEnabled(service)) {
+    throw new HttpStatusError(501, '`Stateless JWT` should be enabled');
   }
 };
 
 const createRule = async (service, ruleSpec) => {
-  if (managerEnabled(service)) {
-    return service.dispatch(REVOKE_RULE_UPDATE_ACTION, { params: ruleSpec });
-  }
-
-  return null;
+  return service.dispatch(REVOKE_RULE_UPDATE_ACTION, { params: ruleSpec });
 };
 
 function createToken(service, audience, payload) {
@@ -110,15 +96,13 @@ async function login(service, userId, audience) {
 }
 
 async function checkRules(service, token) {
-  if (storageEnabled(service)) {
-    const userId = token[USERS_USERNAME_FIELD];
-    const filter = service.revocationRulesStorage.getFilter();
+  const userId = token[USERS_USERNAME_FIELD];
+  const filter = service.revocationRulesStorage.getFilter();
 
-    const ruleCheck = filter.match([GLOBAL_RULE_PREFIX, `${USER_RULE_PREFIX}${userId}`], token);
+  const ruleCheck = filter.match([GLOBAL_RULE_PREFIX, `${USER_RULE_PREFIX}${userId}`], token);
 
-    if (ruleCheck) {
-      throw USERS_INVALID_TOKEN;
-    }
+  if (ruleCheck) {
+    throw USERS_INVALID_TOKEN;
   }
 }
 
@@ -184,16 +168,14 @@ async function verify(service, decodedToken) {
 }
 
 async function reset(service, userId) {
-  if (managerEnabled(service)) {
-    // set user rule { userId, iat: Date.now() }
-    // last one invalidates all legacy tokens for user
-    await createRule(service, {
-      username: userId,
-      params: {
-        iat: { lte: Date.now() },
-      },
-    });
-  }
+  // set user rule { userId, iat: Date.now() }
+  // last one invalidates all legacy tokens for user
+  await createRule(service, {
+    username: userId,
+    params: {
+      iat: { lte: Date.now() },
+    },
+  });
 }
 
 module.exports = {
@@ -205,8 +187,6 @@ module.exports = {
   assertRefreshToken,
   assertAccessToken,
   isStatelessToken,
-  managerEnabled,
-  storageEnabled,
-  assertStatelessJWTPossible,
-  assertJWTConfig,
+  isStatelessEnabled,
+  assertStatelessEnabled,
 };

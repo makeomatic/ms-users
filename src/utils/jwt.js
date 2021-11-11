@@ -14,7 +14,8 @@ const statelessJWT = require('./jwt-stateless');
 
 const {
   assertRefreshToken, assertAccessToken,
-  isStatelessToken,
+  isStatelessToken, isStatelessEnabled,
+  assertStatelessEnabled,
 } = statelessJWT;
 
 const {
@@ -69,13 +70,15 @@ const getAudience = (defaultAudience, audience) => {
   return [audience];
 };
 
+const nopFn = () => {};
+
 exports.login = async function login(userId, _audience, stateless = false) {
-  const { defaultAudience, forceStateless } = this.config.jwt;
+  const { defaultAudience, stateless: { force, enabled } } = this.config.jwt;
 
   const audience = _audience || defaultAudience;
   const metadataAudience = getAudience(defaultAudience, audience);
 
-  const tokenFlow = forceStateless || (!forceStateless && stateless)
+  const tokenFlow = force || (enabled && stateless)
     ? () => statelessJWT.login(this, userId, audience)
     : () => legacyJWT.login(this, userId, audience);
 
@@ -94,7 +97,9 @@ exports.logout = async function logout(token, audience) {
 
   await Promise.all([
     legacyJWT.logout(this, token, decodedToken),
-    statelessJWT.logout(this, decodedToken),
+    isStatelessEnabled(this)
+      ? statelessJWT.logout(this, decodedToken)
+      : nopFn,
   ]);
 
   return { success: true };
@@ -114,20 +119,24 @@ exports.verify = async function verifyToken(token, audience, peek) {
     await legacyJWT.verify(this, token, decodedToken, peek);
   }
 
+  assertStatelessEnabled(this);
+
   return statelessJWT.verify(this, decodedToken);
 };
 
 exports.reset = async function reset(userId) {
   const resetResult = await Promise.all([
     statelessJWT.reset(this, userId),
-    legacyJWT.reset(this, userId),
+    isStatelessEnabled(this)
+      ? legacyJWT.reset(this, userId)
+      : nopFn,
   ]);
 
   return resetResult;
 };
 
 exports.refresh = async function refresh(token, audience) {
-  statelessJWT.assertStatelessJWTPossible(this);
+  assertStatelessEnabled(this);
 
   const decodedToken = await decodeAndVerify(this, token, audience);
 

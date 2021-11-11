@@ -139,7 +139,8 @@ class Users extends Microfleet {
       });
     }
 
-    if (this.config.revocationRules.enabled) {
+    const { jwt: { stateless } } = this.config;
+    if (stateless.enabled) {
       this.initJwtRevocationRules();
     }
 
@@ -167,16 +168,15 @@ class Users extends Microfleet {
     this.initConsul();
 
     const pluginName = 'JwtRevocationRules';
+    const { jwt: { stateless: { storage } } } = this.config;
 
     this.addConnector(ConnectorsTypes.application, () => {
-      this.revocationRulesManager = new RevocationRulesManager(this);
-
       const watcher = new ConsulWatcher(this.consul, this.log);
-
+      this.revocationRulesManager = new RevocationRulesManager(this);
       this.revocationRulesStorage = new RevocationRulesStorage(
         this.revocationRulesManager,
         watcher,
-        this.config.revocationRules,
+        storage,
         this.log
       );
 

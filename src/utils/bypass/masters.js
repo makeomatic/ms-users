@@ -52,7 +52,7 @@ class MastersService {
   }
 
   static userId(userProfile) {
-    return userProfile.email;
+    return userProfile.userId;
   }
 
   async login(userProfile) {
@@ -111,6 +111,7 @@ class MastersService {
         this.registerUser,
         userProfile
       );
+      this.service.log.debug({ status, data }, 'masters ms-registration result');
 
       if (status) {
         await contacts.add.call(this.service, {

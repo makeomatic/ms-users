@@ -145,7 +145,8 @@
         "secret",
         "ttl",
         "defaultAudience",
-        "issuer"
+        "issuer",
+        "stateless"
       ],
       "properties": {
         "hashingFunction": {

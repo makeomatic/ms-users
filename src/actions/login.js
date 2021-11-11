@@ -163,6 +163,7 @@ const getUserInfo = async (ctx, internalData) => {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
+ * @apiParam (Payload) {Boolean} [isStatelessAuth=false] - users Stateless JWT token flow
  */
 async function login({ params, locals }) {
   const { redis, tokenManager, config } = this;

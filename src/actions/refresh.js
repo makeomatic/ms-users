@@ -12,7 +12,6 @@ const jwt = require('../utils/jwt');
  *
  * @apiParam (Payload) {String} token - signed JWT token
  * @apiParam (Payload) {String[]} audience - which namespaces of metadata to return
- * @apiParam (Payload) {Boolean} [peek=false] - whether to update last access or not
  *
  */
 async function refreshToken({ params }) {

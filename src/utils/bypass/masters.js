@@ -111,12 +111,11 @@ class MastersService {
         this.registerUser,
         userProfile
       );
-      this.service.log.debug({ status, data }, 'masters ms-registration result');
 
       if (status) {
         await contacts.add.call(this.service, {
           contact: { type: 'email', value: userProfile.email },
-          userId: data.id,
+          userId: data.user.id,
         });
         return data;
       }

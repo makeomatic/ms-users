@@ -64,7 +64,7 @@ class PumpJackService {
       );
 
       if (registeredUser) {
-        await contacts.add.call(this.service, { contact: { type: 'phone', value: userProfile.phone }, userId: registeredUser.id });
+        await contacts.add.call(this.service, { contact: { type: 'phone', value: userProfile.phone }, userId: registeredUser.user.id });
 
         return registeredUser;
       }

@@ -115,7 +115,7 @@ class MastersService {
       if (status) {
         await contacts.add.call(this.service, {
           contact: { type: 'email', value: userProfile.email },
-          userId: data.id,
+          userId: data.user.id,
         });
         return data;
       }

@@ -34,6 +34,8 @@ async function checkLimit({ userId }) {
 }
 
 async function add({ userId, contact }) {
+  this.log.debug({ userId, contact }, 'add contact key params');
+
   const { redis } = this;
   const contactsCount = await checkLimit.call(this, { userId });
   const lock = await this.dlock.once(lockContact(contact.value));

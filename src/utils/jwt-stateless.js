@@ -13,13 +13,13 @@ const REVOKE_RULE_UPDATE_ACTION = 'revoke-rule.update';
 const isStatelessToken = (token) => !!token.st;
 
 const assertAccessToken = (token) => {
-  if (token.st && token.irt) {
+  if (isStatelessToken(token) && token.irt) {
     throw new HttpStatusError(401, 'access token required');
   }
 };
 
 const assertRefreshToken = (token) => {
-  if (token.st && typeof token.irt !== 'number') {
+  if (isStatelessToken(token) && typeof token.irt !== 'number') {
     throw new HttpStatusError(401, 'refresh token required');
   }
 };

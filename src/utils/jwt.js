@@ -13,7 +13,7 @@ const legacyJWT = require('./jwt-legacy');
 const statelessJWT = require('./jwt-stateless');
 
 const {
-  assertRefreshToken, assertAccessToken,
+  assertRefreshToken,
   isStatelessToken, isStatelessEnabled,
   assertStatelessEnabled,
 } = statelessJWT;
@@ -109,19 +109,23 @@ exports.logout = async function logout(token, audience) {
 exports.verify = async function verifyToken(token, audience, peek) {
   const decodedToken = await decodeAndVerify(this, token, audience);
 
-  assertAccessToken(decodedToken);
-
   if (audience.indexOf(decodedToken.aud) === -1) {
     throw USERS_AUDIENCE_MISMATCH;
   }
+  const isStateless = isStatelessToken(decodedToken);
 
-  if (!isStatelessToken(decodedToken)) {
+  // verify only legacy tokens
+  if (!isStateless) {
     await legacyJWT.verify(this, token, decodedToken, peek);
   }
 
-  if (isStatelessEnabled(this)) {
+  // btw if someone passed stateless token
+  if (isStateless) {
+    assertStatelessEnabled(this);
     await statelessJWT.verify(this, decodedToken);
   }
+
+  return decodedToken;
 };
 
 exports.reset = async function reset(userId) {

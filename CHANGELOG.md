@@ -1,3 +1,10 @@
+## [14.23.1](https://github.com/makeomatic/ms-users/compare/v14.23.0...v14.23.1) (2021-11-12)
+
+
+### Bug Fixes
+
+* fix adding contacts on bypass actions ([#532](https://github.com/makeomatic/ms-users/issues/532)) ([db29c4c](https://github.com/makeomatic/ms-users/commit/db29c4c9a4d5746723a6d3c5e3379b1e4698f732))
+
 # [14.23.0](https://github.com/makeomatic/ms-users/compare/v14.22.0...v14.23.0) (2021-10-06)
 
 

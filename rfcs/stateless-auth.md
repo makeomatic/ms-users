@@ -244,3 +244,46 @@ await createRule({
 });
 ```
 
+### Configuration update
+
+The configuration section will contain additional options:
+
+```typescript
+type jwt {
+  stateless: {
+    force: boolean;
+    enabled: boolean;
+		refreshTTL: number;
+    storage: {
+      watchOptions: {
+        backoffFactor: number;
+        backoffMax: number;
+      };
+    };
+    manager: {
+      cleanupInterval: number;
+    };
+  };
+}
+```
+
+* `jwt.stateless.force` - Forces all login requests use Stateless auth logic despite `isStatelessAuth` parameter.
+* `jwt.stateless.enabled` - Enables Stateless auth support.
+* `jwt.stateless.refreshTTL` - The TTL of the refresh token.
+* `jwt.stateless.storage` - Rule storage options. The `watchOptions` property passed to the https://www.npmjs.com/package/consul#watch.
+* `jwt.stateless.manager` - Rule manager configuration. The `cleanupInterval` parameter configures interval between the Rule cleanup process runs.
+
+### Login action
+
+The `users.login` action now supports the additional parameter `isStatelessAuth`. This parameter enables stateless token creation. The response will contain additional `jwtRefresh` property with a refresh token.
+
+### Refresh action
+
+The `users.refresh` action provides an ability to obtain a new AccessToken. Validates refresh token and issue a new access token.
+
+```javascript
+await amqp.publishAndWait('users.refresh', {
+  token: '{REFRESH_JWT_TOKEN}'
+});
+```
+

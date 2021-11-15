@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const { chunk } = require('lodash');
 const { once } = require('events');
 
-const { KEY_PREFIX_INVOCATION_RULES } = require('../constants');
+const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
 
 const DONE_EVENT = 'rrm-ttl-job-done';
 
@@ -34,18 +34,16 @@ const extractRule = (consulRule) => ({
  */
 class RevocationRulesManager {
   /**
-   * @param {Objec} config revocationRulesManager section
-   * @param {*} whenLeader bound microfleet.whenLeader
-   * @param {*} consul plugin-consul reference
-   * @param {*} log plugin-log
+   * @param {Object} config revocationRulesManager section
+   * @param {Microfleet} microfleet service
    */
-  constructor(config, whenLeader, consul, log) {
-    this.log = log;
-    this.consul = consul;
-    this.prefix = KEY_PREFIX_INVOCATION_RULES;
+  constructor(config, service) {
+    this.service = service;
+    this.log = service.log;
+    this.consul = service.consul;
+    this.prefix = KEY_PREFIX_REVOCATION_RULES;
     this.expireRuleJob = null;
     this.config = config;
-    this.whenLeader = whenLeader;
   }
 
   _getKey(key) {
@@ -63,7 +61,8 @@ class RevocationRulesManager {
       key: this._getKey(key),
       recurse,
     };
-    return this.consul.kv.get(params);
+    const rules = await this.consul.kv.get(params);
+    return rules || [];
   }
 
   /**
@@ -145,7 +144,7 @@ class RevocationRulesManager {
    */
   async scheduleExpire() {
     try {
-      if (await this.whenLeader()) {
+      if (await this.service.whenLeader()) {
         this.log.debug('performing rule cleanup');
         this.active = true;
 
@@ -166,7 +165,7 @@ class RevocationRulesManager {
 
   async stopRecurrentJobs() {
     if (this.active) {
-      await once(DONE_EVENT);
+      await once(this.service, DONE_EVENT);
     }
     clearTimeout(this.expireRuleJob);
   }
@@ -178,4 +177,5 @@ module.exports = {
   globalRule,
   extractId,
   extractRule,
+  DONE_EVENT,
 };

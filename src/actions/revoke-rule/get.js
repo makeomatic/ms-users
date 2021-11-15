@@ -9,6 +9,7 @@ async function getRevokeRule({ params }) {
   const ruleKey = username ? userRule(username, rule) : globalRule(rule);
 
   const dbRule = await revocationRulesManager.get(ruleKey);
+
   if (!dbRule) {
     throw NotFoundError(`rule: ${rule}: ${ruleKey}`);
   }

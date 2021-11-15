@@ -12,7 +12,7 @@ class RuleGroup {
    */
   constructor(rules = [], isOr = false) {
     this.isOr = isOr;
-    this.rules = Array.isArray(rules) ? rules : [];
+    this.rules = Array.isArray(rules) ? rules : [rules];
   }
 
   /**

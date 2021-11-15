@@ -11,7 +11,7 @@ const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
 const { ConsulWatcher } = require('./utils/consul-watcher');
-const { InvocationRulesStorage } = require('./utils/invocation-rules-storage');
+const { RevocationRulesStorage } = require('./utils/revocation-rules-storage');
 const { RevocationRulesManager } = require('./utils/revocation-rules-manager');
 
 /**
@@ -139,8 +139,8 @@ class Users extends Microfleet {
       });
     }
 
-    if (this.config.invocationRulesStorage.syncEnabled) {
-      this.initInvocationRulesStorage();
+    if (this.config.revocationRulesStorage.syncEnabled) {
+      this.initRevocationRulesStorage();
     }
 
     if (this.config.revocationRulesManager.enabled) {
@@ -167,19 +167,19 @@ class Users extends Microfleet {
     }
   }
 
-  initInvocationRulesStorage() {
+  initRevocationRulesStorage() {
     this.initConsul();
 
-    const pluginName = 'InvocationRulesStorage';
+    const pluginName = 'RevocationRulesStorage';
     const watcher = new ConsulWatcher(this.consul, this.log);
-    this.invocationRulesStorage = new InvocationRulesStorage(
-      watcher, this.config.invocationRulesStorage.watchOptions, this.log
+    this.revocationRulesStorage = new RevocationRulesStorage(
+      watcher, this.config.revocationRulesStorage.watchOptions, this.log
     );
     this.addConnector(ConnectorsTypes.application, () => {
-      this.invocationRulesStorage.startSync();
+      this.revocationRulesStorage.startSync();
     }, pluginName);
     this.addDestructor(ConnectorsTypes.application, () => {
-      this.invocationRulesStorage.stopSync();
+      this.revocationRulesStorage.stopSync();
     }, pluginName);
   }
 
@@ -191,8 +191,7 @@ class Users extends Microfleet {
 
     this.addConnector(ConnectorsTypes.application, () => {
       this.revocationRulesManager = new RevocationRulesManager(
-        this.config.revocationRulesManager, this.whenLeader.bind(this),
-        this.consul, this.log
+        this.config.revocationRulesManager, this
       );
       if (jobsEnabled) this.revocationRulesManager.startRecurrentJobs();
     }, pluginName);

@@ -4,9 +4,9 @@ const { userRule, globalRule, extractRule } = require('../../utils/revocation-ru
 
 async function listRevokeRules({ params }) {
   const { revocationRulesManager } = this;
-  const { user } = params;
+  const { username } = params;
 
-  const ruleKey = user ? userRule(user, '') : globalRule('');
+  const ruleKey = username ? userRule(username, '') : globalRule('');
 
   const raw = await revocationRulesManager.list(ruleKey, true);
   return raw.map((data) => extractRule(data));

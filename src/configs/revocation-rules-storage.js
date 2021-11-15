@@ -1,5 +1,5 @@
-exports.invocationRulesStorage = {
-  syncEnabled: true,
+exports.revocationRulesStorage = {
+  syncEnabled: false,
   watchOptions: {
     backoffFactor: 100,
     backoffMax: 30000,

@@ -23,6 +23,10 @@ class RadixStorage {
     return Array.from(this.tree.entries()).length;
   }
 
+  get(prefix) {
+    return this.tree.get(prefix);
+  }
+
   /**
    *
    * @param {string} prefix

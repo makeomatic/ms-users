@@ -62,6 +62,8 @@ async function decodeAndVerify(service, token, audience) {
   }
 }
 
+exports.decodeAndVerify = decodeAndVerify;
+
 const getAudience = (defaultAudience, audience) => {
   if (audience !== defaultAudience) {
     return [audience, defaultAudience];
@@ -139,16 +141,18 @@ exports.reset = async function reset(userId) {
   return resetResult;
 };
 
-exports.refresh = async function refresh(token, audience) {
+exports.refresh = async function refresh(token, _audience) {
   assertStatelessEnabled(this);
 
-  const decodedToken = await decodeAndVerify(this, token, audience);
+  const { defaultAudience } = this.config.jwt;
+  const audience = _audience || defaultAudience;
+
+  const decodedToken = await decodeAndVerify(this, token, _audience);
 
   assertRefreshToken(decodedToken);
 
   const userId = decodedToken[USERS_USERNAME_FIELD];
 
-  const { defaultAudience } = this.config.jwt;
   const metadataAudience = getAudience(defaultAudience, audience);
 
   const [refreshResult, metadata] = await Promise.all([

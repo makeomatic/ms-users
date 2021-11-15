@@ -97,9 +97,10 @@ async function login(service, userId, audience) {
 
 async function checkRules(service, token) {
   const userId = token[USERS_USERNAME_FIELD];
-  const filter = service.revocationRulesStorage.getFilter();
 
-  const ruleCheck = filter.match([GLOBAL_RULE_PREFIX, `${USER_RULE_PREFIX}${userId}`], token);
+  const ruleCheck = service.revocationRulesStorage
+    .getFilter()
+    .match([GLOBAL_RULE_PREFIX, `${USER_RULE_PREFIX}${userId}/`], token);
 
   if (ruleCheck) {
     throw USERS_INVALID_TOKEN;
@@ -115,17 +116,16 @@ async function refresh(service, encodedToken, token, audience) {
 
   await checkRules(service, token);
 
-  const { token: accessToken } = createAccessToken(service, token, payload, audience);
+  const { token: accessToken, payload: accessTokenPayload } = createAccessToken(service, token, payload, audience[0]);
 
   // -- invalidate all issued access tokens as invalid that was signed by provided refreshToken
-  const now = Date.now();
   await createRule(service, {
     username: userId,
     rule: {
       params: {
         ttl: token.exp,
         rt: token.cs,
-        iat: { lte: now },
+        iat: { lt: accessTokenPayload.iat },
       },
     },
   });

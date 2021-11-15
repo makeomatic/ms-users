@@ -1,5 +1,6 @@
 const assert = require('assert');
 const { delay } = require('bluebird');
+const { decodeAndVerify } = require('../../../src/utils/jwt');
 
 describe('#stateless-jwt', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
@@ -108,12 +109,18 @@ describe('#stateless-jwt', function loginSuite() {
       assert.ok(response.jwtRefresh, 'should provide refresh token');
       assert.strictEqual(response.jwtRefresh, jwtRefresh, 'should return same refresh jwt token');
 
+      const oldTokenDecoded = await decodeAndVerify(this.users, oldJwt, user.audience);
+      const newTokenDecoded = await decodeAndVerify(this.users, response.jwt, user.audience);
+      const refreshTokenDecoded = await decodeAndVerify(this.users, jwtRefresh, user.audience);
+
       const rules = await getRules(userId);
 
       assert.strictEqual(rules.length, 1);
-      assert.ok(rules[0].params.rt);
-      assert.ok(rules[0].params.iat);
-      assert.ok(rules[0].params.ttl);
+
+      assert.strictEqual(rules[0].params.rt, oldTokenDecoded.rt);
+      assert.deepStrictEqual(rules[0].params.iat, { lt: newTokenDecoded.iat });
+      assert.strictEqual(rules[0].params.ttl, refreshTokenDecoded.exp);
+      assert.deepStrictEqual(oldTokenDecoded.audience, newTokenDecoded.audience);
 
       await delay(100);
 
@@ -146,14 +153,14 @@ describe('#stateless-jwt', function loginSuite() {
       const { jwtRefresh, jwt } = await loginUser();
 
       await this.users.dispatch('logout', { params: { jwt: jwtRefresh, audience: user.audience } });
+      const refreshTokenDecoded = await decodeAndVerify(this.users, jwtRefresh, '*.localhost');
 
       const rules = await getRules(userId);
 
-      assert.ok(rules[0].params.cs);
-      assert.ok(rules[0].params.rt);
+      assert.strictEqual(rules[0].params.cs, refreshTokenDecoded.cs);
+      assert.strictEqual(rules[0].params.rt, refreshTokenDecoded.cs);
+      assert.strictEqual(rules[0].params.ttl, refreshTokenDecoded.exp);
       assert.ok(rules[0].params._or);
-      assert.strictEqual(rules[0].params.cs, rules[0].params.rt);
-      assert.ok(rules[0].params.ttl);
 
       // try again with same access token
       await assert.rejects(
@@ -224,16 +231,17 @@ describe('#stateless-jwt', function loginSuite() {
 
     it('#logout should accept refresh token', async () => {
       const { jwt } = await loginUser(false);
+      const now = Date.now();
 
       await this.users.dispatch('logout', { params: { jwt, audience: user.audience } });
+      const accessTokenDecoded = await decodeAndVerify(this.users, jwt, '*.localhost');
 
       const rules = await getRules(userId);
 
-      assert.ok(rules[0].params.cs);
-      assert.ok(rules[0].params.rt);
+      assert.strictEqual(rules[0].params.cs, accessTokenDecoded.cs);
+      assert.strictEqual(rules[0].params.rt, accessTokenDecoded.cs);
       assert.ok(rules[0].params._or);
-      assert.strictEqual(rules[0].params.cs, rules[0].params.rt);
-      assert.ok(rules[0].params.ttl);
+      assert.ok(rules[0].params.ttl - now >= this.users.config.jwt.ttl);
 
       // try again with same access token
       await assert.rejects(

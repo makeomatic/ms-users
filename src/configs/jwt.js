@@ -8,7 +8,6 @@ exports.jwt = {
   issuer: 'ms-users',
   secret: 'i-hope-that-you-change-this-long-default-secret-in-your-app',
   ttl: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
-  refreshTTL: 365 * 24 * 60 * 60 * 1000, // 1 year
   cookies: {
     enabled: false,
     name: 'jwt',
@@ -28,6 +27,7 @@ exports.jwt = {
   stateless: {
     force: false,
     enabled: false,
+    refreshTTL: 365 * 24 * 60 * 60 * 1000, // 1 year
     storage: {
       watchOptions: {
         backoffFactor: 100,

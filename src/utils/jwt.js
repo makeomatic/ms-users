@@ -80,6 +80,10 @@ exports.login = async function login(userId, _audience, stateless = false) {
   const audience = _audience || defaultAudience;
   const metadataAudience = getAudience(defaultAudience, audience);
 
+  if (stateless) {
+    assertStatelessEnabled(this);
+  }
+
   const tokenFlow = force || (enabled && stateless)
     ? () => statelessJWT.login(this, userId, audience)
     : () => legacyJWT.login(this, userId, audience);

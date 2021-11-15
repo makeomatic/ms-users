@@ -795,7 +795,7 @@
         }
       },
       "then": {
-        "required": ["manager", "force", "storage"]
+        "required": ["manager", "force", "storage", "refreshTTL"]
       },
       "properties": {
         "enabled": {
@@ -805,6 +805,9 @@
         "force": {
           "type": "boolean",
           "default": false
+        },
+        "refreshTTL": {
+          "type": "number"
         },
         "manager": {
           "type": "object",

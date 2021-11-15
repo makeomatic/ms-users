@@ -43,10 +43,17 @@ describe('#stateless-jwt', function loginSuite() {
     });
 
     it('refresh should panic when stateless disabled', async () => {
-      const { jwt } = await loginUser();
+      const { jwt } = await loginUser(false);
 
       await assert.rejects(
         this.users.dispatch('refresh', { params: { token: jwt, audience: user.audience } }),
+        /`Stateless JWT` should be enabled/
+      );
+    });
+
+    it('login should panic when stateless disabled and stateless requested', async () => {
+      await assert.rejects(
+        loginUser(true),
         /`Stateless JWT` should be enabled/
       );
     });

@@ -60,7 +60,7 @@ function createToken(service, audience, payload) {
 }
 
 function createRefreshToken(service, payload, audience) {
-  const ttl = Date.now() + service.config.jwt.refreshTTL;
+  const ttl = Date.now() + service.config.jwt.stateless.refreshTTL;
   return createToken(service, audience, {
     ...payload,
     exp: ttl,

@@ -10,6 +10,9 @@ const withSyncEnabled = {
     },
   },
 };
+
+const keyPrefix = KEY_PREFIX_REVOCATION_RULES;
+
 async function startServiceWithSyncEnabled() {
   await global.startService.bind(this)(withSyncEnabled);
 }
@@ -20,7 +23,7 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
   beforeEach(startServiceWithSyncEnabled);
   afterEach('Clear consul revocation rules version keys', async function clearConsul() {
     const { consul } = this.users;
-    await consul.kv.del({ key: KEY_PREFIX_REVOCATION_RULES, recurse: true });
+    await consul.kv.del({ key: keyPrefix, recurse: true });
   });
   afterEach(global.clearRedis);
 
@@ -34,7 +37,7 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
   it('Should be able to sync rules', async function test() {
     const { consul, revocationRulesStorage } = this.users;
     const { kv } = consul;
-    const initial = await kv.get({ key: KEY_PREFIX_REVOCATION_RULES, recurse: true });
+    const initial = await kv.get({ key: keyPrefix, recurse: true });
     strictEqual(initial, undefined);
     ok(revocationRulesStorage);
 

@@ -1,6 +1,6 @@
-const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
 const { ConsulWatcher } = require('./consul-watcher');
 const { ListFilter } = require('./jwt-filter/list-filter');
+const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
 
 /** @typedef { import("./revocation-rules-manager").RevocationRulesManager } RevocationRulesManager */
 
@@ -63,7 +63,7 @@ class RevocationRulesStorage {
     }
 
     this.watchInstance = consulWatcher.watchKeyPrefix(
-      KEY_PREFIX_REVOCATION_RULES,
+      this.keyPrefix,
       (data) => {
         const value = data === undefined ? [] : data;
         for (const { Key: key, Value: version } of value) {

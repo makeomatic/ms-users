@@ -102,7 +102,7 @@ async function checkRules(service, token) {
     .getFilter()
     .match([GLOBAL_RULE_PREFIX, `${USER_RULE_PREFIX}${userId}/`], token);
 
-  if (ruleCheck) {
+  if (ruleCheck === true) {
     throw USERS_INVALID_TOKEN;
   }
 }
@@ -138,8 +138,6 @@ async function refresh(service, encodedToken, token, audience) {
 }
 
 async function logout(service, token) {
-  assertRefreshToken(token);
-
   // -- invalidate current refresh token and all tokens issued by this refresh token
   // set user rule { cs: { in: [verifiedToken.cs, verifiedToken.rt] }
   // -- legacy tokens do not have exp or iat field so ttl of the rule is set to max possible ttl

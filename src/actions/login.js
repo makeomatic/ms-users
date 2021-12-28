@@ -226,6 +226,6 @@ async function login({ params, locals }) {
 
 login.mfa = MFA_TYPE_OPTIONAL;
 login.allowed = checkMFA;
-login.transports = [ActionTransport.amqp, ActionTransport.internal];
+login.transports = [ActionTransport.amqp, ActionTransport.internal, ActionTransport.http];
 
 module.exports = login;

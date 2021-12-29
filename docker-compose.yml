@@ -1,0 +1,32 @@
+version: "3"
+services:
+  rabbitmq:
+    image: 'rabbitmq:3.9.11-management-alpine'
+  redis:
+    image: "redis:6-alpine"
+    ports:
+      - "6379:6379"
+  redis-sentinel:
+    image: "redis:6-alpine"
+    expose:
+      - '26379'
+    volumes:
+      - ${PWD}/node_modules/@makeomatic/deploy/templates/redis-sentinel.sh:/entrypoint.sh:ro
+    command: /bin/sh /entrypoint.sh redis
+    links:
+      - "redis"
+  users:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    entrypoint: yarn start
+    environment:
+      NCONF_FILE_PATH: '["/configs/amqp.js","/configs/redis.sentinel.js", "/configs/users.js"]'
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    volumes:
+      - ${PWD}/test/configs:/configs:ro
+    links:
+      - "redis-sentinel"
+      - "rabbitmq"

@@ -1,15 +1,8 @@
 module.exports = {
   initAdminAccountsDelay: 0,
-  oauth: {
-    enabled: false,
-    token: {
-      secret: 'notenablednotenablednotenablednotenablednotenabled',
-    },
-    providers: {
-      facebook: {
-        enabled: false,
-        password: 'notenablednotenablednotenablednotenablednotenabled',
-      },
+  validator: {
+    ajv: {
+      coerceTypes: true,
     },
   },
   validation: {
@@ -19,6 +12,18 @@ module.exports = {
       'organization-user-register': 'sl-registration-notify',
     },
   },
+  server: {
+    host: 'localhost',
+    port: 80,
+    proto: 'http',
+  },
+  admins: [
+    {
+      metadata: { firstName: 'User', lastName: '#1' },
+      password: '11111111111111111111',
+      username: 'user@example.org',
+    },
+  ],
   logger: {
     defaultLogger: true,
     debug: true,
@@ -32,4 +37,15 @@ module.exports = {
     'http',
     'prometheus',
   ],
+  users: {
+    audience: 'api',
+  },
+  oauth: {
+    enabled: false,
+  },
+  jwt: {
+    cookies: {
+      enabled: true,
+    },
+  },
 };

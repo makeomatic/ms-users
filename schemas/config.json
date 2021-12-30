@@ -266,13 +266,7 @@
           "type": "string"
         },
         "port": {
-          "oneOf": [{
-              "type": "string"
-            },
-            {
-              "type": "integer"
-            }
-          ]
+          "type": "integer"
         }
       }
     },

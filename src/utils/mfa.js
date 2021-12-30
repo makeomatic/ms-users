@@ -46,6 +46,7 @@ async function isMFAEnabled(userId) {
  * @param  {Object}  request
  * @returns {null}
  */
+// eslint-disable-next-line no-unused-vars
 async function checkMFA(request) {
   const {
     action,

@@ -2,10 +2,14 @@ version: "3"
 services:
   rabbitmq:
     image: 'rabbitmq:3.9.11-management-alpine'
+    logging:
+      driver: "none"
   redis:
     image: "redis:6-alpine"
     ports:
       - "6379:6379"
+    logging:
+      driver: "none"
   redis-sentinel:
     image: "redis:6-alpine"
     expose:
@@ -15,6 +19,8 @@ services:
     command: /bin/sh /entrypoint.sh redis
     links:
       - "redis"
+    logging:
+      driver: "none"
   users:
     build:
       dockerfile: Dockerfile

@@ -1,32 +1,16 @@
-ARG NODE_VERSION=${NODE_VERSION:-17}
-
-FROM makeomatic/node:$NODE_VERSION
-
-ENV NCONF_NAMESPACE=MS_USERS \
-    NODE_ENV=$NODE_ENV
-
-WORKDIR /src
-
+FROM node:17-alpine as base
+RUN apk add --no-cache python3 build-base
+WORKDIR /app
 COPY package.json yarn.lock ./
-RUN \
-  apk --update add --virtual .buildDeps \
-    build-base \
-    python3 \
-    git \
-    curl \
-    openssl \
-  && yarn --production --frozen-lockfile \
-  && yarn cache clean \
-  && apk del \
-    .buildDeps \
-    wget \
-  && rm -rf \
-    /tmp/* \
-    /root/.node-gyp \
-    /root/.npm \
-    /etc/apk/cache/* \
-    /var/cache/apk/*
 
-COPY . /src
-RUN  chown -R node /src
-USER node
+FROM base as build
+RUN yarn install --frozen-lockfile
+COPY src ./src
+RUN yarn compile
+
+FROM base
+ENV NCONF_NAMESPACE=MS_USERS NODE_ENV=production
+RUN yarn install --frozen-lockfile --production
+COPY schemas ./schemas
+COPY scripts ./scripts
+COPY --from=build /app/lib ./lib

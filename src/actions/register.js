@@ -446,4 +446,4 @@ module.exports.allowed = async function transformSSO({ params }) {
 };
 
 // init transport
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal, ActionTransport.http];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

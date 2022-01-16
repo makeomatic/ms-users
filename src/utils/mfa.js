@@ -63,15 +63,10 @@ async function checkMFA(request) {
   }
 
   let username;
-  // if (transport === ActionTransport.http) {
-  //   assert(request.auth && request.auth.credentials, 'Authentication Must Be Enabled for HTTP transport');
-  //   username = request.auth.credentials.id;
-  // } else if (params.username) {
-  //   username = params.username;
-  // } else {
-  //   throw new HttpStatusError(400, 'no username source');
-  // }
-  if (params.username) {
+  if (transport === ActionTransport.http) {
+    assert(request.auth && request.auth.credentials, 'Authentication Must Be Enabled for HTTP transport');
+    username = request.auth.credentials.id;
+  } else if (params.username) {
     username = params.username;
   } else {
     throw new HttpStatusError(400, 'no username source');

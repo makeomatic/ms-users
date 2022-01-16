@@ -82,6 +82,6 @@ function Verify({ params }) {
     .then(decodedToken);
 }
 
-Verify.transports = [ActionTransport.amqp, ActionTransport.internal, ActionTransport.http];
+Verify.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = Verify;

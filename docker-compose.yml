@@ -17,24 +17,28 @@ services:
     expose:
       - '26379'
     volumes:
-      - ${PWD}/node_modules/@makeomatic/deploy/templates/redis-sentinel.sh:/entrypoint.sh:ro
+      - ./node_modules/@makeomatic/deploy/templates/redis-sentinel.sh:/entrypoint.sh:ro
     command: /bin/sh /entrypoint.sh redis
     links:
       - "redis"
     logging:
       driver: "none"
   users:
+#    # only for run perf
+#    cap_add:
+#      - SYS_ADMIN
     build:
       dockerfile: Dockerfile
       context: .
     entrypoint: yarn start
+#    entrypoint: sleep infinity
     environment:
       NCONF_FILE_PATH: '["/configs/amqp.js","/configs/redis.sentinel.js", "/configs/users.js"]'
       NODE_ENV: production
     ports:
       - "3000:3000"
     volumes:
-      - ${PWD}/test/configs:/configs:ro
+      - ./test/configs:/configs:ro
     links:
       - "redis-sentinel"
       - "rabbitmq"

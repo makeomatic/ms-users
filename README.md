@@ -28,3 +28,15 @@ Currently available on github pages
 ## Docker images
 
 Built docker images are available: https://hub.docker.com/r/makeomatic/ms-users/
+
+## Run Perf Tests
+```shell
+perf record -F 99 -e cycles:u -g -- node --perf-basic-prof-only-functions /app/node_modules/.bin/mfleet
+# or
+perf record -F 99 -e cycles:u -g -- node --perf-basic-prof /app/node_modules/.bin/mfleet
+perf script > perfs.out
+sed -i \
+  -e "/( __libc_start| LazyCompile | v8::internal::| Builtin:| Stub:| LoadIC:|\[unknown\]| LoadPolymorphicIC:)/d" \
+  -e 's/ LazyCompile:[*~]\?/ /' \
+  perfs.out
+```

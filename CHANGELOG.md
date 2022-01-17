@@ -1,3 +1,10 @@
+## [14.23.2](https://github.com/makeomatic/ms-users/compare/v14.23.1...v14.23.2) (2022-01-17)
+
+
+### Bug Fixes
+
+* change masters user id ([#535](https://github.com/makeomatic/ms-users/issues/535)) ([f758399](https://github.com/makeomatic/ms-users/commit/f758399058c4817fc5d832a3f4977269c9905482))
+
 ## [14.23.1](https://github.com/makeomatic/ms-users/compare/v14.23.0...v14.23.1) (2021-11-12)
 
 

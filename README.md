@@ -34,9 +34,11 @@ Built docker images are available: https://hub.docker.com/r/makeomatic/ms-users/
 perf record -F 99 -e cycles:u -g -- node --perf-basic-prof-only-functions /app/node_modules/.bin/mfleet
 # or
 perf record -F 99 -e cycles:u -g -- node --perf-basic-prof /app/node_modules/.bin/mfleet
-perf script > perfs.out
+
+perf script --header > perfs.out
 sed -i \
   -e "/( __libc_start| LazyCompile | v8::internal::| Builtin:| Stub:| LoadIC:|\[unknown\]| LoadPolymorphicIC:)/d" \
   -e 's/ LazyCompile:[*~]\?/ /' \
   perfs.out
+perf report > perfs.txt
 ```

@@ -52,7 +52,7 @@ class MastersService {
   }
 
   static userId(userProfile) {
-    return userProfile.email;
+    return userProfile.userId;
   }
 
   async login(userProfile) {

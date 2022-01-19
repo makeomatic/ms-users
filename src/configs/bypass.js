@@ -10,10 +10,10 @@ exports.bypass = {
     },
   },
   masters: {
-    enabled: false,
+    enabled: true,
     authUrl: '/auth/services/id/validateToken',
     credentials: {
-      imcf: {
+      local: {
         baseUrl: 'https://simulation.masters.com',
       },
     },

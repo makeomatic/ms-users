@@ -66,6 +66,7 @@
       "type": "string",
       "oneOf": [
         { "format": "email" },
+        { "format": "uuid" },
         { "pattern": "^\\d+$" },
         { "pattern": "^(fb|sso)/[\\d_]+$" }
       ]

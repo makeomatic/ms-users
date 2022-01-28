@@ -11,11 +11,18 @@ exports.bypass = {
   },
   masters: {
     enabled: false,
-    authUrl: '/auth/services/id/validateToken',
+    baseUrl: 'https://simulation.masters.com',
+    authPath: '/auth/services/id/validateToken',
+    httpPoolOptions: {
+      connections: 1,
+      pipelining: 1,
+    },
+    httpClientOptions: {
+      headersTimeout: 5,
+      bodyTimeout: 5,
+    },
     credentials: {
-      imcf: {
-        baseUrl: 'https://simulation.masters.com',
-      },
+      local: {},
     },
   },
 };

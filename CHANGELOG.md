@@ -1,3 +1,10 @@
+# [14.24.0](https://github.com/makeomatic/ms-users/compare/v14.23.2...v14.24.0) (2022-01-28)
+
+
+### Features
+
+* use undici for masters ([#537](https://github.com/makeomatic/ms-users/issues/537)) ([f3160ff](https://github.com/makeomatic/ms-users/commit/f3160ffbc180f2e7f379c6ee526c76fddf43bb1a))
+
 ## [14.23.2](https://github.com/makeomatic/ms-users/compare/v14.23.1...v14.23.2) (2022-01-17)
 
 

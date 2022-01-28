@@ -10,7 +10,7 @@ const msUsers = got.extend({
 describe('/bypass/masters', function verifySuite() {
   const profileToken = process.env.MASTERS_PROFILE_TOKEN;
   const msg = {
-    schema: 'masters:imcf',
+    schema: 'masters:local',
     userKey: profileToken,
   };
 

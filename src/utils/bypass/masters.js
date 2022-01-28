@@ -1,7 +1,7 @@
-const got = require('got');
-const { Agent: HttpsAgent } = require('https');
 const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');
+const undici = require('undici');
+
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists } = require('../../constants');
 const contacts = require('../contacts');
 
@@ -34,18 +34,14 @@ class MastersService {
 
   constructor(service) {
     this.service = service;
-    this.req = got.extend({
-      responseType: 'json',
-      agent: {
-        https: new HttpsAgent({
-          keepAlive: true,
-          maxFreeSockets: 32,
-        }),
-      },
-      headers: {
-        'User-Agent': 'got',
-      },
+    this.config = this.service.config.bypass.masters;
+
+    this.httpPool = new undici.Pool(this.config.baseUrl, {
+      connections: 1,
+      pipelining: 1,
+      ...this.config.httpPoolOptions,
     });
+
     this.registerUser = this.registerUser.bind(this);
     this.service.validator.ajv.addSchema(schema);
     this.audience = this.service.config.jwt.defaultAudience;
@@ -128,21 +124,20 @@ class MastersService {
   }
 
   async retrieveUser(profileToken, account) {
-    const config = this.service.config.bypass.masters;
-
-    const accountCredentials = config.credentials[account];
-
+    const accountCredentials = this.config.credentials[account];
     if (!accountCredentials) throw new HttpStatusError(412, `unknown account: ${account}`);
-
-    const { baseUrl } = accountCredentials;
 
     let response;
 
     try {
-      const { body } = await this.req(`${baseUrl}${config.authUrl}?token=${profileToken}`, {
+      const { body } = await this.httpPool.request({
+        headersTimeout: 5000,
+        bodyTimeout: 5000,
+        ...this.config.httpClientOptions,
+        path: `${this.config.authPath}?token=${profileToken}`,
         method: 'GET',
       });
-      response = body;
+      response = await body.json();
     } catch (e) {
       this.service.log.warn({ err: e }, 'failed to get user from masters');
       throw USERS_INVALID_TOKEN;

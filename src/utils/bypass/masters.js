@@ -131,8 +131,8 @@ class MastersService {
 
     try {
       const { body } = await this.httpPool.request({
-        headersTimeout: 5,
-        bodyTimeout: 5,
+        headersTimeout: 5000,
+        bodyTimeout: 5000,
         ...this.config.httpClientOptions,
         path: `${this.config.authPath}?token=${profileToken}`,
         method: 'GET',

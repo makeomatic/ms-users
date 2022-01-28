@@ -18,8 +18,8 @@ exports.bypass = {
       pipelining: 1,
     },
     httpClientOptions: {
-      headersTimeout: 5,
-      bodyTimeout: 5,
+      headersTimeout: 5000,
+      bodyTimeout: 5000,
     },
     credentials: {
       local: {},

@@ -1,4 +1,7 @@
 const Promise = require('bluebird');
+
+const { ActionTransport } = require('../re-export');
+
 const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
@@ -57,4 +60,4 @@ module.exports = function requestPassword(request) {
     .return({ success: true });
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp];

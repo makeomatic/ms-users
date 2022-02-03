@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('../../../re-export');
+
 const redisKey = require('../../../utils/key');
 const getUserId = require('../../../utils/userData/get-user-id');
 const { getMemberData } = require('../../../utils/organization/get-organization-members');

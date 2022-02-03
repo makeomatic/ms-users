@@ -1,4 +1,7 @@
 const Promise = require('bluebird');
+
+const { ActionTransport } = require('../../re-export');
+
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');
 const { USERS_API_TOKENS_ZSET, USERS_API_TOKENS } = require('../../constants');
@@ -92,6 +95,6 @@ function listTokens({ params }) {
     .then(getList);
 }
 
-listTokens.transports = [require('@microfleet/core').ActionTransport.amqp];
+listTokens.transports = [ActionTransport.amqp];
 
 module.exports = listTokens;

@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('../re-export');
+
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const isActive = require('../utils/is-active');

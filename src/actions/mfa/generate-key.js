@@ -1,5 +1,7 @@
-const { ActionTransport } = require('@microfleet/core');
 const { authenticator } = require('otplib');
+
+const { ActionTransport } = require('../../re-export');
+
 const { USERS_ALIAS_FIELD, USERS_USERNAME_FIELD } = require('../../constants');
 
 /**

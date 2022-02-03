@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('../../re-export');
+
 const setOrganizationMetadata = require('../../utils/set-organization-metadata');
 const { checkOrganizationExists, getOrganizationMetadata } = require('../../utils/organization');
 const { ORGANIZATIONS_INDEX } = require('../../constants');

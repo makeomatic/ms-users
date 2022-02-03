@@ -1,5 +1,6 @@
-const { ActionTransport } = require('@microfleet/core');
 const { HttpStatusError } = require('common-errors');
+
+const { ActionTransport } = require('../re-export');
 
 /**
  * @api {amqp} <prefix>.auth-bypass Authentication through 3rd party api

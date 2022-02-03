@@ -1,5 +1,7 @@
-const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
+
+const { ActionTransport } = require('../re-export');
+
 const jwt = require('../utils/jwt');
 
 /**

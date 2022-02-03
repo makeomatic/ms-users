@@ -1,6 +1,8 @@
-const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const pick = require('lodash/pick');
+
+const { ActionTransport } = require('../re-export');
+
 const { getInternalData } = require('../utils/userData');
 
 /**

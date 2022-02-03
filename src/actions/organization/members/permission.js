@@ -1,6 +1,8 @@
-const { ActionTransport } = require('@microfleet/core');
 const union = require('lodash/union');
 const difference = require('lodash/difference');
+
+const { ActionTransport } = require('../../../re-export');
+
 const { checkOrganizationExists } = require('../../../utils/organization');
 const redisKey = require('../../../utils/key');
 const handlePipeline = require('../../../utils/pipeline-error');

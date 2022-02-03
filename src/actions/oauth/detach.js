@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('../../re-export');
+
 const detach = require('../../auth/oauth/utils/detach');
 const { getInternalData } = require('../../utils/userData');
 

@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('../re-export');
+
 const redisKey = require('../utils/key');
 const handlePipeline = require('../utils/pipeline-error');
 const { USERS_REF, USERS_REF_METADATA } = require('../constants');

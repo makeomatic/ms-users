@@ -1,5 +1,7 @@
-const { ActionTransport } = require('@microfleet/core');
 const snakeCase = require('lodash/snakeCase');
+
+const { ActionTransport } = require('../../re-export');
+
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipeline-error');
 const { checkOrganizationExists, getInternalData } = require('../../utils/organization');

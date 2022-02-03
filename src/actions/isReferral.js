@@ -1,4 +1,7 @@
 const Promise = require('bluebird');
+
+const { ActionTransport } = require('../re-export');
+
 const { getUserId } = require('../utils/userData');
 const { USERS_REFERRAL_INDEX } = require('../constants');
 
@@ -39,4 +42,4 @@ module.exports = function isReferral({ params }) {
     .catchReturn(false);
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp];

@@ -1,8 +1,10 @@
-const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const passThrough = require('lodash/identity');
 const fsort = require('redis-filtered-sort');
+
+const { ActionTransport } = require('../re-export');
+
 const handlePipeline = require('../utils/pipeline-error');
 const redisKey = require('../utils/key');
 const {

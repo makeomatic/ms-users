@@ -1,5 +1,7 @@
-const { ActionTransport } = require('@microfleet/core');
 const assert = require('assert');
+
+const { ActionTransport } = require('../../re-export');
+
 const { oauthVerification, mserviceVerification } = require('../../auth/oauth');
 const formOAuthResponse = require('../../auth/oauth/utils/form-oauth-response');
 

@@ -1,3 +1,5 @@
+const { ActionTransport } = require('../re-export');
+
 const { selectChallenge } = require('../utils/challenges/challenge');
 const { TOKEN_METADATA_FIELD_CONTEXT } = require('../constants');
 
@@ -39,4 +41,4 @@ module.exports = async function regenerateToken({ params }) {
   return response;
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp];

@@ -1,6 +1,8 @@
 const Promise = require('bluebird');
-const { ActionTransport } = require('@microfleet/core');
 const mapValues = require('lodash/mapValues');
+
+const { ActionTransport } = require('../re-export');
+
 const redisKey = require('../utils/key');
 const { getInternalData } = require('../utils/userData');
 const handlePipeline = require('../utils/pipeline-error');

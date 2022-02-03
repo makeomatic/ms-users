@@ -1,3 +1,5 @@
+const { ActionTransport } = require('../../re-export');
+
 const contacts = require('../../utils/contacts');
 const { getUserId } = require('../../utils/userData');
 
@@ -18,4 +20,4 @@ module.exports = async function list({ params }) {
   return { data: contactList };
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp];

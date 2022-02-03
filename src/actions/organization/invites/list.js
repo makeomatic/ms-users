@@ -1,5 +1,7 @@
-const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
+
+const { ActionTransport } = require('../../../re-export');
+
 const { checkOrganizationExists } = require('../../../utils/organization');
 const { organizationInvite, inviteId, USERS_ACTION_ORGANIZATION_INVITE, TOKEN_METADATA_FIELD_METADATA } = require('../../../constants');
 

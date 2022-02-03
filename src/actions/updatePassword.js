@@ -1,5 +1,7 @@
 const { HttpStatusError } = require('common-errors');
 
+const { ActionTransport } = require('../re-export');
+
 const scrypt = require('../utils/scrypt');
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
@@ -107,4 +109,4 @@ async function updatePassword(request) {
 
 module.exports = updatePassword;
 module.exports.updatePassword = setPassword;
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp];

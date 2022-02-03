@@ -1,4 +1,7 @@
 const Promise = require('bluebird');
+
+const { ActionTransport } = require('../../re-export');
+
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
@@ -44,6 +47,6 @@ function eraseToken({ params }) {
     .then(eraseData);
 }
 
-eraseToken.transports = [require('@microfleet/core').ActionTransport.amqp];
+eraseToken.transports = [ActionTransport.amqp];
 
 module.exports = eraseToken;

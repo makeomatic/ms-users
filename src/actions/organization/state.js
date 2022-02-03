@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('../../re-export');
+
 const { checkOrganizationExists } = require('../../utils/organization');
 const { ORGANIZATIONS_ACTIVE_FLAG, ORGANIZATIONS_DATA } = require('../../constants');
 const redisKey = require('../../utils/key');

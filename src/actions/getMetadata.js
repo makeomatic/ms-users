@@ -1,8 +1,10 @@
-const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const noop = require('lodash/noop');
 const identity = require('lodash/identity');
+
+const { ActionTransport } = require('../re-export');
+
 const get = require('../utils/get-value');
 const getMetadata = require('../utils/get-metadata');
 const { getUserId } = require('../utils/userData');

@@ -1,6 +1,8 @@
-const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const fsort = require('redis-filtered-sort');
+
+const { ActionTransport } = require('../../re-export');
+
 const redisKey = require('../../utils/key');
 const { getOrganizationMetadata, getInternalData } = require('../../utils/organization');
 const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');

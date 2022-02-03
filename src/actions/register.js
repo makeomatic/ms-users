@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const { ActionTransport } = require('@microfleet/core');
 const { LockAcquisitionError } = require('ioredis-lock');
 const { HttpStatusError } = require('common-errors');
 
@@ -7,6 +6,8 @@ const set = require('lodash/set');
 const merge = require('lodash/merge');
 const reduce = require('lodash/reduce');
 const last = require('lodash/last');
+
+const { ActionTransport } = require('../re-export');
 
 // internal deps
 const setMetadata = require('../utils/update-metadata');

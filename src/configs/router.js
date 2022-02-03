@@ -1,5 +1,6 @@
 const path = require('path');
-const { routerExtension, ActionTransport } = require('@microfleet/core');
+// const { routerExtension } = require('@microfleet/core');
+const { ActionTransport } = require('../re-export');
 
 /**
  * Loads existing auth strategies
@@ -10,19 +11,19 @@ const strategies = require('../auth/strategies');
  * This extension defaults schemas to the name of the action
  * @type {Function}
  */
-const autoSchema = routerExtension('validate/schemaLessAction');
+// const autoSchema = routerExtension('validate/schemaLessAction');
 
 /**
  * Provides audit log for every performed action
  * @type {Function}
  */
-const auditLog = routerExtension('audit/log');
+// const auditLog = routerExtension('audit/log');
 
 /**
  * Provides prometheus metrics
  * @type {Function}
  */
-const metrics = routerExtension('audit/metrics');
+// const metrics = routerExtension('audit/metrics');
 
 /**
  * Catches errors from oauth.facebook and wraps them into HTML
@@ -43,7 +44,12 @@ exports.router = {
   },
   extensions: {
     enabled: ['preRequest', 'postRequest', 'postValidate', 'preResponse', 'postResponse'],
-    register: [autoSchema, preResponse, auditLog(), metrics()],
+    register: [
+      // autoSchema,
+      preResponse,
+      // auditLog(),
+      // metrics(),
+    ],
   },
   auth: {
     strategies: {

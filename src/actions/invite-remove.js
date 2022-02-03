@@ -1,5 +1,7 @@
-const { ActionTransport } = require('@microfleet/core');
 const { HttpStatusError } = require('common-errors');
+
+const { ActionTransport } = require('../re-export');
+
 const {
   INVITATIONS_INDEX,
   USERS_ACTION_INVITE,

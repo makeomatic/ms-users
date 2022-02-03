@@ -201,6 +201,12 @@ describe('#stateless-jwt', function loginSuite() {
         /invalid token/
       );
     });
+
+    it('should return 2 keys on login', async () => {
+      const response = await loginUser();
+      assert.ok(response.jwt);
+      assert.ok(response.jwtRefresh, 'should provide refresh token');
+    });
   });
 
   describe('Compat', () => {

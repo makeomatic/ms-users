@@ -3,10 +3,11 @@ const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 const {
   USERS_USERNAME_FIELD,
-  USERS_INVALID_TOKEN,
+  USERS_JWT_EXPIRED,
   USERS_JWT_ACCESS_REQUIRED,
   USERS_JWT_REFRESH_REQUIRED,
   USERS_JWT_STATELESS_REQUIRED,
+  USERS_INVALID_TOKEN,
 } = require('../constants');
 const { GLOBAL_RULE_PREFIX, USER_RULE_PREFIX } = require('./revocation-rules-manager');
 
@@ -161,6 +162,10 @@ async function logout(service, token) {
 
 async function verify(service, decodedToken) {
   assertAccessToken(decodedToken);
+
+  if (decodedToken.exp < Date.now()) {
+    throw USERS_JWT_EXPIRED;
+  }
 
   await checkRules(service, decodedToken);
 

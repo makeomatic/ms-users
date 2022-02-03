@@ -34,6 +34,9 @@ type RefreshToken = {
 * Created on `user.login`, `users.refresh`
 * Expires on `exp` date.
 * Expires on `users.logout`.
+* `users.refresh` leaves token intact or recreates it:
+  * when `exp - now()` equals to configured period
+  * on each refresh request
 
 ### Access token
 
@@ -56,7 +59,45 @@ type AccessToken = {
 
 * Created on `users.login`, `users.refresh`.
 * Always expires on `RefreshToken.exp`.
-* Expires when `RefreshToken` revoked.
+* 'Expires'(Specific token revocation rule set) when `RefreshToken` revoked.
+
+### Error responses
+
+If passed tokens fails one of the verification steps the response will contain:
+
+#### HTTP-StatusCode 403
+
+> The HTTP 403 Forbidden response status code indicates that the server understands the request but refuses to authorize it.
+
+* `E_TKN_INVALID` - invalid token
+* `E_TKN_AUDIENCE_MISMATCH` - mismatch of the `aud` field
+
+#### HTTP-StatusCode 401
+
+> `401 Unauthorized` response status code indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
+
+* `E_TKN_EXPIRE` - expired token
+* `E_TKN_ACCESS_TOKEN_REQUIRED` - The access token required to perform requested action
+* `E_TKN_REFRESH_TOKEN_REQUIRED` - The refresh token required to perform requested action
+
+#### HTTP-StatusCode 501
+
+* `E_STATELESS_NOT_ENABLED` - Incorrect configuration of the service
+
+Example:
+
+```javascript
+{
+  // Common-errors package data
+  status: 401,
+  statusCode: 401,
+  status_code: 401,
+  
+  // App specific
+  code: `E_TKN_EXPIRE`,
+  message: 'expired token',
+}
+```
 
 ## Revoke lists
 
@@ -84,7 +125,7 @@ const rule = {
 }
 
 const rule2 = {
-  issAt: { gte: Date.now() - 100, lte: Date.now()},
+  iat: { gte: Date.now() - 100, lte: Date.now()},
 }
 ```
 

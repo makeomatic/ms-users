@@ -1,10 +1,12 @@
 const Promise = require('bluebird');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
-const { HttpStatusError } = require('common-errors');
 
 const {
   USERS_USERNAME_FIELD,
   USERS_INVALID_TOKEN,
+  USERS_JWT_ACCESS_REQUIRED,
+  USERS_JWT_REFRESH_REQUIRED,
+  USERS_JWT_STATELESS_REQUIRED,
 } = require('../constants');
 const { GLOBAL_RULE_PREFIX, USER_RULE_PREFIX } = require('./revocation-rules-manager');
 
@@ -14,13 +16,13 @@ const isStatelessToken = (token) => !!token.st;
 
 const assertAccessToken = (token) => {
   if (isStatelessToken(token) && token.irt) {
-    throw new HttpStatusError(401, 'access token required');
+    throw USERS_JWT_ACCESS_REQUIRED;
   }
 };
 
 const assertRefreshToken = (token) => {
   if (isStatelessToken(token) && typeof token.irt !== 'number') {
-    throw new HttpStatusError(401, 'refresh token required');
+    throw USERS_JWT_REFRESH_REQUIRED;
   }
 };
 
@@ -31,7 +33,7 @@ const isStatelessEnabled = (service) => {
 
 const assertStatelessEnabled = (service) => {
   if (!isStatelessEnabled(service)) {
-    throw new HttpStatusError(501, '`Stateless JWT` should be enabled');
+    throw USERS_JWT_STATELESS_REQUIRED;
   }
 };
 

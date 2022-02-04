@@ -209,6 +209,99 @@ describe('#stateless-jwt', function loginSuite() {
     });
   });
 
+  describe('Refresh token rotation', () => {
+    describe('`refresh` always', () => {
+      before('start', async () => {
+        await global.startService.call(this, {
+          jwt: {
+            stateless: {
+              enabled: true,
+              force: true,
+              refreshRotation: {
+                enabled: true,
+                always: true,
+              },
+            },
+          },
+        });
+        await this.users.revocationRulesManager.batchDelete(['']);
+        await delay(100);
+      });
+
+      after('stop', async () => {
+        await global.clearRedis.call(this, false);
+      });
+
+      it('test', async () => {
+        const { jwt: oldJwt, jwtRefresh } = await loginUser();
+
+        const response = await this.users.dispatch('refresh', { params: { token: jwtRefresh, audience: user.audience } });
+
+        assert.ok(response.jwt);
+        assert.ok(response.jwtRefresh, 'should provide refresh token');
+        assert.ok(response.jwtRefresh !== jwtRefresh, 'should return different refresh jwt token');
+
+        const oldTokenDecoded = await decodeAndVerify(this.users, oldJwt, user.audience);
+        const newTokenDecoded = await decodeAndVerify(this.users, response.jwt, user.audience);
+        const refreshTokenDecoded = await decodeAndVerify(this.users, jwtRefresh, user.audience);
+
+        const rules = await getRules(userId);
+
+        assert.strictEqual(rules.length, 1);
+        assert.deepStrictEqual(rules[0].params, {
+          _or: true,
+          cs: refreshTokenDecoded.cs,
+          rt: refreshTokenDecoded.cs,
+          ttl: rules[0].params.ttl,
+        });
+
+        assert.deepStrictEqual(oldTokenDecoded.audience, newTokenDecoded.audience);
+      });
+    });
+
+    describe('interval refresh', () => {
+      before('start', async () => {
+        await global.startService.call(this, {
+          jwt: {
+            stateless: {
+              enabled: true,
+              force: true,
+              refreshRotation: {
+                enabled: true,
+                interval: 1 * 1000, // 1 second
+              },
+            },
+          },
+        });
+        await this.users.revocationRulesManager.batchDelete(['']);
+        await delay(100);
+      });
+
+      after('stop', async () => {
+        await global.clearRedis.call(this, false);
+      });
+
+      it('test before interval', async () => {
+        const { jwtRefresh } = await loginUser();
+
+        const response = await this.users.dispatch('refresh', { params: { token: jwtRefresh, audience: user.audience } });
+        assert.ok(response.jwt);
+        assert.ok(response.jwtRefresh, 'should provide refresh token');
+        assert.ok(response.jwtRefresh === jwtRefresh, 'should return same refresh jwt token');
+      });
+
+      it('test after interval', async () => {
+        const { jwtRefresh } = await loginUser();
+        await delay(1000); // to reach interval
+
+        const response = await this.users.dispatch('refresh', { params: { token: jwtRefresh, audience: user.audience } });
+        assert.ok(response.jwt);
+        assert.ok(response.jwtRefresh, 'should provide refresh token');
+        assert.ok(response.jwtRefresh === jwtRefresh, 'should return same refresh jwt token');
+      });
+    });
+  });
+
   describe('Compat', () => {
     before('start', async () => {
       await global.startService.call(this, {

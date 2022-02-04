@@ -43,6 +43,10 @@ module.exports = {
     cookies: {
       enabled: true,
     },
+    stateless: {
+      enabled: true,
+      force: true,
+    },
   },
   rateLimiters: {
     userLogin: {

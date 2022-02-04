@@ -28,6 +28,11 @@ exports.jwt = {
     force: false,
     enabled: false,
     refreshTTL: 365 * 24 * 60 * 60 * 1000, // 1 year
+    refreshRotation: {
+      enabled: false,
+      always: false,
+      interval: 100 * 24 * 60 * 60 * 1000, // 100 days
+    },
     storage: {
       watchOptions: {
         backoffFactor: 100,

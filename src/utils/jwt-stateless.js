@@ -110,7 +110,29 @@ async function checkRules(service, token) {
   }
 }
 
-async function refresh(service, encodedToken, token, audience) {
+function refreshTokenStrategy(service, token, encodedRefreshToken, payload, audience) {
+  const { refreshRotation: { enabled, always, interval } } = service.config.jwt.stateless;
+
+  if (enabled && (always || (Date.now() > token.exp - interval))) {
+    const refreshTkn = createRefreshToken(service, payload, audience);
+    const access = createAccessToken(service, refreshTkn.payload, payload, audience);
+
+    return {
+      access,
+      refresh: refreshTkn,
+    };
+  }
+
+  return {
+    access: createAccessToken(service, token, payload, audience),
+    refresh: {
+      token: encodedRefreshToken,
+      payload: token,
+    },
+  };
+}
+
+async function refreshTokenPair(service, encodedToken, token, audience) {
   const userId = token[USERS_USERNAME_FIELD];
 
   const payload = {
@@ -119,23 +141,28 @@ async function refresh(service, encodedToken, token, audience) {
 
   await checkRules(service, token);
 
-  const { token: accessToken, payload: accessTokenPayload } = createAccessToken(service, token, payload, audience[0]);
+  const { refresh, access } = refreshTokenStrategy(service, token, encodedToken, payload, audience);
 
-  // -- invalidate all issued access tokens as invalid that was signed by provided refreshToken
-  await createRule(service, {
-    username: userId,
-    rule: {
-      params: {
-        ttl: token.exp,
-        rt: token.cs,
-        iat: { lt: accessTokenPayload.iat },
+  // create rt invalidation rule when token rotation performed
+  if (refresh.payload.cs !== token.cs) {
+    // eslint-disable-next-line no-use-before-define
+    await logout(service, token);
+  } else {
+    await createRule(service, {
+      username: userId,
+      rule: {
+        params: {
+          ttl: token.exp,
+          rt: token.cs,
+          iat: { lt: access.payload.iat },
+        },
       },
-    },
-  });
+    });
+  }
 
   return {
-    jwt: accessToken,
-    jwtRefresh: encodedToken,
+    jwt: access.token,
+    jwtRefresh: refresh.token,
     userId,
   };
 }
@@ -188,7 +215,7 @@ module.exports = {
   logout,
   verify,
   reset,
-  refresh,
+  refresh: refreshTokenPair,
   assertRefreshToken,
   assertAccessToken,
   isStatelessToken,

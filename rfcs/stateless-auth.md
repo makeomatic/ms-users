@@ -69,16 +69,18 @@ If passed tokens fails one of the verification steps the response will contain:
 
 > The HTTP 403 Forbidden response status code indicates that the server understands the request but refuses to authorize it.
 
-* `E_TKN_INVALID` - invalid token
-* `E_TKN_AUDIENCE_MISMATCH` - mismatch of the `aud` field
+* `E_TKN_INVALID` - `invalid token`
+* `E_TKN_AUDIENCE_MISMATCH` - `audience mismatch`
 
 #### HTTP-StatusCode 401
 
 > `401 Unauthorized` response status code indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
 
-* `E_TKN_EXPIRE` - expired token
-* `E_TKN_ACCESS_TOKEN_REQUIRED` - The access token required to perform requested action
-* `E_TKN_REFRESH_TOKEN_REQUIRED` - The refresh token required to perform requested action
+##### `code -> message`
+
+* `E_TKN_EXPIRE` - `expired token`
+* `E_TKN_ACCESS_TOKEN_REQUIRED` - `access token required`
+* `E_TKN_REFRESH_TOKEN_REQUIRED` - `refresh token required`
 
 #### HTTP-StatusCode 501
 

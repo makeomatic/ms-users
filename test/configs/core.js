@@ -44,8 +44,7 @@ module.exports = {
       enabled: true,
     },
     stateless: {
-      enabled: true,
-      force: true,
+      enabled: false,
     },
   },
   rateLimiters: {

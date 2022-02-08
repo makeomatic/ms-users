@@ -11,6 +11,7 @@ exports.bypass = {
   },
   masters: {
     enabled: false,
+    provider: 'masters',
     baseUrl: 'https://simulation.masters.com',
     authPath: '/auth/services/id/validateToken',
     httpPoolOptions: {

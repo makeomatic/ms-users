@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
-const { ActionTransport } = require('@microfleet/core');
 const { LockAcquisitionError } = require('ioredis-lock');
 const { HttpStatusError } = require('common-errors');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const set = require('lodash/set');
 const merge = require('lodash/merge');

@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const detach = require('../../auth/oauth/utils/detach');
 const { getInternalData } = require('../../utils/userData');
 

@@ -1,6 +1,7 @@
-const { ActionTransport } = require('@microfleet/core');
 const { HttpStatusError } = require('common-errors');
 const Promise = require('bluebird');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');
 const { getInternalData } = require('../utils/userData');

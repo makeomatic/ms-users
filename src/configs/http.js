@@ -34,7 +34,4 @@ exports.http = {
       },
     },
   },
-  router: {
-    enabled: true,
-  },
 };

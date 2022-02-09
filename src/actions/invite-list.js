@@ -1,6 +1,8 @@
 const Promise = require('bluebird');
 const fsort = require('redis-filtered-sort');
 const is = require('is');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const {
   INVITATIONS_INDEX,
   USERS_ACTION_INVITE,
@@ -54,4 +56,4 @@ module.exports = function iterateOverInvites(request) {
     }));
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp];

@@ -33,7 +33,7 @@ node_modules
 test
 Makefile
 .env
-src
+!src
 .git
 ss
 

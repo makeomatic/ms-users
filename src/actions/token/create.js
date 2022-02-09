@@ -1,6 +1,7 @@
 const uuidv4 = require('uuid').v4;
 const Promise = require('bluebird');
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const { sign } = require('../../utils/signatures');
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');

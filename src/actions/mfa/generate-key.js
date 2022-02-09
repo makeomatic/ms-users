@@ -1,5 +1,6 @@
-const { ActionTransport } = require('@microfleet/core');
 const { authenticator } = require('otplib');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const { USERS_ALIAS_FIELD, USERS_USERNAME_FIELD } = require('../../constants');
 
 /**

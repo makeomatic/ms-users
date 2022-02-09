@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');

@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const { ERROR_AUTH_REQUIRED } = require('../../constants');
 const formOauthResponse = require('../../auth/oauth/utils/form-oauth-response');
 

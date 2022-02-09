@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const bearer = require('./strategy.bearer');
 
 function tokenAuth(request) {

@@ -3,8 +3,9 @@ const url = require('url');
 const is = require('is');
 const { serializeError } = require('serialize-error');
 const serialize = require('serialize-javascript');
-const { ActionTransport } = require('@microfleet/core');
 const { AuthenticationRequiredError } = require('common-errors');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const { Redirect } = require('./utils/errors');
 const { ErrorTotpRequired } = require('../../constants');
 const { getSignedToken } = require('./utils/get-signed-token');

@@ -1,7 +1,8 @@
-const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const intersection = require('lodash/intersection');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const get = require('../utils/get-value');
 const key = require('../utils/key');
 const { getInternalData } = require('../utils/userData');

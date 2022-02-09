@@ -1,5 +1,6 @@
-const { ActionTransport } = require('@microfleet/core');
 const { HttpStatusError } = require('common-errors');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const {
   INVITATIONS_INDEX,
   USERS_ACTION_INVITE,

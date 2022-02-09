@@ -45,7 +45,7 @@ class MastersService {
     });
 
     this.registerUser = this.registerUser.bind(this);
-    if (!this.service.validator.ajv._schemas[AJV_SCHEME_ID]) {
+    if (!this.service.validator.ajv.getSchema(AJV_SCHEME_ID)) {
       this.service.validator.ajv.addSchema(schema);
     }
     this.audience = this.service.config.jwt.defaultAudience;

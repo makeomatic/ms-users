@@ -1,3 +1,10 @@
+# [14.25.0](https://github.com/makeomatic/ms-users/compare/v14.24.0...v14.25.0) (2022-02-09)
+
+
+### Features
+
+* add-provider-to-bypass-config ([#540](https://github.com/makeomatic/ms-users/issues/540)) ([ea70c18](https://github.com/makeomatic/ms-users/commit/ea70c18a1523e74e2d0200361b3da1deb19ee678))
+
 # [14.24.0](https://github.com/makeomatic/ms-users/compare/v14.23.2...v14.24.0) (2022-01-28)
 
 

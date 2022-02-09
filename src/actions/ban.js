@@ -1,7 +1,6 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const redisKey = require('../utils/key');
 const { getInternalData } = require('../utils/userData');

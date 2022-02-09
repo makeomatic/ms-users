@@ -1,5 +1,4 @@
-const { ActionTransport } = require('../../re-export');
-
+const { ActionTransport } = require('@microfleet/plugin-router');
 const contacts = require('../../utils/contacts');
 const { getUserId } = require('../../utils/userData');
 

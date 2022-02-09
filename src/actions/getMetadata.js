@@ -2,8 +2,7 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const noop = require('lodash/noop');
 const identity = require('lodash/identity');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const get = require('../utils/get-value');
 const getMetadata = require('../utils/get-metadata');

@@ -1,7 +1,6 @@
 const { HttpStatusError } = require('common-errors');
 const Promise = require('bluebird');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const redisKey = require('../utils/key');
 const jwt = require('../utils/jwt');

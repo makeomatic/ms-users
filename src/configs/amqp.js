@@ -6,7 +6,4 @@ exports.amqp = {
   transport: {
     queue: 'ms-users',
   },
-  router: {
-    enabled: true,
-  },
 };

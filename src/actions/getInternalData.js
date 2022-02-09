@@ -1,7 +1,6 @@
 const Promise = require('bluebird');
 const pick = require('lodash/pick');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { getInternalData } = require('../utils/userData');
 

@@ -1,4 +1,4 @@
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { selectChallenge } = require('../utils/challenges/challenge');
 const { TOKEN_METADATA_FIELD_CONTEXT } = require('../constants');

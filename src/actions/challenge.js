@@ -1,4 +1,4 @@
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');

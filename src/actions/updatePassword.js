@@ -1,6 +1,5 @@
 const { HttpStatusError } = require('common-errors');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const scrypt = require('../utils/scrypt');
 const redisKey = require('../utils/key');

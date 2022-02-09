@@ -1,4 +1,4 @@
-const { ActionTransport } = require('../../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { getOrganizationMetadataAndMembers, checkOrganizationExists } = require('../../utils/organization');
 

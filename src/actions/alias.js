@@ -1,7 +1,6 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/is-active');

@@ -1,6 +1,5 @@
 const Promise = require('bluebird');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { getUserId } = require('../utils/userData');
 const { USERS_REFERRAL_INDEX } = require('../constants');

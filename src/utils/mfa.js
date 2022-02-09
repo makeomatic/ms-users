@@ -2,9 +2,10 @@ const assert = require('assert');
 const uuidv4 = require('uuid').v4;
 const { authenticator } = require('otplib');
 const { HttpStatusError } = require('common-errors');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const { getInternalData } = require('./userData');
 
-const { ActionTransport } = require('../re-export');
 
 const redisKey = require('./key');
 const {

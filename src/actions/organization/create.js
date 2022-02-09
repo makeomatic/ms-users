@@ -1,7 +1,6 @@
 const snakeCase = require('lodash/snakeCase');
 const mapValues = require('lodash/mapValues');
-
-const { ActionTransport } = require('../../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipeline-error');

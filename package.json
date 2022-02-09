@@ -36,6 +36,7 @@
     "@microfleet/plugin-redis-sentinel": "^0.5.2",
     "@microfleet/plugin-amqp": "^0.2.2",
     "@microfleet/plugin-http": "^0.0.0-next.582",
+    "@microfleet/plugin-logger": "0.10.6",
     "@microfleet/plugin-prometheus": "^0.5.2",
     "@microfleet/plugin-consul": "^2.7.2",
     "@microfleet/transport-amqp": "^15.2.8",

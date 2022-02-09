@@ -1,6 +1,5 @@
 const { HttpStatusError } = require('common-errors');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const {
   INVITATIONS_INDEX,

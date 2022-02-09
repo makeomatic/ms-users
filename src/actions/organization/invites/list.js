@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 
-const { ActionTransport } = require('../../../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { checkOrganizationExists } = require('../../../utils/organization');
 const { organizationInvite, inviteId, USERS_ACTION_ORGANIZATION_INVITE, TOKEN_METADATA_FIELD_METADATA } = require('../../../constants');

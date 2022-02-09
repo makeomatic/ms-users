@@ -1,4 +1,4 @@
-const { ActionTransport } = require('../../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 /**
  * @api {http.get|amqp} <prefix>/_/me Return decoded data from JWT

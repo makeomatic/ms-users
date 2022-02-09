@@ -1,7 +1,6 @@
 const omit = require('lodash/omit');
 const Promise = require('bluebird');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const updateMetadata = require('../utils/update-metadata');
 const { getUserId } = require('../utils/userData');

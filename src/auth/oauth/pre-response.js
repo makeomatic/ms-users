@@ -4,8 +4,7 @@ const is = require('is');
 const { serializeError } = require('serialize-error');
 const serialize = require('serialize-javascript');
 const { AuthenticationRequiredError } = require('common-errors');
-
-const { ActionTransport } = require('../../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { Redirect } = require('./utils/errors');
 const { ErrorTotpRequired } = require('../../constants');

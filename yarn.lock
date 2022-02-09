@@ -1177,6 +1177,16 @@
     bluebird-retry "^0.11.0"
     eventemitter3 "^4.0.7"
 
+"@microfleet/core-types@^0.5.4":
+  version "0.5.6"
+  resolved "https://registry.yarnpkg.com/@microfleet/core-types/-/core-types-0.5.6.tgz#340f884756ddd2c31597776a09c31d1a650d824a"
+  integrity sha512-dnATjnRPSyT4JGYMooTDwcdJEnXqTAppP/eoY/gVNepz5Bd1gSLGYQBwlXasmHmmOX67/EgTKza3MlF1lHqOtw==
+  dependencies:
+    "@microfleet/utils" "^0.5.4"
+    bluebird "^3.7.2"
+    bluebird-retry "^0.11.0"
+    eventemitter3 "^4.0.7"
+
 "@microfleet/core@^17.11.2":
   version "17.11.2"
   resolved "https://registry.yarnpkg.com/@microfleet/core/-/core-17.11.2.tgz#7c8ae90552f61a966c23f21bb6286626cdf948d2"
@@ -1233,6 +1243,21 @@
     "@microfleet/plugin-logger" "^0.5.5-next.51+fc13418"
     "@microfleet/plugin-socketio" "^0.0.0-next.582+fc13418"
     "@microfleet/plugin-validator" "^0.0.1-next.582+fc13418"
+
+"@microfleet/plugin-logger@0.10.6":
+  version "0.10.6"
+  resolved "https://registry.yarnpkg.com/@microfleet/plugin-logger/-/plugin-logger-0.10.6.tgz#775372db62b9789c50299713de6df0b86d8a9880"
+  integrity sha512-kmLx7xYPjgVmVYwQQqSMDjPTFHBgJCSZKcQoc1x4tRjG5Tf2mk/3h4WPnck5sBlwh3c23seKzaL3A5MUfz1NJA==
+  dependencies:
+    "@microfleet/core-types" "^0.5.4"
+    "@microfleet/plugin-validator" "^0.5.4"
+    "@microfleet/utils" "^0.5.4"
+    lodash.merge "^4.6.2"
+    lsmod "^1.0.0"
+    pino "^7.6.5"
+    pino-abstract-transport "^0.5.0"
+    pino-pretty "^7.5.1"
+    sonic-boom "2.6.0"
 
 "@microfleet/plugin-logger@^0.10.2":
   version "0.10.2"
@@ -1365,6 +1390,18 @@
     common-errors "^1.2.0"
     lodash "^4.17.21"
 
+"@microfleet/plugin-validator@^0.5.4":
+  version "0.5.6"
+  resolved "https://registry.yarnpkg.com/@microfleet/plugin-validator/-/plugin-validator-0.5.6.tgz#05bddcdf995fc47296926eb6947489a58434b465"
+  integrity sha512-pKSk2gBfZc5vzoEWHlEatPZUNI6pm4hHE73+6oqSzz9HV6Hf4i/gGEC7ekpGlI+Ru+KRNpduVJ1W8Ec3tp9dUw==
+  dependencies:
+    "@microfleet/core-types" "^0.5.4"
+    "@microfleet/utils" "^0.5.4"
+    "@microfleet/validation" "^11.1.1"
+    callsite "^1.0.0"
+    common-errors "^1.2.0"
+    lodash "^4.17.21"
+
 "@microfleet/transport-amqp@^15.2.7", "@microfleet/transport-amqp@^15.2.8":
   version "15.2.8"
   resolved "https://registry.yarnpkg.com/@microfleet/transport-amqp/-/transport-amqp-15.2.8.tgz#d9f6c994ce6745f2f372fab2886b9bd9a419294d"
@@ -1399,6 +1436,14 @@
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/@microfleet/utils/-/utils-0.5.2.tgz#76f23cf8fb5a3bf79885a6360c210bd2d2324917"
   integrity sha512-ir+8TC1EV6+HKQWUDjEZi11QrIbh2nzMKz8jxcUsc2QIqOEyfeY7RmX6m+SLmmn0rXeRMyLMkJcFFtIXxQ1fyg==
+  dependencies:
+    lodash "^4.17.21"
+    read-pkg-up "7.0.1"
+
+"@microfleet/utils@^0.5.4":
+  version "0.5.6"
+  resolved "https://registry.yarnpkg.com/@microfleet/utils/-/utils-0.5.6.tgz#8037df99f7f9cf017573aacbc9f31010ba5f1299"
+  integrity sha512-vY7a8YWf3Q72ve/LwTOCB3pbM5leoJg4hjdk+AIxBaSFBPVUcYFlhHROU8RnAAQc3yylSYpiEVpKb6rcCMKi8g==
   dependencies:
     lodash "^4.17.21"
     read-pkg-up "7.0.1"

@@ -1,8 +1,7 @@
 const Promise = require('bluebird');
 const fsort = require('redis-filtered-sort');
 const is = require('is');
-
-const { ActionTransport } = require('../re-export');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const {
   INVITATIONS_INDEX,

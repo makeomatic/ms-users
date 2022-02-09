@@ -32,9 +32,9 @@ class MastersService {
     return ['firstName', 'lastName', 'email'];
   }
 
-  constructor(service) {
+  constructor(service, config) {
     this.service = service;
-    this.config = this.service.config.bypass.masters;
+    this.config = config;
 
     this.httpPool = new undici.Pool(this.config.baseUrl, {
       connections: 1,

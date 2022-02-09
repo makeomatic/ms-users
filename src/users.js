@@ -147,10 +147,10 @@ class Users extends Microfleet {
 
     const bypassesMasters = allowBypasses.filter(([, schemeConfig]) => schemeConfig.provider === 'masters');
 
-    for (const [schemeName] of bypassesMasters) {
+    for (const [schemeName, schemeConfig] of bypassesMasters) {
       this.addConnector(ConnectorsTypes.essential, () => {
         const MastersService = require('./utils/bypass/masters');
-        this.bypass[schemeName] = new MastersService(this);
+        this.bypass[schemeName] = new MastersService(this, schemeConfig);
       });
     }
 

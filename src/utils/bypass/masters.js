@@ -5,8 +5,10 @@ const undici = require('undici');
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists } = require('../../constants');
 const contacts = require('../contacts');
 
+const AJV_SCHEME_ID = 'masters.profile';
+
 const schema = {
-  $id: 'masters.profile',
+  $id: AJV_SCHEME_ID,
   type: 'object',
   required: ['userId', 'firstName', 'lastName', 'email'],
   properties: {
@@ -43,7 +45,9 @@ class MastersService {
     });
 
     this.registerUser = this.registerUser.bind(this);
-    this.service.validator.ajv.addSchema(schema);
+    if (!this.service.validator.ajv._schemas[AJV_SCHEME_ID]) {
+      this.service.validator.ajv.addSchema(schema);
+    }
     this.audience = this.service.config.jwt.defaultAudience;
   }
 

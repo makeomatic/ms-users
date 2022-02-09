@@ -143,10 +143,14 @@ class Users extends Microfleet {
       }, 'bypass.pumpJack');
     }
 
-    if (this.config.bypass.masters.enabled) {
+    const allowBypasses = Object.entries(this.config.bypass).filter(([, schemeConfig]) => schemeConfig.enabled);
+
+    const bypassesMasters = allowBypasses.filter(([, schemeConfig]) => schemeConfig.provider === 'masters');
+
+    for (const [schemeName, schemeConfig] of bypassesMasters) {
       this.addConnector(ConnectorsTypes.essential, () => {
         const MastersService = require('./utils/bypass/masters');
-        this.bypass.masters = new MastersService(this);
+        this.bypass[schemeName] = new MastersService(this, schemeConfig);
       });
     }
 

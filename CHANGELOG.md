@@ -1,3 +1,10 @@
+## [14.25.1](https://github.com/makeomatic/ms-users/compare/v14.25.0...v14.25.1) (2022-02-09)
+
+
+### Bug Fixes
+
+* provider to bypass config multi-schema ([#541](https://github.com/makeomatic/ms-users/issues/541)) ([d829b91](https://github.com/makeomatic/ms-users/commit/d829b91bdef78f46a6daacfc24d0a5ec511c0726))
+
 # [14.25.0](https://github.com/makeomatic/ms-users/compare/v14.24.0...v14.25.0) (2022-02-09)
 
 

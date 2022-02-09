@@ -6,7 +6,6 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { getInternalData } = require('./userData');
 
-
 const redisKey = require('./key');
 const {
   ErrorTotpRequired,

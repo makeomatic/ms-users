@@ -33,13 +33,13 @@ blocks:
       jobs:
       - name: test project
         matrix:
-        - env_var: DB_SRV
-          values: ["redisCluster", "redisSentinel"]
+        - env_var: flavour
+          values: ["cluster", "sentinel"]
         commands:
         - cp ~/.env.ms-users-keys ./test/.env
         - pnpm compile
         - pnpm lint
-        - pnpm test:e2e:${DB_SRV}
+        - pnpm test:e2e:${flavour}
 
   - name: release
     dependencies: ["tests"]

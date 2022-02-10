@@ -36,7 +36,7 @@ blocks:
         - env_var: flavour
           values: ["cluster", "sentinel"]
         commands:
-        - cp ~/.env.ms-users-keys ./test/.env
+        - cp ~/.env.ms-users-keys ./.env
         - pnpm compile
         - pnpm lint
         - pnpm test:e2e:${flavour}

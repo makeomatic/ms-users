@@ -39,7 +39,7 @@ blocks:
         - cp ~/.env.ms-users-keys ./test/.env
         - pnpm compile
         - pnpm lint
-        - pnpm test:e2e:${flavour}
+        - pnpm test:e2e:${DB_SRV}
 
   - name: release
     dependencies: ["tests"]

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "$id": "revoke-rule.update",
+  "$id": "revoke-rule.add",
   "type": "object",
   "required": [ "rule" ],
   "additionalProperties": false,
@@ -11,29 +11,18 @@
     },
     "rule": {
       "type": "object",
-      "required": [ "params" ],
-      "additionalProperties": false,
+      "description": "Rule spec for Radix filter",
+      "minProperties": 1,
       "properties": {
-        "id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "params": {
-          "type": "object",
-          "description": "Rule spec for Radix filter",
-          "minProperties": 1,
-          "properties": {
-            "_or": { "type": "boolean" }
-          },
-          "additionalProperties": {
-            "anyOf": [
-              { "$ref": "#/definitions/opBlock" },
-              { "type": "string" },
-              { "type": "number" },
-              { "type": "boolean" }
-            ]
-          }
-        }
+        "_or": { "type": "boolean" }
+      },
+      "additionalProperties": {
+        "anyOf": [
+          { "$ref": "#/definitions/opBlock" },
+          { "type": "string" },
+          { "type": "number" },
+          { "type": "boolean" }
+        ]
       }
     }
   },

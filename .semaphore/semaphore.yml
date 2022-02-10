@@ -1,0 +1,59 @@
+version: v1.0
+name: makeomatic/files
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+
+fail_fast:
+  stop:
+    when: "branch != 'master'"
+
+auto_cancel:
+  running:
+    when: "branch != 'master'"
+
+global_job_config:
+  prologue:
+    commands:
+      - set -e
+      - sem-version node 16
+      - curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm@6
+      - checkout
+      - cache restore node-$(checksum pnpm-lock.yaml)
+      - pnpm i --frozen-lockfile --prefer-offline --ignore-scripts
+      - cache store node-$(checksum pnpm-lock.yaml) ~/.pnpm-store
+
+blocks:
+  - name: tests
+    dependencies: []
+    task:
+      secrets:
+      - name: ms-users-keys
+      jobs:
+      - name: test project
+        matrix:
+        - env_var: DB_SRV
+          values: ["redisCluster", "redisSentinel"]
+        commands:
+        - cp ~/.env.ms-users-keys ./test/.env
+        - pnpm compile
+        - pnpm lint
+        - pnpm test:e2e:${flavour}
+
+  - name: release
+    dependencies: ["tests"]
+    skip:
+      when: "branch != 'master'"
+    task:
+      secrets:
+        - name: semantic-release
+        - name: docker-hub
+      jobs:
+      - name: release
+        commands:
+          - sudo chmod -R 0777 /etc/docker
+          - echo '{"experimental":true}' > /etc/docker/daemon.json
+          - sudo service docker restart
+          - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+          - pnpm run release

@@ -28,10 +28,10 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         assert.equal(resp1.requiresActivation, true);
         assert.equal(is.string(resp1.uid), true);
 
-        const response = await this.users.dispatch('regenerate-token', {
+        const response = await this.users.dispatch('regenerate-token', { params: {
           challengeType: 'phone',
           uid: resp1.uid,
-        });
+        } });
 
         assert.equal(response.regenerated, true);
         assert.equal(amqpStub.args.length, 2);
@@ -114,10 +114,10 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         assert.ok(resp1.queued);
         assert.ok(mailerStub.args[0][2].template.qs.includes(resp1.context.token.secret));
 
-        const response = await this.users.dispatch('regenerate-token', {
+        const response = await this.users.dispatch('regenerate-token', { params: {
           challengeType: 'email',
           uid: resp1.context.token.uid,
-        });
+        } });
 
         assert.ok(response.regenerated);
         assert.ok(response.uid);

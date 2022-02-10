@@ -3,14 +3,12 @@
     "src/**/*.js"
   ],
   "exclude": [
-    "src/**/*.spec.js"
+    "src/**/*.spec.js",
+    "test/**/*.js"
   ],
-  "sourceMap": false,
-  "instrument": false,
   "cache": true,
+  "clean": false,
   "reporter": [
-    "lcov",
-    "json",
     "text-summary"
   ]
 }

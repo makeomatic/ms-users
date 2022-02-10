@@ -26,11 +26,12 @@ exports.extras = {
       VIRTUAL_HOST: 'ms-users.local',
       VIRTUAL_PORT: 3000,
       CERT_NAME: 'default',
-    }
+    },
   },
-  pre: 'rimraf ./coverage/tmp',
-  post_exec: 'pnpm exec -- c8 report -r text -r lcov',
-}
+};
+
+exports.pre = 'rimraf ./coverage/tmp';
+exports.post_exec = 'pnpm exec -- c8 report -r text -r lcov';
 
 switch (process.env.DB_SRV) {
   case 'redisCluster':

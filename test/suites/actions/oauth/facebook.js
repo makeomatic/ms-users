@@ -74,7 +74,11 @@ const getSimulatedRequestForUser = (service, user) => async (request) => {
   return clone(profileCache[initialReq.token]);
 };
 
-describe('#facebook', function oauthFacebookSuite() {
+const t = process.env.DB_SRV === 'redisSentinel' && process.env.CI === 'true'
+  ? describe.skip
+  : describe;
+
+t('#facebook', function oauthFacebookSuite() {
   let service;
   let simulateReq;
 

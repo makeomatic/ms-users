@@ -44,7 +44,11 @@ function checkServiceMissingPermissionsResponse(context) {
   assert.strictEqual(context.payload.provider, 'facebook');
 }
 
-describe('oauth#upgrade', function oauthFacebookSuite() {
+const t = process.env.DB_SRV === 'redisSentinel' && process.env.CI === 'true'
+  ? describe.skip
+  : describe;
+
+t('oauth#upgrade', function oauthFacebookSuite() {
   let service;
   let generalUser;
   let token;

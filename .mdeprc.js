@@ -19,6 +19,8 @@ exports.extras = {
     expose: ['3000'],
     environment: {
       NODE_ENV: "test",
+      DB_SRV: "${DB_SRV:-}",
+      CI: "${CI:-}",
       DEBUG: "${DEBUG:-''}",
       NCONF_NAMESPACE: 'MS_USERS',
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1,

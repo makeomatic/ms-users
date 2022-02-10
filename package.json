@@ -40,6 +40,7 @@
     "@microfleet/plugin-hapi": "^0.2.6",
     "@microfleet/plugin-logger": "0.10.6",
     "@microfleet/plugin-prometheus": "^0.5.6",
+    "@microfleet/plugin-redis-cluster": "^0.5.6",
     "@microfleet/plugin-redis-core": "^0.5.6",
     "@microfleet/plugin-redis-sentinel": "^0.5.6",
     "@microfleet/plugin-router": "^0.3.6",

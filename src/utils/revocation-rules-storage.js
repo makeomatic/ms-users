@@ -36,7 +36,7 @@ class RevocationRulesStorage {
     };
   }
 
-  async getRules(key) {
+  async getFilter(key) {
     const cached = this.cache[key];
     if (cached && cached.rules !== null) {
       return cached.rules;
@@ -76,13 +76,6 @@ class RevocationRulesStorage {
   stopSync() {
     ConsulWatcher.endWatch(this.watchInstance);
     this.watchInstance = null;
-  }
-
-  /**
-   * Raw unserialized
-   */
-  getFilter() {
-    return this.cache;
   }
 }
 

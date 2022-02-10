@@ -139,12 +139,8 @@ class Users extends Microfleet {
       });
     }
 
-    if (this.config.revocationRulesStorage.syncEnabled) {
-      this.initRevocationRulesStorage();
-    }
-
-    if (this.config.revocationRulesManager.enabled) {
-      this.initRevocationRulesManager();
+    if (this.config.revocationRules.enabled) {
+      this.initJwtRevocationRules();
     }
 
     // init account seed
@@ -167,38 +163,33 @@ class Users extends Microfleet {
     }
   }
 
-  initRevocationRulesStorage() {
+  initJwtRevocationRules() {
     this.initConsul();
 
-    const pluginName = 'RevocationRulesStorage';
-    const watcher = new ConsulWatcher(this.consul, this.log);
-    this.revocationRulesStorage = new RevocationRulesStorage(
-      watcher, this.config.revocationRulesStorage.watchOptions, this.log
-    );
-    this.addConnector(ConnectorsTypes.application, () => {
-      this.revocationRulesStorage.startSync();
-    }, pluginName);
-    this.addDestructor(ConnectorsTypes.application, () => {
-      this.revocationRulesStorage.stopSync();
-    }, pluginName);
-  }
+    const pluginName = 'JwtRevocationRules';
 
-  initRevocationRulesManager() {
-    this.initConsul();
+    if (this.config.revocationRules.syncEnabled) {
+      this.addConnector(ConnectorsTypes.application, () => {
+        this.revocationRulesManager = new RevocationRulesManager(
+          this.config.revocationRules, this
+        );
 
-    const pluginName = 'RevocationRulesManager';
-    const { jobsEnabled } = this.config.revocationRulesManager;
+        const watcher = new ConsulWatcher(this.consul, this.log);
 
-    this.addConnector(ConnectorsTypes.application, () => {
-      this.revocationRulesManager = new RevocationRulesManager(
-        this.config.revocationRulesManager, this
-      );
-      if (jobsEnabled) this.revocationRulesManager.startRecurrentJobs();
-    }, pluginName);
+        this.revocationRulesStorage = new RevocationRulesStorage(
+          this.revocationRulesManager,
+          watcher,
+          this.config.revocationRules.watchOptions,
+          this.log
+        );
 
-    this.addDestructor(ConnectorsTypes.application, async () => {
-      await this.revocationRulesManager.stopRecurrentJobs();
-    }, pluginName);
+        this.revocationRulesStorage.startSync();
+      }, pluginName);
+
+      this.addDestructor(ConnectorsTypes.application, () => {
+        this.revocationRulesStorage.stopSync();
+      }, pluginName);
+    }
   }
 }
 

@@ -3,86 +3,56 @@ const { assert } = require('chai');
 const { ListFilter } = require('../../../../src/utils/radix-filter/list-filter');
 const { Rule } = require('../../../../src/utils/radix-filter/rule');
 const { RuleGroup } = require('../../../../src/utils/radix-filter/rule-group');
-const { RadixStorage } = require('../../../../src/utils/radix-filter/storage');
 
 describe('#radix-list filter', () => {
-  let list = new ListFilter(true, true);
+  let list = new ListFilter(true);
 
   beforeEach('start', () => {
-    const storage = new RadixStorage();
-    list = new ListFilter(storage, console);
+    list = new ListFilter(console);
   });
 
-  it('requires storage and logger', () => {
-    assert.throws(() => new ListFilter(), /storage required/);
-    assert.throws(() => new ListFilter(true), /logger required/);
-  });
-
-  it('throws error on empty key', () => {
-    assert.throws(
-      () => list.add('', new Rule('foo', 'eq', 'dd')),
-      /key should be/
-    );
+  it('requires logger', () => {
+    assert.throws(() => new ListFilter(), /logger required/);
   });
 
   it('should be able to load data', () => {
-    list.add('d', new Rule('foo', 'eq', 'dd'));
-    list.add('b', new RuleGroup(list.rules));
-    assert.strictEqual(list.rules.length(), 2);
-  });
-
-  it('should be able to load and parse rules', () => {
-    list.addRaw([
-      { key: 'g1', params: JSON.stringify({ aud: { eq: 'api' } }) },
-      { key: 'g2', params: JSON.stringify({ aud: 'apd' }) },
-      { key: 'g3',
-        params: JSON.stringify({
-          iss: 'ms-users',
-          iat: { gt: 20 },
-        }),
-      },
-      { key: 'g4',
-        params: JSON.stringify({
-          iss: 'ms-users',
-          iat: { _or: true, gt: 20, eq: 100 },
-        }),
-      },
-    ]);
-
-    assert.strictEqual(list.rules.length(), 4);
+    list.add(new Rule('foo', 'eq', 'dd'));
+    list.add(new RuleGroup(list.rules));
+    assert.strictEqual(list.rules.length, 2);
   });
 
   it('should be able to load batch rules', () => {
     list.addBatch([
-      { key: 'g1', params: { aud: { eq: 'api' } } },
-      { key: 'g2', params: { aud: 'apd' } },
-      { key: 'g3',
-        params: {
+      { rule: { aud: { eq: 'api' } } },
+      { rule: { aud: 'apd' } },
+      {
+        rule: {
           iss: 'ms-users',
           iat: { gt: 20 },
         },
       },
     ]);
 
-    assert.strictEqual(list.rules.length(), 3);
+    assert.strictEqual(list.rules.length, 3);
   });
 
   describe('lookupchecks', () => {
-    beforeEach(() => {
-      list.addBatch([
-        { key: 'gte', params: { fld: { gte: 10 } } },
-        { key: 'lte', params: { fld: { lte: 10 } } },
-        { key: 'both', params: { fld: { gte: 3, lte: 4 } } },
-        { key: 'or-top', params: { _or: true, fld: 'bar', fld2: 'foo' } },
-        { key: 'or-lower', params: { fld: { _or: true, gte: 3, lte: 7 } } },
-        { key: 'strict', params: { fld: 'foo' } },
-        { key: 'regex', params: { rfld: { regex: '^hello' } } },
-        { key: 'sw', params: { swfld: { sw: 'hello' } } },
-      ]);
-    });
+    const rules = {
+      gte: { rule: { fld: { gte: 10 } } },
+      lte: { rule: { fld: { lte: 10 } } },
+      both: { rule: { fld: { gte: 3, lte: 4 } } },
+      'or-top': { rule: { _or: true, fld: 'bar', fld2: 'foo' } },
+      'or-lower': { rule: { fld: { _or: true, gte: 3, lte: 7 } } },
+      strict: { rule: { fld: 'foo' } },
+      regex: { rule: { rfld: { regex: '^hello' } } },
+      sw: { rule: { swfld: { sw: 'hello' } } },
+    };
 
     const match = (keys, check, res = true) => {
-      assert.strictEqual(list.match(keys, check), res);
+      const tmpList = new ListFilter(console);
+      tmpList.add(RuleGroup.create(rules[keys].rule));
+
+      assert.strictEqual(tmpList.match(check), res);
     };
 
     it('handle gte, lte and group', () => {
@@ -116,11 +86,6 @@ describe('#radix-list filter', () => {
     it('handle sw', () => {
       match('sw', { swfld: 'hello world' });
       match('sw', { swfld: 'bye world' }, false);
-    });
-
-    it('using empty aka global', () => {
-      match('', { fld: 'foo' });
-      match('', { fld: 10 });
     });
   });
 });

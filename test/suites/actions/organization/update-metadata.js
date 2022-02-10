@@ -1,6 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const { createMembers, createOrganization } = require('../../../helpers/organization');
 
 describe('#update metadata organization', function registerSuite() {
@@ -11,14 +9,11 @@ describe('#update metadata organization', function registerSuite() {
   beforeEach(function pretest() { return createOrganization.call(this, {}, 2); });
   afterEach(global.clearRedis);
 
-  it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('users.organization.updateMetadata', {})
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 2);
-      });
+  it('must reject invalid organization params and return detailed error', async function test() {
+    await assert.rejects(this.users.dispatch('organization.updateMetadata', { params: {} }), {
+      name: 'HttpStatusError',
+      errors: { length: 2 },
+    });
   });
 
   it('must be able to update organization', async function test() {
@@ -30,7 +25,7 @@ describe('#update metadata organization', function registerSuite() {
       },
     };
 
-    return this.dispatch('users.organization.updateMetadata', updatedOpts)
+    return this.users.dispatch('organization.updateMetadata', { params: updatedOpts })
       .then((createdOrganization) => {
         assert(createdOrganization.data.attributes.description === undefined);
         assert(createdOrganization.data.attributes.address === 'test');
@@ -46,7 +41,7 @@ describe('#update metadata organization', function registerSuite() {
       },
     };
 
-    await this.dispatch('users.organization.updateMetadata', updatedOpts)
+    await this.users.dispatch('organization.updateMetadata', { params: updatedOpts })
       .then((createdOrganization) => {
         assert(createdOrganization.data.attributes.address === 'test-audience');
       });
@@ -56,7 +51,7 @@ describe('#update metadata organization', function registerSuite() {
       audience: 'test-audience',
     };
 
-    return this.dispatch('users.organization.getMetadata', opts)
+    return this.users.dispatch('organization.getMetadata', { params: opts })
       .then((response) => {
         assert.ok(response.data.attributes);
         assert(response.data.attributes.address === 'test-audience');
@@ -68,11 +63,8 @@ describe('#update metadata organization', function registerSuite() {
       organizationId: '1234',
     };
 
-    return this.dispatch('users.organization.updateMetadata', opts)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-      });
+    await assert.rejects(this.users.dispatch('organization.updateMetadata', { params: opts }), {
+      name: 'HttpStatusError',
+    });
   });
 });

@@ -1,10 +1,9 @@
 const { Microfleet, ConnectorsTypes } = require('@microfleet/core');
 const Mailer = require('ms-mailer-client');
 const merge = require('lodash/merge');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const fsort = require('redis-filtered-sort');
 const { TokenManager } = require('ms-token');
-const LockManager = require('dlock');
 const Flakeless = require('ms-flakeless');
 
 const conf = require('./config');
@@ -52,15 +51,6 @@ class Users extends Microfleet {
       },
     };
 
-    // 2 different plugin types
-    if (config.plugins.includes('redisCluster')) {
-      this.redisType = 'redisCluster';
-    } else if (config.plugins.includes('redisSentinel')) {
-      this.redisType = 'redisSentinel';
-    } else {
-      throw new Error('must include redis family plugins');
-    }
-
     // id generator
     this.flake = new Flakeless(config.flake);
 
@@ -85,7 +75,7 @@ class Users extends Microfleet {
     this.on('plugin:start:http', (server) => {
       // if oAuth is enabled - initiate the strategy
       if (get(config, 'oauth.enabled', { default: false }) === true) {
-        assert.equal(config.http.server.handler, 'hapi', 'oAuth must be used with hapi.js webserver');
+        assert(config.plugins.includes('hapi'), 'oAuth must be used with hapi.js webserver');
 
         const OAuthStrategyHandler = require('./auth/oauth/hapi');
         this.oauth = new OAuthStrategyHandler(server, config);
@@ -98,7 +88,6 @@ class Users extends Microfleet {
 
     // cleanup connections
     this.on(`plugin:close:${this.redisType}`, () => {
-      this.dlock = null;
       this.tokenManager = null;
     });
 
@@ -108,27 +97,6 @@ class Users extends Microfleet {
         this.migrate('redis', `${__dirname}/migrations`)
       ), 'redis-migration');
     }
-
-    // ensure we close connection when needed
-    this.addDestructor(ConnectorsTypes.database, () => (
-      this.pubsub.quit()
-    ), 'pubsub-dlock');
-
-    // add lock manager
-    this.addConnector(ConnectorsTypes.migration, async () => {
-      this.pubsub = this.redis.duplicate({ lazyConnect: true });
-
-      await this.pubsub.connect();
-
-      this.dlock = new LockManager({
-        ...config.lockManager,
-        client: this.redis,
-        pubsub: this.pubsub,
-        log: this.log,
-      });
-
-      return this.dlock;
-    }, 'pubsub-dlock');
 
     this.addConnector(ConnectorsTypes.essential, () => {
       attachPasswordKeyword(this);

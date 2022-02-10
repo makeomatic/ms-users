@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const is = require('is');
 const sinon = require('sinon');
 
@@ -20,7 +20,7 @@ describe('#activate', function activateSuite() {
 
   it('must reject activation when challenge token is invalid', async function test() {
     const params = { token: 'useless-token' };
-    await assert.rejects(this.dispatch('users.activate', params), (activation) => {
+    await assert.rejects(this.users.dispatch('activate', { params }), (activation) => {
       expect(activation.message).to.match(/invalid token/);
       expect(activation.name).to.be.eq('HttpStatusError');
       expect(activation.statusCode).to.be.eq(403);
@@ -30,7 +30,7 @@ describe('#activate', function activateSuite() {
 
   describe('activate existing user', function suite() {
     beforeEach(async function pretest() {
-      const { user } = await this.dispatch('users.register', {
+      const { user } = await this.users.dispatch('register', { params: {
         username: email,
         password: '123',
         audience: 'ok',
@@ -38,14 +38,14 @@ describe('#activate', function activateSuite() {
         metadata: {
           wolf: true,
         },
-      });
+      } });
 
       this.userId = user.id;
     });
 
     it('must reject activation when account is already activated', async function test() {
       const params = { token: this.token };
-      await assert.rejects(this.dispatch('users.activate', params), (activation) => {
+      await assert.rejects(this.users.dispatch('activate', { params }), (activation) => {
         expect(activation.name).to.be.eq('HttpStatusError');
         expect(activation.message).to.match(new RegExp(`Account ${this.userId} was already activated`));
         expect(activation.statusCode).to.be.eq(417);
@@ -56,7 +56,7 @@ describe('#activate', function activateSuite() {
 
   describe('activate inactive user', function suite() {
     beforeEach(function pretest() {
-      return this.dispatch('users.register', {
+      return this.users.dispatch('register', { params: {
         username: email,
         password: '123',
         audience: 'ok',
@@ -65,11 +65,11 @@ describe('#activate', function activateSuite() {
         },
         activate: false,
         skipChallenge: true,
-      });
+      } });
     });
 
     it('must activate account when challenge token is correct and not expired', async function test() {
-      await this.dispatch('users.activate', { token: this.token });
+      await this.users.dispatch('activate', { params: { token: this.token } });
     });
   });
 
@@ -78,16 +78,16 @@ describe('#activate', function activateSuite() {
       const params = {
         username: 'v@makeomatic.ru', password: '123', audience: 'ok', metadata: { wolf: true }, activate: false,
       };
-      return this.dispatch('users.register', params);
+      return this.users.dispatch('register', { params });
     });
 
     it('must activate account when only username is specified as a service action', async function test() {
-      await this.dispatch('users.activate', { username: 'v@makeomatic.ru' });
+      await this.users.dispatch('activate', { params: { username: 'v@makeomatic.ru' } });
     });
   });
 
   it('must fail to activate account when only username is specified as a service action and the user does not exist', async function test() {
-    await assert.rejects(this.dispatch('users.activate', { username: 'v@makeomatic.ru' }), (activation) => {
+    await assert.rejects(this.users.dispatch('activate', { params: { username: 'v@makeomatic.ru' } }), (activation) => {
       expect(activation.name).to.be.eq('HttpStatusError');
       expect(activation.statusCode).to.be.eq(404);
       return true;
@@ -107,16 +107,14 @@ describe('#activate', function activateSuite() {
     amqpStub.withArgs('phone.message.predefined')
       .resolves({ queued: true });
 
-    const value = await this.dispatch('users.register', opts);
+    const value = await this.users.dispatch('register', opts);
     const { message } = amqpStub.args[0][1];
     const code = message.match(/^(\d{4}) is your activation code/)[1];
     const userId = value.id;
 
     amqpStub.restore();
 
-    const response = await this.dispatch('users.activate', { token: code, username: '79215555555' });
-
-    console.info('%j', response);
+    const response = await this.users.dispatch('activate', { params: { token: code, username: '79215555555' } });
 
     assert.equal(is.string(response.jwt), true);
     assert.equal(response.user.id, userId);

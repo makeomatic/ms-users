@@ -46,10 +46,13 @@ exports.initAdminAccountsDelay = {
 exports.plugins = [
   'validator',
   'logger',
-  'router',
   'amqp',
-  'redisCluster',
-  'http',
+  'hapi',
+  'redis-cluster',
+  'dlock',
+  'router',
+  'router-amqp',
+  'router-hapi',
   'prometheus',
 ];
 
@@ -91,6 +94,9 @@ exports.validator = {
   schemas: [path.resolve(__dirname, '../../schemas')],
   ajv: {
     $meta: 'ms-validation AJV schema validator options',
+    strict: true,
+    strictTypes: false,
+    useDefaults: true,
   },
 };
 

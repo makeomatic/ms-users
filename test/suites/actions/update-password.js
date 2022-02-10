@@ -1,9 +1,7 @@
-const { deepStrictEqual, strictEqual } = require('assert');
+const { deepStrictEqual, strictEqual, strict: assert } = require('assert');
 const { expect } = require('chai');
-const { inspectPromise } = require('@makeomatic/deploy');
 
 const redisKey = require('../../../src/utils/key');
-const simpleDispatcher = require('../../helpers/simple-dispatcher');
 
 describe('#updatePassword', function updatePasswordSuite() {
   const challenge = require('../../../src/utils/challenges/challenge');
@@ -17,21 +15,17 @@ describe('#updatePassword', function updatePasswordSuite() {
   afterEach(global.clearRedis);
 
   beforeEach(function pretest() {
-    return simpleDispatcher(this.users.router)('users.register', { username, password, audience })
+    return this.users.dispatch('register', { params: { username, password, audience } })
       .then(({ user }) => { this.userId = user.id; });
   });
 
-  it('must reject updating password for a non-existing user on username+password update', function test() {
-    const dispatch = simpleDispatcher(this.users.router);
+  it('must reject updating password for a non-existing user on username+password update', async function test() {
     const params = { username: 'mcdon@tour.de.france', currentPassword: 'xxx', newPassword: 'vvv' };
 
-    return dispatch('users.updatePassword', params)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((updatePassword) => {
-        expect(updatePassword.name).to.be.eq('HttpStatusError');
-        expect(updatePassword.statusCode).to.be.eq(404);
-      });
+    await assert.rejects(this.users.dispatch('updatePassword', { params }), {
+      name: 'HttpStatusError',
+      statusCode: 404,
+    });
   });
 
   describe('user: inactive', function suite() {
@@ -39,14 +33,12 @@ describe('#updatePassword', function updatePasswordSuite() {
       return this.users.redis.hset(redisKey(this.userId, USERS_DATA), USERS_ACTIVE_FLAG, 'false');
     });
 
-    it('must reject updating password for an inactive account on username+password update', function test() {
-      return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: password, newPassword: 'vvv' })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((updatePassword) => {
-          expect(updatePassword.name).to.be.eq('HttpStatusError');
-          expect(updatePassword.statusCode).to.be.eq(412);
-        });
+    it('must reject updating password for an inactive account on username+password update', async function test() {
+      const params = { username, currentPassword: password, newPassword: 'vvv' };
+      await assert.rejects(this.users.dispatch('updatePassword', { params }), {
+        name: 'HttpStatusError',
+        statusCode: 412,
+      });
     });
   });
 
@@ -55,34 +47,28 @@ describe('#updatePassword', function updatePasswordSuite() {
       return this.users.redis.hset(redisKey(this.userId, USERS_DATA), USERS_BANNED_FLAG, 'true');
     });
 
-    it('must reject updating password for an inactive account on username+password update', function test() {
-      return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: password, newPassword: 'vvv' })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((updatePassword) => {
-          expect(updatePassword.name).to.be.eq('HttpStatusError');
-          expect(updatePassword.statusCode).to.be.eq(423);
-        });
+    it('must reject updating password for an inactive account on username+password update', async function test() {
+      const params = { username, currentPassword: password, newPassword: 'vvv' };
+      await assert.rejects(this.users.dispatch('updatePassword', { params }), {
+        name: 'HttpStatusError',
+        statusCode: 423,
+      });
     });
   });
 
   describe('user: active', function suite() {
-    it('must reject updating password with an invalid username/password combination', function test() {
-      return simpleDispatcher(this.users.router)('users.updatePassword', { username, currentPassword: 'xxx', newPassword: 'vvv' })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((updatePassword) => {
-          expect(updatePassword.name).to.be.eq('HttpStatusError');
-          expect(updatePassword.statusCode).to.be.eq(403);
-        });
+    it('must reject updating password with an invalid username/password combination', async function test() {
+      const params = { username, currentPassword: 'xxx', newPassword: 'vvv' };
+      await assert.rejects(this.users.dispatch('updatePassword', { params }), {
+        name: 'HttpStatusError',
+        statusCode: 403,
+      });
     });
 
-    it('must update password with a valid username/password combination and different newPassword', function test() {
+    it('must update password with a valid username/password combination and different newPassword', async function test() {
       const params = { username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0' };
 
-      return simpleDispatcher(this.users.router)('users.updatePassword', params)
-        .reflect()
-        .then(inspectPromise())
+      return this.users.dispatch('updatePassword', { params })
         .then((updatePassword) => {
           expect(updatePassword).to.be.deep.eq({ success: true });
         });
@@ -100,14 +86,12 @@ describe('#updatePassword', function updatePasswordSuite() {
           });
       });
 
-      it('must reject updating password for an invalid challenge token', function test() {
-        return simpleDispatcher(this.users.router)('users.updatePassword', { resetToken: 'wrong', newPassword: 'vvv' })
-          .reflect()
-          .then(inspectPromise(false))
-          .then((updatePassword) => {
-            expect(updatePassword.name).to.be.eq('HttpStatusError');
-            expect(updatePassword.statusCode).to.be.eq(403);
-          });
+      it('must reject updating password for an invalid challenge token', async function test() {
+        const params = { resetToken: 'wrong', newPassword: 'vvv' };
+        await assert.rejects(this.users.dispatch('updatePassword', { params }), {
+          name: 'HttpStatusError',
+          statusCode: 403,
+        });
       });
 
       it('must update password passed with a valid challenge token', async function test() {

@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const uuidv4 = require('uuid').v4;
 const { authenticator } = require('otplib');
 const { HttpStatusError } = require('common-errors');

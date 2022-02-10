@@ -1,6 +1,5 @@
-const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const times = require('lodash/times');
 const faker = require('faker');
 
@@ -15,7 +14,7 @@ describe('#invite', function registerSuite() {
   } = require('../../../src/constants');
 
   before(function init() {
-    return Promise.all(times(100, (n) => this.dispatch('users.invite', {
+    return Promise.all(times(100, (n) => this.users.dispatch('invite', { params: {
       email: `${n}@yandex.ru`,
       ctx: {
         firstName: faker.name.firstName(),
@@ -26,16 +25,13 @@ describe('#invite', function registerSuite() {
           company: faker.company.companyName(),
         },
       },
-    })));
+    } })));
   });
 
   it('returns expanded list of issued invites', function test() {
     return this
-      .dispatch('users.invite-list', {
-        criteria: 'id',
-      })
-      .reflect()
-      .then(inspectPromise())
+      .users
+      .dispatch('invite-list', { params: { criteria: 'id' } })
       .then((result) => {
         assert.equal(result.invites.length, 10);
         assert.equal(result.pages, 10);

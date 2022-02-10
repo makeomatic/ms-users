@@ -1,6 +1,5 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
 const Promise = require('bluebird');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const { expect } = require('chai');
 const times = require('lodash/times');
 const { createOrganization } = require('../../../helpers/organization');
@@ -26,7 +25,7 @@ describe('#organizations list', function registerSuite() {
 
     await Promise.all(jobs);
 
-    return this.dispatch('users.organization.list', opts)
+    return this.users.dispatch('organization.list', { params: opts })
       .then(({ data, meta }) => {
         assert.equal(meta.total, organizationsLength);
         assert.equal(meta.cursor, opts.limit + opts.offset);
@@ -60,7 +59,7 @@ describe('#organizations list', function registerSuite() {
 
     await Promise.all(jobs);
 
-    return this.dispatch('users.organization.list', opts)
+    return this.users.dispatch('organization.list', { params: opts })
       .then(({ data, meta }) => {
         assert.equal(meta.total, 1);
         assert.equal(meta.cursor, 1);

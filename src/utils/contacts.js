@@ -38,7 +38,7 @@ async function add({ userId, contact }) {
 
   const { redis } = this;
   const contactsCount = await checkLimit.call(this, { userId });
-  const lock = await this.dlock.once(lockContact(contact.value));
+  const lock = await this.dlock.manager.once(lockContact(contact.value));
 
   try {
     const key = redisKey(userId, USERS_CONTACTS, contact.value);

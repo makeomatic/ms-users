@@ -1,7 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 const Promise = require('bluebird');
 const times = require('lodash/times');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 
 describe('#register', function registerSuite() {
   describe('password validator disabled', function testSuite() {
@@ -9,7 +9,7 @@ describe('#register', function registerSuite() {
     afterEach(global.clearRedis);
 
     it('must reject invalid registration params and return detailed error', async function test() {
-      await assert.rejects(this.dispatch('users.register', {}), (err) => {
+      await assert.rejects(this.users.dispatch('register', { params: {} }), (err) => {
         assert.equal(err.name, 'HttpStatusError');
         assert.equal(err.errors.length, 2);
         return true;
@@ -27,7 +27,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      const registered = await this.dispatch('users.register', opts);
+      const registered = await this.users.dispatch('register', { params: opts });
 
       assert(registered.hasOwnProperty('jwt'));
       assert(registered.hasOwnProperty('user'));
@@ -50,7 +50,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this.dispatch('users.register', opts)
+      return this.users.dispatch('register', { params: opts })
         .then((registered) => {
           assert(registered.hasOwnProperty('jwt'));
           assert(registered.hasOwnProperty('user'));
@@ -76,14 +76,14 @@ describe('#register', function registerSuite() {
       };
 
       beforeEach(function injectUser() {
-        return this.dispatch('users.register', { ...opts });
+        return this.users.dispatch('register', { params: { ...opts } });
       });
 
       it('with an already existing alias', async function test() {
-        await assert.rejects(this.dispatch('users.register', {
+        await assert.rejects(this.users.dispatch('register', { params: {
           ...opts,
           username: 'test@makeomatic.ru',
-        }), (error) => {
+        } }), (error) => {
           assert.equal(error.message, `"${opts.alias}" already exists`);
           assert.equal(error.name, 'HttpStatusError');
           assert.equal(error.statusCode, 409);
@@ -101,7 +101,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      const registered = await this.dispatch('users.register', opts);
+      const registered = await this.users.dispatch('register', { params: opts });
 
       console.info('%j', registered);
 
@@ -135,7 +135,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      const { requiresActivation, id } = await this.dispatch('users.register', opts);
+      const { requiresActivation, id } = await this.users.dispatch('register', { params: opts });
 
       assert.ok(id);
       assert.equal(requiresActivation, true);
@@ -153,11 +153,11 @@ describe('#register', function registerSuite() {
       };
 
       beforeEach(function pretest() {
-        return this.dispatch('users.register', { ...opts });
+        return this.users.dispatch('register', { params: { ...opts } });
       });
 
       it('must reject registration for an already existing user', async function test() {
-        await assert.rejects(this.dispatch('users.register', opts), (registered) => {
+        await assert.rejects(this.users.dispatch('register', { params: opts }), (registered) => {
           assert.equal(registered.name, 'HttpStatusError');
           assert.equal(registered.statusCode, 409);
           assert(/user already exists/.test(registered.message));
@@ -180,12 +180,12 @@ describe('#register', function registerSuite() {
 
       beforeEach(function pretest() {
         return Promise.all(times(3, (n) => (
-          this.dispatch('users.register', { ...opts, username: `${n + 1}${opts.username}` })
+          this.users.dispatch('register', { params: { ...opts, username: `${n + 1}${opts.username}` } })
         )));
       });
 
       it('must reject more than 3 registration a day per ipaddress if it is specified', async function test() {
-        await assert.rejects(this.dispatch('users.register', opts), (failed) => {
+        await assert.rejects(this.users.dispatch('register', { params: opts }), (failed) => {
           assert.equal(failed.name, 'HttpStatusError');
           assert.equal(failed.statusCode, 429);
           assert.equal(failed.message, 'You can\'t register more users from your ipaddress \'192.168.1.1\' now');
@@ -204,7 +204,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      await assert.rejects(this.dispatch('users.register', opts), (failed) => {
+      await assert.rejects(this.users.dispatch('register', { params: opts }), (failed) => {
         assert.equal(failed.name, 'HttpStatusError');
         assert.equal(failed.statusCode, 400);
         assert.equal(failed.message, 'you must use non-disposable email to register');
@@ -223,7 +223,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      await assert.rejects(this.dispatch('users.register', opts), (failed) => {
+      await assert.rejects(this.users.dispatch('register', { params: opts }), (failed) => {
         assert.equal(failed.name, 'HttpStatusError');
         assert.equal(failed.statusCode, 400);
         assert.equal(failed.message, 'no MX record was found for hostname aminev.co');
@@ -243,7 +243,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      await assert.rejects(this.dispatch('users.register', msg));
+      await assert.rejects(this.users.dispatch('register', { params: msg }));
     });
   });
 
@@ -267,7 +267,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this.dispatch('users.register', opts)
+      return this.users.dispatch('register', { params: opts })
         .then((registered) => {
           assert(registered.hasOwnProperty('jwt'));
           assert(registered.hasOwnProperty('user'));
@@ -290,7 +290,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this.dispatch('users.register', opts)
+      return this.users.dispatch('register', { params: opts })
         .then((registered) => {
           assert(registered.hasOwnProperty('jwt'));
           assert(registered.hasOwnProperty('user'));
@@ -324,7 +324,7 @@ describe('#register', function registerSuite() {
           skipPassword: true,
         };
 
-        const result = await this.dispatch('users.register', opts);
+        const result = await this.users.dispatch('register', { params: opts });
         assert(result.hasOwnProperty('jwt'));
       });
 
@@ -338,10 +338,11 @@ describe('#register', function registerSuite() {
             enabled: true,
             forceCheckFieldNames: null,
           },
-        }), (err) => {
-          assert(err.status === 400, 'Must be HttpStatusError');
-          assert(err.message.includes('config validation failed: data.passwordValidator.forceCheckFieldNames should be array'));
-          return true;
+        }), {
+          name: 'HttpStatusError',
+          status: 400,
+          message: '[@microfleet/core] Could not attach validator:\n'
+            + 'config validation failed: data/passwordValidator/forceCheckFieldNames must be array',
         });
       });
 
@@ -351,10 +352,11 @@ describe('#register', function registerSuite() {
             enabled: true,
             skipCheckFieldNames: null,
           },
-        }), (err) => {
-          assert(err.status === 400, 'Must be HttpStatusError');
-          assert(err.message.includes('config validation failed: data.passwordValidator.skipCheckFieldNames should be array'));
-          return true;
+        }), {
+          name: 'HttpStatusError',
+          status: 400,
+          message: '[@microfleet/core] Could not attach validator:\n'
+            + 'config validation failed: data/passwordValidator/skipCheckFieldNames must be array',
         });
       });
     });
@@ -380,13 +382,13 @@ describe('#register', function registerSuite() {
         let err;
 
         try {
-          await this.dispatch('users.register', opts);
+          await this.users.dispatch('register', { params: opts });
         } catch (e) {
           err = e;
         }
 
         assert(err.status === 400, 'Must be HttpStatusError');
-        assert.equal(err.message, 'register validation failed: data.password failed complexity check');
+        assert.equal(err.message, 'register validation failed: data/password failed complexity check');
       });
     });
   });
@@ -435,7 +437,7 @@ describe('#register', function registerSuite() {
 
       weakPasswords.forEach((password, index) => {
         const reqOpts = { ...opts, username: `id${index}${opts.username}`, password };
-        promises.push(assert.rejects(this.dispatch('users.register', reqOpts), {
+        promises.push(assert.rejects(this.users.dispatch('register', { params: reqOpts }), {
           statusCode: 400,
         }));
       });
@@ -448,7 +450,7 @@ describe('#register', function registerSuite() {
 
       goodPasswords.forEach((password, index) => {
         const reqOpts = { ...opts, username: `id${index}${opts.username}`, password };
-        promises.push(this.dispatch('users.register', reqOpts));
+        promises.push(this.users.dispatch('register', { params: reqOpts }));
       });
 
       const result = await Promise.all(promises);
@@ -467,7 +469,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      const { requiresActivation, id } = await this.dispatch('users.register', msg);
+      const { requiresActivation, id } = await this.users.dispatch('register', { params: msg });
 
       assert.ok(id);
       assert.equal(requiresActivation, true);

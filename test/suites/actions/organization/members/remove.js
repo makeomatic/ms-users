@@ -1,6 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const faker = require('faker');
 const { createOrganization, createMembers } = require('../../../../helpers/organization');
 
@@ -12,14 +10,11 @@ describe('#remove member from organization', function registerSuite() {
   beforeEach(function pretest() { return createOrganization.call(this); });
   afterEach(global.clearRedis);
 
-  it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('users.organization.members.remove', {})
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 2);
-      });
+  it('must reject invalid organization params and return detailed error', async function test() {
+    await assert.rejects(this.users.dispatch('organization.members.remove', { params: {} }), {
+      name: 'HttpStatusError',
+      errors: { length: 2 },
+    });
   });
 
   it('must be able to remove member', async function test() {
@@ -28,9 +23,9 @@ describe('#remove member from organization', function registerSuite() {
       username: this.userNames[0].email,
     };
 
-    await this.dispatch('users.organization.members.remove', opts);
+    await this.users.dispatch('organization.members.remove', { params: opts });
 
-    return this.dispatch('users.organization.members.list', { organizationId: this.organization.id })
+    return this.users.dispatch('organization.members.list', { params: { organizationId: this.organization.id } })
       .then((response) => {
         assert.strictEqual(response.data.attributes.find(({ attributes }) => attributes.username === this.userNames[0].email), undefined);
       });
@@ -42,11 +37,8 @@ describe('#remove member from organization', function registerSuite() {
       username: faker.internet.email(),
     };
 
-    return this.dispatch('users.organization.members.remove', opts)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-      });
+    await assert.rejects(this.users.dispatch('organization.members.remove', { params: opts }), {
+      name: 'HttpStatusError',
+    });
   });
 });

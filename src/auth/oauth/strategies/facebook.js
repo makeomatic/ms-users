@@ -1,5 +1,5 @@
 const Crypto = require('crypto');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const Boom = require('@hapi/boom');
 const request = require('request-promise');
 const differenceWith = require('lodash/differenceWith');
@@ -96,6 +96,7 @@ function verifyPermissions(ctx, permissions) {
  *
  * @param {Bell#context} ctx - bell auth strategy settings & context
  */
+// eslint-disable-next-line default-param-last
 const defaultGetterFactory = (ctx) => async (uri, params = {}, bearer) => {
   assert(bearer, 'bearer token must be supplied');
 

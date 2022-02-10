@@ -532,7 +532,8 @@
         }
       },
       "if": {
-        "properties": { "enabled": { "const": true } }
+        "type": "object",
+        "properties": { "enabled": { "type": "boolean", "const": true } }
       },
       "then": {
         "required": ["token", "providers"],

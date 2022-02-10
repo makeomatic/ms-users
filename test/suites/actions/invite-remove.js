@@ -1,5 +1,4 @@
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 
 describe('#invite-remove', function registerSuite() {
   before(global.startService);
@@ -9,7 +8,8 @@ describe('#invite-remove', function registerSuite() {
 
   before('must be able to create invitation', function test() {
     return this
-      .dispatch('users.invite', {
+      .users
+      .dispatch('invite', { params: {
         email,
         ctx: {
           firstName: 'Alex',
@@ -21,25 +21,19 @@ describe('#invite-remove', function registerSuite() {
             vip: true,
           },
         },
-      })
-      .reflect()
-      .then(inspectPromise());
+      } });
   });
 
   it('must be able to remove invite', function test() {
     return this
-      .dispatch('users.invite-remove', { id: email })
-      .reflect()
-      .then(inspectPromise());
+      .users
+      .dispatch('invite-remove', { params: { id: email } });
   });
 
   it('must reject removing non-existing invite', async function test() {
-    const err = await this
-      .dispatch('users.invite-remove', { id: email })
-      .reflect()
-      .then(inspectPromise(false));
-
-    assert.equal(err.name, 'HttpStatusError', err.message);
-    assert.equal(err.message, `Invite with id "${email}" not found`);
+    await assert.rejects(this.users.dispatch('invite-remove', { params: { id: email } }), {
+      name: 'HttpStatusError',
+      message: `Invite with id "${email}" not found`,
+    });
   });
 });

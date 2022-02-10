@@ -13,8 +13,11 @@ exports.plugins = [
   'validator',
   'logger',
   'router',
-  'redisCluster',
+  'router-amqp',
+  'router-hapi',
   'amqp',
-  'http',
+  'redis-cluster',
+  'hapi',
+  'dlock',
   'prometheus',
 ];

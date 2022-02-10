@@ -134,7 +134,7 @@ createOrganizationAction.allowed = async function checkOrganizationExistsConflic
   if (!request.locals) {
     request.locals = {};
   }
-  request.locals.lock = await this.dlock.once(lockOrganization(name));
+  request.locals.lock = await this.dlock.manager.once(lockOrganization(name));
 
   return null;
 };

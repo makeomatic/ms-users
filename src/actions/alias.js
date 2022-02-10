@@ -60,7 +60,7 @@ async function assignAlias({ params }) {
   let lock;
   if (!internal) {
     // if we can't claim lock - must fail
-    lock = await this.dlock.once(lockAlias(alias));
+    lock = await this.dlock.manager.once(lockAlias(alias));
   }
 
   try {

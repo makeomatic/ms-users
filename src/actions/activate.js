@@ -223,6 +223,6 @@ async function activateAction({ log, params }) {
   return jwt.login.call(this, userId, audience);
 }
 
-activateAction.transports = [ActionTransport.amqp];
+activateAction.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = activateAction;

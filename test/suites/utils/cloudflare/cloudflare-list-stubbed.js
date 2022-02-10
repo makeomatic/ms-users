@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const Promise = require('bluebird');
 const sinon = require('sinon');
 

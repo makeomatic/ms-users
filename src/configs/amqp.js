@@ -7,3 +7,7 @@ exports.amqp = {
     queue: 'ms-users',
   },
 };
+
+exports.routerAmqp = {
+  prefix: '',
+};

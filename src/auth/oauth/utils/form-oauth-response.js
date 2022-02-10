@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const { HttpStatusError } = require('common-errors');
 const attach = require('./attach');
 const providers = require('../providers');

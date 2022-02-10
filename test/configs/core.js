@@ -27,7 +27,7 @@ module.exports = {
     waitChallenge: true,
   },
   oauth: {
-    enabled: false,
+    enabled: true,
     providers: {
       facebook: {
         enabled: true,
@@ -50,7 +50,7 @@ module.exports = {
     },
   },
   cfAccessList: {
-    enabled: false,
+    enabled: true,
     auth: {
       token: process.env.CF_TOKEN,
     },

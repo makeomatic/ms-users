@@ -36,7 +36,7 @@ describe('#cloudflare access-list configuration', () => {
       throws(this.validate({
         ...baseConfig,
         auth: {},
-      }), /data.auth should match some schema in anyOf/);
+      }), /data\/auth must match a schema in anyOf/);
     });
 
     it('`auth.serviceKey` string', () => {
@@ -45,7 +45,7 @@ describe('#cloudflare access-list configuration', () => {
         auth: {
           serviceKey: 42,
         },
-      }), /data.auth.serviceKey should be string/);
+      }), /data\/auth\/serviceKey must be string/);
     });
 
     it('`auth.token` string', () => {
@@ -54,14 +54,14 @@ describe('#cloudflare access-list configuration', () => {
         auth: {
           token: 42,
         },
-      }), /data.auth.token should be string/);
+      }), /data\/auth.token must be string/);
     });
 
     it('`auth.{email|key}` pair', () => {
       throws(this.validate({
         ...baseConfig,
         auth: { key },
-      }), /data.auth should have required property 'email'/);
+      }), /data\/auth must have required property 'email'/);
 
       throws(this.validate({
         ...baseConfig,
@@ -69,7 +69,7 @@ describe('#cloudflare access-list configuration', () => {
           email: 123,
           key,
         },
-      }), /data.auth.email should be string/);
+      }), /data\/auth\/email must be string/);
 
       throws(this.validate({
         ...baseConfig,
@@ -77,7 +77,7 @@ describe('#cloudflare access-list configuration', () => {
           email: 'invalid',
           key,
         },
-      }), /data.auth.email should match format "email"/);
+      }), /data\/auth\/email must match format "email"/);
 
       throws(this.validate({
         ...baseConfig,
@@ -85,7 +85,7 @@ describe('#cloudflare access-list configuration', () => {
           email: 'valid@mail.com',
           key: 42,
         },
-      }), /data.auth.key should be string/);
+      }), /data\/auth\/key must be string/);
     });
   });
 
@@ -100,14 +100,14 @@ describe('#cloudflare access-list configuration', () => {
     it('`accessList`', () => {
       throws(this.validate({
         ...baseConfig,
-      }), /data should have required property 'accessList'/);
+      }), /data must have required property 'accessList'/);
     });
 
     it('`accessList` as empty object', () => {
       throws(this.validate({
         ...baseConfig,
         accessList: {},
-      }), /data.accessList should have required property 'accountId', data.accessList should have required property 'ttl', data.accessList should have required property 'listCacheTTL'/);
+      }), /data\/accessList must have required property 'accountId', data\/accessList must have required property 'ttl', data\/accessList must have required property 'listCacheTTL'/);
     });
 
     it('`accessList.prefix`', () => {
@@ -117,7 +117,7 @@ describe('#cloudflare access-list configuration', () => {
           prefix: 42,
           accountId: '#valid-account-id',
         },
-      }), /data.accessList.prefix should be string/);
+      }), /data\/accessList\/prefix must be string/);
     });
 
     it('`accessList.accountId`', () => {
@@ -126,14 +126,14 @@ describe('#cloudflare access-list configuration', () => {
         accessList: {
           accountId: 42,
         },
-      }), /data.accessList.accountId should be string/);
+      }), /data\/accessList\/accountId must be string/);
 
       throws(this.validate({
         ...baseConfig,
         accessList: {
           accountId: 'invalid',
         },
-      }), /data.accessList.accountId should NOT be shorter than 10 characters/);
+      }), /data\/accessList\/accountId must NOT have fewer than 10 characters/);
     });
 
     it('`accessList.ttl`', () => {
@@ -143,7 +143,7 @@ describe('#cloudflare access-list configuration', () => {
           accountId: '#valid-account-id',
           ttl: null,
         },
-      }), /data.accessList.ttl should be number/);
+      }), /data\/accessList\/ttl must be number/);
 
       throws(this.validate({
         ...baseConfig,
@@ -151,7 +151,7 @@ describe('#cloudflare access-list configuration', () => {
           accountId: '#valid-account-id',
           ttl: 59000,
         },
-      }), /data.accessList.ttl should be >= 60000/);
+      }), /data\/accessList\/ttl must be >= 60000/);
     });
 
     it('`accessList.listCacheTTL`', () => {
@@ -161,7 +161,7 @@ describe('#cloudflare access-list configuration', () => {
           accountId: '#valid-account-id',
           listCacheTTL: null,
         },
-      }), /data.accessList.listCacheTTL should be number/);
+      }), /data\/accessList\/listCacheTTL must be number/);
 
       throws(this.validate({
         ...baseConfig,
@@ -169,7 +169,7 @@ describe('#cloudflare access-list configuration', () => {
           accountId: '#valid-account-id',
           listCacheTTL: 14999,
         },
-      }), /data.accessList.listCacheTTL should be >= 15000/);
+      }), /data\/accessList\/listCacheTTL must be >= 15000/);
     });
     /* eslint-enable max-len */
   });
@@ -186,7 +186,7 @@ describe('#cloudflare access-list configuration', () => {
       throws(this.validate({
         ...baseConfig,
         worker: {},
-      }), /data.worker should have required property 'enabled'/);
+      }), /data\/worker must have required property 'enabled'/);
     });
 
     it('`worker.cleanupInterval`', () => {
@@ -196,7 +196,7 @@ describe('#cloudflare access-list configuration', () => {
           ...baseConfig.worker,
           cleanupInterval: 'string',
         },
-      }), /data.worker.cleanupInterval should be number/);
+      }), /data\/worker\/cleanupInterval must be number/);
 
       throws(this.validate({
         ...baseConfig,
@@ -204,7 +204,7 @@ describe('#cloudflare access-list configuration', () => {
           ...baseConfig.worker,
           cleanupInterval: 1999,
         },
-      }), /data.worker.cleanupInterval should be >= 2000/);
+      }), /data\/worker\/cleanupInterval must be >= 2000/);
     });
 
     it('`worker.concurrency`', () => {
@@ -214,7 +214,7 @@ describe('#cloudflare access-list configuration', () => {
           ...baseConfig.worker,
           concurrency: 'string',
         },
-      }), /data.worker.concurrency should be number/);
+      }), /data\/worker\/concurrency must be number/);
 
       throws(this.validate({
         ...baseConfig,
@@ -222,7 +222,7 @@ describe('#cloudflare access-list configuration', () => {
           ...baseConfig.worker,
           concurrency: 0,
         },
-      }), /data.worker.concurrency should be >= 1/);
+      }), /data\/worker\/concurrency must be >= 1/);
     });
   });
 });

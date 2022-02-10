@@ -6,7 +6,7 @@ const Users = require('../../../../src');
 const { nockCfApi, restoreCfApi } = require('../../../helpers/cloudflare/api-stub');
 
 describe('#cloudflare access-list worker', () => {
-  const Timeout = (setTimeout(() => {}, 0)).constructor;
+  const Timeout = (setTimeout(() => {}, 0).unref()).constructor;
   const createService = (config) => {
     this.users = new Users(config);
   };

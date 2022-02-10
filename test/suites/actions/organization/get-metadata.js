@@ -1,6 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const faker = require('faker');
 const { createOrganization } = require('../../../helpers/organization');
 
@@ -13,14 +11,13 @@ describe('#organization members metadata', function registerSuite() {
   });
   afterEach(global.clearRedis);
 
-  it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('users.organization.getMetadata', {})
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 1);
-      });
+  it('must reject invalid organization params and return detailed error', async function test() {
+    await assert.rejects(this.users.dispatch('organization.getMetadata', { params: {} }), {
+      name: 'HttpStatusError',
+      errors: {
+        length: 1,
+      },
+    });
   });
 
   it('must be able to return metadata', async function test() {
@@ -28,7 +25,7 @@ describe('#organization members metadata', function registerSuite() {
       organizationId: this.organization.id,
     };
 
-    return this.dispatch('users.organization.getMetadata', opts)
+    return this.users.dispatch('organization.getMetadata', { params: opts })
       .then((response) => {
         assert.ok(response.data.attributes);
         assert.deepEqual(response.data.attributes, this.organization.metadata);
@@ -40,11 +37,8 @@ describe('#organization members metadata', function registerSuite() {
       organizationId: faker.company.companyName(),
     };
 
-    return this.dispatch('users.organization.getMetadata', opts)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-      });
+    await assert.rejects(this.users.dispatch('organization.getMetadata', { params: opts }), {
+      name: 'HttpStatusError',
+    });
   });
 });

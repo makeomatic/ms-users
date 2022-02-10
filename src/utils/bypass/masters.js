@@ -101,7 +101,7 @@ class MastersService {
   async registerAndLogin(userProfile) {
     // must be able to lock
     try {
-      const { status, data } = await this.service.dlock.fanout(
+      const { status, data } = await this.service.dlock.manager.fanout(
         lockBypass('masters', MastersService.userId(userProfile)),
         5000,
         this.registerUser,

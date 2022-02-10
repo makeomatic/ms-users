@@ -1,6 +1,5 @@
-const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const request = require('request-promise').defaults({
   uri: 'https://ms-users.local/users/_/me',
   json: true,
@@ -13,40 +12,35 @@ describe('/_/me', function verifySuite() {
   beforeEach(global.startService);
   afterEach(global.clearRedis);
 
-  it('must reject on missing JWT token', function test() {
-    return request.get()
-      .promise()
-      .reflect()
-      .then(inspectPromise(false))
-      .then(({ error, statusCode }) => {
-        assert.equal(statusCode, 401);
-        assert.equal(error.name, 'HttpStatusError');
-        assert.equal(error.message, 'Credentials Required');
-        assert.equal(error.error, 'Unauthorized');
-        assert.equal(error.statusCode, 401);
-      });
+  it('must reject on missing JWT token', async function test() {
+    await assert.rejects(request.get(), {
+      error: {
+        name: 'HttpStatusError',
+        message: 'Credentials Required',
+        error: 'Unauthorized',
+        statusCode: 401,
+      },
+      statusCode: 401,
+    });
   });
 
-  it('must reject on an invalid JWT token', function test() {
-    return request
-      .get({
-        headers: {
-          authorization: 'JWT stop.not.working',
-        },
-      })
-      .promise()
-      .reflect()
-      .then(inspectPromise(false))
-      .then(({ error, statusCode }) => {
-        assert.equal(statusCode, 403);
-        assert.equal(error.name, 'HttpStatusError');
-        assert.equal(error.message, 'invalid token');
-        assert.equal(error.error, 'Forbidden');
-        assert.equal(error.statusCode, 403);
-      });
+  it('must reject on an invalid JWT token', async function test() {
+    await assert.rejects(request.get({
+      headers: {
+        authorization: 'JWT stop.not.working',
+      },
+    }), {
+      error: {
+        name: 'HttpStatusError',
+        message: 'invalid token',
+        error: 'Forbidden',
+        statusCode: 403,
+      },
+      statusCode: 403,
+    });
   });
 
-  it('must reject on an expired JWT token', function test() {
+  it('must reject on an expired JWT token', async function test() {
     const jwt = require('jsonwebtoken');
 
     const {
@@ -55,18 +49,19 @@ describe('/_/me', function verifySuite() {
 
     const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
 
-    return request
-      .get({ headers: { authorization: `JWT ${token}` } })
-      .promise()
-      .reflect()
-      .then(inspectPromise(false))
-      .then(({ error, statusCode }) => {
-        assert.equal(statusCode, 403);
-        assert.equal(error.name, 'HttpStatusError');
-        assert.equal(error.message, 'token has expired or was forged');
-        assert.equal(error.error, 'Forbidden');
-        assert.equal(error.statusCode, 403);
-      });
+    await assert.rejects(request.get({
+      headers: {
+        authorization: `JWT ${token}`,
+      },
+    }), {
+      error: {
+        name: 'HttpStatusError',
+        message: 'token has expired or was forged',
+        error: 'Forbidden',
+        statusCode: 403,
+      },
+      statusCode: 403,
+    });
   });
 
   describe('valid token', function suite() {

@@ -4,7 +4,7 @@
 /* eslint-disable no-console */
 
 const AMQPTransport = require('@microfleet/transport-amqp');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const conf = require('../lib/config');
 
 const config = conf.get('/', { env: process.env.NODE_ENV });

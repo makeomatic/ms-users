@@ -1,6 +1,5 @@
 /* global globalRegisterUser, globalAuthUser */
-const assert = require('assert');
-const { inspectPromise } = require('@makeomatic/deploy');
+const { strict: assert } = require('assert');
 const { authenticator } = require('otplib');
 const request = require('request-promise').defaults({
   uri: 'https://ms-users.local/users/_/me',
@@ -20,6 +19,16 @@ describe('#mfa.*', function activateSuite() {
   const regenerateRoute = 'mfa.regenerate-codes';
   const detachRoute = 'mfa.detach';
   const user = { username, password: '123', audience: '*.localhost' };
+
+  const errToValidate = (fn) => (err) => {
+    try {
+      fn(err);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
 
   function totpIsInvalid(error) {
     assert.equal(error.name, 'HttpStatusError');
@@ -60,12 +69,8 @@ describe('#mfa.*', function activateSuite() {
 
   describe('#mfa.attach', function attachSuite() {
     it('doesn\'t allow to attach if provided totp is invalid', async function test() {
-      const error = await this.users
-        .dispatch(attachRoute, { params: { username, secret, totp: '123456' } })
-        .reflect()
-        .then(inspectPromise(false));
-
-      totpIsInvalid(error);
+      await assert.rejects(this.users
+        .dispatch(attachRoute, { params: { username, secret, totp: '123456' } }), errToValidate(totpIsInvalid));
     });
 
     it('attaches secret to user account if provided totp is valid', async function test() {
@@ -80,14 +85,12 @@ describe('#mfa.*', function activateSuite() {
     });
 
     it('doesn\'t allow to attach if already attached', async function test() {
-      const error = await this.users
-        .dispatch(attachRoute, { params: { username, secret, totp: authenticator.generate(secret) } })
-        .reflect()
-        .then(inspectPromise(false));
-
-      assert.equal(error.name, 'HttpStatusError');
-      assert.equal(error.statusCode, 409);
-      assert.ok(/MFA already enabled/.test(error.message), error.message);
+      await assert.rejects(this.users
+        .dispatch(attachRoute, { params: { username, secret, totp: authenticator.generate(secret) } }), {
+        name: 'HttpStatusError',
+        statusCode: 409,
+        message: 'MFA already enabled',
+      });
     });
 
     it('returns mfa info inside user\'s metadata', async function test() {
@@ -99,12 +102,8 @@ describe('#mfa.*', function activateSuite() {
     });
 
     it('rejects login attempt with enabled mfa', async function test() {
-      const login = await this.users
-        .dispatch('login', { params: user })
-        .reflect()
-        .then(inspectPromise(false));
-
-      totpIsRequired(login);
+      await assert.rejects(this.users
+        .dispatch('login', { params: user }), errToValidate(totpIsRequired));
     });
 
     it('login succeeds (header totp)', async function test() {
@@ -124,12 +123,8 @@ describe('#mfa.*', function activateSuite() {
 
   describe('#mfa.verify', function verifySuite() {
     it('throws if invalid totp is provided', async function test() {
-      const error = await this.users
-        .dispatch(verifyRoute, { params: { username, totp: '123456' } })
-        .reflect()
-        .then(inspectPromise(false));
-
-      totpIsInvalid(error);
+      await assert.rejects(this.users
+        .dispatch(verifyRoute, { params: { username, totp: '123456' } }), errToValidate(totpIsInvalid));
     });
 
     it('doesn\'t throw if valid totp is provided', async function test() {
@@ -147,12 +142,8 @@ describe('#mfa.*', function activateSuite() {
     });
 
     it('throws if same recovery code provided one more time', async function test() {
-      const error = await this.users
-        .dispatch(verifyRoute, { params: { username, totp: recoveryCodes[0] } })
-        .reflect()
-        .then(inspectPromise(false));
-
-      totpIsInvalid(error);
+      await assert.rejects(this.users
+        .dispatch(verifyRoute, { params: { username, totp: recoveryCodes[0] } }), errToValidate(totpIsInvalid));
 
       // finally remove used code
       recoveryCodes = recoveryCodes.slice(1);
@@ -161,12 +152,8 @@ describe('#mfa.*', function activateSuite() {
 
   describe('#mfa.regenerate-codes', function regenerateSuite() {
     it('doesn\'t allow to regenerate codes if invalid totp is provided', async function test() {
-      const error = await this.users
-        .dispatch(regenerateRoute, { params: { username, totp: '123456' } })
-        .reflect()
-        .then(inspectPromise(false));
-
-      totpIsInvalid(error);
+      await assert.rejects(this.users
+        .dispatch(regenerateRoute, { params: { username, totp: '123456' } }), errToValidate(totpIsInvalid));
     });
 
     it('allows to regenerate codes if valid totp is provided', async function test() {
@@ -181,12 +168,8 @@ describe('#mfa.*', function activateSuite() {
     });
 
     it('throws if some old recovery code is provided', async function test() {
-      const error = await this.users
-        .dispatch(verifyRoute, { params: { username, totp: recoveryCodes[0] } })
-        .reflect()
-        .then(inspectPromise(false));
-
-      totpIsInvalid(error);
+      await assert.rejects(this.users
+        .dispatch(verifyRoute, { params: { username, totp: recoveryCodes[0] } }), errToValidate(totpIsInvalid));
     });
 
     it('doesn\'t throw if new valid recovery is provided', async function test() {
@@ -201,12 +184,8 @@ describe('#mfa.*', function activateSuite() {
 
   describe('#mfa.detach', function detachSuite() {
     it('doesn\'t allow to detach if invalid totp is provided', async function test() {
-      const error = await this.users
-        .dispatch(detachRoute, { params: { username, totp: '123456' } })
-        .reflect()
-        .then(inspectPromise(false));
-
-      totpIsInvalid(error);
+      await assert.rejects(this.users
+        .dispatch(detachRoute, { params: { username, totp: '123456' } }), errToValidate(totpIsInvalid));
     });
 
     it('allows to detach if valid totp is provided', async function test() {
@@ -217,14 +196,12 @@ describe('#mfa.*', function activateSuite() {
     });
 
     it('doesn\'t allow to detach if not attached', async function test() {
-      const error = await this.users
-        .dispatch(detachRoute, { params: { username, totp: authenticator.generate(secret) } })
-        .reflect()
-        .then(inspectPromise(false));
-
-      assert.equal(error.name, 'HttpStatusError');
-      assert.equal(error.statusCode, 412);
-      assert.ok(/MFA disabled/.test(error.message), error.message);
+      await assert.rejects(this.users
+        .dispatch(detachRoute, { params: { username, totp: authenticator.generate(secret) } }), {
+        name: 'HttpStatusError',
+        statusCode: 412,
+        message: 'MFA disabled',
+      });
     });
 
     it('sets mfa flag to false after detaching', async function test() {

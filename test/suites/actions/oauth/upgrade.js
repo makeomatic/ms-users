@@ -3,7 +3,7 @@
 
 const { authenticator } = require('otplib');
 const Promise = require('bluebird');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const got = require('got');
 const GraphApi = require('../../../helpers/oauth/facebook/graph-api');
 
@@ -280,19 +280,17 @@ describe.skip('oauth#upgrade', function oauthFacebookSuite() {
         });
 
         const { payload: { userId, token: localToken } } = body;
-        const login = await service.dispatch(
-          'login', {
-            params: {
-              username: userId,
-              password: localToken,
-              isOAuthFollowUp: true,
-              audience: kDefaultAudience,
-            },
-            headers: {
-              'x-auth-totp': authenticator.generate(secret),
-            },
-          }
-        );
+        const login = await service.dispatch('login', {
+          params: {
+            username: userId,
+            password: localToken,
+            isOAuthFollowUp: true,
+            audience: kDefaultAudience,
+          },
+          headers: {
+            'x-auth-totp': authenticator.generate(secret),
+          },
+        });
 
         checkServiceOkResponse(login);
       });

@@ -54,7 +54,9 @@ module.exports = function initFakeAccounts() {
 
       this.log.info(
         'Registered fake users %d/%d. Errors: %d',
-        registered, totalAccounts, errors.length
+        registered,
+        totalAccounts,
+        errors.length
       );
 
       errors.forEach((err) => {

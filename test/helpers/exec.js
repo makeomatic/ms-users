@@ -1,5 +1,5 @@
 const { promisify } = require('util');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const exec = promisify(require('child_process').exec);
 
 module.exports = async (cmd) => {

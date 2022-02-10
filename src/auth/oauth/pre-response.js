@@ -1,6 +1,3 @@
-const Promise = require('bluebird');
-const url = require('url');
-const is = require('is');
 const { serializeError } = require('serialize-error');
 const serialize = require('serialize-javascript');
 const { AuthenticationRequiredError } = require('common-errors');
@@ -14,31 +11,34 @@ const isOauthAttachRoute = (route) => route.endsWith('oauth.facebook')
   || route.endsWith('oauth.apple')
   || route.endsWith('oauth.upgrade');
 
+/**
+ * @typedef { import('@microfleet/plugin-router').LifecycleExtension } LifecycleExtension
+ * @type {LifecycleExtension[]}
+ */
 module.exports = [{
   point: 'preResponse',
-  async handler(error, result, request) {
+  async handler(request) {
     // return whatever we had before, no concern over it
     if (isOauthAttachRoute(request.route) === false || request.transport !== ActionTransport.http) {
       // pass-through
-      return [error, result, request];
+      return request;
     }
 
+    const { error } = request;
     if (error && error.constructor === Redirect) {
       throw error;
     }
 
     if (error && error.statusCode === 200 && error.source) {
-      return [null, error.source, request];
+      request.response = error.source;
+      request.error = null;
+      return request;
     }
 
     // will be copied over from mail server configuration
     const { config: { server, oauth: { debug } } } = this;
 
-    const targetOrigin = debug ? '*' : url.format({
-      port: server.port,
-      host: server.host,
-      protocol: server.proto,
-    });
+    const targetOrigin = debug ? '*' : `${server.proto}/${server.host}:${server.port}`;
 
     let message;
     if (error && error.code === ErrorTotpRequired.code) {
@@ -53,14 +53,16 @@ module.exports = [{
       };
     } else if (error) {
       message = {
-        payload: is.fn(error.toJSON) ? error.toJSON() : serializeError(error),
+        payload: typeof error.toJSON === 'function'
+          ? error.toJSON()
+          : serializeError(error),
         error: true,
         type: 'ms-users:attached',
         title: 'Failed to attach account',
         meta: {},
       };
     } else {
-      message = result;
+      message = request.response;
     }
 
     if (message.error === true) {
@@ -91,14 +93,14 @@ module.exports = [{
     }
 
     if (!request.route.endsWith('oauth.facebook') && !request.route.endsWith('oauth.apple')) {
-      const response = request.transportRequest
+      request.response = await request.transportRequest
         .generateResponse(message)
         .code(statusCode);
 
-      return Promise.all([null, response, request]);
+      return request;
     }
 
-    let response = request.transportRequest.sendView('providerAttached', {
+    request.response = await request.transportRequest.sendView('providerAttached', {
       targetOrigin,
       message: serialize(message, {
         ignoreFunction: true,
@@ -106,10 +108,10 @@ module.exports = [{
     });
 
     if (error) {
-      const reply = await response;
-      response = reply.code(statusCode);
+      request.response = request.response.code(statusCode);
     }
 
-    return Promise.all([null, response, request]);
+    request.error = null;
+    return request;
   },
 }];

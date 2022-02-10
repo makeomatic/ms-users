@@ -12,7 +12,7 @@
     { "path": "@semantic-release/exec", "cmd": "./scripts/docs.sh" },
     "@semantic-release/changelog",
     "@semantic-release/npm",
-    { "path": "@semantic-release/exec", "cmd": "yarn docker-release --tl --include_node false" },
+    { "path": "@semantic-release/exec", "cmd": "pnpm run -- docker-release --tl --include_node false" },
     "@semantic-release/git"
   ],
   "publish": [

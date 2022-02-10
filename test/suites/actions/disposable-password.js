@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const sinon = require('sinon');
 
 describe('`disposable-password` action', function regenerateTokenSuite() {
@@ -7,7 +7,7 @@ describe('`disposable-password` action', function regenerateTokenSuite() {
   afterEach(global.clearRedis);
 
   describe('with challenge type equals `phone`', function phoneSuite() {
-    it('should be able to send disposable password', function test() {
+    it('should be able to send disposable password', async function test() {
       const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
       const opts = {
         activate: true,
@@ -25,26 +25,23 @@ describe('`disposable-password` action', function regenerateTokenSuite() {
         id: '79215555555',
       };
 
-      return this.dispatch('users.register', opts)
-        .then(() => (
-          this.dispatch('users.disposable-password', params)
-        ))
-        .then((response) => {
-          assert.equal(response.requested, true);
-          assert.ok(response.uid, true);
-          assert.equal(amqpStub.args.length, 1);
+      await this.users.dispatch('register', { params: opts });
+      const response = await this.users.dispatch('disposable-password', { params });
 
-          const args = amqpStub.args[0];
-          const action = args[0];
-          const message = args[1];
+      assert.equal(response.requested, true);
+      assert.ok(response.uid, true);
+      assert.equal(amqpStub.args.length, 1);
 
-          assert.equal(action, 'phone.message.predefined');
-          assert.equal(message.account, 'twilio');
-          assert.equal(/\d{4} is your disposable password/.test(message.message), true);
-          assert.equal(message.to, '+79215555555');
+      const args = amqpStub.args[0];
+      const action = args[0];
+      const message = args[1];
 
-          amqpStub.restore();
-        });
+      assert.equal(action, 'phone.message.predefined');
+      assert.equal(message.account, 'twilio');
+      assert.equal(/\d{4} is your disposable password/.test(message.message), true);
+      assert.equal(message.to, '+79215555555');
+
+      amqpStub.restore();
     });
   });
 });

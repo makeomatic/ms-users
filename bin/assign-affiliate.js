@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const Redis = require('ioredis').Cluster;
 const { argv } = require('yargs')
   .option('id', {

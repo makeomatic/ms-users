@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const is = require('is');
 const sinon = require('sinon').usingPromise(Promise);
 
@@ -22,13 +22,13 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         .resolves({ queued: true });
 
       try {
-        const resp1 = await this.dispatch('users.register', opts);
+        const resp1 = await this.users.dispatch('register', { params: opts });
 
         assert.ok(resp1.id);
         assert.equal(resp1.requiresActivation, true);
         assert.equal(is.string(resp1.uid), true);
 
-        const response = await this.dispatch('users.regenerate-token', {
+        const response = await this.users.dispatch('regenerate-token', {
           challengeType: 'phone',
           uid: resp1.uid,
         });
@@ -65,16 +65,16 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         .resolves({ queued: true });
 
       try {
-        await this.dispatch('users.register', registerParams);
-        const resp1 = await this.dispatch('users.requestPassword', requestPasswordParams);
+        await this.users.dispatch('register', { params: registerParams });
+        const resp1 = await this.users.dispatch('requestPassword', { params: requestPasswordParams });
 
         assert.deepEqual(resp1, { success: true });
 
-        const response = await this.dispatch('users.regenerate-token', {
+        const response = await this.users.dispatch('regenerate-token', { params: {
           action: 'reset',
           challengeType: 'phone',
           id: '79215555555',
-        });
+        } });
 
         assert.equal(response.regenerated, true);
         assert.equal(amqpStub.args.length, 2);
@@ -100,7 +100,7 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
         .resolves();
 
       try {
-        const resp1 = await this.dispatch('users.invite', {
+        const resp1 = await this.users.dispatch('invite', { params: {
           email: 'foo@yandex.ru',
           ctx: {
             firstName: 'Alex',
@@ -109,12 +109,12 @@ describe('`regenerate-token` action', function regenerateTokenSuite() {
           metadata: {
             '*.localhost': { plan: 'premium' },
           },
-        });
+        } });
 
         assert.ok(resp1.queued);
         assert.ok(mailerStub.args[0][2].template.qs.includes(resp1.context.token.secret));
 
-        const response = await this.dispatch('users.regenerate-token', {
+        const response = await this.users.dispatch('regenerate-token', {
           challengeType: 'email',
           uid: resp1.context.token.uid,
         });

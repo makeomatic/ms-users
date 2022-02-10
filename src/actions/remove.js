@@ -141,6 +141,6 @@ async function removeUser({ params }) {
   return removeResult;
 }
 
-removeUser.transports = [ActionTransport.amqp];
+removeUser.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = removeUser;

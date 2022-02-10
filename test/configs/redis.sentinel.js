@@ -14,9 +14,12 @@ exports.redis = {
 exports.plugins = [
   'validator',
   'logger',
-  'router',
-  'redisSentinel',
   'amqp',
-  'http',
+  'hapi',
+  'redis-sentinel',
+  'dlock',
+  'router',
+  'router-amqp',
+  'router-hapi',
   'prometheus',
 ];

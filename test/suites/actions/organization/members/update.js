@@ -1,6 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const { createOrganization, createMembers } = require('../../../../helpers/organization');
 
 describe('#update organization member', function registerSuite() {
@@ -11,14 +9,11 @@ describe('#update organization member', function registerSuite() {
   beforeEach(function pretest() { return createOrganization.call(this); });
   afterEach(global.clearRedis);
 
-  it('must reject invalid params and return detailed error', function test() {
-    return this.dispatch('users.organization.members.update', {})
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 3);
-      });
+  it('must reject invalid params and return detailed error', async function test() {
+    await assert.rejects(this.users.dispatch('organization.members.update', { params: {} }), {
+      name: 'HttpStatusError',
+      errors: { length: 3 },
+    });
   });
 
   it('must be able to update member', async function test() {
@@ -32,7 +27,7 @@ describe('#update organization member', function registerSuite() {
       },
     };
 
-    await this.dispatch('users.organization.members.update', opts).then((response) => {
+    await this.users.dispatch('organization.members.update', { params: opts }).then((response) => {
       assert.deepEqual(response.data.attributes.avatar, 'test-avatar');
     });
   });

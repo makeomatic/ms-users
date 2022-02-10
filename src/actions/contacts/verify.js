@@ -28,4 +28,4 @@ module.exports = async function verify({ params }) {
   };
 };
 
-module.exports.transports = [ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

@@ -108,4 +108,4 @@ async function updatePassword(request) {
 
 module.exports = updatePassword;
 module.exports.updatePassword = setPassword;
-module.exports.transports = [ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

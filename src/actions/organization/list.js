@@ -53,7 +53,13 @@ async function getOrganizationsList({ params }) {
   const organizationsIds = await redis.fsort(
     ORGANIZATIONS_INDEX,
     redisKey('*', ORGANIZATIONS_DATA),
-    criteria, order, strFilter, currentTime, offset, limit, expiration
+    criteria,
+    order,
+    strFilter,
+    currentTime,
+    offset,
+    limit,
+    expiration
   );
 
   const length = +organizationsIds.pop();

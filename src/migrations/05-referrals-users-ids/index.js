@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const calcSlot = require('cluster-key-slot');
+const { REDIS_TYPE_CLUSTER } = require('@microfleet/plugin-redis-core');
 const { USERS_REFERRAL_INDEX } = require('../../constants');
 const { getUserId } = require('../../utils/userData');
 
@@ -8,8 +9,8 @@ const { getUserId } = require('../../utils/userData');
  * specific commands like `keys`. We can use usual redis instance in
  * other cases.
  */
-function getRedisMasterNode(redis, config) {
-  if (!config.plugins.includes('redisCluster')) {
+function getRedisMasterNode(redis, redisType, config) {
+  if (redisType !== REDIS_TYPE_CLUSTER) {
     return redis;
   }
   const { keyPrefix } = config.redis.options;
@@ -23,9 +24,9 @@ function getRedisMasterNode(redis, config) {
 /**
  *
  */
-function referralsUsersIds({ redis, config, log }) {
+function referralsUsersIds({ redis, config, log, redisType }) {
   const { keyPrefix } = config.redis.options;
-  const masterNode = getRedisMasterNode(redis, config);
+  const masterNode = getRedisMasterNode(redis, redisType, config);
   const pipeline = redis.pipeline();
 
   return masterNode

@@ -1,6 +1,6 @@
 /* eslint-disable no-bitwise */
 const request = require('request-promise');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 
 const baseOpts = {
   baseUrl: 'https://graph.facebook.com/v8.0',

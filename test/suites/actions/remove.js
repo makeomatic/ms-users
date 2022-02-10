@@ -1,8 +1,6 @@
 /* global globalRegisterUser */
-const assert = require('assert');
-const { inspectPromise } = require('@makeomatic/deploy');
+const { strict: assert } = require('assert');
 const { USERS_ADMIN_ROLE } = require('../../../src/constants');
-const simpleDispatcher = require('../../helpers/simple-dispatcher');
 
 describe('#remove', function registerSuite() {
   beforeEach(global.startService);
@@ -12,39 +10,29 @@ describe('#remove', function registerSuite() {
   beforeEach(globalRegisterUser('admin@me.com', { metadata: { roles: [USERS_ADMIN_ROLE] } }));
   beforeEach(globalRegisterUser('normal-1@me.com'));
 
-  it('must reject invalid registration params and return detailed error', function test() {
-    return simpleDispatcher(this.users.router)('users.remove', {})
-      .reflect()
-      .then(inspectPromise(false))
-      .then((registered) => {
-        assert.equal(registered.name, 'HttpStatusError');
-        assert.equal(registered.errors.length, 1);
-      });
+  it('must reject invalid registration params and return detailed error', async function test() {
+    await assert.rejects(this.users.dispatch('remove', { params: {} }), {
+      name: 'HttpStatusError',
+      statusCode: 400,
+      message: "remove validation failed: data must have required property 'username'",
+    });
   });
 
-  it('must reject to remove an admin user', function test() {
-    return simpleDispatcher(this.users.router)('users.remove', { username: 'admin@me.com' })
-      .reflect()
-      .then(inspectPromise(false))
-      .then((registered) => {
-        assert.equal(registered.name, 'HttpStatusError');
-        assert.equal(registered.statusCode, 400);
-      });
+  it('must reject to remove an admin user', async function test() {
+    await assert.rejects(this.users.dispatch('remove', { params: { username: 'admin@me.com' } }), {
+      name: 'HttpStatusError',
+      statusCode: 400,
+    });
   });
 
-  it('must fail to remove non-existing user', function test() {
-    return simpleDispatcher(this.users.router)('users.remove', { username: 'normal-2@me.com' })
-      .reflect()
-      .then(inspectPromise(false))
-      .then((registered) => {
-        assert.equal(registered.name, 'HttpStatusError');
-        assert.equal(registered.statusCode, 404);
-      });
+  it('must fail to remove non-existing user', async function test() {
+    await assert.rejects(this.users.dispatch('remove', { params: { username: 'normal-2@me.com' } }), {
+      name: 'HttpStatusError',
+      statusCode: 404,
+    });
   });
 
-  it('must remove registered user', function test() {
-    return simpleDispatcher(this.users.router)('users.remove', { username: 'normal-1@me.com' })
-      .reflect()
-      .then(inspectPromise());
+  it('must remove registered user', async function test() {
+    return this.users.dispatch('remove', { params: { username: 'normal-1@me.com' } });
   });
 });

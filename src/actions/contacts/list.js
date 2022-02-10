@@ -20,4 +20,4 @@ module.exports = async function list({ params }) {
   return { data: contactList };
 };
 
-module.exports.transports = [ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

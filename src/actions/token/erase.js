@@ -46,6 +46,6 @@ function eraseToken({ params }) {
     .then(eraseData);
 }
 
-eraseToken.transports = [ActionTransport.amqp];
+eraseToken.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = eraseToken;

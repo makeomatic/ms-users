@@ -1,4 +1,3 @@
-const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
 const { expect } = require('chai');
 const ld = require('lodash');
@@ -47,15 +46,14 @@ describe('#list', function listSuite() {
 
   it('able to list users without any filters: ASC', function test() {
     return this
-      .dispatch('users.list', {
+      .users
+      .dispatch('list', {
         offset: 51,
         limit: 10,
         order: 'ASC',
         audience: this.audience,
         filter: {},
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         expect(result.page).to.be.eq(6);
         expect(result.pages).to.be.eq(11);
@@ -78,12 +76,12 @@ describe('#list', function listSuite() {
   });
 
   it('able to list users without any filters with default limit', async function test() {
-    const result = await this.dispatch('users.list', {
+    const result = await this.users.dispatch('list', { params: {
       offset: 0,
       order: 'ASC',
       audience: this.audience,
       filter: {},
-    });
+    } });
 
     expect(result.page).to.be.eq(1);
     expect(result.pages).to.be.eq(11);
@@ -106,15 +104,14 @@ describe('#list', function listSuite() {
 
   it('able to list users without any filters: DESC', function test() {
     return this
-      .dispatch('users.list', {
+      .users
+      .dispatch('list', {
         offset: 0,
         limit: 10,
         order: 'DESC',
         audience: this.audience,
         filter: {},
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         expect(result.users).to.have.lengthOf(10);
 
@@ -134,7 +131,8 @@ describe('#list', function listSuite() {
 
   it('able to list users with `username` filter: ASC', function test() {
     return this
-      .dispatch('users.list', {
+      .users
+      .dispatch('list', {
         offset: 0,
         limit: 10,
         order: 'ASC',
@@ -143,8 +141,6 @@ describe('#list', function listSuite() {
           username: 'an',
         },
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -166,7 +162,8 @@ describe('#list', function listSuite() {
 
   it('able to list users with `username` filter: DESC', function test() {
     return this
-      .dispatch('users.list', {
+      .users
+      .dispatch('list', {
         offset: 0,
         limit: 10,
         order: 'DESC',
@@ -175,8 +172,6 @@ describe('#list', function listSuite() {
           username: 'an',
         },
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -198,7 +193,8 @@ describe('#list', function listSuite() {
 
   it('able to list users by meta field key: ASC', function test() {
     return this
-      .dispatch('users.list', {
+      .users
+      .dispatch('list', {
         offset: 0,
         limit: 10,
         order: 'ASC',
@@ -206,8 +202,6 @@ describe('#list', function listSuite() {
         audience: this.audience,
         filter: {},
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -227,7 +221,8 @@ describe('#list', function listSuite() {
 
   it('able to list users by meta field key: DESC', function test() {
     return this
-      .dispatch('users.list', {
+      .users
+      .dispatch('list', {
         offset: 0,
         limit: 10,
         order: 'DESC',
@@ -235,8 +230,6 @@ describe('#list', function listSuite() {
         audience: this.audience,
         filter: {},
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -256,7 +249,8 @@ describe('#list', function listSuite() {
 
   it('able to list users by meta field key with multiple filters: DESC', function test() {
     return this
-      .dispatch('users.list', {
+      .users
+      .dispatch('list', {
         offset: 0,
         limit: 10,
         order: 'DESC',
@@ -267,8 +261,6 @@ describe('#list', function listSuite() {
           lastName: 'b',
         },
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -293,7 +285,8 @@ describe('#list', function listSuite() {
 
   it('able to list users by meta field key with multiple filters: ASC', function test() {
     return this
-      .dispatch('users.list', {
+      .users
+      .dispatch('list', {
         offset: 0,
         limit: 10,
         order: 'ASC',
@@ -304,8 +297,6 @@ describe('#list', function listSuite() {
           lastName: 'b',
         },
       })
-      .reflect()
-      .then(inspectPromise())
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -331,12 +322,11 @@ describe('#list', function listSuite() {
   describe('.userIdsOnly returns only []ids', function userIdsOnlySuite() {
     it('run query with ids only', function test() {
       return this
-        .dispatch('users.list', {
+        .users
+        .dispatch('list', {
           userIdsOnly: true,
           audience: this.audience,
         })
-        .reflect()
-        .then(inspectPromise())
         .then((result) => {
           expect(result.page).to.be.eq(1);
           expect(result.pages).to.be.eq(11);

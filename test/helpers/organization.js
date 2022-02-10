@@ -37,7 +37,7 @@ exports.createOrganization = async function createOrganization(customOpts = {}, 
     ...customOpts,
   };
 
-  const organization = await this.dispatch('users.organization.create', params);
+  const organization = await this.users.dispatch('organization.create', { params });
 
   this.organization = {
     ...organization.data.attributes,

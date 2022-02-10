@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const faker = require('faker');
 const sinon = require('sinon');
 const { createMembers } = require('../../helpers/organization');
@@ -35,7 +35,7 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
-    const response = await this.dispatch('users.contacts.add', params);
+    const response = await this.users.dispatch('contacts.add', { params });
     assert(response);
     assert(response.data);
     assert(response.data.attributes);
@@ -49,7 +49,7 @@ describe('#user contacts', function registerSuite() {
       username: this.testUser.username,
     };
 
-    const response = await this.dispatch('users.contacts.list', params);
+    const response = await this.users.dispatch('contacts.list', { params });
     assert(response);
     assert(response.data);
     response.data.forEach((contact) => {
@@ -74,7 +74,7 @@ describe('#user contacts', function registerSuite() {
     amqpStub.withArgs('phone.message.predefined')
       .resolves({ queued: true });
 
-    const response = await this.dispatch('users.contacts.challenge', params);
+    const response = await this.users.dispatch('contacts.challenge', { params });
 
     const { message } = amqpStub.args[0][1];
     const code = message.match(/^(\d{4}) is your verification code/)[1];
@@ -105,7 +105,7 @@ describe('#user contacts', function registerSuite() {
     amqpStub.withArgs('phone.message.predefined')
       .resolves({ queued: true });
 
-    await this.dispatch('users.regenerate-token', params);
+    await this.users.dispatch('regenerate-token', { params });
 
     const { message } = amqpStub.args[0][1];
     const code = message.match(/^(\d{4}) is your verification code/)[1];
@@ -127,7 +127,7 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
-    await assert.rejects(this.dispatch('users.contacts.verify', params));
+    await assert.rejects(this.users.dispatch('contacts.verify', { params }));
   });
 
   it('must throw error on verify contact with wrong phone', async function test() {
@@ -140,7 +140,7 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
-    await assert.rejects(this.dispatch('users.contacts.verify', params));
+    await assert.rejects(this.users.dispatch('contacts.verify', { params }));
   });
 
   it('must be able to verify contact', async function test() {
@@ -153,7 +153,7 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
-    const response = await this.dispatch('users.contacts.verify', params);
+    const response = await this.users.dispatch('contacts.verify', { params });
 
     assert(response);
     assert(response.data);
@@ -172,10 +172,10 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
-    const response = await this.dispatch('users.contacts.remove', params);
+    const response = await this.users.dispatch('contacts.remove', { params });
 
     assert(response);
-    const list = await this.dispatch('users.contacts.list', { username: this.testUser.username });
+    const list = await this.users.dispatch('contacts.list', { params: { username: this.testUser.username } });
     assert.equal(list.data.length, 0);
   });
 });

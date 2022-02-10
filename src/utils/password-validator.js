@@ -1,5 +1,5 @@
 const zxcvbn = require('zxcvbn');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const { NotFoundError } = require('common-errors');
 
 const regKeyword = 'password';
@@ -53,7 +53,7 @@ function anyFieldExists(object, fields) {
 function getValidatorFn(config) {
   const { forceCheckFieldNames, skipCheckFieldNames, inputFieldNames, minStrength, enabled } = config;
 
-  return function validate(schema, data, parentSchema, currentPath, parentObject) {
+  return function validate(schema, data, parentSchema, { parentData: parentObject, instancePath: currentPath }) {
     // Force skip validation check
     const skipValidate = anyFieldExists(parentObject, skipCheckFieldNames);
     if (skipValidate) {
@@ -91,7 +91,7 @@ function getValidatorFn(config) {
  *    "type": "string",
  *    "password":true
  *  },
- * @param {Mfleet} service
+ * @param {Microfleet} service
  */
 function attachKeyword(service) {
   assert(service.hasPlugin('validator'), new NotFoundError('validator module must be included'));

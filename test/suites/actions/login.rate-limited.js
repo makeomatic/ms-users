@@ -1,6 +1,5 @@
 /* global startService, clearRedis */
-const { strictEqual } = require('assert');
-const { inspectPromise } = require('@makeomatic/deploy');
+const { strictEqual, strict: assert } = require('assert');
 const Promise = require('bluebird');
 const { expect } = require('chai');
 const { times } = require('lodash');
@@ -38,10 +37,7 @@ describe('#login-rate-limits', function loginSuite() {
 
       times(16, () => {
         promises.push((
-          this.users
-            .dispatch('login', { params: { ...userWithRemoteIP } })
-            .reflect()
-            .then(inspectPromise(false))
+          assert.rejects(this.users.dispatch('login', { params: { ...userWithRemoteIP } }))
         ));
       });
 
@@ -62,28 +58,22 @@ describe('#login-rate-limits', function loginSuite() {
 
       times(5, () => {
         promises.push((
-          this.users
-            .dispatch('login', { params: { ...userWithRemoteIP } })
-            .reflect()
-            .then(inspectPromise(false))
-            .then((login) => {
-              expect(login.name).to.be.eq('HttpStatusError');
-              expect(login.statusCode).to.be.eq(403);
-            })
+          assert.rejects(this.users
+            .dispatch('login', { params: { ...userWithRemoteIP } }), {
+            name: 'HttpStatusError',
+            statusCode: 403,
+          })
         ));
       });
 
       await Promise.all(promises);
 
-      await this.users
-        .dispatch('login', { params: { ...userWithRemoteIP } })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((login) => {
-          expect(login.name).to.be.eq('HttpStatusError');
-          expect(login.statusCode).to.be.eq(429);
-          expect(login.message).to.be.eq(eMsg);
-        });
+      assert.rejects(this.users
+        .dispatch('login', { params: { ...userWithRemoteIP } }), {
+        name: 'HttpStatusError',
+        statusCode: 429,
+        message: eMsg,
+      });
     });
 
     it('resets attempts for user after final success login', async () => {
@@ -144,10 +134,8 @@ describe('#login-rate-limits', function loginSuite() {
 
       times(16, () => {
         promises.push((
-          this.users
-            .dispatch('login', { params: { ...userWithRemoteIP } })
-            .reflect()
-            .then(inspectPromise(false))
+          assert.rejects(this.users
+            .dispatch('login', { params: { ...userWithRemoteIP } }))
         ));
       });
 
@@ -169,28 +157,22 @@ describe('#login-rate-limits', function loginSuite() {
 
       times(5, () => {
         promises.push((
-          this.users
-            .dispatch('login', { params: { ...userWithRemoteIP } })
-            .reflect()
-            .then(inspectPromise(false))
-            .then((login) => {
-              expect(login.name).to.be.eq('HttpStatusError');
-              expect(login.statusCode).to.be.eq(403);
-            })
+          assert.rejects(this.users
+            .dispatch('login', { params: { ...userWithRemoteIP } }), {
+            name: 'HttpStatusError',
+            statusCode: 403,
+          })
         ));
       });
 
       await Promise.all(promises);
 
-      await this.users
-        .dispatch('login', { params: { ...userWithRemoteIP } })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((login) => {
-          expect(login.name).to.be.eq('HttpStatusError');
-          expect(login.statusCode).to.be.eq(429);
-          expect(login.message).to.be.eq(eMsg);
-        });
+      await assert.rejects(this.users
+        .dispatch('login', { params: { ...userWithRemoteIP } }), {
+        name: 'HttpStatusError',
+        statusCode: 429,
+        message: eMsg,
+      });
 
       return Promise.all(promises);
     });

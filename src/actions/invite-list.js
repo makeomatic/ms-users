@@ -56,4 +56,4 @@ module.exports = function iterateOverInvites(request) {
     }));
 };
 
-module.exports.transports = [ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

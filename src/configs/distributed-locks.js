@@ -3,7 +3,7 @@
  * This is used to avoid race conditions across microservices on concurrent requests
  * @type {Object}
  */
-exports.lockManager = {
+exports.dlock = {
   lockPrefix: 'dlock!',
   pubsubChannel: '{ms-users}:dlock',
   lock: {

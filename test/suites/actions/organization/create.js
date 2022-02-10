@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const sinon = require('sinon');
 const faker = require('faker');
 const { createMembers, createOrganization } = require('../../../helpers/organization');
@@ -16,7 +16,7 @@ describe('#create organization', function registerSuite() {
   afterEach(global.clearRedis);
 
   it('must reject invalid organization params and return detailed error', async function test() {
-    await assert.rejects(this.dispatch('users.organization.create', {}), (err) => {
+    await assert.rejects(this.users.dispatch('organization.create', { params: {} }), (err) => {
       assert.equal(err.name, 'HttpStatusError');
       assert.equal(err.statusCode, 400);
       assert.equal(err.errors.length, 1);
@@ -36,7 +36,7 @@ describe('#create organization', function registerSuite() {
       members: this.userNames.slice(0, 1),
     };
 
-    const response = await this.dispatch('users.organization.create', params);
+    const response = await this.users.dispatch('organization.create', { params });
 
     const createdOrganization = response.data.attributes;
     assert(createdOrganization.name === params.name);
@@ -64,7 +64,7 @@ describe('#create organization', function registerSuite() {
       name: this.organization.name,
     };
 
-    await assert.rejects(this.dispatch('users.organization.create', params), {
+    await assert.rejects(this.users.dispatch('organization.create', { params }), {
       name: 'HttpStatusError',
     });
   });

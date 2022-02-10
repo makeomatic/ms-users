@@ -7,18 +7,6 @@ const { Extensions: { auditLog } } = require('@microfleet/plugin-router');
 const strategies = require('../auth/strategies');
 
 /**
- * This extension defaults schemas to the name of the action
- * @type {Function}
- */
-// const autoSchema = routerExtension('validate/schemaLessAction');
-
-/**
- * Provides prometheus metrics
- * @type {Function}
- */
-// const metrics = routerExtension('audit/metrics');
-
-/**
  * Catches errors from oauth.facebook and wraps them into HTML
  * @type {Function}
  */
@@ -36,10 +24,8 @@ exports.router = {
   },
   extensions: {
     register: [
-      // autoSchema,
       preResponse,
       auditLog(),
-      // metrics(),
     ],
   },
   auth: {

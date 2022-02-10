@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 
 describe('#getMetadata', function getMetadataSuite() {
   beforeEach(global.startService);
@@ -7,7 +7,7 @@ describe('#getMetadata', function getMetadataSuite() {
   it('must reject to return metadata on a non-existing username', async function test() {
     const { defaultAudience: audience } = this.users.config.jwt;
 
-    await assert.rejects(this.dispatch('users.getMetadata', { username: 'noob', audience }), {
+    await assert.rejects(this.users.dispatch('getMetadata', { params: { username: 'noob', audience } }), {
       name: 'HttpStatusError',
       statusCode: 404,
     });
@@ -20,9 +20,10 @@ describe('#getMetadata', function getMetadataSuite() {
 
     beforeEach(function pretest() {
       return this
-        .dispatch('users.register', {
+        .users
+        .dispatch('register', { params: {
           username, password: '123', audience, metadata: { name: { q: 'verynicedata' } },
-        })
+        } })
         .then(({ user }) => {
           this.firstUserId = user.id;
         });
@@ -30,27 +31,28 @@ describe('#getMetadata', function getMetadataSuite() {
 
     beforeEach(function pretest() {
       return this
-        .dispatch('users.register', {
+        .users
+        .dispatch('register', { params: {
           username: usernameB, password: '123', audience, metadata: { name: 'boredom' },
-        })
+        } })
         .then(({ user }) => {
           this.secondUserId = user.id;
         });
     });
 
     beforeEach(function pretest() {
-      return this.dispatch('users.updateMetadata', {
+      return this.users.dispatch('updateMetadata', { params: {
         username,
         audience: ['matic.ninja', audience],
         metadata: [
           { $set: { iat: 10 } },
           { $remove: ['created'] },
         ],
-      });
+      } });
     });
 
     it('must return metadata for a default audience', async function test() {
-      const meta = await this.dispatch('users.getMetadata', { username, audience });
+      const meta = await this.users.dispatch('getMetadata', { params: { username, audience } });
 
       assert.deepEqual(meta[audience].name, {
         q: 'verynicedata',
@@ -60,10 +62,10 @@ describe('#getMetadata', function getMetadataSuite() {
     });
 
     it('must return metadata for default and passed audiences', async function test() {
-      const meta = await this.dispatch('users.getMetadata', {
+      const meta = await this.users.dispatch('getMetadata', { params: {
         username,
         audience: [audience, 'matic.ninja'],
-      });
+      } });
 
       assert.deepEqual(meta[audience].name, {
         q: 'verynicedata',
@@ -75,14 +77,14 @@ describe('#getMetadata', function getMetadataSuite() {
     });
 
     it('must return partial response for default and passed audiences', async function test() {
-      const meta = await this.dispatch('users.getMetadata', {
+      const meta = await this.users.dispatch('getMetadata', { params: {
         username,
         audience: [audience, 'matic.ninja'],
         fields: {
           [audience]: ['username'],
           'matic.ninja': ['iat'],
         },
-      });
+      } });
 
       assert.equal(meta[audience].username, username);
       assert.deepEqual(meta['matic.ninja'], {
@@ -91,13 +93,13 @@ describe('#getMetadata', function getMetadataSuite() {
     });
 
     it('must return metadata for multiple users', async function test() {
-      const meta = await this.dispatch('users.getMetadata', {
+      const meta = await this.users.dispatch('getMetadata', { params: {
         username: [username, usernameB],
         audience,
         fields: {
           [audience]: ['username'],
         },
-      });
+      } });
 
       assert(Array.isArray(meta));
       assert(meta.length === 2);

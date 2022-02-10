@@ -3,7 +3,7 @@
 
 const { authenticator } = require('otplib');
 const Promise = require('bluebird');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const Bell = require('@hapi/bell');
 const Boom = require('@hapi/boom');
 const got = require('got');
@@ -564,9 +564,7 @@ describe.skip('#facebook', function oauthFacebookSuite() {
         const context = WebExecuter.extractPostMessageResponse(body);
         checkServiceMissingPermissionsResponse(context, 'signed');
 
-        const { requiresActivation, id } = await createAccount(
-          context.payload.token, { username: 'unverified@makeomatic.ca' }
-        );
+        const { requiresActivation, id } = await createAccount(context.payload.token, { username: 'unverified@makeomatic.ca' });
 
         assert.strictEqual(requiresActivation, true);
         assert.ok(id);

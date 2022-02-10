@@ -1,8 +1,6 @@
 /* global startService, clearRedis */
-const { inspectPromise } = require('@makeomatic/deploy');
 const Promise = require('bluebird');
-const assert = require('assert');
-const { expect } = require('chai');
+const { strict: assert } = require('assert');
 const { omit } = require('lodash');
 const sinon = require('sinon').usingPromise(Promise);
 
@@ -16,13 +14,10 @@ describe('#login', function loginSuite() {
   afterEach(clearRedis.bind(this, true));
 
   it('must reject login on a non-existing username', async () => {
-    const login = await this.users
-      .dispatch('login', { params: user })
-      .reflect()
-      .then(inspectPromise(false));
-
-    expect(login.name).to.be.eq('HttpStatusError');
-    expect(login.statusCode).to.be.eq(404);
+    await assert.rejects(this.users.dispatch('login', { params: user }), {
+      name: 'HttpStatusError',
+      statusCode: 404,
+    });
   });
 
   describe('existing user: inactivate', () => {
@@ -37,14 +32,11 @@ describe('#login', function loginSuite() {
     });
 
     it('must reject login on an inactive account', async () => {
-      const login = await this.users
-        .dispatch('login', { params: userWithValidPassword })
-        .reflect()
-        .then(inspectPromise(false));
-
-      expect(login.name).to.be.eq('HttpStatusError');
-      expect(login.statusCode).to.be.eq(412);
-      expect(login.reason.username).to.be.eq(userWithValidPassword.username);
+      await assert.rejects(this.users.dispatch('login', { params: userWithValidPassword }), {
+        name: 'HttpStatusError',
+        statusCode: 412,
+        reason: { username: userWithValidPassword.username },
+      });
     });
   });
 
@@ -55,13 +47,10 @@ describe('#login', function loginSuite() {
     });
 
     it('must reject login on an invalid password', async () => {
-      const login = await this.users
-        .dispatch('login', { params: user })
-        .reflect()
-        .then(inspectPromise(false));
-
-      expect(login.name).to.be.eq('HttpStatusError');
-      expect(login.statusCode).to.be.eq(403);
+      await assert.rejects(this.users.dispatch('login', { params: user }), {
+        name: 'HttpStatusError',
+        statusCode: 403,
+      });
     });
 
     describe('account: with alias', () => {
@@ -74,9 +63,7 @@ describe('#login', function loginSuite() {
 
       it('allows to sign in with a valid alias', () => {
         return this.users
-          .dispatch('login', { params: { ...userWithValidPassword, username: alias } })
-          .reflect()
-          .then(inspectPromise());
+          .dispatch('login', { params: { ...userWithValidPassword, username: alias } });
       });
     });
 
@@ -87,21 +74,16 @@ describe('#login', function loginSuite() {
       });
 
       it('must reject login', async () => {
-        const login = await this.users
-          .dispatch('login', { params: userWithValidPassword })
-          .reflect()
-          .then(inspectPromise(false));
-
-        expect(login.name).to.be.eq('HttpStatusError');
-        expect(login.statusCode).to.be.eq(423);
+        await assert.rejects(this.users.dispatch('login', { params: userWithValidPassword }), {
+          name: 'HttpStatusError',
+          statusCode: 423,
+        });
       });
     });
 
     it('must login on a valid account with correct credentials', () => {
       return this.users
-        .dispatch('login', { params: userWithValidPassword })
-        .reflect()
-        .then(inspectPromise());
+        .dispatch('login', { params: userWithValidPassword });
     });
 
     it('must login on a valid account without password with isSSO: true', () => {
@@ -111,12 +93,10 @@ describe('#login', function loginSuite() {
       };
 
       return this.users
-        .dispatch('login', { params: ssoUser })
-        .reflect()
-        .then(inspectPromise());
+        .dispatch('login', { params: ssoUser });
     });
 
-    it('should reject signing in with bogus or expired disposable password', () => {
+    it('should reject signing in with bogus or expired disposable password', async () => {
       const params = {
         audience: '*.localhost',
         isDisposablePassword: true,
@@ -132,14 +112,10 @@ describe('#login', function loginSuite() {
         username: '79215555555',
       };
 
-      return this.users
-        .dispatch('register', { params: opts })
-        .then(() => this.users.dispatch('login', { params }))
-        .reflect()
-        .then(inspectPromise(false))
-        .then((error) => {
-          assert.equal(error.statusCode, 403);
-        });
+      await this.users.dispatch('register', { params: opts });
+      await assert.rejects(this.users.dispatch('login', { params }), {
+        statusCode: 403,
+      });
     });
 
     it('should be able to login by disposable password', async () => {

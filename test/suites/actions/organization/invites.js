@@ -1,6 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const faker = require('faker');
 const sinon = require('sinon');
 const { createOrganization } = require('../../../helpers/organization');
@@ -38,7 +36,7 @@ describe('#invite organization', function registerSuite() {
       member: this.admin,
     };
 
-    await this.dispatch('users.organization.invites.send', opts);
+    await this.users.dispatch('organization.invites.send', { params: opts });
     this.admin.token = this.spy.lastCall.args[3].token;
   });
 
@@ -49,7 +47,7 @@ describe('#invite organization', function registerSuite() {
       member: this.member,
     };
 
-    await this.dispatch('users.organization.invites.send', opts);
+    await this.users.dispatch('organization.invites.send', { params: opts });
     this.member.token = this.spy.lastCall.args[3].token;
   });
 
@@ -59,7 +57,7 @@ describe('#invite organization', function registerSuite() {
       senderId: this.rootAdmin.id,
       member: this.member,
     };
-    await this.dispatch('users.organization.invites.send', opts);
+    await this.users.dispatch('organization.invites.send', { params: opts });
     const { firstName, lastName } = this.rootAdmin;
     const expectedName = `${firstName} ${lastName}`;
     assert.strictEqual(this.spy.lastCall.args[3].senderName, expectedName);
@@ -71,7 +69,7 @@ describe('#invite organization', function registerSuite() {
       senderId: 'unknown-sender-id',
       member: this.member,
     };
-    await this.dispatch('users.organization.invites.send', opts);
+    await this.users.dispatch('organization.invites.send', { params: opts });
     assert.strictEqual(this.spy.lastCall.args[3].senderName, undefined);
   });
 
@@ -81,14 +79,12 @@ describe('#invite organization', function registerSuite() {
       senderId: this.rootAdmin.id,
       member: this.member,
     };
-    await this.dispatch('users.organization.invites.send', opts);
+    await this.users.dispatch('organization.invites.send', { params: opts });
     this.member.token = this.spy.lastCall.args[3].token;
   });
 
   it('must be able to get invites list', async function test() {
-    return this.dispatch('users.organization.invites.list', { organizationId: this.organization.id })
-      .reflect()
-      .then(inspectPromise())
+    return this.users.dispatch('organization.invites.list', { params: { organizationId: this.organization.id } })
       .then(({ data }) => {
         // At this point we're expecting to have 3 users:
         // - root, created at a test case above
@@ -125,9 +121,7 @@ describe('#invite organization', function registerSuite() {
       inviteToken: this.admin.token.secret,
     };
 
-    await this.dispatch('users.organization.invites.accept', opts)
-      .reflect()
-      .then(inspectPromise(false));
+    await assert.rejects(this.users.dispatch('organization.invites.accept', { params: opts }));
   });
 
   it('must be able to accept invite to member', async function test() {
@@ -144,7 +138,7 @@ describe('#invite organization', function registerSuite() {
       inviteToken: this.member.token.secret,
     };
 
-    await this.dispatch('users.organization.invites.accept', opts);
+    await this.users.dispatch('organization.invites.accept', { params: opts });
   });
 
   it('must be able login invited user', async function test() {
@@ -154,15 +148,11 @@ describe('#invite organization', function registerSuite() {
       audience: '*.localhost',
     };
 
-    return this.dispatch('users.login', opts)
-      .reflect()
-      .then(inspectPromise());
+    return this.users.dispatch('login', { params: opts });
   });
 
   it('must be able to get invites list without invited user', async function test() {
-    return this.dispatch('users.organization.invites.list', { organizationId: this.organization.id })
-      .reflect()
-      .then(inspectPromise())
+    return this.users.dispatch('organization.invites.list', { params: { organizationId: this.organization.id } })
       .then(({ data }) => {
         // At this point we're expecting to have 3 users:
         // - root, created at a test case above
@@ -193,7 +183,7 @@ describe('#invite organization', function registerSuite() {
       },
     };
 
-    await this.dispatch('users.organization.invites.revoke', opts);
+    await this.users.dispatch('organization.invites.revoke', { params: opts });
   });
 
   it('must return error on revoked token', async function test() {
@@ -207,15 +197,11 @@ describe('#invite organization', function registerSuite() {
       inviteToken: this.admin.token.secret,
     };
 
-    await this.dispatch('users.organization.invites.accept', opts)
-      .reflect()
-      .then(inspectPromise(false));
+    await assert.rejects(this.users.dispatch('organization.invites.accept', { params: opts }));
   });
 
   it('must be able to get invites list without revoked user', async function test() {
-    return this.dispatch('users.organization.invites.list', { organizationId: this.organization.id })
-      .reflect()
-      .then(inspectPromise())
+    return this.users.dispatch('organization.invites.list', { params: { organizationId: this.organization.id } })
       .then(({ data }) => {
         assert.equal(data.length, 0);
       });
@@ -232,9 +218,7 @@ describe('#invite organization', function registerSuite() {
       inviteToken: this.admin.token.secret,
     };
 
-    await this.dispatch('users.organization.invites.accept', opts)
-      .reflect()
-      .then(inspectPromise(false));
+    await assert.rejects(this.users.dispatch('organization.invites.accept', { params: opts }));
   });
 
   it('must return organization not found error', async function test() {
@@ -244,11 +228,8 @@ describe('#invite organization', function registerSuite() {
       member: this.member,
     };
 
-    return this.dispatch('users.organization.invites.send', opts)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-      });
+    await assert.rejects(this.users.dispatch('organization.invites.send', { params: opts }), {
+      name: 'HttpStatusError',
+    });
   });
 });

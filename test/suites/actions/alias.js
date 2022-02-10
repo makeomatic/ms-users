@@ -1,46 +1,43 @@
 /* global globalRegisterUser */
-const { expect } = require('chai');
-const { inspectPromise } = require('@makeomatic/deploy');
+const { strict: assert } = require('assert');
 
 describe('#alias', function activateSuite() {
   before(global.startService);
   after(global.clearRedis);
 
-  it('must reject adding alias to a non-existing user', function test() {
-    return this.dispatch('users.alias', { username: 'doesntexist', alias: 'marvelous' })
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        expect(response.name).to.be.eq('HttpStatusError');
-        expect(response.statusCode).to.be.eq(404);
-      });
+  it('must reject adding alias to a non-existing user', async function test() {
+    const params = { username: 'doesntexist', alias: 'marvelous' };
+    await assert.rejects(this.users.dispatch('alias', { params }), {
+      name: 'HttpStatusError',
+      statusCode: 404,
+    });
   });
 
   describe('user: locked', function suite() {
-    before('add user', globalRegisterUser('locked@me.com', { locked: true }));
+    const username = 'locked@me.com';
 
-    it('must reject adding alias to a locked user', function test() {
-      return this.dispatch('users.alias', { username: 'locked@me.com', alias: 'marvelous' })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((response) => {
-          expect(response.name).to.be.eq('HttpStatusError');
-          expect(response.statusCode).to.be.eq(423);
-        });
+    before('add user', globalRegisterUser(username, { locked: true }));
+
+    it('must reject adding alias to a locked user', async function test() {
+      const params = { username, alias: 'marvelous' };
+      await assert.rejects(this.users.dispatch('alias', { params }), {
+        name: 'HttpStatusError',
+        statusCode: 423,
+      });
     });
   });
 
   describe('user: inactive', function suite() {
-    before(globalRegisterUser('inactive@me.com', { inactive: true }));
+    const username = 'inactive@me.com';
 
-    it('must reject adding alias to an inactive user', function test() {
-      return this.dispatch('users.alias', { username: 'inactive@me.com', alias: 'marvelous' })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((response) => {
-          expect(response.name).to.be.eq('HttpStatusError');
-          expect(response.statusCode).to.be.eq(412);
-        });
+    before(globalRegisterUser(username, { inactive: true }));
+
+    it('must reject adding alias to an inactive user', async function test() {
+      const params = { username, alias: 'marvelous' };
+      await assert.rejects(this.users.dispatch('alias', { params }), {
+        name: 'HttpStatusError',
+        statusCode: 412,
+      });
     });
   });
 
@@ -48,58 +45,44 @@ describe('#alias', function activateSuite() {
     before(globalRegisterUser('active@me.com'));
     before(globalRegisterUser('active-2@me.com'));
 
-    it('adds alias', function test() {
-      return this.dispatch('users.alias', { username: 'active@me.com', alias: 'marvelous' })
-        .reflect()
-        .then(inspectPromise());
+    it('adds alias', async function test() {
+      return this.users.dispatch('alias', { params: { username: 'active@me.com', alias: 'marvelous' } });
     });
 
-    it('returns metadata based on alias', function test() {
-      return this.dispatch('users.getMetadata', { username: 'marvelous', audience: '*.localhost' })
-        .reflect()
-        .then(inspectPromise());
+    it('returns metadata based on alias', async function test() {
+      return this.users.dispatch('getMetadata', { params: { username: 'marvelous', audience: '*.localhost' } });
     });
 
-    it('returns metadata based on username', function test() {
-      return this.dispatch('users.getMetadata', { username: 'active@me.com', audience: '*.localhost' })
-        .reflect()
-        .then(inspectPromise());
+    it('returns metadata based on username', async function test() {
+      return this.users.dispatch('getMetadata', { params: { username: 'active@me.com', audience: '*.localhost' } });
     });
 
-    it('returns public metadata based on alias', function test() {
-      return this.dispatch('users.getMetadata', { public: true, username: 'marvelous', audience: '*.localhost' })
-        .reflect()
-        .then(inspectPromise());
+    it('returns public metadata based on alias', async function test() {
+      return this.users.dispatch('getMetadata', { params: { public: true, username: 'marvelous', audience: '*.localhost' } });
     });
 
-    it('returns 404 for public metadata based on username', function test() {
-      return this.dispatch('users.getMetadata', { public: true, username: 'active@me.com', audience: '*.localhost' })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((response) => {
-          expect(response.name).to.be.eq('HttpStatusError');
-          expect(response.statusCode).to.be.eq(404);
-        });
+    it('returns 404 for public metadata based on username', async function test() {
+      const params = { public: true, username: 'active@me.com', audience: '*.localhost' };
+      await assert.rejects(this.users.dispatch('getMetadata', { params }), {
+        name: 'HttpStatusError',
+        statusCode: 404,
+      });
     });
 
-    it('rejects to change alias', function test() {
-      return this.dispatch('users.alias', { username: 'active@me.com', alias: 'filezila' })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((response) => {
-          expect(response.name).to.be.eq('HttpStatusError');
-          expect(response.statusCode).to.be.eq(417);
-        });
+    it('rejects to change alias', async function test() {
+      const params = { username: 'active@me.com', alias: 'filezila' };
+      await assert.rejects(this.users.dispatch('alias', { params }), {
+        name: 'HttpStatusError',
+        statusCode: 417,
+      });
     });
 
-    it('rejects to add existing alias', function test() {
-      return this.dispatch('users.alias', { username: 'active-2@me.com', alias: 'marvelous' })
-        .reflect()
-        .then(inspectPromise(false))
-        .then((response) => {
-          expect(response.name).to.be.eq('HttpStatusError');
-          expect(response.statusCode).to.be.eq(409);
-        });
+    it('rejects to add existing alias', async function test() {
+      const params = { username: 'active-2@me.com', alias: 'marvelous' };
+      await assert.rejects(this.users.dispatch('alias', { params }), {
+        name: 'HttpStatusError',
+        statusCode: 409,
+      });
     });
   });
 });

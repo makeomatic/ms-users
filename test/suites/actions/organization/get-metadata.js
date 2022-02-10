@@ -14,9 +14,8 @@ describe('#organization members metadata', function registerSuite() {
   it('must reject invalid organization params and return detailed error', async function test() {
     await assert.rejects(this.users.dispatch('organization.getMetadata', { params: {} }), {
       name: 'HttpStatusError',
-      errors: {
-        length: 1,
-      },
+      statusCode: 400,
+      message: "organization.getMetadata validation failed: data must have required property 'organizationId'",
     });
   });
 

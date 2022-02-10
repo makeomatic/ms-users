@@ -12,7 +12,11 @@ describe('#update organization member', function registerSuite() {
   it('must reject invalid params and return detailed error', async function test() {
     await assert.rejects(this.users.dispatch('organization.members.update', { params: {} }), {
       name: 'HttpStatusError',
-      errors: { length: 3 },
+      statusCode: 400,
+      message: 'organization.members.update validation failed: '
+        + "data must have required property 'organizationId', "
+        + "data must have required property 'username', "
+        + "data must have required property 'data'",
     });
   });
 

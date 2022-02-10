@@ -3,6 +3,7 @@ const serialize = require('serialize-javascript');
 const { AuthenticationRequiredError } = require('common-errors');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
+const url = require('url');
 const { Redirect } = require('./utils/errors');
 const { ErrorTotpRequired } = require('../../constants');
 const { getSignedToken } = require('./utils/get-signed-token');
@@ -19,7 +20,7 @@ module.exports = [{
   point: 'preResponse',
   async handler(request) {
     // return whatever we had before, no concern over it
-    if (isOauthAttachRoute(request.route) === false || request.transport !== ActionTransport.http) {
+    if (!isOauthAttachRoute(request.route) || request.transport !== ActionTransport.http) {
       // pass-through
       return request;
     }
@@ -38,7 +39,11 @@ module.exports = [{
     // will be copied over from mail server configuration
     const { config: { server, oauth: { debug } } } = this;
 
-    const targetOrigin = debug ? '*' : `${server.proto}/${server.host}:${server.port}`;
+    const targetOrigin = debug ? '*' : url.format({
+      proto: server.proto,
+      host: server.host,
+      port: server.port,
+    });
 
     let message;
     if (error && error.code === ErrorTotpRequired.code) {
@@ -93,6 +98,8 @@ module.exports = [{
     }
 
     if (!request.route.endsWith('oauth.facebook') && !request.route.endsWith('oauth.apple')) {
+      request.log.warn({ response: message }, 'not fb/apple');
+      request.error = undefined;
       request.response = await request.transportRequest
         .generateResponse(message)
         .code(statusCode);
@@ -108,10 +115,10 @@ module.exports = [{
     });
 
     if (error) {
+      request.error = undefined;
       request.response = request.response.code(statusCode);
     }
 
-    request.error = null;
     return request;
   },
 }];

@@ -14,9 +14,8 @@ describe('#get organization', function registerSuite() {
   it('must reject invalid organization params and return detailed error', async function test() {
     await assert.rejects(this.users.dispatch('organization.get', { params: {} }), {
       name: 'HttpStatusError',
-      errors: {
-        length: 1,
-      },
+      statusCode: 400,
+      message: "organization.get validation failed: data must have required property 'organizationId'",
     });
   });
 
@@ -35,6 +34,7 @@ describe('#get organization', function registerSuite() {
 
     await assert.rejects(this.users.dispatch('organization.get', { params: opts }), {
       name: 'HttpStatusError',
+      statusCode: 404,
     });
   });
 });

@@ -71,6 +71,7 @@ exports.logger = {
         'headers.authentication',
         'params.password',
         'params.token',
+        'params.jwt',
       ],
     },
   },

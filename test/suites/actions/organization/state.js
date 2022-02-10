@@ -13,9 +13,9 @@ describe('#switch state organization', function registerSuite() {
   it('must reject invalid organization params and return detailed error', async function test() {
     await assert.rejects(this.users.dispatch('organization.state', { params: {} }), {
       name: 'HttpStatusError',
-      errors: {
-        length: 2,
-      },
+      message: 'organization.state validation failed: '
+        + "data must have required property 'organizationId', data must have required property 'active'",
+      statusCode: 400,
     });
   });
 

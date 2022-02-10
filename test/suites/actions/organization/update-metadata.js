@@ -12,7 +12,9 @@ describe('#update metadata organization', function registerSuite() {
   it('must reject invalid organization params and return detailed error', async function test() {
     await assert.rejects(this.users.dispatch('organization.updateMetadata', { params: {} }), {
       name: 'HttpStatusError',
-      errors: { length: 2 },
+      statusCode: 400,
+      message: 'organization.updateMetadata validation failed: '
+        + "data must have required property 'organizationId', data must have required property 'metadata'",
     });
   });
 

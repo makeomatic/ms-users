@@ -2,11 +2,11 @@
 const { strictEqual, strict: assert } = require('assert');
 const Promise = require('bluebird');
 const { expect } = require('chai');
-const { times } = require('lodash');
+const { times, noop } = require('lodash');
 
 describe('#login-rate-limits', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
-  const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
+  const userWithValidPassword = { ...user, password: 'nicepassword1' };
 
   describe('positive interval', () => {
     before(() => startService.call(this, {
@@ -37,7 +37,7 @@ describe('#login-rate-limits', function loginSuite() {
 
       times(16, () => {
         promises.push((
-          assert.rejects(this.users.dispatch('login', { params: { ...userWithRemoteIP } }))
+          this.users.dispatch('login', { params: { ...userWithRemoteIP } }).catch((e) => e)
         ));
       });
 
@@ -68,7 +68,7 @@ describe('#login-rate-limits', function loginSuite() {
 
       await Promise.all(promises);
 
-      assert.rejects(this.users
+      await assert.rejects(this.users
         .dispatch('login', { params: { ...userWithRemoteIP } }), {
         name: 'HttpStatusError',
         statusCode: 429,
@@ -84,17 +84,13 @@ describe('#login-rate-limits', function loginSuite() {
 
       times(2, () => {
         promises.push(
-          this.users
-            .dispatch('login', { params: { ...userWithRemoteIP, username: 'notme' } })
-            .reflect()
+          this.users.dispatch('login', { params: { ...userWithRemoteIP, username: 'notme' } }).catch(noop)
         );
       });
 
       times(3, () => {
         promises.push(
-          this.users
-            .dispatch('login', { params: { ...userWithRemoteIP } })
-            .reflect()
+          this.users.dispatch('login', { params: { ...userWithRemoteIP } }).catch(noop)
         );
       });
 
@@ -134,8 +130,8 @@ describe('#login-rate-limits', function loginSuite() {
 
       times(16, () => {
         promises.push((
-          assert.rejects(this.users
-            .dispatch('login', { params: { ...userWithRemoteIP } }))
+          this.users
+            .dispatch('login', { params: { ...userWithRemoteIP } }).catch((e) => e)
         ));
       });
 

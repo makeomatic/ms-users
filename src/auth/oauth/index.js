@@ -141,7 +141,7 @@ async function mserviceVerification({ service, transportRequest }, credentials) 
  * @returns {Promise}
  */
 async function authHandler({ action, transportRequest }) {
-  const { http, config } = this;
+  const { hapi, config } = this;
   const { strategy } = action;
 
   /**
@@ -157,7 +157,7 @@ async function authHandler({ action, transportRequest }) {
 
   let response;
   try {
-    const { credentials } = await http.auth.test(strategy, transportRequest);
+    const { credentials } = await hapi.auth.test(strategy, transportRequest);
     response = [null, credentials];
   } catch (err) {
     if (Boom.isBoom(err)) {

@@ -3,7 +3,7 @@
 
 const { authenticator } = require('otplib');
 const Promise = require('bluebird');
-const { strict: assert } = require('assert');
+const assert = require('assert');
 const Bell = require('@hapi/bell');
 const Boom = require('@hapi/boom');
 const got = require('got');
@@ -74,7 +74,7 @@ const getSimulatedRequestForUser = (service, user) => async (request) => {
   return clone(profileCache[initialReq.token]);
 };
 
-describe.skip('#facebook', function oauthFacebookSuite() {
+describe('#facebook', function oauthFacebookSuite() {
   let service;
   let simulateReq;
 
@@ -176,7 +176,7 @@ describe.skip('#facebook', function oauthFacebookSuite() {
         }),
         check: (error) => {
           const { data: { res } } = error;
-          assert(res == null, 'Res must be deleted from error');
+          assert(res == null);
         },
       };
 
@@ -189,28 +189,28 @@ describe.skip('#facebook', function oauthFacebookSuite() {
         },
         check: (error) => {
           const { res } = error;
-          assert(res == null, 'Res must be deleted from error');
+          assert(res == null);
         },
       };
 
       const errorWithDataString = {
         subError: Boom.forbidden('X-Throttled', 'stringData'),
         check: (error) => {
-          assert(error.data === 'stringData', 'Must pass string data');
+          assert(error.data === 'stringData');
         },
       };
 
       const errorWithDataNull = {
         subError: Boom.forbidden('X-Throttled'),
         check: (error) => {
-          assert.ok(error.data == null, 'Must pass null data');
+          assert.ok(error.data == null);
         },
       };
 
       const errorWithDataObject = {
         subError: Boom.forbidden('X-Throttled', { foo: 1, bar: 2 }),
         check: (error) => {
-          assert.deepEqual(error.data, { foo: 1, bar: 2 }, 'Must pass full data object');
+          assert.deepEqual(error.data, { foo: 1, bar: 2 });
         },
       };
 

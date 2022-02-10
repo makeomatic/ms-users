@@ -230,6 +230,7 @@ describe('#invite organization', function registerSuite() {
 
     await assert.rejects(this.users.dispatch('organization.invites.send', { params: opts }), {
       name: 'HttpStatusError',
+      statusCode: 404,
     });
   });
 });

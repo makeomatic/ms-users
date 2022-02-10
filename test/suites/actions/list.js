@@ -47,13 +47,13 @@ describe('#list', function listSuite() {
   it('able to list users without any filters: ASC', function test() {
     return this
       .users
-      .dispatch('list', {
+      .dispatch('list', { params: {
         offset: 51,
         limit: 10,
         order: 'ASC',
         audience: this.audience,
         filter: {},
-      })
+      } })
       .then((result) => {
         expect(result.page).to.be.eq(6);
         expect(result.pages).to.be.eq(11);
@@ -105,13 +105,13 @@ describe('#list', function listSuite() {
   it('able to list users without any filters: DESC', function test() {
     return this
       .users
-      .dispatch('list', {
+      .dispatch('list', { params: {
         offset: 0,
         limit: 10,
         order: 'DESC',
         audience: this.audience,
         filter: {},
-      })
+      } })
       .then((result) => {
         expect(result.users).to.have.lengthOf(10);
 
@@ -132,7 +132,7 @@ describe('#list', function listSuite() {
   it('able to list users with `username` filter: ASC', function test() {
     return this
       .users
-      .dispatch('list', {
+      .dispatch('list', { params: {
         offset: 0,
         limit: 10,
         order: 'ASC',
@@ -140,7 +140,7 @@ describe('#list', function listSuite() {
         filter: {
           username: 'an',
         },
-      })
+      } })
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -163,7 +163,7 @@ describe('#list', function listSuite() {
   it('able to list users with `username` filter: DESC', function test() {
     return this
       .users
-      .dispatch('list', {
+      .dispatch('list', { params: {
         offset: 0,
         limit: 10,
         order: 'DESC',
@@ -171,7 +171,7 @@ describe('#list', function listSuite() {
         filter: {
           username: 'an',
         },
-      })
+      } })
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -194,14 +194,14 @@ describe('#list', function listSuite() {
   it('able to list users by meta field key: ASC', function test() {
     return this
       .users
-      .dispatch('list', {
+      .dispatch('list', { params: {
         offset: 0,
         limit: 10,
         order: 'ASC',
         criteria: 'firstName',
         audience: this.audience,
         filter: {},
-      })
+      } })
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -222,14 +222,14 @@ describe('#list', function listSuite() {
   it('able to list users by meta field key: DESC', function test() {
     return this
       .users
-      .dispatch('list', {
+      .dispatch('list', { params: {
         offset: 0,
         limit: 10,
         order: 'DESC',
         criteria: 'firstName',
         audience: this.audience,
         filter: {},
-      })
+      } })
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -250,7 +250,7 @@ describe('#list', function listSuite() {
   it('able to list users by meta field key with multiple filters: DESC', function test() {
     return this
       .users
-      .dispatch('list', {
+      .dispatch('list', { params: {
         offset: 0,
         limit: 10,
         order: 'DESC',
@@ -260,7 +260,7 @@ describe('#list', function listSuite() {
           '#': 'an',
           lastName: 'b',
         },
-      })
+      } })
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -286,7 +286,7 @@ describe('#list', function listSuite() {
   it('able to list users by meta field key with multiple filters: ASC', function test() {
     return this
       .users
-      .dispatch('list', {
+      .dispatch('list', { params: {
         offset: 0,
         limit: 10,
         order: 'ASC',
@@ -296,7 +296,7 @@ describe('#list', function listSuite() {
           '#': 'an',
           lastName: 'b',
         },
-      })
+      } })
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
 
@@ -323,10 +323,10 @@ describe('#list', function listSuite() {
     it('run query with ids only', function test() {
       return this
         .users
-        .dispatch('list', {
+        .dispatch('list', { params: {
           userIdsOnly: true,
           audience: this.audience,
-        })
+        } })
         .then((result) => {
           expect(result.page).to.be.eq(1);
           expect(result.pages).to.be.eq(11);

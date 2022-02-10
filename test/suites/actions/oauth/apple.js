@@ -6,10 +6,14 @@ const Bell = require('@hapi/bell');
 const Users = require('../../../../src');
 
 describe('sign in with apple', function suite() {
+  let service;
+  afterEach(async () => {
+    await service?.close();
+  });
+
   it('should be able to redirect to sign in (init sign in and redirect to apple.com)', async () => {
     // it's here because of Bell.simulate
-    const service = new Users({ oauth: { providers: { apple: { enabled: true } } } });
-
+    service = new Users({ oauth: { providers: { apple: { enabled: true } } } });
     await service.connect();
 
     const { headers } = await request.get('https://ms-users.local/users/oauth/apple', {
@@ -36,8 +40,6 @@ describe('sign in with apple', function suite() {
     this.state = redirectUri.searchParams.get('state');
     // bell cookie
     [this.cookie] = headers['set-cookie'][0].split(';');
-
-    await service.close();
   });
 
   // depends on previous test
@@ -69,8 +71,7 @@ describe('sign in with apple', function suite() {
       };
     });
 
-    const service = new Users({ oauth: { providers: { apple: { enabled: true } } } });
-
+    service = new Users({ oauth: { providers: { apple: { enabled: true } } } });
     await service.connect();
 
     const response = await request.post('https://ms-users.local/users/oauth/apple', {
@@ -116,8 +117,6 @@ describe('sign in with apple', function suite() {
     strictEqual(data.iss, 'ms-users');
     assert(data.iat !== undefined);
     assert(data.exp !== undefined);
-
-    await service.close();
 
     Bell.simulate(false);
   });

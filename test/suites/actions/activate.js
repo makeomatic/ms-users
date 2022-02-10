@@ -107,7 +107,7 @@ describe('#activate', function activateSuite() {
     amqpStub.withArgs('phone.message.predefined')
       .resolves({ queued: true });
 
-    const value = await this.users.dispatch('register', opts);
+    const value = await this.users.dispatch('register', { params: opts });
     const { message } = amqpStub.args[0][1];
     const code = message.match(/^(\d{4}) is your activation code/)[1];
     const userId = value.id;

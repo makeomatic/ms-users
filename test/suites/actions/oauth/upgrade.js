@@ -3,7 +3,7 @@
 
 const { authenticator } = require('otplib');
 const Promise = require('bluebird');
-const { strict: assert } = require('assert');
+const assert = require('assert');
 const got = require('got');
 const GraphApi = require('../../../helpers/oauth/facebook/graph-api');
 
@@ -11,6 +11,7 @@ const kDefaultAudience = '*.localhost';
 const msUsers = got.extend({
   prefixUrl: 'https://ms-users.local/users/oauth/upgrade',
   responseType: 'json',
+  throwHttpErrors: true,
   https: {
     rejectUnauthorized: false,
   },
@@ -43,7 +44,7 @@ function checkServiceMissingPermissionsResponse(context) {
   assert.strictEqual(context.payload.provider, 'facebook');
 }
 
-describe.skip('oauth#upgrade', function oauthFacebookSuite() {
+describe('oauth#upgrade', function oauthFacebookSuite() {
   let service;
   let generalUser;
   let token;
@@ -225,6 +226,8 @@ describe.skip('oauth#upgrade', function oauthFacebookSuite() {
       it('should reject attaching already attached profile to a new user', async () => {
         await createAccount(token);
         await assert.rejects(upgradeToken(generalUser.access_token, dataBag.jwt), (e) => {
+          console.error(e.response.statusCode);
+          console.error('%j', e.response.body);
           return e.response
             && e.response.statusCode === 412
             && e.response.body.type === 'ms-users:attached'

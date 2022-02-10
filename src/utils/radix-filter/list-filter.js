@@ -3,25 +3,16 @@ const assert = require('assert');
 const { RuleGroup } = require('./rule-group');
 const { Rule } = require('./rule');
 
-const MIN_PREFIX = 'list';
-
 /**
  * Matches provided object to specific rule group
  */
 class ListFilter {
   /**
-   * @param {RadixStorage} storage - RadixStorage
    * @param {Logger} log
    */
-  constructor(storage, log) {
-    assert(storage, 'storage required');
+  constructor(log) {
     assert(log, 'logger required');
-    this.rules = storage;
-    this.minPrefix = MIN_PREFIX;
-  }
-
-  _getKey(key) {
-    return `${this.minPrefix}:${key}`;
+    this.rules = [];
   }
 
   /**
@@ -30,20 +21,9 @@ class ListFilter {
    * @param {Object} obj
    * @returns {boolean}
    */
-  match(prefixes, obj) {
-    const prefixArr = Array.isArray(prefixes) ? prefixes : [prefixes];
-    assert(typeof obj === 'object' && obj !== undefined, 'object required');
-
-    const all = [];
-    prefixArr.forEach((prefix) => {
-      const rules = Array.from(
-        this.rules.findGenerator(this._getKey(prefix))
-      );
-      all.push(...rules);
-    });
-
-    for (const rule of all) {
-      if (rule[1].match(obj)) {
+  match(obj) {
+    for (const rule of this.rules) {
+      if (rule.match(obj)) {
         return true;
       }
     }
@@ -56,45 +36,21 @@ class ListFilter {
    * @param {Rule|RuleGroup} rule
    * @returns {void}
    */
-  add(key, rule) {
+  add(rule) {
     assert(rule instanceof RuleGroup || rule instanceof Rule, 'Rule or RuleGroup required');
-    assert(typeof key === 'string' && key.length > 0, 'key should be not empty string');
-    this.rules.add(this._getKey(key), rule);
+    this.rules.push(rule);
   }
 
   /**
    * Add batch of rules
-   * @param {{ key: string, params: object }} rulesList
+   * @param Object[] rulesList
    */
   addBatch(rulesList) {
     assert(Array.isArray(rulesList), 'must provide list of rules');
 
-    rulesList.forEach((rule) => {
-      const { key, params } = rule;
-      const rg = RuleGroup.create(params);
-      this.add(key, rg);
-    });
-  }
-
-  /**
-   * Add raw rules
-   * @param {{ key: string; param: string }[]} rulesList
-   * @returns {void}
-   */
-  addRaw(rulesList) {
-    assert(Array.isArray(rulesList), 'must provide list of rules');
-
-    rulesList.forEach((rule) => {
-      const { key, params } = rule;
-      const parsed = JSON.parse(params);
-
-      if (!parsed) {
-        this.log.debug({ rule, parsed, err: 'unable to parse' });
-        return;
-      }
-
-      const rg = RuleGroup.create(parsed);
-      this.add(key, rg);
+    rulesList.forEach(({ rule }) => {
+      const rg = RuleGroup.create(rule);
+      this.add(rg);
     });
   }
 }

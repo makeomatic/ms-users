@@ -1,30 +1,54 @@
 const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
 const { ConsulWatcher } = require('./consul-watcher');
-
 const { ListFilter } = require('./radix-filter/list-filter');
-const { RadixStorage } = require('./radix-filter/storage');
 
-const newListFilter = (log) => {
-  const storage = new RadixStorage();
-  return new ListFilter(storage, log);
-};
+/** @typedef { import("./revocation-rules-manager").RevocationRulesManager } RevocationRulesManager */
 
 /**
  * Memory storage
  */
 class RevocationRulesStorage {
-  constructor(consulWatcher, watchOptions, log) {
+  constructor(ruleManager, consulWatcher, watchOptions, log) {
+    /** @type {RevocationRulesManager} */
+    this.ruleManager = ruleManager;
+    /** @type {ConsulWatcher} */
     this.consulWatcher = consulWatcher;
     this.watchOptions = watchOptions;
     this.log = log;
     this.watchInstance = null;
-    this.filter = newListFilter(log);
+    this.cache = {};
   }
 
-  _reloadRules(data) {
-    const newList = newListFilter(this.log);
-    newList.addRaw(data);
-    this.filter = newList;
+  _invalidateCache(key, version) {
+    const cached = this.cache[key];
+    if (cached && cached.version < version) {
+      this.cache[key] = {
+        version,
+        rules: null,
+      };
+    }
+  }
+
+  setCache(rules, key, version) {
+    this.cache[key] = {
+      version,
+      rules,
+    };
+  }
+
+  async getRules(key) {
+    const cached = this.cache[key];
+    if (cached && cached.rules !== null) {
+      return cached.rules;
+    }
+
+    const rulesRaw = await this.ruleManager.list(key);
+    const rules = new ListFilter(this.log);
+
+    rules.addBatch(rulesRaw);
+    this.setCache(rules, key, Date.now());
+
+    return rules;
   }
 
   startSync() {
@@ -38,15 +62,12 @@ class RevocationRulesStorage {
       KEY_PREFIX_REVOCATION_RULES,
       (data) => {
         const value = data === undefined ? [] : data;
-
-        const asRule = value.map(({ Key: key, Value: params }) => (
-          {
-            key: key.substring(KEY_PREFIX_REVOCATION_RULES.length),
-            params,
-          }
-        ));
-
-        this._reloadRules(asRule);
+        for (const { Key: key, Value: version } of value) {
+          this._invalidateCache(
+            key.substring(KEY_PREFIX_REVOCATION_RULES.length),
+            parseInt(version, 10)
+          );
+        }
       },
       this.watchOptions
     );
@@ -61,7 +82,7 @@ class RevocationRulesStorage {
    * Raw unserialized
    */
   getFilter() {
-    return this.filter;
+    return this.cache;
   }
 }
 

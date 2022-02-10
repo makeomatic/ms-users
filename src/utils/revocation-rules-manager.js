@@ -1,36 +1,14 @@
-const { assert } = require('chai');
 const { chunk } = require('lodash');
-const { once } = require('events');
 
 const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
 
-const DONE_EVENT = 'rrm-ttl-job-done';
+const handlePipelineError = require('./pipeline-error');
 
-// Consul trasaction operation limit
-const TRX_LIMIT = 64;
-
-// keys
-const userRule = (userId, ruleId) => `u/${userId}/${ruleId}`;
-const globalRule = (ruleId) => `g/${ruleId}`;
-
-// utils
-const extractId = (consulRule) => consulRule.Key.split('/').pop();
+const REDIS_KEY_PREFIX = 'jwt-rules';
+const GLOBAL_RULE_GROUP = 'g';
 
 /**
- * Converts consul key to specific response, key.Value parsed using JSON.parse
- * @param {Object} consulRule
- * @returns {{rule: string, params: Record<string, any>}
- */
-const extractRule = (consulRule) => ({
-  rule: extractId(consulRule),
-  params: {
-    ...JSON.parse(consulRule.Value),
-    ttl: consulRule.Flags,
-  },
-});
-
-/**
- * Manages revocation rules using consul kv.
+ * Manages revocation rules using Redis and Consul kv.
  */
 class RevocationRulesManager {
   /**
@@ -41,141 +19,68 @@ class RevocationRulesManager {
     this.service = service;
     this.log = service.log;
     this.consul = service.consul;
-    this.prefix = KEY_PREFIX_REVOCATION_RULES;
-    this.expireRuleJob = null;
+    this.redis = service.redis;
+    this.consulKeyPrefix = KEY_PREFIX_REVOCATION_RULES;
+    this.keyPrefix = REDIS_KEY_PREFIX;
     this.config = config;
   }
 
-  _getKey(key) {
-    return `${this.prefix}${key}`;
+  _getConsulKey(key) {
+    return `${this.consulKeyPrefix}${key}`;
+  }
+
+  _getRedisKey(ruleList) {
+    return `${this.keyPrefix}:${ruleList}`;
   }
 
   /**
-   * Returns list of Consul.KV keys.
-   * @param {string} kv key
-   * @param {boolean} recurse recurse tree walk
+   * Returns list of Rules in Rule Group
+   * @param {string} key
    * @returns Object[]
    */
-  async list(key = '', recurse = true) {
-    const params = {
-      key: this._getKey(key),
-      recurse,
-    };
-    const rules = await this.consul.kv.get(params);
-    return rules || [];
-  }
+  async list(key = GLOBAL_RULE_GROUP) {
+    const ruleKey = this._getRedisKey(key);
+    const now = Date.now();
 
-  /**
-   * Gets requested key from Consul.KV
-   * @param {String} key Consul.KV key
-   * @returns Object
-   */
-  async get(key) {
-    return this.consul.kv.get({
-      key: this._getKey(key),
-    });
-  }
+    const pipeline = this.redis.pipeline();
 
-  /**
-   *
-   * @param {String} key Consul.KV key
-   * @param {String} jsonEncoded JSON.encode'd value to save
-   * @param {number} ttl Timestamp when key should expire
-   * @returns
-   */
-  async set(key, jsonEncoded, ttl = 0) {
-    const response = await this.consul.kv.set({
-      key: this._getKey(key),
-      value: jsonEncoded,
-      flags: ttl,
-    });
+    pipeline.zremrangebyscore(ruleKey, 1, now);
+    pipeline.zrange(ruleKey, 0, -1, 'WITHSCORES');
 
-    return response;
-  }
+    const [, raw] = handlePipelineError(await pipeline.exec());
 
-  /**
-   * Deletes provided keys
-   * @param {String[]} keys to delete
-   * @returns
-   */
-  async batchDelete(keys) {
-    return this._batchDelete(keys.map((k) => this._getKey(k)));
-  }
-
-  async _batchDelete(keys) {
-    assert(Array.isArray(keys), 'keys should be array');
-
-    if (keys.length === 0) return null;
-
-    const { consul } = this;
-    const operations = keys.map((k) => ({
-      KV: {
-        Verb: 'delete-tree',
-        Key: k.replace(/\/$/, ''),
-      },
-    }));
-
-    return consul.transaction.create(operations);
-  }
-
-  /**
-   * Deletes keys with ttl < provided value
-   * @param {number} ttl - timestamp
-   */
-  async expire(ttl) {
-    // TODO: Consider partial keys fetch
-    const allKeys = await this.list();
-    const expiredKeys = allKeys
-      .filter(({ Flags }) => Flags > 0 && Flags < ttl)
-      .map(({ Key }) => Key);
-
-    const chunks = chunk(expiredKeys, TRX_LIMIT);
-
-    const promises = chunks
-      .map((c) => this._batchDelete(c).catch((err) => {
-        this.log.info({ err }, 'Batch delete error');
+    const rules = chunk(raw, 2)
+      .map(([rule, score]) => ({
+        rule: JSON.parse(rule),
+        params: {
+          ttl: parseInt(score, 10),
+        },
       }));
 
-    await Promise.all(promises);
+    return rules;
   }
 
-  /**
-   * Schedules recurrent cleanup job.
-   */
-  async scheduleExpire() {
-    try {
-      if (await this.service.whenLeader()) {
-        this.log.debug('performing rule cleanup');
-        this.active = true;
+  async add(key, jsonEncoded, ttl = 0) {
+    const pipeline = this.redis.pipeline();
 
-        await this.expire(Date.now());
-      }
-    } catch (err) {
-      this.log.error({ err }, 'recurrent expire job error');
-    } finally {
-      this.active = false;
-      this.expireRuleJob = setTimeout(this.scheduleExpire.bind(this), this.config.cleanupInterval);
-      this.service.emit(DONE_EVENT);
-    }
-  }
+    const ruleKey = this._getRedisKey(key);
+    const consulKey = this._getConsulKey(key);
+    const now = Date.now();
 
-  async startRecurrentJobs() {
-    this.scheduleExpire();
-  }
+    // @TODO lua?
+    pipeline.zremrangebyscore(ruleKey, 1, now);
+    pipeline.zadd(ruleKey, ttl, jsonEncoded);
 
-  async stopRecurrentJobs() {
-    if (this.active) {
-      await once(this.service, DONE_EVENT);
-    }
-    clearTimeout(this.expireRuleJob);
+    handlePipelineError(await pipeline.exec());
+
+    await this.consul.kv.set({
+      key: consulKey,
+      value: now.toString(),
+    });
   }
 }
 
 module.exports = {
   RevocationRulesManager,
-  userRule,
-  globalRule,
-  extractId,
-  extractRule,
-  DONE_EVENT,
+  GLOBAL_RULE_GROUP,
 };

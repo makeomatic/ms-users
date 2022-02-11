@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 # prepare docs
 current_branch=`git rev-parse --abbrev-ref HEAD`

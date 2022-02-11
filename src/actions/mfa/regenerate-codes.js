@@ -1,5 +1,6 @@
-const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipeline-error');
 const { checkMFA, generateRecoveryCodes } = require('../../utils/mfa');

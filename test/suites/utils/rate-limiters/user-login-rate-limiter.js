@@ -17,11 +17,9 @@ describe('#login-rate-limiter', function rateLimiterSuite() {
     after(clearRedis.bind(this));
 
     beforeEach(async () => {
-      await this.users
-        .dispatch('register', { params: userWithValidPassword })
-        .tap(({ user: loginUser }) => {
-          userId = loginUser.id;
-        });
+      const { user: loginUser } = await this.users
+        .dispatch('register', { params: userWithValidPassword });
+      userId = loginUser.id;
     });
 
     afterEach(clearRedis.bind(this, true));
@@ -36,16 +34,14 @@ describe('#login-rate-limiter', function rateLimiterSuite() {
         promises.push(
           this.users
             .dispatch('login', { params: { ...userWithRemoteIP, remoteip: `10.0.0.${index + 1}` } })
-            .reflect()
         );
         promises.push(
           this.users
             .dispatch('login', { params: { ...userWithRemoteIP, remoteip: `10.0.0.${index + 1}`, username: 'perchik@ya.ru' } })
-            .reflect()
         );
       });
 
-      await Promise.all(promises);
+      await Promise.allSettled(promises);
 
       strictEqual(await redis.zrange(`${userId}!ip!10.0.0.1`, 0, -1).get('length'), 1);
       strictEqual(await redis.zrange(`${userId}!ip!10.0.0.2`, 0, -1).get('length'), 1);

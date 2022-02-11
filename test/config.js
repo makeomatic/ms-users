@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const simpleDispatcher = require('./helpers/simple-dispatcher');
 
 function registerUser(username, opts = {}) {
   return async function register() {
@@ -44,7 +43,6 @@ async function startService(testConfig = {}) {
     });
 
     await this.users.connect();
-    this.dispatch = simpleDispatcher(this.users.router);
     return service;
   } catch (e) {
     console.error('failed to start', e);
@@ -71,7 +69,6 @@ async function clearRedis(doNotClose = false) {
     if (doNotClose === false) {
       await service.close();
       this.users = null;
-      this.dispatch = null;
     }
   }
 }

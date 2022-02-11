@@ -34,7 +34,7 @@ function tokenAuth(request) {
   // NOTE: should normalize on the ~transport level
   // select actual headers location based on the transport
   const headers = method === 'amqp' ? request.headers.headers : request.headers;
-  const authHeader = headers.authorization;
+  const authHeader = headers ? headers.authorization : null;
 
   if (authHeader) {
     const params = method === 'get' ? request.query : request.params;

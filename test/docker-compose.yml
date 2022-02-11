@@ -40,33 +40,3 @@ services:
   consul:
     image: consul:1.6
     hostname: consul
-
-  tester:
-    shm_size: 128m
-    expose:
-      - "3000"
-    links:
-      - redis-cluster
-      - rabbitmq
-    working_dir: /src
-    volumes:
-      - ${PWD}:/src:cached
-      - ${PWD}/test/configs:/configs:cached
-    environment:
-      NODE_ENV: "test"
-      NCONF_FILE_PATH: '["/configs/amqp.js", "/configs/core.js","/configs/redis.cluster.js"]'
-      DEBUG: ${DEBUG}
-      NCONF_NAMESPACE: MS_USERS
-      FACEBOOK_APP_TOKEN: ${FACEBOOK_APP_TOKEN}
-      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
-      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
-      PUMP_JACK_PROFILE_TOKEN: ${PUMP_JACK_PROFILE_TOKEN}
-      PUMP_JACK_API_KEY: ${PUMP_JACK_API_KEY}
-      MASTERS_PROFILE_TOKEN: ${MASTERS_PROFILE_TOKEN}
-      CF_TOKEN: ${CF_TOKEN}
-      CF_ACCOUNT_ID: ${CF_ACCOUNT_ID}
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
-      VIRTUAL_HOST: ms-users.local
-      VIRTUAL_PORT: 3000
-      CERT_NAME: default
-    command: tail -f /dev/null

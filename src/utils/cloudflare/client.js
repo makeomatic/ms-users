@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const got = require('got');
 
 const API_URL = 'https://api.cloudflare.com/client/v4/';

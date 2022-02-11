@@ -1,5 +1,5 @@
 const is = require('is');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const defaults = require('lodash/defaults');
 const { providers: Providers } = require('@hapi/bell');
 const strategies = require('./providers');

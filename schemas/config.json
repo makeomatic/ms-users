@@ -97,7 +97,7 @@
             "keyPrefix": {
               "type": "string",
               "minLength": 1,
-              "pattern": ".*{.*}.*"
+              "pattern": ".*\\{.*\\}.*"
             },
             "redisOptions": {
               "type": "object",
@@ -105,7 +105,7 @@
                 "keyPrefix": {
                   "type": "string",
                   "minLength": 1,
-                  "pattern": ".*{.*}.*"
+                  "pattern": ".*\\{.*\\}.*"
                 }
               }
             }
@@ -532,7 +532,8 @@
         }
       },
       "if": {
-        "properties": { "enabled": { "const": true } }
+        "type": "object",
+        "properties": { "enabled": { "type": "boolean", "const": true } }
       },
       "then": {
         "required": ["token", "providers"],

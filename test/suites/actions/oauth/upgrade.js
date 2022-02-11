@@ -11,6 +11,7 @@ const kDefaultAudience = '*.localhost';
 const msUsers = got.extend({
   prefixUrl: 'https://ms-users.local/users/oauth/upgrade',
   responseType: 'json',
+  throwHttpErrors: true,
   https: {
     rejectUnauthorized: false,
   },
@@ -43,7 +44,11 @@ function checkServiceMissingPermissionsResponse(context) {
   assert.strictEqual(context.payload.provider, 'facebook');
 }
 
-describe.skip('oauth#upgrade', function oauthFacebookSuite() {
+const t = process.env.DB_SRV === 'redisSentinel' && process.env.CI === 'true'
+  ? describe.skip
+  : describe;
+
+t('oauth#upgrade', function oauthFacebookSuite() {
   let service;
   let generalUser;
   let token;
@@ -225,6 +230,8 @@ describe.skip('oauth#upgrade', function oauthFacebookSuite() {
       it('should reject attaching already attached profile to a new user', async () => {
         await createAccount(token);
         await assert.rejects(upgradeToken(generalUser.access_token, dataBag.jwt), (e) => {
+          console.error(e.response.statusCode);
+          console.error('%j', e.response.body);
           return e.response
             && e.response.statusCode === 412
             && e.response.body.type === 'ms-users:attached'
@@ -280,19 +287,17 @@ describe.skip('oauth#upgrade', function oauthFacebookSuite() {
         });
 
         const { payload: { userId, token: localToken } } = body;
-        const login = await service.dispatch(
-          'login', {
-            params: {
-              username: userId,
-              password: localToken,
-              isOAuthFollowUp: true,
-              audience: kDefaultAudience,
-            },
-            headers: {
-              'x-auth-totp': authenticator.generate(secret),
-            },
-          }
-        );
+        const login = await service.dispatch('login', {
+          params: {
+            username: userId,
+            password: localToken,
+            isOAuthFollowUp: true,
+            audience: kDefaultAudience,
+          },
+          headers: {
+            'x-auth-totp': authenticator.generate(secret),
+          },
+        });
 
         checkServiceOkResponse(login);
       });

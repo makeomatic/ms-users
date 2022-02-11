@@ -1,4 +1,5 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const isActive = require('../utils/is-active');
@@ -57,4 +58,4 @@ module.exports = async function sendChallenge({ params }) {
   return challenge.call(service, type, challengeOpts, metadata);
 };
 
-module.exports.transports = [ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

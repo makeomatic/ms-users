@@ -5,19 +5,22 @@ ENV NCONF_NAMESPACE=MS_USERS \
 
 WORKDIR /src
 
-COPY package.json yarn.lock ./
+# pnpm fetch does require only lockfile
+COPY pnpm-lock.yaml ./
+RUN pnpm fetch --prod
+
+COPY package.json ./
 RUN \
-  apk --update add --virtual .buildDeps \
-    build-base \
-    python3 \
-    git \
-    curl \
-    openssl \
-  && yarn --production --frozen-lockfile \
-  && yarn cache clean \
+  apk --update upgrade \
+  && apk add git ca-certificates openssl g++ make python3 linux-headers \
+  && pnpm install -r --offline --prod \
   && apk del \
-    .buildDeps \
+    g++ \
+    make \
+    git \
     wget \
+    python3 \
+    linux-headers \
   && rm -rf \
     /tmp/* \
     /root/.node-gyp \

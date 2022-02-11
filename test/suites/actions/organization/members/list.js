@@ -1,6 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const faker = require('faker');
 const { createOrganization, createMembers } = require('../../../../helpers/organization');
 
@@ -12,14 +10,12 @@ describe('#organization members list', function registerSuite() {
   beforeEach(function pretest() { return createOrganization.call(this, {}, 5); });
   afterEach(global.clearRedis);
 
-  it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('users.organization.members.list', {})
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 1);
-      });
+  it('must reject invalid organization params and return detailed error', async function test() {
+    await assert.rejects(this.users.dispatch('organization.members.list', { params: {} }), {
+      name: 'HttpStatusError',
+      statusCode: 400,
+      message: "organization.members.list validation failed: data must have required property 'organizationId'",
+    });
   });
 
   it('must be able to return list of members', async function test() {
@@ -27,7 +23,7 @@ describe('#organization members list', function registerSuite() {
       organizationId: this.organization.id,
     };
 
-    return this.dispatch('users.organization.members.list', opts)
+    return this.users.dispatch('organization.members.list', { params: opts })
       .then((response) => {
         assert.ok(response.data.attributes);
         assert.equal(response.data.attributes.length, 5);
@@ -39,11 +35,8 @@ describe('#organization members list', function registerSuite() {
       organizationId: faker.company.companyName(),
     };
 
-    return this.dispatch('users.organization.members.list', opts)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-      });
+    await assert.rejects(this.users.dispatch('organization.members.list', { params: opts }), {
+      name: 'HttpStatusError',
+    });
   });
 });

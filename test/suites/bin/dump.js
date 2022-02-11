@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const path = require('path');
 const fs = require('fs');
 const exec = require('../../helpers/exec');

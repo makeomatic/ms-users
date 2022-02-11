@@ -57,7 +57,9 @@ module.exports = function initAccounts() {
 
       this.log.info(
         'Registered admins %d/%d. Errors: %d',
-        registered, totalAccounts, errors.length
+        registered,
+        totalAccounts,
+        errors.length
       );
 
       errors.forEach((err) => {

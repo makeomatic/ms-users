@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const sinon = require('sinon');
 
 const hook = require('../../../src/custom/cappasity-cf-access-list');
@@ -53,18 +53,18 @@ describe('#cappasity-user-login-hook', () => {
   });
 
   it('should not call `cf.add-to-access-list` if `plan` is `free`', async () => {
-    await this.dispatch('users.login', { username, password, audience, remoteip: '8.8.8.8' });
+    await this.users.dispatch('login', { params: { username, password, audience, remoteip: '8.8.8.8' } });
     assert.strictEqual(service.amqp.publish.called, false, 'should not be called');
   });
 
   it('should call `cf.add-to-access-list` if `plan` is not `free`', async () => {
-    await this.dispatch('users.updateMetadata', {
+    await this.users.dispatch('updateMetadata', { params: {
       username,
       audience: [audience],
       metadata: [{ $set: { plan: 'enterprise' } }],
-    });
+    } });
 
-    await this.dispatch('users.login', { username, password, audience, remoteip: '8.8.8.8' });
+    await this.users.dispatch('login', { params: { username, password, audience, remoteip: '8.8.8.8' } });
     const [publishCall] = service.amqp.publish.getCalls();
     assert.ok(publishCall);
     assert.deepStrictEqual(publishCall.args, [

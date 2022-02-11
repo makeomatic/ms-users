@@ -1,4 +1,4 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 async function addToAccessList({ params }) {
   const { cfAccessList } = this;

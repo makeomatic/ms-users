@@ -3,17 +3,12 @@
     "src/**/*.js"
   ],
   "exclude": [
-    "src/**/*.spec.js"
+    "src/**/*.spec.js",
+    "test/**/*.js"
   ],
-  "require": [
-    "@babel/register"
-  ],
-  "sourceMap": false,
-  "instrument": false,
   "cache": true,
+  "clean": false,
   "reporter": [
-    "lcov",
-    "json",
     "text-summary"
   ]
 }

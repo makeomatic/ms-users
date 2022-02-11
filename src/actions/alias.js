@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('@microfleet/plugin-router');
+const { noop } = require('lodash');
 const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
@@ -59,7 +60,7 @@ async function assignAlias({ params }) {
   let lock;
   if (!internal) {
     // if we can't claim lock - must fail
-    lock = await this.dlock.once(lockAlias(alias));
+    lock = await this.dlock.manager.once(lockAlias(alias));
   }
 
   try {
@@ -83,7 +84,7 @@ async function assignAlias({ params }) {
     return pipeline.exec().then(handlePipeline);
   } finally {
     // release lock, but do not wait for it to return result
-    if (lock !== undefined) lock.release().reflect();
+    if (lock !== undefined) lock.release().catch(noop);
   }
 }
 

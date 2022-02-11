@@ -1,5 +1,7 @@
 const omit = require('lodash/omit');
 const Promise = require('bluebird');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const updateMetadata = require('../utils/update-metadata');
 const { getUserId } = require('../utils/userData');
 
@@ -27,4 +29,4 @@ module.exports = function updateMetadataAction(request) {
     .then(updateMetadata);
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

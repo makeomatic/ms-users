@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const Promise = require('bluebird');
 
 describe('#challenge', function challengeSuite() {
@@ -6,7 +6,7 @@ describe('#challenge', function challengeSuite() {
   afterEach(global.clearRedis.bind(this));
 
   it('must fail to send a challenge for a non-existing user', async () => {
-    const request = this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' });
+    const request = this.users.dispatch('challenge', { params: { username: 'oops@gmail.com', type: 'email' } });
     await assert.rejects(request, {
       name: 'HttpStatusError',
       statusCode: 404,
@@ -15,18 +15,18 @@ describe('#challenge', function challengeSuite() {
 
   describe('challenge for an already active user', () => {
     beforeEach('register user', () => {
-      return this.dispatch('users.register', {
+      return this.users.dispatch('register', { params: {
         username: 'oops@gmail.com',
         password: '123',
         audience: 'matic.ninja',
         metadata: {
           wolf: true,
         },
-      });
+      } });
     });
 
     it('must fail to send', async () => {
-      const request = this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' });
+      const request = this.users.dispatch('challenge', { params: { username: 'oops@gmail.com', type: 'email' } });
       await assert.rejects(request, {
         name: 'HttpStatusError',
         statusCode: 417,
@@ -36,7 +36,7 @@ describe('#challenge', function challengeSuite() {
 
   describe('challenge for an inactive user', () => {
     const requestChallenge = () => {
-      return this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' });
+      return this.users.dispatch('challenge', { params: { username: 'oops@gmail.com', type: 'email' } });
     };
 
     beforeEach('register user', () => {
@@ -50,7 +50,7 @@ describe('#challenge', function challengeSuite() {
           wolf: true,
         },
       };
-      return this.dispatch('users.register', msg);
+      return this.users.dispatch('register', { params: msg });
     });
 
     it('must be able to send challenge email', async () => {
@@ -98,11 +98,11 @@ describe('#challenge', function challengeSuite() {
     };
 
     const requestChallenge = () => {
-      return this.dispatch('users.challenge', { username: 'oops@gmail.com', type: 'email' });
+      return this.users.dispatch('challenge', { params: { username: 'oops@gmail.com', type: 'email' } });
     };
 
     beforeEach('register user', () => {
-      return this.dispatch('users.register', { ...msg });
+      return this.users.dispatch('register', { params: { ...msg } });
     });
 
     it('metadata passed correctly', async () => {

@@ -43,3 +43,4 @@ ss
 .vscode
 .npmrc
 /.idea
+/local

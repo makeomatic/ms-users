@@ -1,6 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 
 describe('#referral', function registerSuite() {
   before(global.startService);
@@ -11,25 +9,21 @@ describe('#referral', function registerSuite() {
   const referralName = 'Inviter';
 
   it('captures referral', function test() {
-    return this.dispatch('users.referral', {
+    return this.users.dispatch('referral', { params: {
       id: exampleHash,
       referral: referralId,
       metadata: { name: referralName },
-    })
-      .reflect()
-      .then(inspectPromise())
+    } })
       .then((result) => {
         assert.deepEqual(result, ['OK', 1, 'OK']);
       });
   });
 
   it('does not capture referral if already present', function test() {
-    return this.dispatch('users.referral', {
+    return this.users.dispatch('referral', { params: {
       id: exampleHash,
       referral: referralId,
-    })
-      .reflect()
-      .then(inspectPromise())
+    } })
       .then((result) => {
         assert.deepEqual(result, [null]);
       });
@@ -47,9 +41,7 @@ describe('#referral', function registerSuite() {
       referral: exampleHash,
     };
 
-    return this.dispatch('users.register', { ...opts })
-      .reflect()
-      .then(inspectPromise())
+    return this.users.dispatch('register', { params: { ...opts } })
       .then((registered) => {
         assert.equal(registered.user.metadata[opts.audience].referral, referralId);
         assert.equal(registered.user.metadata[opts.audience].referralMeta.name, referralName);
@@ -62,9 +54,7 @@ describe('#referral', function registerSuite() {
       referralCode: 'vasya',
     };
 
-    return this.dispatch('users.isReferral', opts)
-      .reflect()
-      .then(inspectPromise())
+    return this.users.dispatch('isReferral', { params: opts })
       .then((response) => {
         assert.equal(response, false);
       });
@@ -76,9 +66,7 @@ describe('#referral', function registerSuite() {
       referralCode: referralId,
     };
 
-    return this.dispatch('users.isReferral', opts)
-      .reflect()
-      .then(inspectPromise())
+    return this.users.dispatch('isReferral', { params: opts })
       .then((response) => {
         assert.ok(/^\d+$/.test(response));
       });

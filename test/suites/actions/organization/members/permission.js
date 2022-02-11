@@ -1,6 +1,4 @@
-/* eslint-disable promise/always-return, no-prototype-builtins */
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const faker = require('faker');
 const { createOrganization, createMembers } = require('../../../../helpers/organization');
 
@@ -12,14 +10,15 @@ describe('#edit member permission', function registerSuite() {
   beforeEach(function pretest() { return createOrganization.call(this); });
   afterEach(global.clearRedis);
 
-  it('must reject invalid organization params and return detailed error', function test() {
-    return this.dispatch('users.organization.members.permission', {})
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-        assert.equal(response.errors.length, 3);
-      });
+  it('must reject invalid organization params and return detailed error', async function test() {
+    await assert.rejects(this.users.dispatch('organization.members.permission', { params: {} }), {
+      name: 'HttpStatusError',
+      statusCode: 400,
+      message: 'organization.members.permission validation failed: '
+        + "data must have required property 'organizationId', "
+        + "data must have required property 'username', "
+        + "data must have required property 'permission'",
+    });
   });
 
   it('must be able to edit member permission', async function test() {
@@ -31,9 +30,9 @@ describe('#edit member permission', function registerSuite() {
       },
     };
 
-    await this.dispatch('users.organization.members.permission', opts);
+    await this.users.dispatch('organization.members.permission', { params: opts });
 
-    return this.dispatch('users.organization.members.list', { organizationId: this.organization.id })
+    return this.users.dispatch('organization.members.list', { params: { organizationId: this.organization.id } })
       .then((response) => {
         assert.deepStrictEqual(response.data.attributes[0].attributes.permissions, ['admin']);
       });
@@ -48,12 +47,9 @@ describe('#edit member permission', function registerSuite() {
       },
     };
 
-    return this.dispatch('users.organization.members.permission', opts)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-      });
+    await assert.rejects(this.users.dispatch('organization.members.permission', { params: opts }), {
+      name: 'HttpStatusError',
+    });
   });
 
   it('must return user not found error', async function test() {
@@ -65,11 +61,8 @@ describe('#edit member permission', function registerSuite() {
       },
     };
 
-    return this.dispatch('users.organization.members.permission', opts)
-      .reflect()
-      .then(inspectPromise(false))
-      .then((response) => {
-        assert.equal(response.name, 'HttpStatusError');
-      });
+    await assert.rejects(this.users.dispatch('organization.members.permission', { params: opts }), {
+      name: 'HttpStatusError',
+    });
   });
 });

@@ -1,6 +1,7 @@
-const { ActionTransport } = require('@microfleet/core');
 const snakeCase = require('lodash/snakeCase');
 const mapValues = require('lodash/mapValues');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const redisKey = require('../../utils/key');
 const handlePipeline = require('../../utils/pipeline-error');
 const setOrganizationMetadata = require('../../utils/set-organization-metadata');
@@ -133,7 +134,7 @@ createOrganizationAction.allowed = async function checkOrganizationExistsConflic
   if (!request.locals) {
     request.locals = {};
   }
-  request.locals.lock = await this.dlock.once(lockOrganization(name));
+  request.locals.lock = await this.dlock.manager.once(lockOrganization(name));
 
   return null;
 };

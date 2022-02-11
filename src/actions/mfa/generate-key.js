@@ -1,5 +1,6 @@
-const { ActionTransport } = require('@microfleet/core');
 const { authenticator } = require('otplib');
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const { USERS_ALIAS_FIELD, USERS_USERNAME_FIELD } = require('../../constants');
 
 /**
@@ -16,13 +17,14 @@ const { USERS_ALIAS_FIELD, USERS_USERNAME_FIELD } = require('../../constants');
  *
  */
 function generateKey({ auth, params }) {
+  const { credentials } = auth;
   const audience = this.config.jwt.defaultAudience;
   const secret = authenticator.generateSecret(this.config.mfa.length);
   const response = { secret };
-  const username = auth
+  const username = credentials
     ? (
-      auth.credentials.metadata[audience][USERS_ALIAS_FIELD]
-      || auth.credentials.metadata[audience][USERS_USERNAME_FIELD]
+      credentials.metadata[audience][USERS_ALIAS_FIELD]
+      || credentials.metadata[audience][USERS_USERNAME_FIELD]
     )
     : params.username;
 

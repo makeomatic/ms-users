@@ -1,5 +1,4 @@
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 
 describe('#invite', function registerSuite() {
   before(global.startService);
@@ -7,9 +6,10 @@ describe('#invite', function registerSuite() {
 
   const email = 'v@yandex.ru';
 
-  it('must reject invalid input', function test() {
-    return this
-      .dispatch('users.invite', {
+  it('must reject invalid input', async function test() {
+    await assert.rejects(this
+      .users
+      .dispatch('invite', { params: {
         email,
         ctx: {
           firstName: 'Alex',
@@ -18,17 +18,15 @@ describe('#invite', function registerSuite() {
         metadata: {
           not_namespace_prefix: [],
         },
-      })
-      .reflect()
-      .then(inspectPromise(false))
-      .then((err) => {
-        assert.equal(err.name, 'HttpStatusError');
-      });
+      } }), {
+      name: 'HttpStatusError',
+    });
   });
 
   it('must be able to create invitation', function test() {
     return this
-      .dispatch('users.invite', {
+      .users
+      .dispatch('invite', { params: {
         email,
         ctx: {
           firstName: 'Alex',
@@ -40,9 +38,7 @@ describe('#invite', function registerSuite() {
             vip: true,
           },
         },
-      })
-      .reflect()
-      .then(inspectPromise())
+      } })
       .then((result) => {
         assert.ok(result.queued);
         assert.ok(result.context.token);
@@ -54,14 +50,13 @@ describe('#invite', function registerSuite() {
 
   it('must be able to register with a valid invitation', function test() {
     return this
-      .dispatch('users.register', {
+      .users
+      .dispatch('register', { params: {
         username: email,
         password: '123',
         inviteToken: this.invitationToken,
         audience: '*.localhost',
-      })
-      .reflect()
-      .then(inspectPromise())
+      } })
       .then((result) => {
         assert.ok(result.jwt);
         assert.ok(result.user.id);
@@ -72,36 +67,33 @@ describe('#invite', function registerSuite() {
       });
   });
 
-  it('must reject valid invitation for different username', function test() {
-    return this
-      .dispatch('users.register', {
+  it('must reject valid invitation for different username', async function test() {
+    await assert.rejects(this
+      .users
+      .dispatch('register', { params: {
         username: 'abnormal@yandex.ru',
         password: '123',
         inviteToken: this.invitationToken,
         audience: '*.localhost',
-      })
-      .reflect()
-      .then(inspectPromise(false))
-      .then((err) => {
-        assert.equal(err.name, 'AssertionError');
-        assert.equal(err.message, `Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "${email}"`);
-      });
+      } }), {
+      name: 'AssertionError',
+      message: `Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "${email}"`,
+    });
   });
 
-  it('must accept valid invitation for a different username with a special param, but then reject because it was already used', function test() {
-    return this
-      .dispatch('users.register', {
+  it('must accept valid invitation for a different username with a special param, but then reject because it was already used', async function t() {
+    await assert.rejects(this
+      .users
+      .dispatch('register', { params: {
         username: 'abnormal@yandex.ru',
         password: '123',
         inviteToken: this.invitationToken,
         audience: '*.localhost',
         anyUsername: true,
-      })
-      .reflect()
-      .then(inspectPromise(false))
-      .then((err) => {
-        assert.equal(err.statusCode, 400);
-        assert.equal(err.message, 'Invitation has expired or already been used');
-      });
+      } }), {
+      name: 'HttpStatusError',
+      statusCode: 400,
+      message: 'Invitation has expired or already been used',
+    });
   });
 });

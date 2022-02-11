@@ -1,6 +1,8 @@
-const { ActionTransport } = require('@microfleet/core');
 const Promise = require('bluebird');
 const fsort = require('redis-filtered-sort');
+
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const redisKey = require('../../utils/key');
 const { getOrganizationMetadata, getInternalData } = require('../../utils/organization');
 const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
@@ -51,7 +53,13 @@ async function getOrganizationsList({ params }) {
   const organizationsIds = await redis.fsort(
     ORGANIZATIONS_INDEX,
     redisKey('*', ORGANIZATIONS_DATA),
-    criteria, order, strFilter, currentTime, offset, limit, expiration
+    criteria,
+    order,
+    strFilter,
+    currentTime,
+    offset,
+    limit,
+    expiration
   );
 
   const length = +organizationsIds.pop();

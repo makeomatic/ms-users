@@ -1,11 +1,15 @@
-const assert = require('assert');
+/**
+ * @typedef { import('@microfleet/core-types').Microfleet } Microfleet
+ */
+
+const { strict: assert } = require('assert');
 const { HttpStatusError } = require('common-errors');
 const attach = require('./attach');
 const providers = require('../providers');
 const { getSignedToken } = require('./get-signed-token');
 
 /**
- * @param {Service} ctx
+ * @param {Microfleet} ctx
  * @param {ServiceRequest} request
  * @param {{ account: any, jwt: string, user: any }} credentials
  */

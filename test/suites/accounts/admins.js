@@ -1,14 +1,12 @@
 /* global startService */
 
-const assert = require('assert');
-const simpleDispatcher = require('../../helpers/simple-dispatcher');
+const { strict: assert } = require('assert');
 
 describe('#admins', function verifySuite() {
   const constants = require('../../../src/constants');
   const ctx = {};
 
   let service;
-  let dispatch;
 
   before(async () => {
     service = await startService.call(ctx, {
@@ -46,28 +44,26 @@ describe('#admins', function verifySuite() {
       },
       initAdminAccountsDelay: 0,
     });
-
-    dispatch = simpleDispatcher(service.router);
   });
 
   after(global.clearRedis.bind(ctx));
 
   it('should be able to login an admin', async () => {
-    const admin0 = await dispatch('users.login', {
+    const admin0 = await service.dispatch('login', { params: {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
       username: 'admin0@x.com',
-    });
-    const admin1 = await dispatch('users.login', {
+    } });
+    const admin1 = await service.dispatch('login', { params: {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
       username: 'admin1@x.com',
-    });
-    const user0 = await dispatch('users.login', {
+    } });
+    const user0 = await service.dispatch('login', { params: {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
       username: 'user0@x.com',
-    });
+    } });
 
     assert.ok(admin0.jwt);
     assert.ok(admin0.user.metadata['*.localhost'].roles.includes('admin'));

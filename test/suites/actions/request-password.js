@@ -1,7 +1,6 @@
 const Promise = require('bluebird');
-const { inspectPromise } = require('@makeomatic/deploy');
 const { expect } = require('chai');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const sinon = require('sinon').usingPromise(Promise);
 const redisKey = require('../../../src/utils/key');
 
@@ -16,26 +15,23 @@ describe('#requestPassword', function requestPasswordSuite() {
   afterEach(global.clearRedis.bind(this));
 
   beforeEach(async () => {
-    const { user } = await this.dispatch('users.register', {
+    const { user } = await this.users.dispatch('register', { params: {
       username,
       password: '123',
       audience,
       metadata: {
         rpass: true,
       },
-    });
+    } });
 
     userId = user.id;
   });
 
   it('must fail when user does not exist', async () => {
-    const requestPassword = await this
-      .dispatch('users.requestPassword', { username: 'noob' })
-      .reflect()
-      .then(inspectPromise(false));
-
-    expect(requestPassword.name).to.be.eq('HttpStatusError');
-    expect(requestPassword.statusCode).to.be.eq(404);
+    await assert.rejects(this.users.dispatch('requestPassword', { params: { username: 'noob' } }), {
+      name: 'HttpStatusError',
+      statusCode: 404,
+    });
   });
 
   describe('account: inactive', () => {
@@ -44,12 +40,10 @@ describe('#requestPassword', function requestPasswordSuite() {
     });
 
     it('must fail when account is inactive', async () => {
-      const requestPassword = await this.dispatch('users.requestPassword', { username })
-        .reflect()
-        .then(inspectPromise(false));
-
-      expect(requestPassword.name).to.be.eq('HttpStatusError');
-      expect(requestPassword.statusCode).to.be.eq(412);
+      await assert.rejects(this.users.dispatch('requestPassword', { params: { username } }), {
+        name: 'HttpStatusError',
+        statusCode: 412,
+      });
     });
   });
 
@@ -59,18 +53,16 @@ describe('#requestPassword', function requestPasswordSuite() {
     });
 
     it('must fail when account is banned', async () => {
-      const requestPassword = await this.dispatch('users.requestPassword', { username })
-        .reflect()
-        .then(inspectPromise(false));
-
-      expect(requestPassword.name).to.be.eq('HttpStatusError');
-      expect(requestPassword.statusCode).to.be.eq(423);
+      await assert.rejects(this.users.dispatch('requestPassword', { params: { username } }), {
+        name: 'HttpStatusError',
+        statusCode: 423,
+      });
     });
   });
 
   describe('account: active', () => {
     it('must send challenge email for an existing user with an active account', async () => {
-      const requestPassword = await this.dispatch('users.requestPassword', { username });
+      const requestPassword = await this.users.dispatch('requestPassword', { params: { username } });
       expect(requestPassword).to.be.deep.eq({ success: true });
     });
 
@@ -91,8 +83,8 @@ describe('#requestPassword', function requestPasswordSuite() {
       amqpStub.withArgs('phone.message.predefined')
         .resolves({ queued: true });
 
-      await this.dispatch('users.register', registerParams);
-      const requestPassword = await this.dispatch('users.requestPassword', requestPasswordParams);
+      await this.users.dispatch('register', { params: registerParams });
+      const requestPassword = await this.users.dispatch('requestPassword', { params: requestPasswordParams });
 
       assert.equal(amqpStub.args.length, 1);
 
@@ -110,15 +102,15 @@ describe('#requestPassword', function requestPasswordSuite() {
     });
 
     it('must reject sending reset password emails for an existing user more than once in 3 hours', async () => {
-      await this.dispatch('users.requestPassword', { username });
-      const requestPassword = await this.dispatch('users.requestPassword', { username })
-        .reflect()
-        .then(inspectPromise(false));
-
-      expect(requestPassword.name).to.be.eq('HttpStatusError');
-      expect(requestPassword.statusCode).to.be.eq(429);
-      expect(requestPassword.reason).to.include({ duration: 7200, email: 'mailto@example.com' });
-      expect(requestPassword.reason).to.have.property('ttl');
+      await this.users.dispatch('requestPassword', { params: { username } });
+      await assert.rejects(this.users.dispatch('requestPassword', { params: { username } }), (e) => {
+        return e.name === 'HttpStatusError'
+          && e.statusCode === 429
+          && e.reason
+          && e.reason.ttl
+          && e.reason.duration === 7200
+          && e.reason.email === 'mailto@example.com';
+      });
     });
   });
 });

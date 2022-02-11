@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const got = require('got');
 
 const msUsers = got.extend({

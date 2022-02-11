@@ -1,5 +1,4 @@
-const { inspectPromise } = require('@makeomatic/deploy');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 
 describe('#logout', function logoutSuite() {
   const username = 'logout@me.com';
@@ -12,13 +11,11 @@ describe('#logout', function logoutSuite() {
   it('must reject logout on an invalid JWT token', async function test() {
     const { defaultAudience: audience } = this.users.config.jwt;
 
-    const logout = await this.users
-      .dispatch('logout', { params: { jwt: 'tests', audience } })
-      .reflect()
-      .then(inspectPromise(false));
-
-    assert.equal(logout.name, 'HttpStatusError');
-    assert.equal(logout.statusCode, 403);
+    await assert.rejects(this.users
+      .dispatch('logout', { params: { jwt: 'tests', audience } }), {
+      name: 'HttpStatusError',
+      statusCode: 403,
+    });
   });
 
   it('must delete JWT token from pool of valid tokens', async function test() {
@@ -27,26 +24,19 @@ describe('#logout', function logoutSuite() {
 
     // verify that no error is thrown
     await this.users
-      .dispatch('verify', { params: { token, audience } })
-      .reflect()
-      .then(inspectPromise());
+      .dispatch('verify', { params: { token, audience } });
 
     // verify we can "invalidate" the token
     const logout = await this.users
-      .dispatch('logout', { params: { jwt: token, audience } })
-      .reflect()
-      .then(inspectPromise());
+      .dispatch('logout', { params: { jwt: token, audience } });
 
     assert.deepStrictEqual(logout, { success: true });
 
-    // verify we can't login again using same token
-    const login = await this.users
-      .dispatch('verify', { params: { token, audience } })
-      .reflect()
-      .then(inspectPromise(false));
-
-    assert.equal(login.name, 'HttpStatusError');
-    assert.equal(login.statusCode, 403);
-    assert.ok(/token has expired or was forged/.test(login.message));
+    await assert.rejects(this.users
+      .dispatch('verify', { params: { token, audience } }), {
+      name: 'HttpStatusError',
+      statusCode: 403,
+      message: 'token has expired or was forged',
+    });
   });
 });

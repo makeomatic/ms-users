@@ -11,21 +11,16 @@ function transformAccountToResponseFormat(account) {
   return account;
 }
 
-function fixAppleCallbackForBell(request, h) {
+async function fixAppleCallbackForBell(request, h) {
   if (request.method === 'post' && request.path.endsWith('/oauth/apple')) {
     const { raw: { req } } = request;
-    let payload = '';
 
-    return new Promise((resolve, reject) => {
-      req.on('error', reject);
-      req.on('data', (chunk) => {
-        payload += chunk;
-      });
-      req.on('end', () => {
-        request.setUrl(`${request.path}?${payload}`);
-        resolve(h.continue);
-      });
-    });
+    let payload = '';
+    for await (const chunk of req) {
+      payload += chunk;
+    }
+
+    request.setUrl(`${request.path}?${payload}`);
   }
 
   return h.continue;

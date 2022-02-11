@@ -1,5 +1,5 @@
 const got = require('got');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const { Agent: HttpsAgent } = require('https');
 const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');
@@ -56,7 +56,7 @@ class PumpJackService {
   async registerAndLogin(userProfile) {
     // must be able to lock
     try {
-      const registeredUser = await this.service.dlock.fanout(
+      const registeredUser = await this.service.dlock.manager.fanout(
         lockBypass('pump-jack', PumpJackService.userId(userProfile)),
         5000,
         this.registerUser,

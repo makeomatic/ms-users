@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const got = require('got');
 
 const msUsers = got.extend({
@@ -7,12 +7,32 @@ const msUsers = got.extend({
   https: { rejectUnauthorized: false },
 });
 
+const mastersSimulation = got.extend({
+  prefixUrl: process.env.MASTERS_SIMULATION_API,
+  responseType: 'json',
+  headers: {
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0',
+  },
+});
+
 describe('/bypass/masters', function verifySuite() {
-  const profileToken = process.env.MASTERS_PROFILE_TOKEN;
-  const msg = {
-    schema: 'masters:local',
-    userKey: profileToken,
-  };
+  const pwd = process.env.MASTERS_PROFILE_PASSWORD;
+  const username = process.env.MASTERS_PROFILE_USERNAME;
+  let msg;
+  let profile;
+
+  before(async () => {
+    profile = await mastersSimulation.post({ json: {
+      provider: 'masters',
+      username,
+      password: pwd,
+    } }).json();
+
+    msg = {
+      schema: 'masters:local',
+      userKey: profile.token,
+    };
+  });
 
   describe('masters disabled', () => {
     before(() => global.startService());
@@ -65,13 +85,11 @@ describe('/bypass/masters', function verifySuite() {
 
     it('signs in with valid session, non-existent user', async () => {
       const reply = await msUsers.post({ json: msg });
-      console.info('%j', reply.body);
       assert(reply.body.jwt);
     });
 
     it('signs in with valid session, existing user', async () => {
       const reply = await msUsers.post({ json: msg });
-      console.info('%j', reply.body);
       assert(reply.body.jwt);
     });
 

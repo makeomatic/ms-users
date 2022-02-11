@@ -2,7 +2,7 @@
 
 /* eslint-disable no-console */
 const Redis = require('ioredis');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const conf = require('../lib/config');
 const { updatePassword } = require('../lib/actions/updatePassword');
 
@@ -38,7 +38,7 @@ const main = async (username, password) => {
       throw err;
     });
   } finally {
-    await redis.disconnect();
+    await redis.quit();
   }
 };
 

@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
-const { ActionTransport } = require('@microfleet/core');
-const { LockAcquisitionError } = require('ioredis-lock');
+const { LockAcquisitionError } = require('@microfleet/plugin-dlock');
 const { HttpStatusError } = require('common-errors');
+const { ActionTransport } = require('@microfleet/plugin-router');
 
 const set = require('lodash/set');
 const merge = require('lodash/merge');
@@ -128,15 +128,6 @@ async function verifySSO(service, params) {
   set(metadata, [defaultAudience, provider], profile);
 
   return userId;
-}
-
-/**
- * Disposes of the lock
- * @return {Null}
- */
-function lockDisposer(lock) {
-  lock.release().reflect();
-  return null;
 }
 
 /**
@@ -357,9 +348,7 @@ module.exports = async function registerUser({ params }) {
   }
 
   // lock acquisition
-  const acquireLock = this.dlock
-    .multi(lockRegister(username), params.alias && lockAlias(params.alias))
-    .disposer(lockDisposer);
+  const acquireLock = this.dlock.acquireLock(lockRegister(username), params.alias && lockAlias(params.alias));
 
   return Promise
     .using({ service, params }, acquireLock, performRegistration)

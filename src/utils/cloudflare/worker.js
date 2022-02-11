@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const { Microfleet } = require('@microfleet/core');
 const Promise = require('bluebird');
 const { EventEmitter, once } = require('events');

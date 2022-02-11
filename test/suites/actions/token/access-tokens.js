@@ -1,7 +1,6 @@
 /* global globalRegisterUser, globalAuthUser */
 const Promise = require('bluebird');
-const assert = require('assert');
-const { inspectPromise } = require('@makeomatic/deploy');
+const { strict: assert } = require('assert');
 const uuidv4 = require('uuid').v4;
 const md5 = require('md5');
 const { sign } = require('../../../../src/utils/signatures');
@@ -11,10 +10,10 @@ const redisKey = require('../../../../src/utils/key');
 describe('#token.*', function activateSuite() {
   // actions supported by this
   const username = 'active@me.com';
-  const createRoute = 'users.token.create';
-  const eraseRoute = 'users.token.erase';
-  const listRoute = 'users.token.list';
-  const verifyRoute = 'users.verify';
+  const createRoute = 'token.create';
+  const eraseRoute = 'token.erase';
+  const listRoute = 'token.list';
+  const verifyRoute = 'verify';
 
   before(global.startService);
   after(global.clearRedis);
@@ -32,9 +31,8 @@ describe('#token.*', function activateSuite() {
     // this is initial token
     it('registers one token', function test() {
       return this
-        .dispatch(createRoute, { username, name: 'initial token' })
-        .reflect()
-        .then(inspectPromise())
+        .users
+        .dispatch(createRoute, { params: { username, name: 'initial token' } })
         .then((token) => {
           assert.equal(token.split('.').length, 3, 'invalid token format');
           assert.equal(token.split('.')[0], this.userId, 'invalid input hash');
@@ -47,10 +45,8 @@ describe('#token.*', function activateSuite() {
     it('registers more tokens', function test() {
       return Promise
         .map(iterator, (val, idx) => (
-          this.dispatch(createRoute, { username, name: `auto:${idx}` })
+          this.users.dispatch(createRoute, { params: { username, name: `auto:${idx}` } })
         ))
-        .reflect()
-        .then(inspectPromise())
         .then((tokens) => tokenHolder.push(...tokens));
     });
   });
@@ -59,9 +55,7 @@ describe('#token.*', function activateSuite() {
   // we have a total of 41 tokens
   describe('#token.list', function listTokenSuite() {
     it('returns first page, new tokens first', function test() {
-      return this.dispatch(listRoute, { username })
-        .reflect()
-        .then(inspectPromise())
+      return this.users.dispatch(listRoute, { params: { username } })
         .then((tokens) => {
           // default page size
           assert.equal(tokens.length, 20);
@@ -80,9 +74,7 @@ describe('#token.*', function activateSuite() {
     });
 
     it('returns third page, one token', function test() {
-      return this.dispatch(listRoute, { username, page: 2 })
-        .reflect()
-        .then(inspectPromise())
+      return this.users.dispatch(listRoute, { params: { username, page: 2 } })
         .then((tokens) => {
           // default page size
           assert.equal(tokens.length, 1);
@@ -103,16 +95,12 @@ describe('#token.*', function activateSuite() {
   describe('#token.erase', function eraseTokenSuite() {
     it('removes all issued tokens but the initial one', function test() {
       return Promise.map(tokenHolder.slice(1), (token) => (
-        this.dispatch(eraseRoute, { username, token: token.split('.')[1] })
-      ))
-        .reflect()
-        .then(inspectPromise());
+        this.users.dispatch(eraseRoute, { params: { username, token: token.split('.')[1] } })
+      ));
     });
 
     it('returns first page, one token', function test() {
-      return this.dispatch(listRoute, { username })
-        .reflect()
-        .then(inspectPromise())
+      return this.users.dispatch(listRoute, { params: { username } })
         .then((tokens) => {
           // default page size
           assert.equal(tokens.length, 1);
@@ -133,24 +121,20 @@ describe('#token.*', function activateSuite() {
   // rest of them can be used to authenticate
   describe('#verify', function verifyTokenSuite() {
     it('verifies that first token works', function test() {
-      return this.dispatch(verifyRoute, {
+      return this.users.dispatch(verifyRoute, { params: {
         token: tokenHolder[0],
         accessToken: true,
         audience: '*.localhost',
-      })
-        .reflect()
-        .then(inspectPromise());
+      } });
     });
 
     it('verifies that all other tokens dont work', function test() {
       return Promise.map(tokenHolder.slice(1), (token) => (
-        this.dispatch(verifyRoute, {
+        assert.rejects(this.users.dispatch(verifyRoute, { params: {
           token,
           accessToken: true,
           audience: '*.localhost',
-        })
-          .reflect()
-          .then(inspectPromise(false))
+        } }))
       ));
     });
   });
@@ -181,13 +165,12 @@ describe('legacy API tokens', function suit() {
 
   it('should be able to verify', function test() {
     return this
-      .dispatch('users.verify', {
+      .users
+      .dispatch('verify', { params: {
         token: this.token,
         accessToken: true,
         audience: '*.localhost',
-      })
-      .reflect()
-      .then(inspectPromise())
+      } })
       .then((response) => {
         assert.equal(username, response.metadata['*.localhost'].username);
       });

@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const is = require('is');
 const sinon = require('sinon').usingPromise(Promise);
 
@@ -23,7 +23,8 @@ describe('#register stubbed', function suite() {
 
     try {
       const value = await this
-        .dispatch('users.register', opts);
+        .users
+        .dispatch('register', { params: opts });
 
       assert.equal(amqpStub.args.length, 1);
 
@@ -58,7 +59,7 @@ describe('#register stubbed', function suite() {
       .resolves({ queued: true });
 
     try {
-      const value = await this.dispatch('users.register', opts);
+      const value = await this.users.dispatch('register', { params: opts });
 
       assert.equal(amqpStub.args.length, 1);
 
@@ -91,19 +92,19 @@ describe('#register stubbed', function suite() {
     amqpStub.withArgs('phone.message.predefined')
       .resolves({ queued: true });
 
-    await this.dispatch('users.register', opts);
+    await this.users.dispatch('register', { params: opts });
 
     const args = amqpStub.args[0][1];
     const code = args.message.match(/^(\d+)/)[0];
     amqpStub.restore();
 
-    const response = await this.dispatch('users.activate', { token: code, username: '79215555555' });
+    const response = await this.users.dispatch('activate', { params: { token: code, username: '79215555555' } });
 
     assert.equal(is.string(response.jwt), true);
     assert.ok(response.user.id);
     assert.deepEqual(response.user.metadata['*.localhost'].username, '79215555555');
 
-    const lastResponse = await this.dispatch('users.getInternalData', { username: '79215555555' });
+    const lastResponse = await this.users.dispatch('getInternalData', { params: { username: '79215555555' } });
     assert.equal(is.undefined(lastResponse.password), true);
   };
 

@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { strict: assert } = require('assert');
 const os = require('os');
 
 const randomIp = `127.0.0.${Math.floor(Math.random() * 250) + 1}`;
@@ -31,7 +31,7 @@ describe('#cloudflare.add-to-list action', () => {
   });
 
   it('should add ip', async () => {
-    usedList = await this.dispatch('users.cf.add-to-access-list', { remoteip: randomIp, comment: jobId });
+    usedList = await this.users.dispatch('cf.add-to-access-list', { params: { remoteip: randomIp, comment: jobId } });
     const ips = [];
     const ipsGenerator = this.users.cfAccessList.getListIPsGenerator(usedList);
     for await (const ip of ipsGenerator) {
@@ -44,7 +44,7 @@ describe('#cloudflare.add-to-list action', () => {
   it('should touch ip', async () => {
     const ips = [];
 
-    await this.dispatch('users.cf.add-to-access-list', { remoteip: randomIp, comment: jobId });
+    await this.users.dispatch('cf.add-to-access-list', { params: { remoteip: randomIp, comment: jobId } });
     const ipsGenerator = this.users.cfAccessList.getListIPsGenerator(usedList);
 
     for await (const ip of ipsGenerator) {

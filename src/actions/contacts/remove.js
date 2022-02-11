@@ -1,3 +1,5 @@
+const { ActionTransport } = require('@microfleet/plugin-router');
+
 const contacts = require('../../utils/contacts');
 const { getUserId } = require('../../utils/userData');
 
@@ -16,4 +18,4 @@ module.exports = async function remove({ params }) {
   return contacts.remove.call(this, { contact: params.contact, userId });
 };
 
-module.exports.transports = [require('@microfleet/core').ActionTransport.amqp];
+module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

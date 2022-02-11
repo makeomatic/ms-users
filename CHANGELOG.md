@@ -1,3 +1,15 @@
+# [15.0.0](https://github.com/makeomatic/ms-users/compare/v14.25.1...v15.0.0) (2022-02-11)
+
+
+### Features
+
+* microfleet 18 ([#542](https://github.com/makeomatic/ms-users/issues/542)) ([7b6533c](https://github.com/makeomatic/ms-users/commit/7b6533c331d35622577180e5994844ef15890652))
+
+
+### BREAKING CHANGES
+
+* migrates to microfleet 18 with plugins and upgraded configuration. Do not deploy without adjusting your configuration files
+
 ## [14.25.1](https://github.com/makeomatic/ms-users/compare/v14.25.0...v14.25.1) (2022-02-09)
 
 

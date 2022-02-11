@@ -14,7 +14,7 @@ async function startServiceWithSyncEnabled() {
 }
 
 describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
-  const addAction = 'users.revoke-rule.add';
+  const addAction = 'revoke-rule.add';
 
   beforeEach(startServiceWithSyncEnabled);
   afterEach('Clear consul revocation rules version keys', async function clearConsul() {
@@ -36,17 +36,18 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
     const initial = await kv.get({ key: KEY_PREFIX_REVOCATION_RULES, recurse: true });
     strictEqual(initial, undefined);
     ok(revocationRulesStorage);
-    strictEqual(Object.keys(revocationRulesStorage.getFilter()).length, 0);
+
+    const { cache } = revocationRulesStorage;
+
+    strictEqual(Object.keys(cache).length, 0);
 
     revocationRulesStorage.setCache([], 'some', Date.now() - 100);
-
-    const cache = revocationRulesStorage.getFilter();
 
     deepStrictEqual(cache.some.rules, []);
 
     // add new rule - updates version in consul
     const defaultRule = { iss: 'ms-users' };
-    await this.dispatch(addAction, { username: 'some', rule: defaultRule });
+    await this.users.dispatch(addAction, { params: { username: 'some', rule: defaultRule } });
 
     // check whether consul key created
     const allKeys = await consul.kv.keys(KEY_PREFIX_REVOCATION_RULES);

@@ -171,7 +171,8 @@ class Users extends Microfleet {
     if (this.config.revocationRules.syncEnabled) {
       this.addConnector(ConnectorsTypes.application, () => {
         this.revocationRulesManager = new RevocationRulesManager(
-          this.config.revocationRules, this
+          this.config.revocationRules,
+          this
         );
 
         const watcher = new ConsulWatcher(this.consul, this.log);

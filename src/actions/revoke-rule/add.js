@@ -1,4 +1,4 @@
-const { ActionTransport } = require('@microfleet/core');
+const { ActionTransport } = require('@microfleet/plugin-router');
 const { RuleGroup } = require('../../utils/radix-filter/rule-group');
 const { GLOBAL_RULE_GROUP } = require('../../utils/revocation-rules-manager');
 

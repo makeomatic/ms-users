@@ -78,6 +78,7 @@ specifiers:
   password-generator: ^2.3.2
   prom-client: ^14.0.1
   qs: ^6.10.3
+  radix-trie-js: ^1.0.5
   redis-filtered-sort: ^2.4.0
   request: ^2.88.2
   request-promise: ^4.2.6
@@ -151,6 +152,7 @@ dependencies:
   password-generator: 2.3.2
   prom-client: 14.0.1
   qs: 6.10.3
+  radix-trie-js: 1.0.5
   redis-filtered-sort: 2.4.0_ioredis@4.28.5
   request: 2.88.2
   request-promise: 4.2.6_request@2.88.2
@@ -7051,6 +7053,10 @@ packages:
   /quick-lru/5.1.1:
     resolution: {integrity: sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==}
     engines: {node: '>=10'}
+    dev: false
+
+  /radix-trie-js/1.0.5:
+    resolution: {integrity: sha512-3Olqy+P8cM5G2x+mnhD231bRM8c2uxAyU7uLS/dORgwzmr2CJKhT6DeQGqZyjsfWuqCYeX415xlMr1J6Xt7M9Q==}
     dev: false
 
   /ramda/0.27.2:

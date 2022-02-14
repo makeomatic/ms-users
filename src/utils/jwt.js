@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const jwtLib = Promise.promisifyAll(require('jsonwebtoken'));
 
 const {
   USERS_INVALID_TOKEN,
@@ -46,15 +45,10 @@ const mapJWT = (userId, { jwt, jwtRefresh }, metadata) => ({
  * @return {Promise}
  */
 async function decodeAndVerify(service, token, audience) {
-  const { jwt: { secret, extra, issuer, hashingFunction } } = service.config;
+  const { jwt } = service.config;
   try {
     // should await here, otherwise jwt.Error thrown
-    const decoded = await jwtLib.verifyAsync(token, secret, {
-      ...extra,
-      audience,
-      issuer,
-      algorithms: [hashingFunction],
-    });
+    const decoded = await verifyData(token, jwt, { audience });
     return decoded;
   } catch (e) {
     service.log.debug('error decoding token', e);

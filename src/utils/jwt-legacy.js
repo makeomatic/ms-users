@@ -156,3 +156,12 @@ exports.signData = function signData(payload, tokenOptions) {
   } = tokenOptions;
   return jwt.sign(payload, secret, { ...extra, algorithm, issuer });
 };
+
+exports.verifyData = function verifyData(token, tokenOptions, extraOpts = {}) {
+  return jwt.verifyAsync(token, tokenOptions.secret, {
+    ...tokenOptions.extra,
+    ...extraOpts,
+    issuer: tokenOptions.issuer,
+    algorithms: [tokenOptions.hashingFunction],
+  });
+};

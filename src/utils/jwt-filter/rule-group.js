@@ -16,6 +16,21 @@ class RuleGroup {
   }
 
   /**
+   * @param {Number} value
+   */
+  set ttl(value) {
+    this._ttl = value;
+  }
+
+  get ttl() {
+    return this._ttl;
+  }
+
+  isActive(at) {
+    return !(this.ttl && this.ttl < at);
+  }
+
+  /**
    * Add rules
    * @param {Rule|Rule[]} rules
    * @returns {void}

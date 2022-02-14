@@ -16,9 +16,9 @@ describe('#radix-list filter', () => {
   });
 
   it('should be able to load data', () => {
-    list.add(new Rule('foo', 'eq', 'dd'));
-    list.add(new RuleGroup(list.rules));
-    assert.strictEqual(list.rules.length, 2);
+    const rule = new Rule('foo', 'eq', 'dd');
+    list.add(new RuleGroup(rule));
+    assert.strictEqual(list.ruleGroups.length, 1);
   });
 
   it('should be able to load batch rules', () => {
@@ -33,7 +33,19 @@ describe('#radix-list filter', () => {
       },
     ]);
 
-    assert.strictEqual(list.rules.length, 3);
+    assert.strictEqual(list.ruleGroups.length, 3);
+  });
+
+  it('should skip outdated rules', () => {
+    const filter = new ListFilter(console);
+    const groupWithTTL = RuleGroup.create({
+      fld: 10,
+    });
+    groupWithTTL.ttl = 200;
+    filter.add(groupWithTTL);
+
+    assert.strictEqual(filter.match({ fld: 10 }, 100), true);
+    assert.strictEqual(filter.match({ fld: 10 }, 210), false);
   });
 
   describe('lookupchecks', () => {

@@ -1,7 +1,6 @@
 const assert = require('assert');
 
 const { RuleGroup } = require('./rule-group');
-const { Rule } = require('./rule');
 
 /**
  * Matches provided object to specific rule group
@@ -12,18 +11,18 @@ class ListFilter {
    */
   constructor(log) {
     assert(log, 'logger required');
-    this.rules = [];
+    /** @type {RuleGroup[]} */
+    this.ruleGroups = [];
   }
 
   /**
-   * Match object using specific key prefixes
-   * @param {string|string[]} prefixes
+   * Match object using provided rules
    * @param {Object} obj
    * @returns {boolean}
    */
-  match(obj) {
-    for (const rule of this.rules) {
-      if (rule.match(obj)) {
+  match(obj, at = Date.now()) {
+    for (const ruleGroup of this.ruleGroups) {
+      if (ruleGroup.isActive(at) && ruleGroup.match(obj)) {
         return true;
       }
     }
@@ -33,12 +32,12 @@ class ListFilter {
 
   /**
    * Add rules
-   * @param {Rule|RuleGroup} rule
+   * @param {RuleGroup} ruleGroup
    * @returns {void}
    */
-  add(rule) {
-    assert(rule instanceof RuleGroup || rule instanceof Rule, 'Rule or RuleGroup required');
-    this.rules.push(rule);
+  add(ruleGroup) {
+    assert(ruleGroup instanceof RuleGroup, 'RuleGroup is required');
+    this.ruleGroups.push(ruleGroup);
   }
 
   /**
@@ -48,8 +47,9 @@ class ListFilter {
   addBatch(rulesList) {
     assert(Array.isArray(rulesList), 'must provide list of rules');
 
-    rulesList.forEach(({ rule }) => {
+    rulesList.forEach(({ rule, params = {} }) => {
       const rg = RuleGroup.create(rule);
+      rg.ttl = params.ttl;
       this.add(rg);
     });
   }

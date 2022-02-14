@@ -15,14 +15,13 @@ class RevocationRulesManager {
    * @param {Object} config revocationRulesManager section
    * @param {Microfleet} microfleet service
    */
-  constructor(config, service) {
+  constructor(service) {
     this.service = service;
     this.log = service.log;
     this.consul = service.consul;
     this.redis = service.redis;
     this.consulKeyPrefix = KEY_PREFIX_REVOCATION_RULES;
     this.keyPrefix = REDIS_KEY_PREFIX;
-    this.config = config;
   }
 
   _getConsulKey(key) {

@@ -8,7 +8,6 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
     await global.startService.call(this, {
       revocationRules: {
         enabled: true,
-        syncEnabled: true,
       },
     });
 
@@ -58,8 +57,6 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
     const createdRule = await this.users.dispatch(addAction, { params: { rule: defaultRule } });
     const rulesList = await this.users.dispatch(listAction, { params: {} });
 
-    console.debug(rulesList);
-
     assert.deepStrictEqual(rulesList[0], {
       rule: createdRule.rule,
       params: {
@@ -73,8 +70,6 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
     const defaultRule = { iss: 'ms-users-test' };
     const createdRule = await this.users.dispatch(addAction, { params: { username: 'some', rule: defaultRule } });
     const rulesList = await this.users.dispatch(listAction, { params: { username: 'some' } });
-
-    console.debug(rulesList);
 
     assert.deepStrictEqual(rulesList, [
       {
@@ -100,5 +95,48 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
   it('#list should return empty list', async () => {
     const rules = await this.users.dispatch(listAction, { params: { username: 'someonewithoutrules' } });
     assert.deepStrictEqual(rules, []);
+  });
+
+  it('#list and #add should cleanup old rules', async () => {
+    const defaultRule = { iss: 'ms-users-test' };
+    const username = 'sometwo';
+
+    const createRule = (extra) => this.users.dispatch(addAction, {
+      params: {
+        username,
+        rule: {
+          ...defaultRule,
+          ...extra,
+        },
+      },
+    });
+
+    const expireTime = Date.now();
+    await createRule({ iss: 'ms-users-global' });
+    await createRule({ ttl: expireTime });
+
+    const redisKey = this.users.revocationRulesManager._getRedisKey(username);
+    const redisData = await this.users.redis.zrange(redisKey, 0, -1, 'WITHSCORES');
+
+    assert.deepStrictEqual(redisData, ['{"iss":"ms-users-global"}', '0', '{"iss":"ms-users-test"}', expireTime.toString()]);
+
+    const newExpireTime = expireTime + 1000;
+    await createRule({ iss: 'ms-users-test-1', ttl: newExpireTime });
+
+    const rulesAfter = await this.users.dispatch(listAction, { params: { username } });
+    const redisAfterData = await this.users.redis.zrange(redisKey, 0, -1, 'WITHSCORES');
+
+    assert.deepStrictEqual(redisAfterData, ['{"iss":"ms-users-global"}', '0', '{"iss":"ms-users-test-1"}', newExpireTime.toString()]);
+    assert.deepStrictEqual(rulesAfter, [
+      { rule: { iss: 'ms-users-global' }, params: { ttl: 0 } },
+      {
+        params: {
+          ttl: newExpireTime,
+        },
+        rule: {
+          iss: 'ms-users-test-1',
+        },
+      },
+    ]);
   });
 });

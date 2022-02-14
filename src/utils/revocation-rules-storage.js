@@ -8,15 +8,16 @@ const { ListFilter } = require('./jwt-filter/list-filter');
  * Memory storage
  */
 class RevocationRulesStorage {
-  constructor(ruleManager, consulWatcher, watchOptions, log) {
+  constructor(ruleManager, consulWatcher, config, log) {
     /** @type {RevocationRulesManager} */
     this.ruleManager = ruleManager;
     /** @type {ConsulWatcher} */
     this.consulWatcher = consulWatcher;
-    this.watchOptions = watchOptions;
+    this.watchOptions = config.watchOptions;
     this.log = log;
     this.watchInstance = null;
     this.cache = {};
+    this.cacheTTL = config.storageCacheTTL || 30 * 60 * 1000;
   }
 
   _invalidateCache(key, version) {
@@ -33,12 +34,15 @@ class RevocationRulesStorage {
     this.cache[key] = {
       version,
       rules,
+      ttl: Date.now() + this.cacheTTL,
     };
   }
 
   async getFilter(key) {
     const cached = this.cache[key];
-    if (cached && cached.rules !== null) {
+    const now = Date.now();
+
+    if (cached && cached.rules !== null && cached.ttl > now) {
       return cached.rules;
     }
 
@@ -46,7 +50,7 @@ class RevocationRulesStorage {
     const rules = new ListFilter(this.log);
 
     rules.addBatch(rulesRaw);
-    this.setCache(rules, key, Date.now());
+    this.setCache(rules, key, now);
 
     return rules;
   }

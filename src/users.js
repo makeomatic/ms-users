@@ -168,29 +168,24 @@ class Users extends Microfleet {
 
     const pluginName = 'JwtRevocationRules';
 
-    if (this.config.revocationRules.syncEnabled) {
-      this.addConnector(ConnectorsTypes.application, () => {
-        this.revocationRulesManager = new RevocationRulesManager(
-          this.config.revocationRules,
-          this
-        );
+    this.addConnector(ConnectorsTypes.application, () => {
+      this.revocationRulesManager = new RevocationRulesManager(this);
 
-        const watcher = new ConsulWatcher(this.consul, this.log);
+      const watcher = new ConsulWatcher(this.consul, this.log);
 
-        this.revocationRulesStorage = new RevocationRulesStorage(
-          this.revocationRulesManager,
-          watcher,
-          this.config.revocationRules.watchOptions,
-          this.log
-        );
+      this.revocationRulesStorage = new RevocationRulesStorage(
+        this.revocationRulesManager,
+        watcher,
+        this.config.revocationRules,
+        this.log
+      );
 
-        this.revocationRulesStorage.startSync();
-      }, pluginName);
+      this.revocationRulesStorage.startSync();
+    }, pluginName);
 
-      this.addDestructor(ConnectorsTypes.application, () => {
-        this.revocationRulesStorage.stopSync();
-      }, pluginName);
-    }
+    this.addDestructor(ConnectorsTypes.application, () => {
+      this.revocationRulesStorage.stopSync();
+    }, pluginName);
   }
 }
 

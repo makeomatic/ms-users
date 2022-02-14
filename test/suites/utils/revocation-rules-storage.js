@@ -1,11 +1,11 @@
 const { strictEqual, deepStrictEqual, ok, throws } = require('assert');
 const Bluebird = require('bluebird');
 const { KEY_PREFIX_REVOCATION_RULES } = require('../../../src/constants');
+const { ListFilter } = require('../../../src/utils/jwt-filter/list-filter');
 
 const withSyncEnabled = {
   revocationRules: {
     enabled: true,
-    syncEnabled: true,
   },
 };
 
@@ -58,6 +58,20 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
     await Bluebird.delay(100);
 
     deepStrictEqual(cache.some.rules, null);
-    console.debug('A', cache);
+  });
+
+  it('Should handle ttl for cache', async function test() {
+    const { revocationRulesStorage } = this.users;
+    const { cache } = revocationRulesStorage;
+
+    revocationRulesStorage.setCache({ foo: 1 }, 'someone', Date.now());
+
+    const filterBeforeTTL = await revocationRulesStorage.getFilter('someone');
+    deepStrictEqual(filterBeforeTTL, { foo: 1 });
+    // change ttl
+    cache.someone.ttl = 20;
+
+    const filterAfterTTL = await revocationRulesStorage.getFilter('someone');
+    strictEqual(filterAfterTTL instanceof ListFilter, true, 'should query redis and create empty list');
   });
 });

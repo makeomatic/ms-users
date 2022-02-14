@@ -38,6 +38,10 @@ class RevocationRulesStorage {
     };
   }
 
+  /**
+   * @param {*} key
+   * @returns {Promise<ListFilter>}
+   */
   async getFilter(key) {
     const cached = this.cache[key];
     const now = Date.now();

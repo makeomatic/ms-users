@@ -70,7 +70,6 @@ describe('#stateless-jwt', function loginSuite() {
         },
       });
 
-      await this.users.revocationRulesManager.batchDelete(['']);
       await delay(100);
     });
 
@@ -124,8 +123,8 @@ describe('#stateless-jwt', function loginSuite() {
 
       assert.strictEqual(rules.length, 1);
 
-      assert.strictEqual(rules[0].params.rt, oldTokenDecoded.rt);
-      assert.deepStrictEqual(rules[0].params.iat, { lt: newTokenDecoded.iat });
+      assert.strictEqual(rules[0].rule.rt, oldTokenDecoded.rt);
+      assert.deepStrictEqual(rules[0].rule.iat, { lt: newTokenDecoded.iat });
       assert.strictEqual(rules[0].params.ttl, refreshTokenDecoded.exp);
       assert.deepStrictEqual(oldTokenDecoded.audience, newTokenDecoded.audience);
 
@@ -164,10 +163,10 @@ describe('#stateless-jwt', function loginSuite() {
 
       const rules = await getRules(userId);
 
-      assert.strictEqual(rules[0].params.cs, refreshTokenDecoded.cs);
-      assert.strictEqual(rules[0].params.rt, refreshTokenDecoded.cs);
+      assert.strictEqual(rules[0].rule.cs, refreshTokenDecoded.cs);
+      assert.strictEqual(rules[0].rule.rt, refreshTokenDecoded.cs);
       assert.strictEqual(rules[0].params.ttl, refreshTokenDecoded.exp);
-      assert.ok(rules[0].params._or);
+      assert.ok(rules[0].rule._or);
 
       // try again with same access token
       await assert.rejects(
@@ -179,12 +178,10 @@ describe('#stateless-jwt', function loginSuite() {
     it('#GLOBAL should invalidate all tokens', async () => {
       const { jwtRefresh, jwt } = await loginUser();
 
-      await this.users.dispatch('revoke-rule.update', {
+      await this.users.dispatch('revoke-rule.add', {
         params: {
           rule: {
-            params: {
-              iat: { lte: Date.now() },
-            },
+            iat: { lte: Date.now() },
           },
         },
       });
@@ -224,7 +221,7 @@ describe('#stateless-jwt', function loginSuite() {
             },
           },
         });
-        await this.users.revocationRulesManager.batchDelete(['']);
+
         await delay(100);
       });
 
@@ -248,11 +245,11 @@ describe('#stateless-jwt', function loginSuite() {
         const rules = await getRules(userId);
 
         assert.strictEqual(rules.length, 1);
-        assert.deepStrictEqual(rules[0].params, {
+
+        assert.deepStrictEqual(rules[0].rule, {
           _or: true,
           cs: refreshTokenDecoded.cs,
           rt: refreshTokenDecoded.cs,
-          ttl: rules[0].params.ttl,
         });
 
         assert.deepStrictEqual(oldTokenDecoded.audience, newTokenDecoded.audience);
@@ -273,7 +270,7 @@ describe('#stateless-jwt', function loginSuite() {
             },
           },
         });
-        await this.users.revocationRulesManager.batchDelete(['']);
+
         await delay(100);
       });
 
@@ -313,7 +310,6 @@ describe('#stateless-jwt', function loginSuite() {
         },
       });
 
-      await this.users.revocationRulesManager.batchDelete(['']);
       await delay(100);
     });
 
@@ -344,9 +340,9 @@ describe('#stateless-jwt', function loginSuite() {
 
       const rules = await getRules(userId);
 
-      assert.strictEqual(rules[0].params.cs, accessTokenDecoded.cs);
-      assert.strictEqual(rules[0].params.rt, accessTokenDecoded.cs);
-      assert.ok(rules[0].params._or);
+      assert.strictEqual(rules[0].rule.cs, accessTokenDecoded.cs);
+      assert.strictEqual(rules[0].rule.rt, accessTokenDecoded.cs);
+      assert.ok(rules[0].rule._or);
       assert.ok(rules[0].params.ttl - now >= this.users.config.jwt.ttl);
 
       // try again with same access token

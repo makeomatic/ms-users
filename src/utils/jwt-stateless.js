@@ -9,9 +9,9 @@ const {
   USERS_JWT_STATELESS_REQUIRED,
   USERS_INVALID_TOKEN,
 } = require('../constants');
-const { GLOBAL_RULE_PREFIX, USER_RULE_PREFIX } = require('./revocation-rules-manager');
+const { GLOBAL_RULE_GROUP } = require('./revocation-rules-manager');
 
-const REVOKE_RULE_UPDATE_ACTION = 'revoke-rule.update';
+const REVOKE_RULE_ADD_ACTION = 'revoke-rule.add';
 
 const isStatelessToken = (token) => !!token.st;
 
@@ -39,7 +39,7 @@ const assertStatelessEnabled = (service) => {
 };
 
 const createRule = async (service, ruleSpec) => {
-  return service.dispatch(REVOKE_RULE_UPDATE_ACTION, { params: ruleSpec });
+  return service.dispatch(REVOKE_RULE_ADD_ACTION, { params: ruleSpec });
 };
 
 function createToken(service, audience, payload) {
@@ -100,14 +100,18 @@ async function login(service, userId, audience) {
 
 async function checkRules(service, token) {
   const userId = token[USERS_USERNAME_FIELD];
+  const { revocationRulesStorage } = service;
+  const now = Date.now();
 
-  const ruleCheck = service.revocationRulesStorage
-    .getFilter()
-    .match([GLOBAL_RULE_PREFIX, `${USER_RULE_PREFIX}${userId}/`], token);
-
-  if (ruleCheck === true) {
-    throw USERS_INVALID_TOKEN;
+  const globalRules = await revocationRulesStorage.getFilter(GLOBAL_RULE_GROUP);
+  if (!globalRules.match(token)) {
+    const localRules = await revocationRulesStorage.getFilter(userId);
+    if (!localRules.match(token, now)) {
+      return;
+    }
   }
+
+  throw USERS_INVALID_TOKEN;
 }
 
 function refreshTokenStrategy(service, token, encodedRefreshToken, payload, audience) {
@@ -151,11 +155,9 @@ async function refreshTokenPair(service, encodedToken, token, audience) {
     await createRule(service, {
       username: userId,
       rule: {
-        params: {
-          ttl: token.exp,
-          rt: token.cs,
-          iat: { lt: access.payload.iat },
-        },
+        ttl: token.exp,
+        rt: token.cs,
+        iat: { lt: access.payload.iat },
       },
     });
   }
@@ -175,12 +177,10 @@ async function logout(service, token) {
   await createRule(service, {
     username: token[USERS_USERNAME_FIELD],
     rule: {
-      params: {
-        ttl: token.exp || now + service.config.jwt.ttl,
-        _or: true,
-        cs: token.cs,
-        rt: token.cs,
-      },
+      ttl: token.exp || now + service.config.jwt.ttl,
+      _or: true,
+      cs: token.cs,
+      rt: token.cs,
     },
   });
 
@@ -204,7 +204,7 @@ async function reset(service, userId) {
   // last one invalidates all legacy tokens for user
   await createRule(service, {
     username: userId,
-    params: {
+    rule: {
       iat: { lte: Date.now() },
     },
   });

@@ -1,8 +1,8 @@
 const { assert } = require('chai');
 
-const { ListFilter } = require('../../../../src/utils/radix-filter/list-filter');
-const { Rule } = require('../../../../src/utils/radix-filter/rule');
-const { RuleGroup } = require('../../../../src/utils/radix-filter/rule-group');
+const { ListFilter } = require('../../../../src/utils/jwt-filter/list-filter');
+const { Rule } = require('../../../../src/utils/jwt-filter/rule');
+const { RuleGroup } = require('../../../../src/utils/jwt-filter/rule-group');
 
 describe('#radix-list filter', () => {
   let list = new ListFilter(true);

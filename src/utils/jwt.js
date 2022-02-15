@@ -154,7 +154,7 @@ exports.refresh = async function refresh(token, _audience) {
   const metadataAudience = getAudience(defaultAudience, audience);
 
   const [refreshResult, metadata] = await Promise.all([
-    statelessJWT.refresh(this, token, decodedToken, audience),
+    statelessJWT.refresh(this, token, decodedToken, audience[0]),
     getMetadata.call(this, userId, metadataAudience),
   ]);
 

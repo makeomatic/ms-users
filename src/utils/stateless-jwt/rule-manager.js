@@ -1,8 +1,8 @@
 const { chunk } = require('lodash');
 
-const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
+const { KEY_PREFIX_REVOCATION_RULES } = require('../../constants');
 
-const handlePipelineError = require('./pipeline-error');
+const handlePipelineError = require('../pipeline-error');
 
 const REDIS_KEY_PREFIX = 'jwt-rules';
 const GLOBAL_RULE_GROUP = 'g';

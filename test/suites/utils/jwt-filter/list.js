@@ -1,8 +1,8 @@
 const { assert } = require('chai');
 
-const { ListFilter } = require('../../../../src/utils/jwt-filter/list-filter');
-const { Rule } = require('../../../../src/utils/jwt-filter/rule');
-const { RuleGroup } = require('../../../../src/utils/jwt-filter/rule-group');
+const { ListFilter } = require('../../../../src/utils/stateless-jwt/list-filter');
+const { Rule } = require('../../../../src/utils/stateless-jwt/rule');
+const { RuleGroup } = require('../../../../src/utils/stateless-jwt/rule-group');
 
 describe('#jwt-list filter', () => {
   let list;

@@ -9,7 +9,7 @@ const {
 const getMetadata = require('./get-metadata');
 
 const legacyJWT = require('./jwt-legacy');
-const statelessJWT = require('./jwt-stateless');
+const statelessJWT = require('./stateless-jwt/jwt');
 
 const {
   assertRefreshToken,

@@ -1,6 +1,6 @@
-const { ConsulWatcher } = require('./consul-watcher');
-const { ListFilter } = require('./jwt-filter/list-filter');
-const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
+const { ConsulWatcher } = require('../consul-watcher');
+const { ListFilter } = require('./list-filter');
+const { KEY_PREFIX_REVOCATION_RULES } = require('../../constants');
 
 /** @typedef { import("./revocation-rules-manager").RevocationRulesManager } RevocationRulesManager */
 

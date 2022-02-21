@@ -1,7 +1,7 @@
 const { strictEqual, deepStrictEqual, ok, throws } = require('assert');
 const Bluebird = require('bluebird');
 const { KEY_PREFIX_REVOCATION_RULES } = require('../../../src/constants');
-const { ListFilter } = require('../../../src/utils/jwt-filter/list-filter');
+const { ListFilter } = require('../../../src/utils/stateless-jwt/list-filter');
 
 const withSyncEnabled = {
   jwt: {

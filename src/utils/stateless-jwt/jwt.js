@@ -8,8 +8,8 @@ const {
   USERS_JWT_REFRESH_REQUIRED,
   USERS_JWT_STATELESS_REQUIRED,
   USERS_INVALID_TOKEN,
-} = require('../constants');
-const { GLOBAL_RULE_GROUP } = require('./revocation-rules-manager');
+} = require('../../constants');
+const { GLOBAL_RULE_GROUP } = require('./rule-manager');
 
 const REVOKE_RULE_ADD_ACTION = 'revoke-rule.add';
 

@@ -11,8 +11,7 @@ const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
 const { ConsulWatcher } = require('./utils/consul-watcher');
-const { RevocationRulesStorage } = require('./utils/revocation-rules-storage');
-const { RevocationRulesManager } = require('./utils/revocation-rules-manager');
+const { RevocationRulesStorage, RevocationRulesManager } = require('./utils/stateless-jwt');
 
 /**
  * @namespace Users

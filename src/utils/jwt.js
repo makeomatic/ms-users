@@ -106,23 +106,23 @@ exports.logout = async function logout(token, audience) {
 };
 
 // Should check old tokens and new tokens
-exports.verify = async function verifyToken(token, audience, peek) {
-  const decodedToken = await decodeAndVerify(this, token, audience);
+exports.verify = async function verifyToken(service, token, audience, peek) {
+  const decodedToken = await decodeAndVerify(service, token, audience);
 
   if (audience.indexOf(decodedToken.aud) === -1) {
     throw USERS_AUDIENCE_MISMATCH;
   }
-  const isStateless = isStatelessToken(decodedToken);
 
   // verify only legacy tokens
+  const isStateless = isStatelessToken(decodedToken);
   if (!isStateless) {
-    await legacyJWT.verify(this, token, decodedToken, peek);
+    await legacyJWT.verify(service, token, decodedToken, peek);
   }
 
   // btw if someone passed stateless token
   if (isStateless) {
-    assertStatelessEnabled(this);
-    await statelessJWT.verify(this, decodedToken);
+    assertStatelessEnabled(service);
+    await statelessJWT.verify(service, decodedToken);
   }
 
   return decodedToken;

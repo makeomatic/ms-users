@@ -108,7 +108,7 @@ exports.verify = async function verifyToken(service, encodedToken, token, peek) 
  * @param {Boolean} peek
  * @return {Promise}
  */
-exports.internal = async function verifyInternalToken(token) {
+exports.internal = async function verifyInternalToken(service, token) {
   const tokenParts = token.split('.');
 
   if (tokenParts.length !== 3) {
@@ -127,7 +127,7 @@ exports.internal = async function verifyInternalToken(token) {
 
   // this is needed to pass ctx of the
   const payload = `${userId}.${uuid}`;
-  const isValid = verifyHMAC.call(this, payload, signature);
+  const isValid = verifyHMAC.call(service, payload, signature);
 
   if (!isValid) {
     return Promise.reject(USERS_MALFORMED_TOKEN);
@@ -137,7 +137,7 @@ exports.internal = async function verifyInternalToken(token) {
   // erase or expired
   const key = redisKey(USERS_API_TOKENS, payload);
   const tokenField = isLegacyToken ? BEARER_LEGACY_USERNAME_FIELD : BEARER_USERNAME_FIELD;
-  const id = await this.redis.hget(key, tokenField);
+  const id = await service.redis.hget(key, tokenField);
 
   return {
     [tokenField]: id,

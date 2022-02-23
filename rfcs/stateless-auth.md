@@ -241,17 +241,29 @@ No rules created.
 
 #### Refresh
 
-Creates rule that invalidates all previously issued tokens issued by the `RefreshToken`.
+Creates rule to invalidate all previously issued access tokens issued by the `RefreshToken`.
 
 ```javascript
 await createRule({
   username: userId,
   rule: {
-    params: {
-      ttl: refreshToken.exp,
-      rt: refreshToken.cs, // id of the refresh token
-      iat: { lte: Date.now() }, // 
-    },
+    ttl: token.exp,
+    rt: token.cs,
+    iat: { lte: access.payload.iat },
+  }
+})
+```
+
+During token rotation, it creates the rule that invalidates the previous `RefreshToken` and all Access tokens issued by this token.
+
+```javascript
+await createRule({
+  username: userId,
+  rule: {
+    ttl: refreshToken.exp,
+    _or: true,
+    cs: token.cs,
+    rt: token.cs,
   },
 });
 ```
@@ -264,12 +276,10 @@ Creates rule that invalidates all issued tokens by `RefreshToken` and itself.
 await createRule(service, {
   username: userId,
   rule: {
-    params: {
-      ttl: refreshToken.exp,
-      _or: true,
-      cs: token.cs,
-      rt: token.cs,
-    },
+    ttl: refreshToken.exp,
+    _or: true,
+    cs: token.cs,
+    rt: token.cs,
   },
 });
 ```
@@ -297,6 +307,11 @@ type jwt {
     force: boolean;
     enabled: boolean;
 		refreshTTL: number;
+    refreshRotation: {
+      enabled: false,
+      always: false,
+      interval: 100 * 24 * 60 * 60 * 1000, // 100 days
+    },
     storage: {
       watchOptions: {
         backoffFactor: number;
@@ -314,7 +329,7 @@ type jwt {
 * `jwt.stateless.enabled` - Enables Stateless auth support.
 * `jwt.stateless.refreshTTL` - The TTL of the refresh token.
 * `jwt.stateless.storage` - Rule storage options. The `watchOptions` property passed to the https://www.npmjs.com/package/consul#watch.
-* `jwt.stateless.manager` - Rule manager configuration. The `cleanupInterval` parameter configures interval between the Rule cleanup process runs.
+* `jwt.stateless.refreshRotation` - Refresh token rotation configuration.
 
 ### Login action
 

@@ -13,7 +13,6 @@ Such rules should handle system-wide or user-based checks and provide an ability
 * Refresh token compromised. We should revoke All session tokens generated using this token.
 * Access token compromised and must be revoked.
 * Revoke all tokens that have an issue date before or between some dates.
-* Revoke tokens using any other possible condition such as `UserAgent` `DeviceId` etc.
 
 ### Rule
 
@@ -51,65 +50,45 @@ const orRuleGroup = {
   _or: true,
   iss: 'some-issuer',
   deviceId: 'some',
-  'some.nested.path': 'some' // also support nested properties
 }
 ```
 
+### Redis + Consul based filter
 
-### RadixFilter
+This filter uses Redis as the rule source and Consul as the rule version update notification source.
 
-Revocation lists must perform fast, reliable in-memory rule match, so generic iteration is too slow and will increase response time for the `users.verify` action. To provide a fast rule matching process generic `Trie` structure that will perform an optimized lookup. Each rule will be stored using the specified prefix:
+#### Redis structures
 
-```js
-const rules = [
-  [`g:${ruleId}`, new RuleGroup()],
-  [`g:${ruleId}`, new RuleGroup()],
-  [`u:${userId}:${ruleId}`, new RuleGroup()],
-  [`u:${userId}:${ruleId}`, new RuleGroup()],
-]
-```
-
-Using such prefix allows querying using specific prefix(`g:`- for system-wide rules, `u:${id}:` - for user rules) path, and this will allow finding any rules for the user in 2 queries: `GlobalPrefix` and `UserBasedPrefix`.
-
-### Consul as `rule` resource
-
-Provides reliable data sync and update notification using `kv.watch`.
-
-Service should provide additional classes and endpoints to perform rule updates.
+All rules are stored in `ZSET` where `member` is stringified rule and `score` is rule `ttl`.
 
 #### RevocationRuleManager
 
-`RevocationRuleManager` class provides crud operations for consul kv, also contains TTL validation routines.
+`RevocationRuleManager` class provides crud operations for Redis keys with rules.
 
-* Provides CRUD for `consul.kv`. Available for all nodes.
-* Manages TTL of the keys. All sync jobs are performed in the background and should run on `leader`.
+* Manages rules and TTL of the rules.
+* On rule `add` operation updates rule version in the consul storage - this forces all RuleStorage to reset their caches for the corresponding users and global group
 
 #### RevocationRuleStorage
 
-`InvocationRuleStorage` class provides in-memory rule synchronization and runtime preload.
+`RevocationRuleStorage` class provides in-memory rule synchronization and validation results caching.
 
-* Watches specified `consul.kv` prefix and reload `RadixFilter` on keys update.
-* Provides in-memory rule search for token validation.
+* Watches specified `consul.kv` prefix and invalidates rule and result caches.
+* Provides in-memory rule search for token validation. Loads rules from Redis.
 
 ## Token validation process
 
-`users.verify` endpoint should be updated and use provided `InvocationRuleStorage` to check token validation. 
+`users.verify` endpoint should be updated and use provided `RevocationRuleStorage` to check token validation. 
 
 1. Should prepare any required data: 
 
    ```javascript
    const data = {
-     jwt: {
        // ... decoded token data
-     },
-     req: {
-       // .. any data from request that could be used in validation
-       // ip, useragent and etc.
      }
    }
    ```
 
-2. Execute `InvocationRulesStorage.verify(userId, data): boolean` to perform validation:
+2. Execute `RevocationRuleStorage.verify(userId, data): boolean` to perform validation:
 
    - If `data` matched any of the rules, we should consider that token is invalid
    - If there is no match - the token is valid

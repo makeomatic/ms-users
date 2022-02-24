@@ -4,5 +4,9 @@
  */
 module.exports = require('./users');
 
-module.exports.auth = require('./auth/strategies');
-module.exports.statelessJWT = require('./utils/stateless-jwt');
+module.exports.ConsulWatcher = require('./utils/consul-watcher');
+
+module.exports.auth = {
+  strategy: require('./auth/strategies'),
+  jwt: require('./utils/stateless-jwt'),
+};

@@ -4,8 +4,10 @@ const jwt = require('./jwt');
 const trustedHeaders = require('./trusted-headers');
 
 module.exports = {
-  RevocationRulesManager,
-  RevocationRulesStorage,
+  rule: {
+    RevocationRulesManager,
+    RevocationRulesStorage,
+  },
   jwt,
   trustedHeaders,
 };

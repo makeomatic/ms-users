@@ -1,5 +1,6 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 
+const { USERS_AUDIENCE_MISMATCH } = require('../constants');
 const { fromTokenData } = require('../utils/verify');
 
 /**
@@ -23,7 +24,11 @@ const toArray = (maybeArray) => (isArray(maybeArray) ? maybeArray : [maybeArray]
 async function Verify({ params }) {
   const audience = toArray(params.audience);
   const { jsonToken } = params;
-  const decodedToken = JSON.decode(jsonToken);
+  const decodedToken = JSON.parse(jsonToken);
+
+  if (audience.indexOf(decodedToken.aud) === -1) {
+    throw USERS_AUDIENCE_MISMATCH;
+  }
 
   return fromTokenData(this, decodedToken, {
     defaultAudience: this.config.jwt.defaultAudience,

@@ -795,7 +795,7 @@
         }
       },
       "then": {
-        "required": ["manager", "force", "storage", "refreshTTL"]
+        "required": ["force", "storage", "refreshTTL", "refreshRotation"]
       },
       "properties": {
         "enabled": {
@@ -829,17 +829,6 @@
             },
             "interval": {
               "type": "number"
-            }
-          }
-        },
-        "manager": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [ "cleanupInterval" ],
-          "properties": {
-            "cleanupInterval": {
-              "type": "number",
-              "description": "Cleanup rules interval"
             }
           }
         },

@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const is = require('is');
 const { AuthenticationRequiredError } = require('common-errors');
 const { USERS_CREDENTIALS_REQUIRED_ERROR } = require('../constants');
-const { hasTrustedHeader, trustedCompat, hasStatelessToken } = require('../utils/stateless-jwt/trusted-headers');
+const { hasTrustedHeader, checkTrustedHeadersCompat, hasStatelessToken } = require('../utils/stateless-jwt/trusted-headers');
 
 function getAuthToken(authHeader) {
   const [auth, token] = authHeader.trim().split(/\s+/, 2).map((str) => str.trim());
@@ -57,7 +57,13 @@ function tokenAuth(request) {
   const params = method === 'get' ? request.query : request.params;
 
   if (hasTrustedHeader(headers) && hasStatelessToken(headers)) {
-    return trustedCompat(this, headers, params, () => checkTokenHeader(this, strategy, params, authHeader));
+    // fallback fn is required to handle the case of the offline ingress token backend
+    return checkTrustedHeadersCompat(
+      this,
+      headers,
+      params,
+      () => checkTokenHeader(this, strategy, params, authHeader)
+    );
   }
 
   return checkTokenHeader(this, strategy, params, authHeader);

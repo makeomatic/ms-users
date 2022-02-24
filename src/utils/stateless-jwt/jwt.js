@@ -98,7 +98,11 @@ async function login(service, userId, audience) {
   };
 }
 
-async function checkRules(service, token) {
+async function checkToken(service, token) {
+  if (token.exp < Date.now()) {
+    throw USERS_JWT_EXPIRED;
+  }
+
   const userId = token[USERS_USERNAME_FIELD];
   const { revocationRulesStorage } = service;
   const now = Date.now();
@@ -143,7 +147,7 @@ async function refreshTokenPair(service, encodedToken, token, audience) {
     [USERS_USERNAME_FIELD]: userId,
   };
 
-  await checkRules(service, token);
+  await checkToken(service, token);
 
   const { refresh, access } = refreshTokenStrategy(service, token, encodedToken, payload, audience);
 
@@ -173,6 +177,9 @@ async function logout(service, token) {
   // -- invalidate current refresh token and all tokens issued by this refresh token
   // set user rule { cs: { in: [verifiedToken.cs, verifiedToken.rt] }
   // -- legacy tokens do not have exp or iat field so ttl of the rule is set to max possible ttl
+
+  await checkToken(service, token);
+
   const now = Date.now();
   await createRule(service, {
     username: token[USERS_USERNAME_FIELD],
@@ -190,11 +197,7 @@ async function logout(service, token) {
 async function verify(service, decodedToken) {
   assertAccessToken(decodedToken);
 
-  if (decodedToken.exp < Date.now()) {
-    throw USERS_JWT_EXPIRED;
-  }
-
-  await checkRules(service, decodedToken);
+  await checkToken(service, decodedToken);
 
   return decodedToken;
 }

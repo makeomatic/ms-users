@@ -51,7 +51,7 @@ async function decodeAndVerify(service, token, audience) {
     const decoded = await verifyData(token, jwt, { audience });
     return decoded;
   } catch (e) {
-    service.log.debug('error decoding token', e);
+    service.log.debug({ e, jwt }, 'error decoding token');
     throw USERS_INVALID_TOKEN;
   }
 }
@@ -150,11 +150,10 @@ exports.refresh = async function refresh(token, _audience) {
   assertRefreshToken(decodedToken);
 
   const userId = decodedToken[USERS_USERNAME_FIELD];
-
   const metadataAudience = getAudience(defaultAudience, audience);
 
   const [refreshResult, metadata] = await Promise.all([
-    statelessJWT.refresh(this, token, decodedToken, audience[0]),
+    statelessJWT.refresh(this, token, decodedToken, audience),
     getMetadata.call(this, userId, metadataAudience),
   ]);
 

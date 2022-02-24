@@ -39,8 +39,5 @@ exports.jwt = {
         backoffMax: 30000,
       },
     },
-    manager: {
-      cleanupInterval: 10 * 60 * 1000, // 10 minutes
-    },
   },
 };

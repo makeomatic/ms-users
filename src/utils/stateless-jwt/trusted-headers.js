@@ -1,6 +1,10 @@
 const { ConnectionError, TypeError } = require('common-errors');
 
-const { USERS_INVALID_TOKEN, USERS_JWT_EXPIRED, USERS_ID_FIELD } = require('../../constants');
+const {
+  USERS_INVALID_TOKEN,
+  USERS_JWT_EXPIRED,
+  USERS_ID_FIELD,
+} = require('../../constants');
 
 const X_TOKEN_CHECK_HEADER = 'x-tkn-valid';
 const X_TOKEN_REASON_HEADER = 'x-tkn-reason';
@@ -14,6 +18,7 @@ const E_BACKEND_UNAVAIL = 'E_BACKEND_UNAVAIL';
 const reasonMap = {
   E_TKN_INVALID: USERS_INVALID_TOKEN,
   E_TKN_EXPIRE: USERS_JWT_EXPIRED,
+  E_AUD_MISMATCH: USERS_INVALID_TOKEN,
   E_BACKEND_UNAVAIL: new ConnectionError('trusted backend unavailable'),
 };
 
@@ -30,7 +35,7 @@ function hasStatelessToken(headers) {
 }
 
 function isValid(headers) {
-  return headers[X_TOKEN_CHECK_HEADER] === X_TOKEN_VALID;
+  return parseInt(headers[X_TOKEN_CHECK_HEADER], 10) === X_TOKEN_VALID;
 }
 
 /**

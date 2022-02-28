@@ -11,12 +11,11 @@ const jwt = require('../utils/jwt');
  * @apiDescription Refreshes passed Refresh Token and returns deserialized user object. Must be used for session management
  *
  * @apiParam (Payload) {String} token - signed JWT token
- * @apiParam (Payload) {String[]} audience - which namespaces of metadata to return
+ * @apiParam (Payload) {String} audience - token audience
  *
  */
 async function refreshToken({ params }) {
-  const audience = Array.isArray(params.audience) ? params.audience : [params.audience];
-  const { token } = params;
+  const { token, audience } = params;
 
   return jwt.refresh.call(this, token, audience);
 }

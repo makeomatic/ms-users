@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const pick = require('lodash/pick');
 const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 const {
@@ -12,6 +13,7 @@ const {
 const { GLOBAL_RULE_GROUP } = require('./rule-manager');
 
 const REVOKE_RULE_ADD_ACTION = 'revoke-rule.add';
+const META_CREDENTIALS = ['alias', 'roles', 'org'];
 
 const isStatelessToken = (token) => !!token.st;
 
@@ -37,6 +39,15 @@ const assertStatelessEnabled = (service) => {
     throw USERS_JWT_STATELESS_REQUIRED;
   }
 };
+
+const createAccessPayload = (userId, metadata, extraFields = []) => ({
+  [USERS_USERNAME_FIELD]: userId,
+  metadata: pick(metadata, [...META_CREDENTIALS, ...extraFields]),
+});
+
+const createRefreshPayload = (userId) => ({
+  [USERS_USERNAME_FIELD]: userId,
+});
 
 const createRule = async (service, ruleSpec) => {
   return service.dispatch(REVOKE_RULE_ADD_ACTION, { params: ruleSpec });
@@ -83,13 +94,20 @@ function createAccessToken(service, refreshToken, payload, audience) {
   });
 }
 
-async function login(service, userId, audience) {
-  const payload = {
-    [USERS_USERNAME_FIELD]: userId,
-  };
+async function login(service, userId, audience, metadata) {
+  const { stateless } = service.config.jwt;
+  const { fields } = stateless;
 
-  const { token: jwtRefresh, payload: jwtRefreshPayload } = createRefreshToken(service, payload, audience);
-  const { token: accessToken } = createAccessToken(service, jwtRefreshPayload, payload, audience);
+  const refreshPayload = createRefreshPayload(userId);
+  const accessPayload = createAccessPayload(userId, metadata, fields);
+
+  const { token: jwtRefresh, payload: jwtRefreshPayload } = createRefreshToken(service, refreshPayload, audience);
+  const { token: accessToken } = createAccessToken(
+    service,
+    jwtRefreshPayload,
+    accessPayload,
+    audience
+  );
 
   return {
     jwt: accessToken,
@@ -118,12 +136,14 @@ async function checkToken(service, token) {
   throw USERS_INVALID_TOKEN;
 }
 
-function refreshTokenStrategy(service, token, encodedRefreshToken, payload, audience) {
+function refreshTokenStrategy({
+  service, refreshToken, encodedRefreshToken, accessPayload, refreshPayload, audience,
+}) {
   const { refreshRotation: { enabled, always, interval } } = service.config.jwt.stateless;
 
-  if (enabled && (always || (Date.now() > token.exp - interval))) {
-    const refreshTkn = createRefreshToken(service, payload, audience);
-    const access = createAccessToken(service, refreshTkn.payload, payload, audience);
+  if (enabled && (always || (Date.now() > refreshToken.exp - interval))) {
+    const refreshTkn = createRefreshToken(service, refreshPayload, audience);
+    const access = createAccessToken(service, refreshTkn.payload, accessPayload, audience);
 
     return {
       access,
@@ -132,35 +152,43 @@ function refreshTokenStrategy(service, token, encodedRefreshToken, payload, audi
   }
 
   return {
-    access: createAccessToken(service, token, payload, audience),
+    access: createAccessToken(service, refreshToken, accessPayload, audience),
     refresh: {
       token: encodedRefreshToken,
-      payload: token,
+      payload: refreshToken,
     },
   };
 }
 
-async function refreshTokenPair(service, encodedToken, token, audience) {
-  const userId = token[USERS_USERNAME_FIELD];
+async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audience, metadata) {
+  const { stateless } = service.config.jwt;
+  const { fields } = stateless;
+  const userId = refreshToken[USERS_USERNAME_FIELD];
 
-  const payload = {
-    [USERS_USERNAME_FIELD]: userId,
-  };
+  await checkToken(service, refreshToken);
 
-  await checkToken(service, token);
+  const refreshPayload = createRefreshPayload(userId);
+  const accessPayload = createAccessPayload(userId, metadata, fields);
 
-  const { refresh, access } = refreshTokenStrategy(service, token, encodedToken, payload, audience);
+  const { refresh, access } = refreshTokenStrategy({
+    service,
+    audience,
+    refreshToken,
+    encodedRefreshToken,
+    accessPayload,
+    refreshPayload,
+  });
 
   // create rt invalidation rule when token rotation performed
-  if (refresh.payload.cs !== token.cs) {
+  if (refresh.payload.cs !== refreshToken.cs) {
     // eslint-disable-next-line no-use-before-define
-    await logout(service, token);
+    await logout(service, refreshToken);
   } else {
     await createRule(service, {
       username: userId,
       rule: {
-        ttl: token.exp,
-        rt: token.cs,
+        ttl: refreshToken.exp,
+        rt: refreshToken.cs,
         iat: { lt: access.payload.iat },
       },
     });

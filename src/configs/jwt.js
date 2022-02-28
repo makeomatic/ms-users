@@ -27,6 +27,9 @@ exports.jwt = {
   stateless: {
     force: false,
     enabled: false,
+    // additional metadata fields to encode in token
+    // hardcoded fields: ['alias', 'roles', 'org']
+    fields: [],
     refreshTTL: 365 * 24 * 60 * 60 * 1000, // 1 year
     refreshRotation: {
       enabled: false,

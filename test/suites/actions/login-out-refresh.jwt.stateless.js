@@ -1,6 +1,7 @@
 const assert = require('assert');
 const { delay } = require('bluebird');
 const { decodeAndVerify } = require('../../../src/utils/jwt');
+const { USERS_ADMIN_ROLE } = require('../../../src/constants');
 
 describe('#stateless-jwt', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
@@ -13,7 +14,11 @@ describe('#stateless-jwt', function loginSuite() {
     lastUsername = `${user.username}.${count}`;
     ({ user: { id: userId } } = await this.users.dispatch('register', {
       params: {
-        ...user, username: lastUsername,
+        ...user,
+        username: lastUsername,
+        metadata: {
+          roles: [USERS_ADMIN_ROLE],
+        },
       },
     }));
   });
@@ -118,6 +123,9 @@ describe('#stateless-jwt', function loginSuite() {
       const oldTokenDecoded = await decodeAndVerify(this.users, oldJwt, user.audience);
       const newTokenDecoded = await decodeAndVerify(this.users, response.jwt, user.audience);
       const refreshTokenDecoded = await decodeAndVerify(this.users, jwtRefresh, user.audience);
+
+      assert.deepStrictEqual(oldTokenDecoded.metadata, { rules: [USERS_ADMIN_ROLE] });
+      assert.deepStrictEqual(newTokenDecoded.metadata, { rules: [USERS_ADMIN_ROLE] });
 
       const rules = await getRules(userId);
 

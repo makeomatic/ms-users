@@ -3,8 +3,8 @@ const Promise = require('bluebird');
 const {
   USERS_INVALID_TOKEN,
   USERS_AUDIENCE_MISMATCH,
-  USERS_USERNAME_FIELD,
   USERS_ID_FIELD,
+  USERS_USERNAME_FIELD,
 } = require('../constants');
 const getMetadata = require('./get-metadata');
 
@@ -79,13 +79,11 @@ exports.login = async function login(userId, _audience, stateless = false) {
   }
 
   const tokenFlow = force || (enabled && stateless)
-    ? () => statelessJWT.login(this, userId, audience)
+    ? (metadata) => statelessJWT.login(this, userId, audience, metadata)
     : () => legacyJWT.login(this, userId, audience);
 
-  const [flowResult, metadata] = await Promise.all([
-    tokenFlow(),
-    getMetadata.call(this, userId, metadataAudience),
-  ]);
+  const metadata = await getMetadata.call(this, userId, metadataAudience);
+  const flowResult = await tokenFlow(metadata[audience]);
 
   return mapJWT(userId, flowResult, metadata);
 };
@@ -145,17 +143,14 @@ exports.refresh = async function refresh(token, _audience) {
   const { defaultAudience } = this.config.jwt;
   const audience = _audience || defaultAudience;
 
-  const decodedToken = await decodeAndVerify(this, token, _audience);
+  const decodedToken = await decodeAndVerify(this, token, audience);
 
   assertRefreshToken(decodedToken);
 
-  const userId = decodedToken[USERS_USERNAME_FIELD];
-  const metadataAudience = getAudience(defaultAudience, audience);
+  const metadata = await getMetadata.call(this, decodedToken[USERS_USERNAME_FIELD], audience);
+  const { jwt, jwtRefresh } = await statelessJWT.refresh(this, token, decodedToken, audience, metadata);
 
-  const [refreshResult, metadata] = await Promise.all([
-    statelessJWT.refresh(this, token, decodedToken, audience),
-    getMetadata.call(this, userId, metadataAudience),
-  ]);
-
-  return mapJWT(userId, refreshResult, metadata);
+  return {
+    jwt, jwtRefresh,
+  };
 };

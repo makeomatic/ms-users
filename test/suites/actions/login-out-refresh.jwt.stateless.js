@@ -124,8 +124,8 @@ describe('#stateless-jwt', function loginSuite() {
       const newTokenDecoded = await decodeAndVerify(this.users, response.jwt, user.audience);
       const refreshTokenDecoded = await decodeAndVerify(this.users, jwtRefresh, user.audience);
 
-      assert.deepStrictEqual(oldTokenDecoded.metadata, { rules: [USERS_ADMIN_ROLE] });
-      assert.deepStrictEqual(newTokenDecoded.metadata, { rules: [USERS_ADMIN_ROLE] });
+      assert.deepStrictEqual(oldTokenDecoded.metadata, { roles: [USERS_ADMIN_ROLE] });
+      assert.deepStrictEqual(newTokenDecoded.metadata, { roles: [USERS_ADMIN_ROLE] });
 
       const rules = await getRules(userId);
 

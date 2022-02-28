@@ -112,7 +112,6 @@ async function login(service, userId, audience, metadata) {
   return {
     jwt: accessToken,
     jwtRefresh,
-    userId,
   };
 }
 
@@ -165,8 +164,6 @@ async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audi
   const { fields } = stateless;
   const userId = refreshToken[USERS_USERNAME_FIELD];
 
-  await checkToken(service, refreshToken);
-
   const refreshPayload = createRefreshPayload(userId);
   const accessPayload = createAccessPayload(userId, metadata, fields);
 
@@ -197,7 +194,6 @@ async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audi
   return {
     jwt: access.token,
     jwtRefresh: refresh.token,
-    userId,
   };
 }
 
@@ -246,6 +242,7 @@ module.exports = {
   logout,
   verify,
   reset,
+  checkToken,
   refresh: refreshTokenPair,
   assertRefreshToken,
   assertAccessToken,

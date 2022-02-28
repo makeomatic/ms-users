@@ -6,6 +6,11 @@ const { USERS_MFA_FLAG } = require('../constants');
 
 /**
  * Verifies decoded token
+ * @returns {Promise<{
+ *  id: String,
+ *  metadata: {},
+ *  mfa: boolean,
+ * }>}
  */
 async function fromTokenData(service, { username, userId }, params) {
   if (!userId && !username) {

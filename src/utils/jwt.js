@@ -10,11 +10,12 @@ const getMetadata = require('./get-metadata');
 
 const legacyJWT = require('./jwt-legacy');
 const statelessJWT = require('./stateless-jwt/jwt');
+const { fromTokenData } = require('./verify');
 
 const {
   assertRefreshToken,
   isStatelessToken, isStatelessEnabled,
-  assertStatelessEnabled,
+  assertStatelessEnabled, checkToken,
 } = statelessJWT;
 
 const {
@@ -146,11 +147,15 @@ exports.refresh = async function refresh(token, _audience) {
   const decodedToken = await decodeAndVerify(this, token, audience);
 
   assertRefreshToken(decodedToken);
+  await checkToken(this, decodedToken);
 
-  const metadata = await getMetadata.call(this, decodedToken[USERS_USERNAME_FIELD], audience);
-  const { jwt, jwtRefresh } = await statelessJWT.refresh(this, token, decodedToken, audience, metadata);
+  const userId = decodedToken[USERS_USERNAME_FIELD];
+  const userData = await fromTokenData(this, { userId }, {
+    defaultAudience,
+    audience,
+  });
 
-  return {
-    jwt, jwtRefresh,
-  };
+  const refreshResult = await statelessJWT.refresh(this, token, decodedToken, audience, userData.metadata[audience]);
+
+  return mapJWT(userId, refreshResult, userData.metadata);
 };

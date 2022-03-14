@@ -55,7 +55,7 @@ function getJwkFromResponse(header, callback) {
 
 async function getProfile(credentials, params) {
   const response = await Bluebird.fromCallback(
-    (callback) => verify(params.id_token, getJwkFromResponse, callback)
+    (callback) => verify(params.token, getJwkFromResponse, callback)
   );
   const {
     sub,

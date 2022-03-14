@@ -35,10 +35,10 @@ async function upgrade(request) {
     query.jwt = params.jwt;
   }
 
-  const initialReq = { token, query };
-
   // verifies token by retreiving profile
-  const credentials = await profile.call(providerSettings, initialReq);
+  const credentials = provider === 'apple'
+    ? await profile({}, { id_token: token })
+    : await profile.call(providerSettings, { token, query });
 
   // ensure its a shallow copy as we will mutate it later
   const oauthConfig = { ...this.config.oauth.providers[provider] };

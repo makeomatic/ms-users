@@ -2,7 +2,6 @@ const { ConnectionError, TypeError } = require('common-errors');
 
 const {
   USERS_INVALID_TOKEN,
-  USERS_JWT_EXPIRED,
   USERS_ID_FIELD,
 } = require('../../constants');
 
@@ -17,7 +16,6 @@ const E_BACKEND_UNAVAIL = 'E_BACKEND_UNAVAIL';
 
 const reasonMap = {
   E_TKN_INVALID: USERS_INVALID_TOKEN,
-  E_TKN_EXPIRE: USERS_JWT_EXPIRED,
   E_AUD_MISMATCH: USERS_INVALID_TOKEN,
   E_BACKEND_UNAVAIL: new ConnectionError('trusted backend unavailable'),
 };

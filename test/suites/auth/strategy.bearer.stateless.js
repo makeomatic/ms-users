@@ -36,7 +36,7 @@ describe('/_/me', function verifySuite() {
     });
   });
 
-  it('must reject on an invalid JWT token', async function test() {
+  it('must reject on an invalid/expired JWT token', async function test() {
     await assert.rejects(request.get({
       headers: {
         'x-tkn-valid': 0,
@@ -51,24 +51,6 @@ describe('/_/me', function verifySuite() {
         statusCode: 403,
       },
       statusCode: 403,
-    });
-  });
-
-  it('must reject on an expired JWT token', async function test() {
-    await assert.rejects(request.get({
-      headers: {
-        'x-tkn-valid': 0,
-        'x-tkn-reason': 'E_TKN_EXPIRE',
-        'x-tkn-stateless': 1,
-      },
-    }), {
-      error: {
-        name: 'HttpStatusError',
-        message: 'expired token',
-        error: 'Unauthorized',
-        statusCode: 401,
-      },
-      statusCode: 401,
     });
   });
 

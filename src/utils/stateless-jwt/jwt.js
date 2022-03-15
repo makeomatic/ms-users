@@ -4,7 +4,6 @@ const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 const {
   USERS_USERNAME_FIELD,
-  USERS_JWT_EXPIRED,
   USERS_JWT_ACCESS_REQUIRED,
   USERS_JWT_REFRESH_REQUIRED,
   USERS_JWT_STATELESS_REQUIRED,
@@ -117,7 +116,7 @@ async function login(service, userId, audience, metadata) {
 
 async function checkToken(service, token) {
   if (token.exp < Date.now()) {
-    throw USERS_JWT_EXPIRED;
+    throw USERS_INVALID_TOKEN;
   }
 
   const userId = token[USERS_USERNAME_FIELD];

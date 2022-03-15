@@ -78,7 +78,6 @@ If passed tokens fails one of the verification steps the response will contain:
 
 ##### `code -> message`
 
-* `E_TKN_EXPIRE` - `expired token`
 * `E_TKN_ACCESS_TOKEN_REQUIRED` - `access token required`
 * `E_TKN_REFRESH_TOKEN_REQUIRED` - `refresh token required`
 
@@ -96,8 +95,8 @@ Example:
   status_code: 401,
   
   // App specific
-  code: `E_TKN_EXPIRE`,
-  message: 'expired token',
+  code: `E_TKN_ACCESS_TOKEN_REQUIRED`,
+  message: 'access token required',
 }
 ```
 

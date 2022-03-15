@@ -69,7 +69,6 @@ module.exports = exports = {
   USERS_INVALID_TOKEN: new HttpStatusError(403, 'invalid token'),
   USERS_MALFORMED_TOKEN: new HttpStatusError(403, 'malformed token'),
 
-  USERS_JWT_EXPIRED: new HttpStatusError(401, 'expired token'),
   USERS_JWT_ACCESS_REQUIRED: new HttpStatusError(401, 'access token required'),
   USERS_JWT_REFRESH_REQUIRED: new HttpStatusError(401, 'refresh token required'),
   USERS_JWT_STATELESS_REQUIRED: new HttpStatusError(501, '`Stateless JWT` should be enabled'),
@@ -139,7 +138,6 @@ exports.ErrorTotpInvalid.code = 'E_TOTP_INVALID';
 exports.ErrorSecretRequired.code = 'E_TOTP_NOSECRET';
 
 exports.USERS_INVALID_TOKEN.code = 'E_TKN_INVALID';
-exports.USERS_JWT_EXPIRED.code = 'E_TKN_EXPIRE';
 exports.USERS_AUDIENCE_MISMATCH.code = 'E_TKN_AUDIENCE_MISMATCH';
 exports.USERS_JWT_ACCESS_REQUIRED.code = 'E_TKN_ACCESS_TOKEN_REQUIRED';
 exports.USERS_JWT_REFRESH_REQUIRED.code = 'E_TKN_REFRESH_TOKEN_REQUIRED';

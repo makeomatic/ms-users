@@ -101,6 +101,11 @@ function getProvider(options, server) {
       response_mode: 'form_post',
       response_type: 'code', // has no effect, bell forces query.response_type = 'code'
     },
+
+    runtimeStateCallback: (req) => {
+      return req.query.isStatelessAuth ? 'stateless' : '';
+    },
+
     provider: {
       name: 'apple',
       auth: 'https://appleid.apple.com/auth/authorize',

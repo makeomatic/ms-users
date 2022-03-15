@@ -530,6 +530,9 @@
               },
               "profileHandler": {
                 "type": "object"
+              },
+              "runtimeStateCallback": {
+                "type": "object"
               }
             }
           }

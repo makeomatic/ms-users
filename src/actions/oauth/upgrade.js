@@ -16,10 +16,11 @@ const formOAuthResponse = require('../../auth/oauth/utils/form-oauth-response');
  *
  * @apiParam (Payload) {String="facebook"} provider
  * @apiParam (Payload) {String} token - sso token
+ * @apiParam (Payload) {String} isStatelessAuth - use stateless JWT tokens when they are optional
  */
 async function upgrade(request) {
   const { transportRequest, params, query } = request;
-  const { provider, token } = params;
+  const { provider, token, isStatelessAuth } = params;
 
   // fetch settings, otherwise provider is not supported
   const providerSettings = this.oauth.app.oauthProviderSettings[provider];
@@ -57,7 +58,7 @@ async function upgrade(request) {
   }
 
   const verifiedCredentials = oauthVerification(ctx, null, credentials);
-  const associatedUserData = await mserviceVerification(ctx, verifiedCredentials);
+  const associatedUserData = await mserviceVerification(ctx, verifiedCredentials, isStatelessAuth);
 
   // at that point we can have the following:
   // 1. account linked, jwt wasnt passed - sign in information under `associatedUserData.user`

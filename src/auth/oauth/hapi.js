@@ -66,9 +66,6 @@ module.exports = function OauthHandler(server, config) {
         name,
         scope: stringToArray(scope),
         scopeSeparator,
-        runtimeStateCallback: (req) => {
-          return req.query.isStatelessAuth ? 'stateless' : '';
-        },
       };
 
       if (is.fn(defaultOptions)) {

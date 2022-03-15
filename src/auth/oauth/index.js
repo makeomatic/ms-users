@@ -94,7 +94,7 @@ async function mserviceVerification({ service, transportRequest }, credentials, 
   // https://github.com/hapijs/bell/blob/63603c9e897f3607efeeca87b6ef3c02b939884b/lib/oauth.js#L261
   const oauthConfig = service.config.oauth;
   const jwt = extractJWT(transportRequest, oauthConfig) || credentials.query[oauthConfig.urlKey];
-  const isStatelessAuth = stateless || (credentials.query.state || '').endsWith('stateless');
+  const isStatelessAuth = Boolean(stateless || credentials.query.isStatelessAuth);
 
   // validate JWT token if provided
   const checkAuth = jwt

@@ -9,13 +9,13 @@
     },
     "token": {
       "type": "string",
-      "maxLength": 512,
+      "maxLength": 1024,
       "minLength": 1
     },
     "jwt": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 512
+      "maxLength": 1024
     }
   }
 }

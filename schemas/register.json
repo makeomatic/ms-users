@@ -84,6 +84,10 @@
     },
     "sso": {
       "type": "string"
+    },
+    "isStatelessAuth": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

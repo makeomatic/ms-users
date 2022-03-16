@@ -134,14 +134,21 @@ class MastersService {
     let response;
 
     try {
-      const { body } = await this.httpPool.request({
+      const { body, statusCode } = await this.httpPool.request({
         headersTimeout: 5000,
         bodyTimeout: 5000,
         ...this.config.httpClientOptions,
         path: `${this.config.authPath}?token=${profileToken}`,
         method: 'GET',
       });
-      response = await body.json();
+
+      if (statusCode === 200) {
+        response = await body.json();
+      } else {
+        response = await body.text();
+        this.service.log.error({ err: response, statusCode, profileToken, account }, 'failed to retrieve profile');
+        throw new Error('failed to retrieve profile');
+      }
     } catch (e) {
       this.service.log.warn({ err: e }, 'failed to get user from masters');
       throw USERS_INVALID_TOKEN;

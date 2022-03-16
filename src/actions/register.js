@@ -316,6 +316,8 @@ async function performRegistration({ service, params }) {
  * @apiParam (Payload) {Boolean} [skipPassword=false] - disable setting password
  * @apiParam (Payload) {String} [challengeType="email"] - challenge type
  * @apiParam (Payload) {String} [referral] - pass id/fingerprint of the client to see if it was stored before and associate with this account
+ *
+ * @this { import('@microfleet/core-types').Microfleet }
  */
 module.exports = async function registerUser({ params }) {
   const service = this;

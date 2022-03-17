@@ -7,7 +7,7 @@ try {
     "docker context inspect -f '{{ .Endpoints.docker.Host }}'",
     { encoding: 'utf-8' })
 
-  const socket = dockerHost.replace('unix:///', '').replace(/\n/, '')
+  const socket = dockerHost.replace(/^unix:\/+/, '/').replace(/\n/, '')
   process.env.DOCKER_SOCKET_PATH = socket
 } catch (e) {}
 

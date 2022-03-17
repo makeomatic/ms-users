@@ -15,7 +15,8 @@
     "semantic-release": "semantic-release",
     "docker-release": "mdep docker release",
     "release": "pnpm i && pnpm run semantic-release",
-    "start": "mfleet"
+    "start": "mfleet",
+    "prepare": "mdep install"
   },
   "repository": {
     "type": "git",

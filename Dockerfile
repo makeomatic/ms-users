@@ -6,14 +6,11 @@ ENV NCONF_NAMESPACE=MS_USERS \
 WORKDIR /src
 
 # pnpm fetch does require only lockfile
-COPY pnpm-lock.yaml ./
-RUN pnpm fetch --prod
-
-COPY package.json ./
+COPY package.json pnpm-lock.yaml ./
 RUN \
   apk --update upgrade \
   && apk add git ca-certificates openssl g++ make python3 linux-headers \
-  && pnpm install -r --offline --prod \
+  && pnpm install --prod \
   && apk del \
     g++ \
     make \

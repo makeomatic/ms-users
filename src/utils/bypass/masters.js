@@ -1,11 +1,19 @@
 const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');
 const undici = require('undici');
+const pRetry = require('p-retry');
 
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists } = require('../../constants');
 const contacts = require('../contacts');
 
 const AJV_SCHEME_ID = 'masters.profile';
+
+const retryConfig = {
+  retries: 3,
+  factor: 1.5,
+  minTimeout: 500,
+  maxTimeout: 2000,
+};
 
 const schema = {
   $id: AJV_SCHEME_ID,
@@ -159,12 +167,12 @@ class MastersService {
       return this.service.validator.ifError(schema.$id, response);
     } catch (e) {
       this.service.log.error({ err: e, profile: response }, 'masters returned invalid profile');
-      throw e;
+      throw new pRetry.AbortError(e);
     }
   }
 
   async authenticate(profileToken, account) {
-    const userProfile = await this.retrieveUser(profileToken, account);
+    const userProfile = await pRetry(() => this.retrieveUser(profileToken, account), retryConfig);
     return this.registerAndLogin(userProfile);
   }
 }

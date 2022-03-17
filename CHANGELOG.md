@@ -1,3 +1,10 @@
+## [15.0.3](https://github.com/makeomatic/ms-users/compare/v15.0.2...v15.0.3) (2022-03-17)
+
+
+### Bug Fixes
+
+* **masters:** retry profile validation ([197ad0a](https://github.com/makeomatic/ms-users/commit/197ad0a54780b84743756abc7d2a9351e3781375))
+
 ## [15.0.2](https://github.com/makeomatic/ms-users/compare/v15.0.1...v15.0.2) (2022-03-17)
 
 

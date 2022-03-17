@@ -1,3 +1,10 @@
+## [15.0.2](https://github.com/makeomatic/ms-users/compare/v15.0.1...v15.0.2) (2022-03-17)
+
+
+### Bug Fixes
+
+* unhandled promise rejection send/phone ([d9db4cb](https://github.com/makeomatic/ms-users/commit/d9db4cb8ae63925c380b8a2112d88da40d5ff7b7))
+
 ## [15.0.1](https://github.com/makeomatic/ms-users/compare/v15.0.0...v15.0.1) (2022-03-17)
 
 

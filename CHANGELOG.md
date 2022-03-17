@@ -1,3 +1,11 @@
+## [15.0.1](https://github.com/makeomatic/ms-users/compare/v15.0.0...v15.0.1) (2022-03-17)
+
+
+### Bug Fixes
+
+* add error log for bypass ([9d07f67](https://github.com/makeomatic/ms-users/commit/9d07f673bb37af072bab8f2894f6e911cd40af72))
+* graph-api fb issues, updated deps ([fcbc5f7](https://github.com/makeomatic/ms-users/commit/fcbc5f7228abdb98a9a72ad47bfac88d3e7583c0))
+
 # [15.0.0](https://github.com/makeomatic/ms-users/compare/v14.25.1...v15.0.0) (2022-02-11)
 
 

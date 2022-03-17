@@ -12,7 +12,7 @@ git config user.name "semaphore"
 touch ./docs/.nojekyll
 git add -f ./docs
 git status
-git commit -m "chore(docs-$SEMAPHORE_JOB_ID): updated remote public documentation"
+git commit -m "chore(docs): updated remote public documentation"
 url=`node -e "console.log(require('./package.json').repository.url)"`
 origin=`echo $url | awk -F '//' '{print $1"//"ENVIRON["GITHUB_TOKEN"]"@"$2 }'`
 git push $origin `git subtree split --prefix docs $branch_name`:gh-pages --force

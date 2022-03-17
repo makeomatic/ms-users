@@ -46,6 +46,11 @@ async function send(tel, action, context = {}) {
     return { context };
   }
 
+  // to avoid unhandled errors
+  sendingPromise.catch((err) => {
+    this.log.warn({ err }, 'failed to send challenge message');
+  });
+
   return {
     queued: true,
     context,

@@ -61,8 +61,7 @@ const { argv } = require('yargs')
 
 // deps
 const fs = require('fs');
-const Promise = require('bluebird');
-const AMQPTransport = require('@microfleet/transport-amqp');
+const { connect } = require('@microfleet/transport-amqp');
 const csvWriter = require('csv-write-stream');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
@@ -90,12 +89,11 @@ if (argv.criteria) iterator.criteria = argv.criteria;
 /**
  * Get transport
  */
-const getTransport = () => AMQPTransport
-  .connect({ ...amqpConfig, debug: false })
-  .disposer((amqp) => amqp.close());
+const getTransport = () => connect({ ...amqpConfig, debug: false })
 
 /**
  * Output stream
+ * @type {NodeJS.WritableStream}
  */
 let output;
 const headers = ['id', 'username', ...argv.field];
@@ -158,6 +156,15 @@ const listUsers = (amqp) => (
     })
 );
 
-Promise
-  .using(getTransport(), listUsers)
-  .catch((err) => setImmediate(() => { throw err; }));
+(async () => {
+  const amqp = await getTransport()
+  try {
+    await listUsers(amqp)
+  } catch (err) {
+    console.error(err)
+    output.end()
+    process.exit(128)
+  } finally {
+    await amqp.close()
+  }
+})();

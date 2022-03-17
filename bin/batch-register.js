@@ -6,7 +6,7 @@
 const is = require('is');
 const Promise = require('bluebird');
 const { strict: assert } = require('assert');
-const AMQPTransport = require('@microfleet/transport-amqp');
+const { connect } = require('@microfleet/transport-amqp');
 const getStdin = require('get-stdin');
 const omit = require('lodash/omit');
 const defaults = require('lodash/defaults');
@@ -22,17 +22,17 @@ const { prefix } = config.router.routes;
 /**
  * Registers batch users from stdin
  */
-function registerUsers(users) {
-  return AMQPTransport
-    .connect({ ...amqpConfig, debug: false })
-    .then((amqp) => (
-      Promise
-        .map(users, (user) => (
-          amqp.publishAndWait(`${prefix}.register`, user, { timeout: 5000 })
-        ))
-        .finally(() => amqp.close())
+async function registerUsers(users) {
+  const amqp = await connect({ ...amqpConfig, debug: false })
+  try {
+    await Promise.map(users, (user) => (
+      amqp.publishAndWait(`${prefix}.register`, user, { timeout: 5000 })
     ))
-    .return(users);
+  } finally {
+    await amqp.close()
+  }
+
+  return users
 }
 
 // read data from stdin

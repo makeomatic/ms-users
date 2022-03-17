@@ -1,6 +1,6 @@
 {
   "require": ["./test/config.js"],
-  "timeout": 60000,
+  "timeout": 600000,
   "bail": true,
   "report": "spec"
 }

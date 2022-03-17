@@ -3,7 +3,7 @@ const request = require('request-promise');
 const { strict: assert } = require('assert');
 
 const baseOpts = {
-  baseUrl: 'https://graph.facebook.com/v8.0',
+  baseUrl: 'https://graph.facebook.com/v13.0',
   headers: {
     Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
   },
@@ -31,7 +31,7 @@ class GraphAPI {
    */
   static createTestUser(props = {}) {
     return this.graphApi({
-      uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
+      uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts`,
       method: 'POST',
       body: {
         installed: false,
@@ -49,8 +49,11 @@ class GraphAPI {
     this.checkUser(user);
 
     return this.graphApi({
-      uri: `${user.id}`,
+      uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts`,
       method: 'DELETE',
+      body: {
+        uid: user.id
+      }
     });
   }
 
@@ -112,16 +115,17 @@ class GraphAPI {
    * @returns {Promise<{ id: string, access_token: string | undefined, login_url: string, email?: string }>}
    */
   static async _getTestUserWithPermissions(permissions, next = `${baseOpts.baseUrl}/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`) {
-    const { data, paging: { next: nextPage } } = await this.graphApi({
+    const { data, paging: { next: nextPage } = {} } = await this.graphApi({
       baseUrl: '',
       uri: next,
       method: 'GET',
     });
+    const installed = Array.isArray(permissions) && permissions.length > 0
 
     if (data.length === 0) {
       return this.createTestUser({
-        installed: Array.isArray(permissions) && permissions.length > 0,
-        permissions: Array.isArray(permissions) && permissions.length > 0 ? permissions.join(',') : undefined,
+        installed,
+        permissions: installed ? permissions.join(',') : undefined,
       });
     }
 
@@ -129,6 +133,10 @@ class GraphAPI {
       const users = data.filter((x) => !x.access_token);
       const user = users[users.length * Math.random() | 0];
       if (!user) {
+        if (!nextPage) {
+          return this.createTestUser();
+        }
+
         return this.getTestUserWithPermissions(permissions, nextPage);
       }
 

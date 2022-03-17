@@ -1,7 +1,7 @@
 /**
  * Sends simple email using mailing microservice
  */
-module.exports = exports = function definedSubjectAndSend(props, wait = false) {
+module.exports = async function definedSubjectAndSend(props, wait = false) {
   const {
     email, type, context, templateName, nodemailer = {},
   } = props;
@@ -21,8 +21,7 @@ module.exports = exports = function definedSubjectAndSend(props, wait = false) {
 
   const mailSent = mailer
     .sendTemplate(mailingAccount, templateName, ctx)
-    .return({ sent: true, context })
-    .catch((err) => ({
+    .then(() => ({ sent: true, context }), (err) => ({
       context,
       err,
       sent: false,

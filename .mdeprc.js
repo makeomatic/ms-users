@@ -1,5 +1,15 @@
 const fs = require('fs')
 const uid = process.getuid()
+const { execSync } = require('child_process')
+
+try {
+  const dockerHost = execSync(
+    "docker context inspect -f '{{ .Endpoints.docker.Host }}'",
+    { encoding: 'utf-8' })
+
+  const socket = dockerHost.replace('unix:///', '').replace(/\n/, '')
+  process.env.DOCKER_SOCKET_PATH = socket
+} catch (e) {}
 
 exports.node = "16";
 exports.auto_compose = true;

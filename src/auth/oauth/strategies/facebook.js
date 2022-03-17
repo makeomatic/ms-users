@@ -32,6 +32,8 @@ function defaultProfileHandler(ctx, profile) {
   const { token, refreshToken } = credentials;
   const { id, email, username } = profile;
 
+  console.log('%j', profile)
+
   // embed profile, contains only safe data, would be attached to user's metadata
   credentials.profile = {
     id,

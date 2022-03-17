@@ -3,7 +3,7 @@
 // quickly generates bearer for a passed username
 /* eslint-disable no-console */
 
-const AMQPTransport = require('@microfleet/transport-amqp');
+const { connect } = require('@microfleet/transport-amqp');
 const { strict: assert } = require('assert');
 const conf = require('../lib/config');
 
@@ -22,8 +22,7 @@ function approveSchool(amqp) {
 }
 
 // connection options
-AMQPTransport
-  .connect(amqpConfig)
+connect(amqpConfig)
   .then((amqp) => approveSchool(amqp).tap(() => amqp.close()))
   .then((token) => {
     console.info('Created token for %s with name %s:\n\n%s\n\n', username, name, token);

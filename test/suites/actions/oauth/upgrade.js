@@ -115,6 +115,7 @@ t('oauth#upgrade', function oauthFacebookSuite() {
   describe('new user', async function newUserTest() {
     beforeEach('create test user', async () => {
       generalUser = await GraphApi.getTestUserWithPermissions(['public_profile', 'email']);
+      console.info('%j', generalUser)
     });
 
     beforeEach('exchanges fb access_token to ms-users signed token', async () => {

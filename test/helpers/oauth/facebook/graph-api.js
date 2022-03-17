@@ -52,8 +52,8 @@ class GraphAPI {
       uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts`,
       method: 'DELETE',
       body: {
-        uid: user.id
-      }
+        uid: user.id,
+      },
     });
   }
 
@@ -120,7 +120,7 @@ class GraphAPI {
       uri: next,
       method: 'GET',
     });
-    const installed = Array.isArray(permissions) && permissions.length > 0
+    const installed = Array.isArray(permissions) && permissions.length > 0;
 
     if (data.length === 0) {
       return this.createTestUser({

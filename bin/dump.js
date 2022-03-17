@@ -89,7 +89,7 @@ if (argv.criteria) iterator.criteria = argv.criteria;
 /**
  * Get transport
  */
-const getTransport = () => connect({ ...amqpConfig, debug: false })
+const getTransport = () => connect({ ...amqpConfig, debug: false });
 
 /**
  * Output stream
@@ -157,14 +157,14 @@ const listUsers = (amqp) => (
 );
 
 (async () => {
-  const amqp = await getTransport()
+  const amqp = await getTransport();
   try {
-    await listUsers(amqp)
+    await listUsers(amqp);
   } catch (err) {
-    console.error(err)
-    output.end()
-    process.exit(128)
+    console.error(err);
+    output.end();
+    process.exit(128);
   } finally {
-    await amqp.close()
+    await amqp.close();
   }
 })();

@@ -23,16 +23,16 @@ const { prefix } = config.router.routes;
  * Registers batch users from stdin
  */
 async function registerUsers(users) {
-  const amqp = await connect({ ...amqpConfig, debug: false })
+  const amqp = await connect({ ...amqpConfig, debug: false });
   try {
     await Promise.map(users, (user) => (
       amqp.publishAndWait(`${prefix}.register`, user, { timeout: 5000 })
-    ))
+    ));
   } finally {
-    await amqp.close()
+    await amqp.close();
   }
 
-  return users
+  return users;
 }
 
 // read data from stdin

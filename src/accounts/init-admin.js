@@ -11,7 +11,7 @@ module.exports = function initAccounts() {
   return Promise
     .delay(config.initAdminAccountsDelay)
     .return(accounts)
-    .map((account) => {
+    .map(async (account) => {
       const userData = {
         audience,
         username: account.username,
@@ -38,9 +38,9 @@ module.exports = function initAccounts() {
 
       // this will be performed each time on startup, but shouldnt be a problem due to NX
       // and lack of side-effect
-      return this
-        .dispatch('referral', { params: { id: userData.referral, referral: account.referral } })
-        .return({ params: userData });
+      await this.dispatch('referral', { params: { id: userData.referral, referral: account.referral } });
+
+      return { params: userData };
     })
     .map((userData) => Promise.bind(this, ['register', userData]).spread(this.dispatch).reflect())
     .then((users) => {

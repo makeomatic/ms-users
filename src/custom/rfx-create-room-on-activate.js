@@ -7,7 +7,7 @@ const setMetadata = require('../utils/update-metadata');
  * @param  {Object} params
  * @return {Promise}
  */
-function createRoom(userId, params, metadata) {
+async function createRoom(userId, params, metadata) {
   const { audience, inviteToken } = params;
 
   if (is.undefined(inviteToken)) {
@@ -22,21 +22,19 @@ function createRoom(userId, params, metadata) {
     name: `${metadata[audience].stationName} | ${metadata[audience].stationSchool}`,
   };
 
-  return amqp.publishAndWait(route, roomParams, { timeout: 5000 })
-    .bind(this)
-    .then((room) => {
-      const update = {
-        userId,
-        audience,
-        metadata: {
-          $set: {
-            stationChatId: room.id,
-          },
-        },
-      };
+  const room = await amqp.publishAndWait(route, roomParams, { timeout: 5000 });
 
-      return setMetadata.call(this, update);
-    });
+  const update = {
+    userId,
+    audience,
+    metadata: {
+      $set: {
+        stationChatId: room.id,
+      },
+    },
+  };
+
+  return setMetadata.call(this, update);
 }
 
 module.exports = createRoom;

@@ -3,6 +3,7 @@ const { ConnectionError, TypeError } = require('common-errors');
 const {
   USERS_INVALID_TOKEN,
   USERS_ID_FIELD,
+  USERS_AUDIENCE_MISMATCH,
 } = require('../../constants');
 
 const X_TOKEN_CHECK_HEADER = 'x-tkn-valid';
@@ -72,9 +73,13 @@ function checkTrustedHeadersCompat(service, headers, { audience }, fallback) {
  * NOTE: Should not be used with Redis tokens.
  * @param {Object<string, any>} headers
  */
-function checkTrustedHeaders(headers, fallback) {
+function checkTrustedHeaders(headers, { audience }, fallback) {
   if (isValid(headers) && hasStatelessToken(headers)) {
     const tokenBody = JSON.parse(X_TOKEN_BODY_HEADER);
+
+    if (audience.indexOf(tokenBody.aud) === -1) {
+      throw USERS_AUDIENCE_MISMATCH;
+    }
 
     return {
       id: tokenBody[USERS_ID_FIELD],
@@ -83,7 +88,7 @@ function checkTrustedHeaders(headers, fallback) {
   }
 
   const reason = headers[X_TOKEN_REASON_HEADER];
-  if (reason === E_BACKEND_UNAVAIL && fallback) {
+  if ((reason === E_BACKEND_UNAVAIL || !hasStatelessToken(headers)) && fallback) {
     return fallback();
   }
 

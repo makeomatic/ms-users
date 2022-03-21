@@ -54,6 +54,23 @@ describe('/_/me', function verifySuite() {
     });
   });
 
+  it('must fallback to default verification', async function test() {
+    await assert.rejects(request.get({
+      headers: {
+        'x-tkn-valid': 0,
+        'x-tkn-reason': 'E_TKN_INVALID',
+      },
+    }), {
+      error: {
+        name: 'HttpStatusError',
+        message: 'Credentials Required',
+        error: 'Unauthorized',
+        statusCode: 401,
+      },
+      statusCode: 401,
+    });
+  });
+
   describe('valid token', function suite() {
     const jwt = require('../../../src/utils/jwt');
     let bearerAuthHeaders;
@@ -100,12 +117,43 @@ describe('/_/me', function verifySuite() {
       };
     });
 
+    it('checks trusted token audience', async () => {
+      await assert.rejects(
+        request.get({ headers: jwtAuthHeaders, qs: { audience: 'test2' } }),
+        {
+          error: {
+            name: 'HttpStatusError',
+            message: 'audience mismatch',
+            error: 'Forbidden',
+            statusCode: 403,
+          },
+          statusCode: 403,
+        }
+      );
+    });
+
     it('fallback to generic check on backend unavailable', async () => {
       const body = await request.get({
         headers: {
           'x-tkn-valid': 0,
           'x-tkn-reason': 'E_BACKEND_UNAVAIL',
           'x-tkn-stateless': 1,
+          authorization: `JWT ${jwtAccessToken}`,
+        },
+        qs: {
+          audience: 'test',
+        },
+      });
+
+      verifyBody(body);
+    });
+
+    it('must fallback to default verification in case of legacy token', async function test() {
+      // specific case - invalid key or legacy token
+      const body = await request.get({
+        headers: {
+          'x-tkn-valid': 0,
+          'x-tkn-reason': 'E_TKN_INVALID',
           authorization: `JWT ${jwtAccessToken}`,
         },
         qs: {

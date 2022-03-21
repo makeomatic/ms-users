@@ -7,36 +7,33 @@ const setMetadata = require('../utils/update-metadata');
  * @param  {String} username
  * @return {Promise}
  */
-module.exports = function mixPlan(userId, params) {
+module.exports = async function mixPlan(userId, params) {
   const { amqp, config } = this;
   const { audience } = params;
   const { payments } = config;
   const route = [payments.prefix, payments.routes.planGet].join('.');
   const id = 'free';
 
-  return amqp
-    .publishAndWait(route, id, { timeout: 5000 })
-    .bind(this)
-    .then(function mix(plan) {
-      const subscription = find(plan.subs, ['name', 'month']);
-      const nextCycle = moment().add(1, 'month').valueOf();
-      const update = {
-        userId,
-        audience,
-        metadata: {
-          $set: {
-            plan: id,
-            agreement: id,
-            nextCycle,
-            models: subscription.models,
-            modelPrice: subscription.price,
-            subscriptionPrice: '0',
-            subscriptionInterval: 'month',
-            subscriptionType: 'free',
-          },
-        },
-      };
+  const plan = await amqp.publishAndWait(route, id, { timeout: 5000 });
 
-      return setMetadata.call(this, update);
-    });
+  const subscription = find(plan.subs, ['name', 'month']);
+  const nextCycle = moment().add(1, 'month').valueOf();
+  const update = {
+    userId,
+    audience,
+    metadata: {
+      $set: {
+        plan: id,
+        agreement: id,
+        nextCycle,
+        models: subscription.models,
+        modelPrice: subscription.price,
+        subscriptionPrice: '0',
+        subscriptionInterval: 'month',
+        subscriptionType: 'free',
+      },
+    },
+  };
+
+  return setMetadata.call(this, update);
 };

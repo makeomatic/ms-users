@@ -21,8 +21,13 @@ const schema = {
   required: ['userId', 'firstName', 'lastName', 'email'],
   properties: {
     userId: {
-      type: 'string',
-      format: 'uuid',
+      anyOf: [{
+        type: 'string',
+        format: 'uuid'
+      }, {
+        type: 'string',
+        pattern: '^\\d+$'
+      }]
     },
     firstName: {
       type: 'string',
@@ -59,8 +64,8 @@ class MastersService {
     this.audience = this.service.config.jwt.defaultAudience;
   }
 
-  static userId(userProfile) {
-    return userProfile.userId;
+  static userId({ userId }) {
+    return /^\d+$/.test(userId) ? `ma/${userId}` : userId;
   }
 
   async login(userProfile) {

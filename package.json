@@ -53,6 +53,7 @@
     "@microfleet/transport-amqp": "^17.0.9",
     "@microfleet/utils": "^0.9.0",
     "@microfleet/validation": "^11.1.2",
+    "ajv-formats": "^2.1.1",
     "bluebird": "^3.7.2",
     "bytes": "^3.1.2",
     "camelcase": "^6.3.0",

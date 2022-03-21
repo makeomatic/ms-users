@@ -29,6 +29,7 @@ specifiers:
   '@semantic-release/changelog': ^6.0.1
   '@semantic-release/exec': ^6.0.3
   '@semantic-release/git': ^10.0.1
+  ajv-formats: ^2.1.1
   apidoc: ^0.50.5
   apidoc-plugin-schema: ^0.1.8
   bluebird: ^3.7.2
@@ -119,6 +120,7 @@ dependencies:
   '@microfleet/transport-amqp': 17.0.9_common-errors@1.2.0
   '@microfleet/utils': 0.9.0
   '@microfleet/validation': 11.1.2
+  ajv-formats: 2.1.1
   bluebird: 3.7.2
   bytes: 3.1.2
   camelcase: 6.3.0

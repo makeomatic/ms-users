@@ -1,3 +1,10 @@
+## [15.0.4](https://github.com/makeomatic/ms-users/compare/v15.0.3...v15.0.4) (2022-03-21)
+
+
+### Bug Fixes
+
+* custom hooks and init admin accounts ([#545](https://github.com/makeomatic/ms-users/issues/545)) ([23ae463](https://github.com/makeomatic/ms-users/commit/23ae463f2a21415f36ae3e81510616537a1d0880))
+
 ## [15.0.3](https://github.com/makeomatic/ms-users/compare/v15.0.2...v15.0.3) (2022-03-17)
 
 

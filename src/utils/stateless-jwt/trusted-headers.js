@@ -59,7 +59,7 @@ function checkTrustedHeadersCompat(service, headers, { audience }, fallback) {
   }
 
   const reason = headers[X_TOKEN_REASON_HEADER];
-  if (reason === E_BACKEND_UNAVAIL && fallback) {
+  if ((reason === E_BACKEND_UNAVAIL || !hasStatelessToken(headers)) && fallback) {
     return fallback();
   }
 
@@ -74,7 +74,8 @@ function checkTrustedHeadersCompat(service, headers, { audience }, fallback) {
  */
 function checkTrustedHeaders(headers, fallback) {
   if (isValid(headers) && hasStatelessToken(headers)) {
-    const tokenBody = JSON.decode(X_TOKEN_BODY_HEADER);
+    const tokenBody = JSON.parse(X_TOKEN_BODY_HEADER);
+
     return {
       id: tokenBody[USERS_ID_FIELD],
       metadata: tokenBody.metadata,

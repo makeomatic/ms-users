@@ -23,11 +23,11 @@ const schema = {
     userId: {
       anyOf: [{
         type: 'string',
-        format: 'uuid'
+        format: 'uuid',
       }, {
         type: 'string',
-        pattern: '^\\d+$'
-      }]
+        pattern: '^\\d+$',
+      }],
     },
     firstName: {
       type: 'string',

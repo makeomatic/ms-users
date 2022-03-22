@@ -68,7 +68,7 @@
         { "format": "email" },
         { "format": "uuid" },
         { "pattern": "^\\d+$" },
-        { "pattern": "^(fb|sso)/[\\d_]+$" }
+        { "pattern": "^(fb|sso|ma)/[\\d_]+$" }
       ]
     },
     "alias": {

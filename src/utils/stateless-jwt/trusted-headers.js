@@ -75,7 +75,7 @@ function checkTrustedHeadersCompat(service, headers, { audience }, fallback) {
  */
 function checkTrustedHeaders(headers, { audience }, fallback) {
   if (isValid(headers) && hasStatelessToken(headers)) {
-    const tokenBody = JSON.parse(X_TOKEN_BODY_HEADER);
+    const tokenBody = JSON.parse(headers[X_TOKEN_BODY_HEADER]);
 
     if (audience.indexOf(tokenBody.aud) === -1) {
       throw USERS_AUDIENCE_MISMATCH;

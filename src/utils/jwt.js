@@ -75,7 +75,7 @@ exports.login = async function login(userId, _audience, stateless = false) {
   const audience = _audience || defaultAudience;
   const metadataAudience = getAudience(defaultAudience, audience);
 
-  if (stateless) {
+  if (stateless || force) {
     assertStatelessEnabled(this);
   }
 

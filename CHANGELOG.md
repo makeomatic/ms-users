@@ -1,3 +1,10 @@
+## [15.0.5](https://github.com/makeomatic/ms-users/compare/v15.0.4...v15.0.5) (2022-03-22)
+
+
+### Bug Fixes
+
+* enable numeric ids for masters ([1e79a93](https://github.com/makeomatic/ms-users/commit/1e79a93728d64bf4ae60152e5438082dba5ae318))
+
 ## [15.0.4](https://github.com/makeomatic/ms-users/compare/v15.0.3...v15.0.4) (2022-03-21)
 
 

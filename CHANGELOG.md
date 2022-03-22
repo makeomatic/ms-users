@@ -1,3 +1,10 @@
+## [15.0.6](https://github.com/makeomatic/ms-users/compare/v15.0.5...v15.0.6) (2022-03-22)
+
+
+### Bug Fixes
+
+* user id pattern expansion ([9f5801c](https://github.com/makeomatic/ms-users/commit/9f5801c13b7fa0be953fe17f7a33e2b5f4473caf))
+
 ## [15.0.5](https://github.com/makeomatic/ms-users/compare/v15.0.4...v15.0.5) (2022-03-22)
 
 

@@ -1,3 +1,10 @@
+## [15.1.1](https://github.com/makeomatic/ms-users/compare/v15.1.0...v15.1.1) (2022-03-23)
+
+
+### Bug Fixes
+
+* updated transport-amqp ([67c94bd](https://github.com/makeomatic/ms-users/commit/67c94bdcc3d08ffee4ba7222fd7ae031336ab260))
+
 # [15.1.0](https://github.com/makeomatic/ms-users/compare/v15.0.6...v15.1.0) (2022-03-23)
 
 

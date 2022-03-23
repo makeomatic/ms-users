@@ -23,7 +23,7 @@ specifiers:
   '@microfleet/plugin-router-amqp': ^0.6.2
   '@microfleet/plugin-router-hapi': ^0.6.2
   '@microfleet/plugin-validator': ^0.9.2
-  '@microfleet/transport-amqp': ^17.2.2
+  '@microfleet/transport-amqp': ^17.2.3
   '@microfleet/utils': ^0.9.2
   '@microfleet/validation': ^11.1.2
   '@semantic-release/changelog': ^6.0.1
@@ -117,7 +117,7 @@ dependencies:
   '@microfleet/plugin-router-amqp': 0.6.2_565e7b9aef14ca239369d1f0326de100
   '@microfleet/plugin-router-hapi': 0.6.2_59c414d953d3c47812b26e406e237579
   '@microfleet/plugin-validator': 0.9.2_cbafade3c0f955ea77605c0b277a1372
-  '@microfleet/transport-amqp': 17.2.2_common-errors@1.2.0
+  '@microfleet/transport-amqp': 17.2.3_common-errors@1.2.0
   '@microfleet/utils': 0.9.2
   '@microfleet/validation': 11.1.2
   ajv-formats: 2.1.1
@@ -144,7 +144,7 @@ dependencies:
   moment: 2.29.1
   ms-conf: 7.0.2
   ms-flakeless: 4.6.4
-  ms-mailer-client: 8.1.0_855452df123b81835a19d3d676d945cb
+  ms-mailer-client: 8.1.0_bbb45fed81710fa2b7d3114f8f72806e
   ms-token: 5.0.1_ioredis@4.28.5
   otplib: 12.0.1
   p-retry: 4.6.1
@@ -880,7 +880,7 @@ packages:
       '@microfleet/plugin-logger': 0.14.2_ad5eec24d17b5edd7d922b3a4902bd94
       '@microfleet/plugin-router': 0.7.2_5f947fb25acd44d60f2da2bebbe890e0
       '@microfleet/plugin-validator': 0.9.2_cbafade3c0f955ea77605c0b277a1372
-      '@microfleet/transport-amqp': 17.2.2_common-errors@1.2.0
+      '@microfleet/transport-amqp': 17.2.3_common-errors@1.2.0
       bluebird: 3.7.2
       common-errors: 1.2.0
     transitivePeerDependencies:
@@ -1083,7 +1083,7 @@ packages:
       '@microfleet/plugin-amqp': 0.6.2_6f26acab9e475fe5ca825a0670a4b7a6
       '@microfleet/plugin-logger': 0.14.2_ad5eec24d17b5edd7d922b3a4902bd94
       '@microfleet/plugin-router': 0.7.2_5f947fb25acd44d60f2da2bebbe890e0
-      '@microfleet/transport-amqp': 17.2.2_common-errors@1.2.0
+      '@microfleet/transport-amqp': 17.2.3_common-errors@1.2.0
       bluebird: 3.7.2
       common-errors: 1.2.0
       event-to-promise: 0.8.0
@@ -1133,7 +1133,7 @@ packages:
       '@microfleet/core': 17.15.2_fae3aad7a15f7f2037ade48a3bea6a2c
       '@microfleet/core-types': 0.9.2
       '@microfleet/plugin-logger': 0.14.2_ad5eec24d17b5edd7d922b3a4902bd94
-      '@microfleet/transport-amqp': 17.2.2_common-errors@1.2.0
+      '@microfleet/transport-amqp': 17.2.3_common-errors@1.2.0
       '@microfleet/utils': 0.9.2
       '@microfleet/validation': 11.1.2
       common-errors: 1.2.0
@@ -1160,10 +1160,10 @@ packages:
       '@microfleet/plugin-logger': 0.14.2_ad5eec24d17b5edd7d922b3a4902bd94
       '@microfleet/plugin-router': 0.7.2_5f947fb25acd44d60f2da2bebbe890e0
       '@microfleet/plugin-validator': 0.9.2_cbafade3c0f955ea77605c0b277a1372
-      '@microfleet/transport-amqp': 17.2.2_common-errors@1.2.0
+      '@microfleet/transport-amqp': 17.2.3_common-errors@1.2.0
       '@microfleet/utils': 0.9.2
       common-errors: 1.2.0
-      ms-socket.io-adapter-amqp: 9.0.1_ab565777d73a9f5d8db8e6a24b8aaf02
+      ms-socket.io-adapter-amqp: 9.0.1_f6e87d75bbf033030f8ee774e49a319a
       socket.io: 4.4.1
     transitivePeerDependencies:
       - bufferutil
@@ -1190,8 +1190,8 @@ packages:
       - supports-color
     dev: false
 
-  /@microfleet/transport-amqp/17.2.2_common-errors@1.2.0:
-    resolution: {integrity: sha512-KcxfDv/fPsLxnkft0HiGYWYtsnDmc/CMXJPX2V/+u00K2c8uxFQet9RI60g2xmyeC12KFwQCULwP8Z02oeTsfA==}
+  /@microfleet/transport-amqp/17.2.3_common-errors@1.2.0:
+    resolution: {integrity: sha512-jV0yE9V9lYIMfAjLdIvfNMdHtVhbg0Mcm4tSDjObQgRLS5e9hgt1lk9aLbmUIC7PawOtsJfzDSkPs0tZz0AnfQ==}
     engines: {node: '>= 14.17.0'}
     peerDependencies:
       common-errors: ~1.x.x
@@ -6166,20 +6166,20 @@ packages:
       - supports-color
     dev: false
 
-  /ms-mailer-client/8.1.0_855452df123b81835a19d3d676d945cb:
+  /ms-mailer-client/8.1.0_bbb45fed81710fa2b7d3114f8f72806e:
     resolution: {integrity: sha512-JL0kkxUIBP0luuSIXN4h9UzbSciDILGwvdHhidlJXe+PWVtRpiQ0T4GbI3wNouoNXrea+SpzBMP2TjZjcbxxog==}
     peerDependencies:
       '@microfleet/transport-amqp': '>= 12.x.x'
       '@microfleet/validation': '>=9.0.1'
       common-errors: ~1.x.x
     dependencies:
-      '@microfleet/transport-amqp': 17.2.2_common-errors@1.2.0
+      '@microfleet/transport-amqp': 17.2.3_common-errors@1.2.0
       '@microfleet/validation': 11.1.2
       common-errors: 1.2.0
       lodash.merge: 4.6.2
     dev: false
 
-  /ms-socket.io-adapter-amqp/9.0.1_ab565777d73a9f5d8db8e6a24b8aaf02:
+  /ms-socket.io-adapter-amqp/9.0.1_f6e87d75bbf033030f8ee774e49a319a:
     resolution: {integrity: sha512-sGaFwgPpnOZY4O5WhWLD4SKMPKSYTKF6AAFbw8Nf5mLRq1CBm837O6XKPWCR8dcO8wJvHqqamOfL7oGfrfRBlQ==}
     peerDependencies:
       '@microfleet/amqp-coffee': '>= 2'
@@ -6187,7 +6187,7 @@ packages:
       common-errors: ~1.x.x
     dependencies:
       '@microfleet/amqp-coffee': 2.3.1
-      '@microfleet/transport-amqp': 17.2.2_common-errors@1.2.0
+      '@microfleet/transport-amqp': 17.2.3_common-errors@1.2.0
       '@sindresorhus/is': 4.6.0
       bluebird: 3.7.2
       common-errors: 1.2.0

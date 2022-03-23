@@ -1,3 +1,17 @@
+# [15.1.0](https://github.com/makeomatic/ms-users/compare/v15.0.6...v15.1.0) (2022-03-23)
+
+
+### Bug Fixes
+
+* bump dev deps ([b7eb065](https://github.com/makeomatic/ms-users/commit/b7eb0651d55a162cd597507c11bf0743e3bbabfd))
+* bump dev deps ([98578b7](https://github.com/makeomatic/ms-users/commit/98578b79ba0b15afa385732ba46c950818e0d300))
+
+
+### Features
+
+* pump core, amqp transport ([42ee21f](https://github.com/makeomatic/ms-users/commit/42ee21f8b42abea512b7e1ae042c8a27f2517ae4))
+* pump microfleet ([02263d8](https://github.com/makeomatic/ms-users/commit/02263d8b039f556fb2ef6b49ca99398c5534a9ea))
+
 ## [15.0.6](https://github.com/makeomatic/ms-users/compare/v15.0.5...v15.0.6) (2022-03-22)
 
 

@@ -2,7 +2,7 @@
   "name": "ms-users",
   "description": "Core of the microservice for handling users",
   "main": "./lib/index.js",
-  "version": "15.0.6",
+  "version": "15.1.0",
   "scripts": {
     "compile": "rimraf ./lib; cp -r ./src ./lib",
     "pretest": "npm run compile",

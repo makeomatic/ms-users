@@ -92,7 +92,7 @@ specifiers:
   typescript: ^4.6.2
   undici: ^4.15.1
   uuid: ^8.3.2
-  yargs: ^17.3.1
+  yargs: ^17.4.0
   zxcvbn: ^4.4.2
 
 dependencies:
@@ -160,7 +160,7 @@ dependencies:
   tough-cookie: 4.0.0
   undici: 4.15.1
   uuid: 8.3.2
-  yargs: 17.3.1
+  yargs: 17.4.0
   zxcvbn: 4.4.2
 
 devDependencies:
@@ -243,7 +243,7 @@ packages:
       lodash: 4.17.21
       resolve-from: 5.0.0
       resolve-global: 1.0.0
-      yargs: 17.3.1
+      yargs: 17.4.0
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
@@ -746,7 +746,7 @@ packages:
       split2: 4.1.0
       strip-final-newline: 2.0.0
       undici: 4.15.1
-      yargs: 17.3.1
+      yargs: 17.4.0
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
@@ -8709,14 +8709,9 @@ packages:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}
     engines: {node: '>=10'}
 
-  /yargs-parser/21.0.0:
-    resolution: {integrity: sha512-z9kApYUOCwoeZ78rfRYYWdiU/iNL6mwwYlkkZfJoyMR1xps+NEBX5X7XmRpxkZHhXJ6+Ey00IwKxBBSW9FIjyA==}
-    engines: {node: '>=12'}
-
   /yargs-parser/21.0.1:
     resolution: {integrity: sha512-9BK1jFpLzJROCI5TzwZL/TU4gqjK5xiHV/RfWLOahrjAko/e4DJkRDZQXfvqAsiZzzYhgAzbgz6lg48jcm4GLg==}
     engines: {node: '>=12'}
-    dev: false
 
   /yargs-unparser/2.0.0:
     resolution: {integrity: sha512-7pRTIA9Qc1caZ0bZ6RYRGbHJthJWuakf+WmHK0rVeLkNrrGhfoabBNdue6kdINI6r4if7ocq9aD/n7xwKOdzOA==}
@@ -8753,8 +8748,8 @@ packages:
       yargs-parser: 20.2.4
     dev: true
 
-  /yargs/17.3.1:
-    resolution: {integrity: sha512-WUANQeVgjLbNsEmGk20f+nlHgOqzRFpiGWVaBrYGYIGANIIu3lWjoyi0fNlFmJkvfhCZ6BXINe7/W2O2bV4iaA==}
+  /yargs/17.4.0:
+    resolution: {integrity: sha512-WJudfrk81yWFSOkZYpAZx4Nt7V4xp7S/uJkX0CnxovMCt1wCE8LNftPpNuF9X/u9gN5nsD7ycYtRcDf2pL3UiA==}
     engines: {node: '>=12'}
     dependencies:
       cliui: 7.0.4
@@ -8763,7 +8758,7 @@ packages:
       require-directory: 2.1.1
       string-width: 4.2.3
       y18n: 5.0.8
-      yargs-parser: 21.0.0
+      yargs-parser: 21.0.1
 
   /yargs/3.32.0:
     resolution: {integrity: sha1-AwiOnr+edWtpdRYR0qXvWRSCyZU=}

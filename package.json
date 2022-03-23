@@ -101,7 +101,7 @@
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "apidoc": "^0.50.5",
+    "apidoc": "^0.51.0",
     "apidoc-plugin-schema": "^0.1.8",
     "c8": "^7.11.0",
     "chai": "^4.3.6",

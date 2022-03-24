@@ -1,3 +1,10 @@
+## [15.1.3](https://github.com/makeomatic/ms-users/compare/v15.1.2...v15.1.3) (2022-03-24)
+
+
+### Bug Fixes
+
+* catch phone challenge error ([db16a3e](https://github.com/makeomatic/ms-users/commit/db16a3ecfe4d8b9f8ab067c747e431e764b24a7d))
+
 ## [15.1.2](https://github.com/makeomatic/ms-users/compare/v15.1.1...v15.1.2) (2022-03-23)
 
 

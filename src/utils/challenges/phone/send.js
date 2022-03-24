@@ -42,7 +42,12 @@ async function send(tel, action, context = {}) {
   });
 
   if (waitChallenge) {
-    await sendingPromise;
+    try {
+      await sendingPromise;
+    } catch (err) {
+      this.log.warn({ err }, 'failed to send challenge message');
+    }
+
     return { context };
   }
 

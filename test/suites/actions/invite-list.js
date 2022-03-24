@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const { strict: assert } = require('assert');
 const times = require('lodash/times');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 
 describe('#invite', function registerSuite() {
   before(global.startService);

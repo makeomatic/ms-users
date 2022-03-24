@@ -1,6 +1,6 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
 const { strict: assert } = require('assert');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const { createOrganization } = require('../../../helpers/organization');
 
 describe('#delete organization', function registerSuite() {

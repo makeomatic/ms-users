@@ -7,7 +7,7 @@ describe('#list', function listSuite() {
   this.timeout(50000);
 
   const totalUsers = 105;
-  const faker = require('faker');
+  const { faker } = require('@faker-js/faker');
 
   beforeEach('start service', global.startService);
   afterEach('reset redis', global.clearRedis);

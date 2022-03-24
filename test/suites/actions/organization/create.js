@@ -1,7 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 const { strict: assert } = require('assert');
 const sinon = require('sinon');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const { createMembers, createOrganization } = require('../../../helpers/organization');
 const scrypt = require('../../../../src/utils/scrypt');
 const registerOrganizationMembers = require('../../../../src/utils/organization/register-organization-members');

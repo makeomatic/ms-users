@@ -1,5 +1,5 @@
 const { strict: assert } = require('assert');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const { createOrganization } = require('../../../../helpers/organization');
 
 describe('#add member to organization', function registerSuite() {

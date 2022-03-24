@@ -1,5 +1,5 @@
 const { strict: assert } = require('assert');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const sinon = require('sinon');
 const { createOrganization } = require('../../../helpers/organization');
 const generateEmail = require('../../../../src/utils/challenges/email/generate');

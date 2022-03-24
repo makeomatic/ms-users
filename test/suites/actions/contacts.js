@@ -1,6 +1,6 @@
 /* eslint-disable no-prototype-builtins */
 const { strict: assert } = require('assert');
-const faker = require('faker');
+const { faker } = require('@faker-js/faker');
 const sinon = require('sinon');
 const { createMembers } = require('../../helpers/organization');
 

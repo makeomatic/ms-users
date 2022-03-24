@@ -3,7 +3,7 @@ const times = require('lodash/times');
 const { CHALLENGE_TYPE_EMAIL } = require('../constants');
 
 module.exports = function initFakeAccounts() {
-  const faker = require('faker');
+  const { faker } = require('@faker-js/faker');
 
   const { config } = this;
   const accounts = times(103, () => ({

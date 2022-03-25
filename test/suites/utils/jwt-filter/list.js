@@ -5,7 +5,7 @@ const { Rule } = require('../../../../src/utils/jwt-filter/rule');
 const { RuleGroup } = require('../../../../src/utils/jwt-filter/rule-group');
 
 describe('#radix-list filter', () => {
-  let list = new ListFilter(true);
+  let list;
 
   beforeEach('start', () => {
     list = new ListFilter(console);

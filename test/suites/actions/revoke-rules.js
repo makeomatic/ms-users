@@ -20,7 +20,6 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
 
   it('schema validation', async () => {
     await assert.rejects(this.users.dispatch(addAction, { params: {} }), /data must have required property 'rule'/);
-    // await assert.rejects(this.users.dispatch(addAction, { rule: {} }), /data.rule should have required property 'params'/);
 
     await assert.rejects(
       this.users.dispatch(addAction, {

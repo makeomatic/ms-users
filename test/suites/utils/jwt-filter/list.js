@@ -38,11 +38,11 @@ describe('#radix-list filter', () => {
 
   it('should skip outdated rules', () => {
     const filter = new ListFilter(console);
-    const groupWithTTL = RuleGroup.create({
+    const groupWithExp = RuleGroup.create({
       fld: 10,
     });
-    groupWithTTL.ttl = 200;
-    filter.add(groupWithTTL);
+    groupWithExp.expireAt = 200;
+    filter.add(groupWithExp);
 
     assert.strictEqual(filter.match({ fld: 10 }, 100), true);
     assert.strictEqual(filter.match({ fld: 10 }, 210), false);

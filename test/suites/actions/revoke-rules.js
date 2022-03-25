@@ -60,7 +60,7 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
       rule: createdRule.rule,
       params: {
         ...defaultRule.params,
-        ttl: 0,
+        expireAt: 0,
       },
     });
   });
@@ -75,7 +75,7 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
         rule: createdRule.rule,
         params: {
           ...defaultRule.params,
-          ttl: 0,
+          expireAt: 0,
         },
       },
     ]);
@@ -112,7 +112,7 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
 
     const expireTime = Date.now();
     await createRule({ iss: 'ms-users-global' });
-    await createRule({ ttl: expireTime });
+    await createRule({ expireAt: expireTime });
 
     const redisKey = this.users.revocationRulesManager._getRedisKey(username);
     const redisData = await this.users.redis.zrange(redisKey, 0, -1, 'WITHSCORES');
@@ -120,17 +120,17 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
     assert.deepStrictEqual(redisData, ['{"iss":"ms-users-global"}', '0', '{"iss":"ms-users-test"}', expireTime.toString()]);
 
     const newExpireTime = expireTime + 1000;
-    await createRule({ iss: 'ms-users-test-1', ttl: newExpireTime });
+    await createRule({ iss: 'ms-users-test-1', expireAt: newExpireTime });
 
     const rulesAfter = await this.users.dispatch(listAction, { params: { username } });
     const redisAfterData = await this.users.redis.zrange(redisKey, 0, -1, 'WITHSCORES');
 
     assert.deepStrictEqual(redisAfterData, ['{"iss":"ms-users-global"}', '0', '{"iss":"ms-users-test-1"}', newExpireTime.toString()]);
     assert.deepStrictEqual(rulesAfter, [
-      { rule: { iss: 'ms-users-global' }, params: { ttl: 0 } },
+      { rule: { iss: 'ms-users-global' }, params: { expireAt: 0 } },
       {
         params: {
-          ttl: newExpireTime,
+          expireAt: newExpireTime,
         },
         rule: {
           iss: 'ms-users-test-1',

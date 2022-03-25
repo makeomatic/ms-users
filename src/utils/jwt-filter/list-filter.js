@@ -49,7 +49,7 @@ class ListFilter {
 
     rulesList.forEach(({ rule, params = {} }) => {
       const rg = RuleGroup.create(rule);
-      rg.ttl = params.ttl;
+      rg.expireAt = params.expireAt;
       this.add(rg);
     });
   }

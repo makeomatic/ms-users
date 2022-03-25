@@ -60,18 +60,18 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
     deepStrictEqual(cache.some.rules, null);
   });
 
-  it('Should handle ttl for cache', async function test() {
+  it('Should handle exp for cache', async function test() {
     const { revocationRulesStorage } = this.users;
     const { cache } = revocationRulesStorage;
 
     revocationRulesStorage.setCache({ foo: 1 }, 'someone', Date.now());
 
-    const filterBeforeTTL = await revocationRulesStorage.getFilter('someone');
-    deepStrictEqual(filterBeforeTTL, { foo: 1 });
-    // change ttl
-    cache.someone.ttl = 20;
+    const filterBeforeExp = await revocationRulesStorage.getFilter('someone');
+    deepStrictEqual(filterBeforeExp, { foo: 1 });
+    // change expire time
+    cache.someone.exp = 20;
 
-    const filterAfterTTL = await revocationRulesStorage.getFilter('someone');
-    strictEqual(filterAfterTTL instanceof ListFilter, true, 'should query redis and create empty list');
+    const filterAfterExp = await revocationRulesStorage.getFilter('someone');
+    strictEqual(filterAfterExp instanceof ListFilter, true, 'should query redis and create empty list');
   });
 });

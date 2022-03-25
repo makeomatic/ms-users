@@ -18,16 +18,16 @@ class RuleGroup {
   /**
    * @param {Number} value
    */
-  set ttl(value) {
-    this._ttl = value;
+  set expireAt(value) {
+    this._exp = value;
   }
 
-  get ttl() {
-    return this._ttl;
+  get expireAt() {
+    return this._exp;
   }
 
   isActive(at) {
-    return !(this.ttl && this.ttl < at);
+    return !(this.expireAt && this.expireAt < at);
   }
 
   /**

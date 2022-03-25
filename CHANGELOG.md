@@ -1,3 +1,11 @@
+## [15.1.4](https://github.com/makeomatic/ms-users/compare/v15.1.3...v15.1.4) (2022-03-25)
+
+
+### Bug Fixes
+
+* upgrade dependencies ([49cb026](https://github.com/makeomatic/ms-users/commit/49cb0268fa8fbcc619e03dd601ba367132891698))
+* upgrade deps, swap out faker for @faker-js/faker ([cece5ce](https://github.com/makeomatic/ms-users/commit/cece5ceb000e81327de744f081acfc8816c7334b))
+
 ## [15.1.3](https://github.com/makeomatic/ms-users/compare/v15.1.2...v15.1.3) (2022-03-24)
 
 

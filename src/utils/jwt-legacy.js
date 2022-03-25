@@ -95,7 +95,7 @@ exports.verify = async function verifyToken(service, encodedToken, token, peek) 
   }
 
   if (!peek) {
-    service.redis.zadd(tokensHolder, Date.now(), encodedToken);
+    await service.redis.zadd(tokensHolder, Date.now(), encodedToken);
   }
 
   return token;

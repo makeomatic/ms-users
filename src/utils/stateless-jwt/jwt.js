@@ -73,21 +73,21 @@ function createToken(service, audience, payload) {
 }
 
 function createRefreshToken(service, payload, audience) {
-  const ttl = Date.now() + service.config.jwt.stateless.refreshTTL;
+  const exp = Date.now() + service.config.jwt.stateless.refreshTTL;
   return createToken(service, audience, {
     ...payload,
-    exp: ttl,
+    exp,
     irt: 1,
   });
 }
 
 function createAccessToken(service, refreshToken, payload, audience) {
-  const ttl = Date.now() + service.config.jwt.ttl;
+  const exp = Date.now() + service.config.jwt.ttl;
 
   return createToken(service, audience, {
     ...payload,
     // should not exceed refreshToken exp
-    exp: ttl > refreshToken.exp ? refreshToken.exp : ttl,
+    exp: exp > refreshToken.exp ? refreshToken.exp : exp,
     // refresh token id
     rt: refreshToken.cs,
   });
@@ -183,7 +183,7 @@ async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audi
     await createRule(service, {
       username: userId,
       rule: {
-        ttl: refreshToken.exp,
+        expireAt: refreshToken.exp,
         rt: refreshToken.cs,
         iat: { lt: access.payload.iat },
       },
@@ -207,7 +207,7 @@ async function logout(service, token) {
   await createRule(service, {
     username: token[USERS_USERNAME_FIELD],
     rule: {
-      ttl: token.exp || now + service.config.jwt.ttl,
+      expireAt: token.exp || now + service.config.jwt.ttl,
       _or: true,
       cs: token.cs,
       rt: token.cs,

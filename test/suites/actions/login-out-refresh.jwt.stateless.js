@@ -133,7 +133,7 @@ describe('#stateless-jwt', function loginSuite() {
 
       assert.strictEqual(rules[0].rule.rt, oldTokenDecoded.rt);
       assert.deepStrictEqual(rules[0].rule.iat, { lt: newTokenDecoded.iat });
-      assert.strictEqual(rules[0].params.ttl, refreshTokenDecoded.exp);
+      assert.strictEqual(rules[0].params.expireAt, refreshTokenDecoded.exp);
       assert.deepStrictEqual(oldTokenDecoded.audience, newTokenDecoded.audience);
 
       await delay(100);
@@ -173,7 +173,7 @@ describe('#stateless-jwt', function loginSuite() {
 
       assert.strictEqual(rules[0].rule.cs, refreshTokenDecoded.cs);
       assert.strictEqual(rules[0].rule.rt, refreshTokenDecoded.cs);
-      assert.strictEqual(rules[0].params.ttl, refreshTokenDecoded.exp);
+      assert.strictEqual(rules[0].params.expireAt, refreshTokenDecoded.exp);
       assert.ok(rules[0].rule._or);
 
       // try again with same access token
@@ -351,7 +351,7 @@ describe('#stateless-jwt', function loginSuite() {
       assert.strictEqual(rules[0].rule.cs, accessTokenDecoded.cs);
       assert.strictEqual(rules[0].rule.rt, accessTokenDecoded.cs);
       assert.ok(rules[0].rule._or);
-      assert.ok(rules[0].params.ttl - now >= this.users.config.jwt.ttl);
+      assert.ok(rules[0].params.expireAt - now >= this.users.config.jwt.ttl);
 
       // try again with same access token
       await assert.rejects(

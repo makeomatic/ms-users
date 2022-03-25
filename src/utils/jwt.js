@@ -79,7 +79,7 @@ exports.login = async function login(userId, _audience, stateless = false) {
     assertStatelessEnabled(this);
   }
 
-  const tokenFlow = force || (enabled && stateless)
+  const tokenFlow = enabled && (force || stateless)
     ? (metadata) => statelessJWT.login(this, userId, audience, metadata)
     : () => legacyJWT.login(this, userId, audience);
 

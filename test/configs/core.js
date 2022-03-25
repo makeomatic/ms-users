@@ -65,6 +65,7 @@ module.exports = {
   consul: {
     base: {
       host: 'consul',
+      promisify: true,
     },
   },
 };

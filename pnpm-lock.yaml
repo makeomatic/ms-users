@@ -1,5 +1,8 @@
 lockfileVersion: 5.3
 
+overrides:
+  consul: ^0.40.0
+
 specifiers:
   '@faker-js/faker': ^6.0.0
   '@hapi/bell': ^12.3.0

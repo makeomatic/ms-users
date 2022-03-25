@@ -28,6 +28,9 @@
     "url": "https://github.com/makeomatic/ms-users/issues"
   },
   "homepage": "https://github.com/makeomatic/ms-users#readme",
+  "resolutions": {
+    "consul": "^0.40.0"
+  },
   "dependencies": {
     "@faker-js/faker": "^6.0.0",
     "@hapi/bell": "^12.3.0",

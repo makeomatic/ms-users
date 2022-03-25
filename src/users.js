@@ -10,6 +10,9 @@ const conf = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
+const { ConsulWatcher } = require('./utils/consul-watcher');
+const { RevocationRulesStorage } = require('./utils/revocation-rules-storage');
+const { RevocationRulesManager } = require('./utils/revocation-rules-manager');
 
 /**
  * @namespace Users
@@ -123,10 +126,7 @@ class Users extends Microfleet {
     }
 
     if (this.config.cfAccessList.enabled) {
-      if (!this.hasPlugin('consul')) {
-        const consul = require('@microfleet/plugin-consul');
-        this.initPlugin(consul, this.config.consul);
-      }
+      this.initConsul();
 
       this.addConnector(ConnectorsTypes.application, () => {
         this.cfWorker = new CloudflareWorker(this, this.config.cfAccessList);
@@ -137,6 +137,10 @@ class Users extends Microfleet {
       this.addDestructor(ConnectorsTypes.application, () => {
         this.cfWorker.stop();
       });
+    }
+
+    if (this.config.revocationRules.enabled) {
+      this.initJwtRevocationRules();
     }
 
     // init account seed
@@ -150,6 +154,38 @@ class Users extends Microfleet {
         this.initFakeAccounts()
       ), 'dev accounts');
     }
+  }
+
+  initConsul() {
+    if (!this.hasPlugin('consul') && !this.consul) {
+      const consul = require('@microfleet/plugin-consul');
+      this.initPlugin(consul, this.config.consul);
+    }
+  }
+
+  initJwtRevocationRules() {
+    this.initConsul();
+
+    const pluginName = 'JwtRevocationRules';
+
+    this.addConnector(ConnectorsTypes.application, () => {
+      this.revocationRulesManager = new RevocationRulesManager(this);
+
+      const watcher = new ConsulWatcher(this.consul, this.log);
+
+      this.revocationRulesStorage = new RevocationRulesStorage(
+        this.revocationRulesManager,
+        watcher,
+        this.config.revocationRules,
+        this.log
+      );
+
+      this.revocationRulesStorage.startSync();
+    }, pluginName);
+
+    this.addDestructor(ConnectorsTypes.application, () => {
+      this.revocationRulesStorage.stopSync();
+    }, pluginName);
   }
 }
 

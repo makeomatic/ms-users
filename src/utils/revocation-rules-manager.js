@@ -52,14 +52,14 @@ class RevocationRulesManager {
       .map(([rule, score]) => ({
         rule: JSON.parse(rule),
         params: {
-          ttl: parseInt(score, 10),
+          exp: parseInt(score, 10),
         },
       }));
 
     return rules;
   }
 
-  async add(key, jsonEncoded, ttl = 0) {
+  async add(key, jsonEncoded, exp = 0) {
     const pipeline = this.redis.pipeline();
 
     const ruleKey = this._getRedisKey(key);
@@ -68,7 +68,7 @@ class RevocationRulesManager {
 
     // @TODO lua?
     pipeline.zremrangebyscore(ruleKey, 1, now);
-    pipeline.zadd(ruleKey, ttl, jsonEncoded);
+    pipeline.zadd(ruleKey, exp, jsonEncoded);
 
     handlePipelineError(await pipeline.exec());
 

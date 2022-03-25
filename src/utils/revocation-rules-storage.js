@@ -34,7 +34,7 @@ class RevocationRulesStorage {
     this.cache[key] = {
       version,
       rules,
-      ttl: Date.now() + this.cacheTTL,
+      exp: Date.now() + this.cacheTTL,
     };
   }
 
@@ -42,7 +42,7 @@ class RevocationRulesStorage {
     const cached = this.cache[key];
     const now = Date.now();
 
-    if (cached && cached.rules !== null && cached.ttl > now) {
+    if (cached && cached.rules !== null && cached.exp > now) {
       return cached.rules;
     }
 

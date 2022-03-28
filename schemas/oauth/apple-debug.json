@@ -1,0 +1,6 @@
+{
+  "$id": "oauth.apple-debug",
+  "type": "object",
+  "additionalProperties": true
+}
+diff --git a/src/actions/oauth/apple.js b/src/actions/oauth/apple.js

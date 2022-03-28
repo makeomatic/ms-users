@@ -43,3 +43,4 @@ appleCallbackAction.passAuthError = true;
 appleCallbackAction.transports = [ActionTransport.http];
 
 module.exports = appleCallbackAction;
+

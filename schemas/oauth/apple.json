@@ -1,5 +1,0 @@
-{
-  "$id": "oauth.apple",
-  "type": "object",
-  "additionalProperties": true
-}

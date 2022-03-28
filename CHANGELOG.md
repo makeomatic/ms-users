@@ -1,3 +1,10 @@
+## [15.1.5](https://github.com/makeomatic/ms-users/compare/v15.1.4...v15.1.5) (2022-03-28)
+
+
+### Bug Fixes
+
+* upgrade deps ([89af4a6](https://github.com/makeomatic/ms-users/commit/89af4a6f3acdb74a18af59da492a049c85427f32))
+
 ## [15.1.4](https://github.com/makeomatic/ms-users/compare/v15.1.3...v15.1.4) (2022-03-25)
 
 

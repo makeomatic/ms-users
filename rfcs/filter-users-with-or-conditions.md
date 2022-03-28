@@ -6,31 +6,19 @@ Provides an ability to get a list of users with different search parameters
 
 For some tasks, we need to implement a search for users by id, name, etc. concurrent search by id and name will be carried out with the condition "and", which will return incomplete data.
 
-## Solution 1
+### Solution
 
-Change schema for users list.
+update redis-filtered-sort library
 
-### Solution 1.1
+make https://github.com/makeomatic/redis-filtered-sort  possible to accept the parameter "or"
 
-make filter parameter an array
+add 'or' value for opType enum
 
-```
-"filter": {
-    "type": "array",
-    "items": {
-        "$ref": "common.json#/definitions/filter"
-    },
-}
-```
-then we will be able to get users by different filters and merge them
+if filter contains 'or' field recursively get result fot all filters
 
-#### disadvantages
 
-breaks backward compatibility
 
-### Solution 1.2
-
-add additional property or for filter
+for ms-users service add additional property or for filter
 
 schemas/common.json
 
@@ -60,20 +48,12 @@ schemas/common.json
 ```
 then we will be able to get users by different filters and merge them
 
-#### disadvantages
-
-will not be implemented in other filters (invites and organizations)
-
-
-## Solution 2
-
-update redis-filtered-sort library
-
-make https://github.com/makeomatic/redis-filtered-sort  possible to accept the parameter "or"
 
 #### advantages
 
 it can be used in other projects
+
+it won't break backward compatibility
 
 #### disadvantages
 

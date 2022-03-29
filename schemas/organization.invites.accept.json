@@ -11,12 +11,16 @@
       "type": "string"
     },
     "member": {
-      "required": [
-        "email",
-        "firstName",
-        "lastName"
-      ],
-      "$ref": "common.json#/definitions/organizationMember"
+      "allOf": [
+        {
+          "$ref": "common.json#/definitions/organizationMember",
+          "required": [
+            "email",
+            "firstName",
+            "lastName"
+          ]
+        }
+      ]
     },
     "inviteToken": {
       "type": "string",

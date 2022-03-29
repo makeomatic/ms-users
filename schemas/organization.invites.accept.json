@@ -12,7 +12,6 @@
     },
     "member": {
       "required": [
-        "permissions",
         "email",
         "firstName",
         "lastName"

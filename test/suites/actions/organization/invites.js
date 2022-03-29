@@ -123,7 +123,21 @@ describe('#invite organization', function registerSuite() {
 
     await assert.rejects(this.users.dispatch('organization.invites.accept', { params: opts }));
   });
+  it('must return error when accept invite to member not contain required fields', async function test() {
+    this.memberPassword = faker.internet.password();
 
+    const opts = {
+      organizationId: this.organization.id,
+      member: {
+        ...this.member,
+        firstName: faker.name.firstName(),
+      },
+      password: this.memberPassword,
+      inviteToken: this.member.token.secret,
+    };
+
+    await assert.rejects(this.users.dispatch('organization.invites.accept', { params: opts }));
+  });
   it('must be able to accept invite to member', async function test() {
     this.memberPassword = faker.internet.password();
 

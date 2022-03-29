@@ -530,9 +530,6 @@
               },
               "profileHandler": {
                 "type": "object"
-              },
-              "redirectUrl": {
-                "type": "string"
               }
             }
           }

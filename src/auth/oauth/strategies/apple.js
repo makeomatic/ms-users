@@ -85,8 +85,8 @@ async function getProfile(credentials, params) {
   return credentials;
 }
 
-async function validateGrantCode(providerSettings, code) {
-  const { provider, redirectUrl, clientId, clientSecret } = providerSettings;
+async function validateGrantCode(providerSettings, code, redirectUrl) {
+  const { provider, clientId, clientSecret } = providerSettings;
   const response = await httpRequest.post(provider.token, {
     form: {
       code,
@@ -110,7 +110,6 @@ function getProvider(options, server) {
     password,
     isSameSite,
     cookie,
-    redirectUrl,
   } = options;
 
   // adds the "code" parameter to the query string for bell to work correctly
@@ -121,7 +120,6 @@ function getProvider(options, server) {
     clientId,
     isSameSite,
     cookie,
-    redirectUrl,
     clientSecret: () => getSecretKey(teamId, clientId, keyId, privateKey),
     forceHttps: true,
     providerParams: {

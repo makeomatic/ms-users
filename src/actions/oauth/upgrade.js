@@ -1,9 +1,11 @@
 const { strict: assert } = require('assert');
+const Boom = require('@hapi/boom');
 
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { oauthVerification, mserviceVerification } = require('../../auth/oauth');
 const formOAuthResponse = require('../../auth/oauth/utils/form-oauth-response');
+const { validateGrantCode } = require('../../auth/oauth/strategies/apple');
 
 /**
  * @api {amqp} <prefix>.oauth.upgrade Upgardes existing SSO token to service-verified token
@@ -36,10 +38,20 @@ async function upgrade(request) {
     query.jwt = params.jwt;
   }
 
-  const initialReq = { token, query };
+  let credentials;
 
-  // verifies token by retreiving profile
-  const credentials = await profile.call(providerSettings, initialReq);
+  if (provider === 'apple') {
+    try {
+      const tokenResponse = await validateGrantCode(providerSettings, token);
+      credentials = await profile(providerSettings, tokenResponse);
+      credentials.query = query;
+    } catch (error) {
+      throw Boom.internal(error);
+    }
+  } else {
+    // verifies token by retreiving profile
+    credentials = await profile.call(providerSettings, { token, query });
+  }
 
   // ensure its a shallow copy as we will mutate it later
   const oauthConfig = { ...this.config.oauth.providers[provider] };

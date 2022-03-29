@@ -1,6 +1,7 @@
 const { sign, verify } = require('jsonwebtoken');
 const getJwksClient = require('jwks-rsa');
 const Bluebird = require('bluebird');
+const httpRequest = require('request-promise');
 
 // @todo more options from config
 const jwksClient = getJwksClient({
@@ -54,8 +55,13 @@ function getJwkFromResponse(header, callback) {
 }
 
 async function getProfile(credentials, params) {
+  const {
+    access_token: accessToken,
+    id_token: idToken,
+    refresh_token: refreshToken,
+  } = params;
   const response = await Bluebird.fromCallback(
-    (callback) => verify(params.id_token, getJwkFromResponse, callback)
+    (callback) => verify(idToken, getJwkFromResponse, callback)
   );
   const {
     sub,
@@ -71,9 +77,28 @@ async function getProfile(credentials, params) {
     emailVerified,
     isPrivateEmail,
     id: sub,
+    accessToken,
+    idToken,
+    refreshToken,
   };
 
   return credentials;
+}
+
+async function validateGrantCode(providerSettings, code) {
+  const { provider, location, clientId, clientSecret } = providerSettings;
+  const response = await httpRequest.post(provider.token, {
+    form: {
+      code,
+      client_id: clientId,
+      client_secret: clientSecret(),
+      grant_type: 'authorization_code',
+      redirect_uri: location,
+    },
+    json: true,
+  });
+
+  return response;
 }
 
 function getProvider(options, server) {
@@ -85,6 +110,7 @@ function getProvider(options, server) {
     password,
     isSameSite,
     cookie,
+    location,
   } = options;
 
   // adds the "code" parameter to the query string for bell to work correctly
@@ -95,6 +121,7 @@ function getProvider(options, server) {
     clientId,
     isSameSite,
     cookie,
+    location,
     clientSecret: () => getSecretKey(teamId, clientId, keyId, privateKey),
     forceHttps: true,
     providerParams: {
@@ -115,5 +142,6 @@ function getProvider(options, server) {
 
 module.exports = {
   transformAccountToResponseFormat,
+  validateGrantCode,
   options: getProvider,
 };

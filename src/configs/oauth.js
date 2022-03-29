@@ -54,6 +54,7 @@ exports.oauth = {
       password: 'very-long-encryption-password-that-needs-to-be-changed',
       cookie: 'mf_bapp',
       isSameSite: 'Lax',
+      location: 'https://ms-users.local/users/oauth/upgrade', // used for upgrade token only!
     },
   },
 };

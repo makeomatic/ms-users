@@ -11,15 +11,18 @@
       "type": "string"
     },
     "member": {
+      "type": "object",
       "allOf": [
         {
           "$ref": "common.json#/definitions/organizationMember"
+        },
+        {
+          "required": [
+            "email",
+            "firstName",
+            "lastName"
+          ]
         }
-      ],
-      "required": [
-        "email",
-        "firstName",
-        "lastName"
       ]
     },
     "inviteToken": {

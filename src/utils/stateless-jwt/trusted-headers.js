@@ -2,7 +2,7 @@ const { ConnectionError, TypeError } = require('common-errors');
 
 const {
   USERS_INVALID_TOKEN,
-  USERS_ID_FIELD,
+  USERS_USERNAME_FIELD,
   USERS_AUDIENCE_MISMATCH,
 } = require('../../constants');
 
@@ -82,7 +82,7 @@ function checkTrustedHeaders(headers, { audience }, fallback) {
     }
 
     return {
-      id: tokenBody[USERS_ID_FIELD],
+      id: tokenBody[USERS_USERNAME_FIELD],
       metadata: tokenBody.metadata,
     };
   }

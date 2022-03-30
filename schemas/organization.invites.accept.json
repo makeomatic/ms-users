@@ -13,13 +13,13 @@
     "member": {
       "allOf": [
         {
-          "$ref": "common.json#/definitions/organizationMember",
-          "required": [
-            "email",
-            "firstName",
-            "lastName"
-          ]
+          "$ref": "common.json#/definitions/organizationMember"
         }
+      ],
+      "required": [
+        "email",
+        "firstName",
+        "lastName"
       ]
     },
     "inviteToken": {

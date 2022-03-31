@@ -27,6 +27,7 @@ exports.jwt = {
   stateless: {
     force: false,
     enabled: false,
+    trustHeaders: false,
     // additional metadata fields to encode in token
     // hardcoded fields: ['alias', 'roles', 'org']
     fields: [],

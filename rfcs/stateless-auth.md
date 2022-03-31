@@ -300,12 +300,15 @@ await createRule({
 
 The configuration section will contain additional options:
 
+**NOTE: DO NOT ENABLE TRUSTED HEADERS IF YOUR INGRES SERVER NOT FILTERING `x-tkn*` headers**
+
 ```typescript
 type jwt {
   stateless: {
     force: boolean;
     enabled: boolean;
 		refreshTTL: number;
+    trustHeaders: boolean;
     refreshRotation: {
       enabled: false,
       always: false,

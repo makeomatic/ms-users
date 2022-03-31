@@ -45,8 +45,16 @@ function isValid(headers) {
  * @param {Object<string, any>} headers
  */
 function checkTrustedHeadersCompat(service, headers, { audience }, fallback) {
-  const { users: { trustedVerify, timeouts } } = service.config;
+  const { users: { trustedVerify, timeouts }, jwt } = service.config;
+  const { stateless: { trustHeaders } } = jwt;
+
   const { amqp } = service;
+  const reason = headers[X_TOKEN_REASON_HEADER];
+  const backendUnavailOrNotStateless = reason === E_BACKEND_UNAVAIL || !hasStatelessToken(headers);
+
+  if (!trustHeaders || (backendUnavailOrNotStateless && fallback)) {
+    return fallback();
+  }
 
   if (isValid(headers)) {
     return amqp.publishAndWait(
@@ -57,11 +65,6 @@ function checkTrustedHeadersCompat(service, headers, { audience }, fallback) {
       },
       { timeout: timeouts.trustedVerify }
     );
-  }
-
-  const reason = headers[X_TOKEN_REASON_HEADER];
-  if ((reason === E_BACKEND_UNAVAIL || !hasStatelessToken(headers)) && fallback) {
-    return fallback();
   }
 
   throw remapReason(headers[X_TOKEN_REASON_HEADER]);

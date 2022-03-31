@@ -15,6 +15,7 @@ describe('/_/me', function verifySuite() {
         stateless: {
           enabled: true,
           force: true,
+          trustHeaders: true,
         },
       },
     });

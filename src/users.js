@@ -166,7 +166,7 @@ class Users extends Microfleet {
   }
 
   initJwtRevocationRules() {
-    assert(this.hasPlugin('consul'), 'consul plugin must be included')
+    assert(this.hasPlugin('consul'), 'consul plugin must be included');
 
     this.initConsul();
 

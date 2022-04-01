@@ -11,7 +11,7 @@
     },
     "rule": {
       "type": "object",
-      "description": "Rule spec for Radix filter",
+      "description": "Rule spec for JWT filter",
       "minProperties": 1,
       "properties": {
         "_or": { "type": "boolean" }

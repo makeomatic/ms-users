@@ -2,6 +2,7 @@ const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');
 const undici = require('undici');
 const pRetry = require('p-retry');
+const { nanoid } = require('nanoid');
 
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists } = require('../../constants');
 const contacts = require('../contacts');
@@ -89,13 +90,22 @@ class MastersService {
    * @returns {Promise<{status: boolean, data?: object}>}
    */
   async registerUser(userProfile) {
+    const userMeta = pick(userProfile, MastersService.sharedFields);
+
+    if (!userMeta.firstName && !userMeta.lastName) {
+      const id = nanoid.customAlphabet('1234567890', 10);
+
+      userMeta.firstName = 'Masters Guest';
+      userMeta.lastName = id(6);
+    }
+
     const params = {
       activate: true, // externally validated, no challenge
       username: MastersService.userId(userProfile),
       audience: this.audience,
       skipPassword: true,
       metadata: {
-        ...pick(userProfile, MastersService.sharedFields),
+        ...userMeta,
         masters: {
           id: userProfile.userId,
         },
@@ -108,6 +118,7 @@ class MastersService {
     } catch (e) {
       // normal situation: user already exists
       if (e.code === ErrorConflictUserExists.code) {
+        this.service.log.warn('masters user - exists, skip');
         return { status: false };
       }
       this.service.log.error({ err: e }, 'failed to register masters user');

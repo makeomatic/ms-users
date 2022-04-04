@@ -93,10 +93,10 @@ class MastersService {
     const userMeta = pick(userProfile, MastersService.sharedFields);
 
     if (!userMeta.firstName && !userMeta.lastName) {
-      const id = nanoid.customAlphabet('1234567890', 10);
+      const id = nanoid.customAlphabet('1234567890', 6);
 
       userMeta.firstName = 'Masters Guest';
-      userMeta.lastName = id(6);
+      userMeta.lastName = id();
     }
 
     const params = {
@@ -126,6 +126,16 @@ class MastersService {
     }
   }
 
+  async updateUserMeta(userId, userMeta) {
+    const params = {
+      username: userId,
+      audience: this.audience,
+      metadata: { $set: userMeta },
+    };
+
+    return await this.service.dispatch('updateMetadata', { params });
+  }
+
   async registerAndLogin(userProfile) {
     // must be able to lock
     try {
@@ -148,7 +158,18 @@ class MastersService {
       throw new HttpStatusError(500, 'unable to validate user registration');
     }
 
-    return this.login(userProfile);
+    const { user } = await this.login(userProfile);
+
+    const userMeta = user.metadata[this.audience]
+    if (userMeta.firstName != userProfile.firstName && userMeta.lastName !== userProfile.lastName) {
+      try {
+        await this.updateUserMeta(user.id, { firstName: userProfile.firstName, lastName: userProfile.lastName })
+      } catch (err) {
+        this.service.log.warn({ err }, 'failed update user data after bypass');
+      }
+    }
+
+    return user
   }
 
   async retrieveUser(profileToken, account) {

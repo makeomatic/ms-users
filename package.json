@@ -80,6 +80,7 @@
     "ms-flakeless": "^4.6.4",
     "ms-mailer-client": "^8.1.0",
     "ms-token": "^5.0.1",
+    "nanoid": "^3.3.2",
     "otplib": "^12.0.1",
     "p-retry": "^4.6.1",
     "password-generator": "^2.3.2",

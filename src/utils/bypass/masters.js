@@ -43,6 +43,8 @@ const schema = {
   },
 };
 
+const userIdGenerator = nanoid.customAlphabet('1234567890', 6);
+
 class MastersService {
   static get sharedFields() {
     return ['firstName', 'lastName', 'email'];
@@ -92,11 +94,9 @@ class MastersService {
   async registerUser(userProfile) {
     const userMeta = pick(userProfile, MastersService.sharedFields);
 
-    if (!userMeta.firstName && !userMeta.lastName) {
-      const id = nanoid.customAlphabet('1234567890', 6);
-
+    if (!(userMeta.firstName || userMeta.lastName)) {
       userMeta.firstName = 'Masters Guest';
-      userMeta.lastName = id();
+      userMeta.lastName = userIdGenerator();
     }
 
     const params = {
@@ -161,7 +161,7 @@ class MastersService {
     const { user } = await this.login(userProfile);
 
     const userMeta = user.metadata[this.audience]
-    if (userMeta.firstName != userProfile.firstName && userMeta.lastName !== userProfile.lastName) {
+    if (userMeta.firstName !== userProfile.firstName && userMeta.lastName !== userProfile.lastName) {
       try {
         await this.updateUserMeta(user.id, { firstName: userProfile.firstName, lastName: userProfile.lastName })
       } catch (err) {

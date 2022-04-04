@@ -38,6 +38,7 @@ exports.jwt = {
       interval: 100 * 24 * 60 * 60 * 1000, // 100 days
     },
     storage: {
+      storageCacheTTL: 60 * 1000, // 1 min
       watchOptions: {
         backoffFactor: 100,
         backoffMax: 30000,

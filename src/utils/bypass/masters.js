@@ -158,18 +158,18 @@ class MastersService {
       throw new HttpStatusError(500, 'unable to validate user registration');
     }
 
-    const { user } = await this.login(userProfile);
+    const loginResponse = await this.login(userProfile);
 
-    const userMeta = user.metadata[this.audience];
+    const userMeta = loginResponse.user.metadata[this.audience];
     if (userMeta.firstName !== userProfile.firstName && userMeta.lastName !== userProfile.lastName) {
       try {
-        await this.updateUserMeta(user.id, { firstName: userProfile.firstName, lastName: userProfile.lastName });
+        await this.updateUserMeta(loginResponse.user.id, { firstName: userProfile.firstName, lastName: userProfile.lastName });
       } catch (err) {
         this.service.log.warn({ err }, 'failed update user data after bypass');
       }
     }
 
-    return user;
+    return loginResponse;
   }
 
   async retrieveUser(profileToken, account) {

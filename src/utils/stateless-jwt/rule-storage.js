@@ -70,6 +70,7 @@ class RevocationRulesStorage {
       this.keyPrefix,
       (data) => {
         const value = data === undefined ? [] : data;
+        this.log.debug({ value }, 'consul rule versions updated');
         for (const { Key: key, Value: version } of value) {
           this._invalidateCache(
             key.substring(KEY_PREFIX_REVOCATION_RULES.length),

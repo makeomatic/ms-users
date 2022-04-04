@@ -56,7 +56,7 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
     // check whether consul key created
     const allKeys = await consul.kv.keys(KEY_PREFIX_REVOCATION_RULES);
     strictEqual(allKeys.length, 1);
-    ok(allKeys.includes('revocation-rules/some'));
+    ok(allKeys.includes('microfleet/ms-users/revocation-rules/some'));
 
     // await for the last key sync before stopping watching
     await Bluebird.delay(100);

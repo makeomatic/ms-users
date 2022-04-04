@@ -837,6 +837,9 @@
           "additionalProperties": false,
           "required": [ "watchOptions" ],
           "properties": {
+            "storageCacheTTL": {
+              "type": "number"
+            },
             "watchOptions": {
               "type": "object",
               "description": "See https://github.com/silas/node-consul#consulwatchoptions"

@@ -4,7 +4,7 @@ const undici = require('undici');
 const pRetry = require('p-retry');
 const { customAlphabet } = require('nanoid');
 
-const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists } = require('../../constants');
+const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists, ErrorUserNotFound } = require('../../constants');
 const contacts = require('../contacts');
 
 const AJV_SCHEME_ID = 'masters.profile';
@@ -43,7 +43,7 @@ const schema = {
   },
 };
 
-const userIdGenerator = customAlphabet('1234567890', 6);
+const userIdGenerator = customAlphabet('123456789', 6);
 
 class MastersService {
   static get sharedFields() {
@@ -86,6 +86,23 @@ class MastersService {
     }
   }
 
+  static generateStubNames(profile) {
+    if (profile.firstName || profile.lastName) {
+      return;
+    }
+
+    profile.firstName = 'Masters Guest';
+    profile.lastName = userIdGenerator();
+  }
+
+  static matchData(existingProfile, updatedProfile, property, holder) {
+    const prop = updatedProfile[property];
+    const existingProp = existingProfile[property];
+    if (prop && prop !== existingProp) {
+      holder.push([property, prop]);
+    }
+  }
+
   /**
    * register user
    * @param {object} userProfile
@@ -94,10 +111,7 @@ class MastersService {
   async registerUser(userProfile) {
     const userMeta = pick(userProfile, MastersService.sharedFields);
 
-    if (!(userMeta.firstName || userMeta.lastName)) {
-      userMeta.firstName = 'Masters Guest';
-      userMeta.lastName = userIdGenerator();
-    }
+    MastersService.generateStubNames(userProfile);
 
     const params = {
       activate: true, // externally validated, no challenge
@@ -118,9 +132,10 @@ class MastersService {
     } catch (e) {
       // normal situation: user already exists
       if (e.code === ErrorConflictUserExists.code) {
-        this.service.log.warn('masters user - exists, skip');
+        this.service.log.warn({ params }, 'masters user - exists, skip');
         return { status: false };
       }
+
       this.service.log.error({ err: e }, 'failed to register masters user');
       throw e;
     }
@@ -136,7 +151,7 @@ class MastersService {
     return this.service.dispatch('updateMetadata', { params });
   }
 
-  async registerAndLogin(userProfile) {
+  async queueRegister(userProfile) {
     // must be able to lock
     try {
       const { status, data } = await this.service.dlock.manager.fanout(
@@ -153,20 +168,42 @@ class MastersService {
         });
         return data;
       }
+
+      return await this.login(userProfile);
     } catch (e) {
       this.service.log.error({ err: e }, 'masters registration failed');
       throw new HttpStatusError(500, 'unable to validate user registration');
     }
+  }
 
-    const loginResponse = await this.login(userProfile);
+  async registerAndLogin(userProfile) {
+    let loginResponse;
+    try {
+      loginResponse = await this.login(userProfile);
+    } catch (err) {
+      if (err !== ErrorUserNotFound) {
+        throw err;
+      }
+
+      loginResponse = await this.queueRegister(userProfile);
+    }
 
     const userMeta = loginResponse.user.metadata[this.audience];
-    if (userMeta.firstName !== userProfile.firstName && userMeta.lastName !== userProfile.lastName) {
-      try {
-        await this.updateUserMeta(loginResponse.user.id, { firstName: userProfile.firstName, lastName: userProfile.lastName });
-      } catch (err) {
-        this.service.log.warn({ err }, 'failed update user data after bypass');
-      }
+    const updatedProps = [];
+
+    MastersService.matchData(userMeta, userProfile, 'firstName', updatedProps);
+    MastersService.matchData(userMeta, userProfile, 'lastName', updatedProps);
+
+    if (updatedProps.length === 0) {
+      return loginResponse;
+    }
+
+    try {
+      const updatedProfile = Object.fromEntries(updatedProps);
+      await this.updateUserMeta(loginResponse.user.id, updatedProfile);
+      Object.assign(userMeta, updatedProfile);
+    } catch (err) {
+      this.service.log.warn({ err }, 'failed update user data after bypass');
     }
 
     return loginResponse;

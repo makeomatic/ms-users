@@ -126,14 +126,14 @@ class MastersService {
     }
   }
 
-  async updateUserMeta(userId, userMeta) {
+  updateUserMeta(userId, userMeta) {
     const params = {
       username: userId,
       audience: this.audience,
       metadata: { $set: userMeta },
     };
 
-    return await this.service.dispatch('updateMetadata', { params });
+    return this.service.dispatch('updateMetadata', { params });
   }
 
   async registerAndLogin(userProfile) {
@@ -160,16 +160,16 @@ class MastersService {
 
     const { user } = await this.login(userProfile);
 
-    const userMeta = user.metadata[this.audience]
+    const userMeta = user.metadata[this.audience];
     if (userMeta.firstName !== userProfile.firstName && userMeta.lastName !== userProfile.lastName) {
       try {
-        await this.updateUserMeta(user.id, { firstName: userProfile.firstName, lastName: userProfile.lastName })
+        await this.updateUserMeta(user.id, { firstName: userProfile.firstName, lastName: userProfile.lastName });
       } catch (err) {
         this.service.log.warn({ err }, 'failed update user data after bypass');
       }
     }
 
-    return user
+    return user;
   }
 
   async retrieveUser(profileToken, account) {

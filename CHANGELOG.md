@@ -1,3 +1,10 @@
+## [15.1.6](https://github.com/makeomatic/ms-users/compare/v15.1.5...v15.1.6) (2022-04-04)
+
+
+### Bug Fixes
+
+* remove permissions required from accept invite ([#549](https://github.com/makeomatic/ms-users/issues/549)) ([fc246f5](https://github.com/makeomatic/ms-users/commit/fc246f5145365d6e9634d9b6eab27b68c6cd48d7))
+
 ## [15.1.5](https://github.com/makeomatic/ms-users/compare/v15.1.4...v15.1.5) (2022-03-28)
 
 

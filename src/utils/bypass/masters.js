@@ -2,7 +2,7 @@ const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');
 const undici = require('undici');
 const pRetry = require('p-retry');
-const { nanoid } = require('nanoid');
+const { customAlphabet } = require('nanoid');
 
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists } = require('../../constants');
 const contacts = require('../contacts');
@@ -43,7 +43,7 @@ const schema = {
   },
 };
 
-const userIdGenerator = nanoid.customAlphabet('1234567890', 6);
+const userIdGenerator = customAlphabet('1234567890', 6);
 
 class MastersService {
   static get sharedFields() {

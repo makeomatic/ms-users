@@ -2,8 +2,9 @@ const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');
 const undici = require('undici');
 const pRetry = require('p-retry');
+const { customAlphabet } = require('nanoid');
 
-const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists } = require('../../constants');
+const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists, ErrorUserNotFound } = require('../../constants');
 const contacts = require('../contacts');
 
 const AJV_SCHEME_ID = 'masters.profile';
@@ -42,6 +43,8 @@ const schema = {
   },
 };
 
+const userIdGenerator = customAlphabet('123456789', 6);
+
 class MastersService {
   static get sharedFields() {
     return ['firstName', 'lastName', 'email'];
@@ -75,11 +78,23 @@ class MastersService {
       isSSO: true,
     };
 
-    try {
-      return await this.service.dispatch('login', { params });
-    } catch (e) {
-      this.service.log.error({ err: e }, 'failed to login');
-      throw USERS_INVALID_TOKEN;
+    return this.service.dispatch('login', { params });
+  }
+
+  static generateStubNames(profile) {
+    if (profile.firstName || profile.lastName) {
+      return;
+    }
+
+    profile.firstName = 'Masters Guest';
+    profile.lastName = userIdGenerator();
+  }
+
+  static matchData(existingProfile, updatedProfile, property, holder) {
+    const prop = updatedProfile[property];
+    const existingProp = existingProfile[property];
+    if (prop && prop !== existingProp) {
+      holder.push([property, prop]);
     }
   }
 
@@ -89,13 +104,17 @@ class MastersService {
    * @returns {Promise<{status: boolean, data?: object}>}
    */
   async registerUser(userProfile) {
+    const userMeta = pick(userProfile, MastersService.sharedFields);
+
+    MastersService.generateStubNames(userProfile);
+
     const params = {
       activate: true, // externally validated, no challenge
       username: MastersService.userId(userProfile),
       audience: this.audience,
       skipPassword: true,
       metadata: {
-        ...pick(userProfile, MastersService.sharedFields),
+        ...userMeta,
         masters: {
           id: userProfile.userId,
         },
@@ -108,14 +127,26 @@ class MastersService {
     } catch (e) {
       // normal situation: user already exists
       if (e.code === ErrorConflictUserExists.code) {
+        this.service.log.warn({ params }, 'masters user - exists, skip');
         return { status: false };
       }
+
       this.service.log.error({ err: e }, 'failed to register masters user');
       throw e;
     }
   }
 
-  async registerAndLogin(userProfile) {
+  updateUserMeta(userId, userMeta) {
+    const params = {
+      username: userId,
+      audience: this.audience,
+      metadata: { $set: userMeta },
+    };
+
+    return this.service.dispatch('updateMetadata', { params });
+  }
+
+  async queueRegister(userProfile) {
     // must be able to lock
     try {
       const { status, data } = await this.service.dlock.manager.fanout(
@@ -132,12 +163,49 @@ class MastersService {
         });
         return data;
       }
+
+      return await this.login(userProfile);
     } catch (e) {
       this.service.log.error({ err: e }, 'masters registration failed');
       throw new HttpStatusError(500, 'unable to validate user registration');
     }
+  }
 
-    return this.login(userProfile);
+  async registerAndLogin(userProfile) {
+    this.service.log.debug({ userProfile }, 'trying to sign in');
+
+    let loginResponse;
+    try {
+      loginResponse = await this.login(userProfile);
+    } catch (err) {
+      if (err !== ErrorUserNotFound) {
+        this.service.log.error({ err, bypass: 'masters' }, 'failed to login');
+        throw USERS_INVALID_TOKEN;
+      }
+
+      this.service.log.debug('username not found, registering');
+      loginResponse = await this.queueRegister(userProfile);
+    }
+
+    const userMeta = loginResponse.user.metadata[this.audience];
+    const updatedProps = [];
+
+    MastersService.matchData(userMeta, userProfile, 'firstName', updatedProps);
+    MastersService.matchData(userMeta, userProfile, 'lastName', updatedProps);
+
+    if (updatedProps.length === 0) {
+      return loginResponse;
+    }
+
+    try {
+      const updatedProfile = Object.fromEntries(updatedProps);
+      await this.updateUserMeta(loginResponse.user.id, updatedProfile);
+      Object.assign(userMeta, updatedProfile);
+    } catch (err) {
+      this.service.log.warn({ err }, 'failed update user data after bypass');
+    }
+
+    return loginResponse;
   }
 
   async retrieveUser(profileToken, account) {

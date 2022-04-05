@@ -99,7 +99,8 @@ function attachKeyword(service) {
   const { $ajv } = service.validator;
   const { passwordValidator } = service.config;
 
-  $ajv.addKeyword(regKeyword, {
+  $ajv.addKeyword({
+    keyword: regKeyword,
     validate: getValidatorFn(passwordValidator),
     errors: true,
   });

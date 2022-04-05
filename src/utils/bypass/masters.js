@@ -78,12 +78,7 @@ class MastersService {
       isSSO: true,
     };
 
-    try {
-      return await this.service.dispatch('login', { params });
-    } catch (e) {
-      this.service.log.error({ err: e }, 'failed to login');
-      throw USERS_INVALID_TOKEN;
-    }
+    return this.service.dispatch('login', { params });
   }
 
   static generateStubNames(profile) {
@@ -177,14 +172,18 @@ class MastersService {
   }
 
   async registerAndLogin(userProfile) {
+    this.service.log.debug({ userProfile }, 'trying to sign in');
+
     let loginResponse;
     try {
       loginResponse = await this.login(userProfile);
     } catch (err) {
       if (err !== ErrorUserNotFound) {
-        throw err;
+        this.service.log.error({ err, bypass: 'masters' }, 'failed to login');
+        throw USERS_INVALID_TOKEN;
       }
 
+      this.service.log.debug('username not found, registering');
       loginResponse = await this.queueRegister(userProfile);
     }
 

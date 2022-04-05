@@ -1,3 +1,10 @@
+# [15.2.0](https://github.com/makeomatic/ms-users/compare/v15.1.7...v15.2.0) (2022-04-05)
+
+
+### Features
+
+* stateless auth ([#552](https://github.com/makeomatic/ms-users/issues/552)) ([99a2ac0](https://github.com/makeomatic/ms-users/commit/99a2ac0836e00de6f10c70c03020a945cf26f04a)), closes [#519](https://github.com/makeomatic/ms-users/issues/519) [#529](https://github.com/makeomatic/ms-users/issues/529) [#530](https://github.com/makeomatic/ms-users/issues/530) [#531](https://github.com/makeomatic/ms-users/issues/531)
+
 ## [15.1.7](https://github.com/makeomatic/ms-users/compare/v15.1.6...v15.1.7) (2022-04-05)
 
 

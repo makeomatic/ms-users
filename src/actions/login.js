@@ -139,7 +139,7 @@ const performAuthentication = async (ctx, data) => {
  */
 const getUserInfo = async (ctx, internalData) => {
   const datum = await Promise
-    .bind(ctx.service, [internalData.id, ctx.audience])
+    .bind(ctx.service, [internalData.id, ctx.audience, ctx.isStatelessAuth])
     .spread(jwt.login);
 
   // NOTE: transformed to boolean
@@ -163,11 +163,14 @@ const getUserInfo = async (ctx, internalData) => {
  * @apiParam (Payload) {String} [remoteip] - security logging feature, not used
  * @apiParam (Payload) {String} [isDisposablePassword=false] - use disposable password for verification
  * @apiParam (Payload) {String} [isSSO=false] - verification was already performed by single sign on (ie, facebook)
+ * @apiParam (Payload) {Boolean} [isStatelessAuth=false] - users Stateless JWT token flow
  */
 async function login({ params, locals }) {
   const { redis, tokenManager, config } = this;
   const { jwt: { defaultAudience }, rateLimiters: rateLimitersConfig } = config;
-  const { isOAuthFollowUp, isDisposablePassword, isSSO, password, audience = defaultAudience, remoteip = false } = params;
+  const {
+    isOAuthFollowUp, isDisposablePassword, isSSO, password, audience = defaultAudience, remoteip = false, isStatelessAuth = false,
+  } = params;
   const loginRateLimiter = new UserLoginRateLimiter(redis, rateLimitersConfig.userLogin);
   const rateLimiterEnabled = remoteip !== false && loginRateLimiter.isEnabled();
 
@@ -185,6 +188,7 @@ async function login({ params, locals }) {
     audience,
     remoteip,
     rateLimiterEnabled,
+    isStatelessAuth,
   };
 
   if (rateLimiterEnabled) {

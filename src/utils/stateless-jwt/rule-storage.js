@@ -1,6 +1,6 @@
-const { KEY_PREFIX_REVOCATION_RULES } = require('../constants');
-const { ConsulWatcher } = require('./consul-watcher');
-const { ListFilter } = require('./jwt-filter/list-filter');
+const { ConsulWatcher } = require('../consul-watcher');
+const { ListFilter } = require('./list-filter');
+const { KEY_PREFIX_REVOCATION_RULES } = require('../../constants');
 
 /** @typedef { import("./revocation-rules-manager").RevocationRulesManager } RevocationRulesManager */
 
@@ -17,7 +17,8 @@ class RevocationRulesStorage {
     this.log = log;
     this.watchInstance = null;
     this.cache = {};
-    this.cacheTTL = config.storageCacheTTL || 30 * 60 * 1000;
+    this.cacheTTL = config.storageCacheTTL || 10 * 1000;
+    this.keyPrefix = KEY_PREFIX_REVOCATION_RULES;
   }
 
   _invalidateCache(key, version) {
@@ -38,6 +39,10 @@ class RevocationRulesStorage {
     };
   }
 
+  /**
+   * @param {*} key
+   * @returns {Promise<ListFilter>}
+   */
   async getFilter(key) {
     const cached = this.cache[key];
     const now = Date.now();
@@ -62,10 +67,15 @@ class RevocationRulesStorage {
       throw new Error('Revocation rules sync has already been started');
     }
 
+    this.log.debug({ prefix: this.keyPrefix }, 'consul key watch');
+
     this.watchInstance = consulWatcher.watchKeyPrefix(
-      KEY_PREFIX_REVOCATION_RULES,
+      this.keyPrefix,
       (data) => {
         const value = data === undefined ? [] : data;
+
+        this.log.debug({ value }, 'consul rule version updated');
+
         for (const { Key: key, Value: version } of value) {
           this._invalidateCache(
             key.substring(KEY_PREFIX_REVOCATION_RULES.length),

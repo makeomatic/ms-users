@@ -187,12 +187,12 @@ function hook(userId) {
  * @apiParam (Payload) {String} token - verification token
  * @apiParam (Payload) {String} [remoteip] - not used, but is reserved for security log in the future
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
- *
+ * @apiParam (Payload) {Boolean} [isStatelessAuth=false] - users Stateless JWT token flow
  */
 async function activateAction({ log, params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
-  const { token, username } = params;
+  const { token, username, isStatelessAuth } = params;
   const { config } = this;
   const { jwt: { defaultAudience } } = config;
   const audience = params.audience || defaultAudience;
@@ -220,7 +220,7 @@ async function activateAction({ log, params }) {
     .spread(activateAccount)
     .tap(hook);
 
-  return jwt.login.call(this, userId, audience);
+  return jwt.login.call(this, userId, audience, isStatelessAuth);
 }
 
 activateAction.transports = [ActionTransport.amqp, ActionTransport.internal];

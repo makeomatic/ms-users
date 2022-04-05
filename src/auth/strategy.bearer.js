@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const is = require('is');
 const { AuthenticationRequiredError } = require('common-errors');
 const { USERS_CREDENTIALS_REQUIRED_ERROR } = require('../constants');
+const { hasTrustedHeader, checkTrustedHeadersCompat, hasStatelessToken } = require('../utils/stateless-jwt/trusted-headers');
 
 function getAuthToken(authHeader) {
   const [auth, token] = authHeader.trim().split(/\s+/, 2).map((str) => str.trim());
@@ -26,20 +27,10 @@ function getAuthToken(authHeader) {
   }
 }
 
-function tokenAuth(request) {
-  const { method, action } = request;
-  const { auth } = action;
-  const { strategy = 'required' } = auth;
-
-  // NOTE: should normalize on the ~transport level
-  // select actual headers location based on the transport
-  const headers = method === 'amqp' ? request.headers.headers : request.headers;
-  const authHeader = headers ? headers.authorization : null;
-
+function checkTokenHeader(service, strategy, params, authHeader) {
   if (authHeader) {
-    const params = method === 'get' ? request.query : request.params;
     const { accessToken, token } = getAuthToken(authHeader);
-    const { amqp, config } = this;
+    const { amqp, config } = service;
     const { users: { audience: defaultAudience, verify, timeouts } } = config;
     const timeout = timeouts.verify;
     const audience = (is.object(params) && params.audience) || defaultAudience;
@@ -52,6 +43,30 @@ function tokenAuth(request) {
   }
 
   return null;
+}
+
+function tokenAuth(request) {
+  const { method, action } = request;
+  const { auth } = action;
+  const { strategy = 'required' } = auth;
+
+  // NOTE: should normalize on the ~transport level
+  // select actual headers location based on the transport
+  const headers = method === 'amqp' ? request.headers.headers : request.headers;
+  const authHeader = headers ? headers.authorization : null;
+  const params = method === 'get' ? request.query : request.params;
+
+  if (hasTrustedHeader(headers) && hasStatelessToken(headers)) {
+    // fallback fn is required to handle the case of the offline ingress token backend
+    return checkTrustedHeadersCompat(
+      this,
+      headers,
+      params,
+      () => checkTokenHeader(this, strategy, params, authHeader)
+    );
+  }
+
+  return checkTokenHeader(this, strategy, params, authHeader);
 }
 
 module.exports = tokenAuth;

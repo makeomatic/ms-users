@@ -89,11 +89,12 @@ function oauthVerification({
  * @param {{ uid: string }} credentials
  * @returns {Promise<{user: User, jwt: string, account: { uid: string, profile: any, internals: any }}>}
  */
-async function mserviceVerification({ service, transportRequest }, credentials) {
+async function mserviceVerification({ service, transportRequest }, credentials, stateless = false) {
   // query on initial request is recorded and is available via credentials.query
   // https://github.com/hapijs/bell/blob/63603c9e897f3607efeeca87b6ef3c02b939884b/lib/oauth.js#L261
   const oauthConfig = service.config.oauth;
   const jwt = extractJWT(transportRequest, oauthConfig) || credentials.query[oauthConfig.urlKey];
+  const isStatelessAuth = Boolean(stateless || credentials.query.isStatelessAuth);
 
   // validate JWT token if provided
   const checkAuth = jwt
@@ -119,7 +120,7 @@ async function mserviceVerification({ service, transportRequest }, credentials) 
     credentials.profile.userId = userId;
 
     try {
-      const userData = await loginAttempt.call(service, userId);
+      const userData = await loginAttempt.call(service, userId, { isStatelessAuth });
       refresh.call(service, credentials, userData);
 
       return userData;

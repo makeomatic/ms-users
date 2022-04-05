@@ -1,13 +1,17 @@
 const { strictEqual, deepStrictEqual, ok, throws } = require('assert');
 const Bluebird = require('bluebird');
 const { KEY_PREFIX_REVOCATION_RULES } = require('../../../src/constants');
-const { ListFilter } = require('../../../src/utils/jwt-filter/list-filter');
+const { ListFilter } = require('../../../src/utils/stateless-jwt/list-filter');
 
 const withSyncEnabled = {
-  revocationRules: {
-    enabled: true,
+  jwt: {
+    stateless: {
+      enabled: true,
+    },
   },
 };
+
+const keyPrefix = KEY_PREFIX_REVOCATION_RULES;
 
 async function startServiceWithSyncEnabled() {
   await global.startService.bind(this)(withSyncEnabled);
@@ -19,7 +23,7 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
   beforeEach(startServiceWithSyncEnabled);
   afterEach('Clear consul revocation rules version keys', async function clearConsul() {
     const { consul } = this.users;
-    await consul.kv.del({ key: KEY_PREFIX_REVOCATION_RULES, recurse: true });
+    await consul.kv.del({ key: keyPrefix, recurse: true });
   });
   afterEach(global.clearRedis);
 
@@ -33,7 +37,7 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
   it('Should be able to sync rules', async function test() {
     const { consul, revocationRulesStorage } = this.users;
     const { kv } = consul;
-    const initial = await kv.get({ key: KEY_PREFIX_REVOCATION_RULES, recurse: true });
+    const initial = await kv.get({ key: keyPrefix, recurse: true });
     strictEqual(initial, undefined);
     ok(revocationRulesStorage);
 
@@ -52,7 +56,7 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
     // check whether consul key created
     const allKeys = await consul.kv.keys(KEY_PREFIX_REVOCATION_RULES);
     strictEqual(allKeys.length, 1);
-    ok(allKeys.includes('revocation-rules/some'));
+    ok(allKeys.includes('microfleet/ms-users/revocation-rules/some'));
 
     // await for the last key sync before stopping watching
     await Bluebird.delay(100);

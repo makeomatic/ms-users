@@ -68,6 +68,11 @@ module.exports = exports = {
   USERS_AUDIENCE_MISMATCH: new HttpStatusError(403, 'audience mismatch'),
   USERS_INVALID_TOKEN: new HttpStatusError(403, 'invalid token'),
   USERS_MALFORMED_TOKEN: new HttpStatusError(403, 'malformed token'),
+
+  USERS_JWT_ACCESS_REQUIRED: new HttpStatusError(401, 'access token required'),
+  USERS_JWT_REFRESH_REQUIRED: new HttpStatusError(401, 'refresh token required'),
+  USERS_JWT_STATELESS_REQUIRED: new HttpStatusError(501, '`Stateless JWT` should be enabled'),
+
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorAccountLocked: new HttpStatusError(423, 'Account has been locked'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
@@ -123,7 +128,7 @@ module.exports = exports = {
   lockContact: (contact) => `contact:${contact}`,
 
   // consul keys & prefixes
-  KEY_PREFIX_REVOCATION_RULES: 'revocation-rules/',
+  KEY_PREFIX_REVOCATION_RULES: 'microfleet/ms-users/revocation-rules/',
 };
 
 // embed error codes
@@ -131,6 +136,12 @@ exports.ErrorConflictUserExists.code = 'E_USERNAME_CONFLICT';
 exports.ErrorTotpRequired.code = 'E_TOTP_REQUIRED';
 exports.ErrorTotpInvalid.code = 'E_TOTP_INVALID';
 exports.ErrorSecretRequired.code = 'E_TOTP_NOSECRET';
+
+exports.USERS_INVALID_TOKEN.code = 'E_TKN_INVALID';
+exports.USERS_AUDIENCE_MISMATCH.code = 'E_TKN_AUDIENCE_MISMATCH';
+exports.USERS_JWT_ACCESS_REQUIRED.code = 'E_TKN_ACCESS_TOKEN_REQUIRED';
+exports.USERS_JWT_REFRESH_REQUIRED.code = 'E_TKN_REFRESH_TOKEN_REQUIRED';
+exports.USERS_JWT_STATELESS_REQUIRED.code = 'E_STATELESS_NOT_ENABLED';
 
 exports.SSO_PROVIDERS = [
   exports.USERS_SSO_FACEBOOK_FIELD,

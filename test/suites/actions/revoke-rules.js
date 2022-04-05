@@ -6,8 +6,10 @@ const listAction = 'revoke-rule.list';
 describe('#revoke-rule.* actions and RevocationRulesManager', () => {
   before('start', async () => {
     await global.startService.call(this, {
-      revocationRules: {
-        enabled: true,
+      jwt: {
+        stateless: {
+          enabled: true,
+        },
       },
     });
 

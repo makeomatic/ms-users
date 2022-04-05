@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 
-const { GLOBAL_RULE_GROUP } = require('../../utils/revocation-rules-manager');
+const { GLOBAL_RULE_GROUP } = require('../../utils/stateless-jwt/rule-manager');
 
 async function listRevokeRules({ params }) {
   const { revocationRulesManager } = this;

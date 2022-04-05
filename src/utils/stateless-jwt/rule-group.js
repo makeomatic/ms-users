@@ -60,7 +60,7 @@ class RuleGroup {
       }
     }
 
-    return true;
+    return !this.isOr;
   }
 }
 

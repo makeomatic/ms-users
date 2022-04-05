@@ -11,8 +11,7 @@ const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
 const { ConsulWatcher } = require('./utils/consul-watcher');
-const { RevocationRulesStorage } = require('./utils/revocation-rules-storage');
-const { RevocationRulesManager } = require('./utils/revocation-rules-manager');
+const { rule: { RevocationRulesStorage, RevocationRulesManager } } = require('./utils/stateless-jwt');
 
 /**
  * @namespace Users
@@ -49,8 +48,10 @@ class Users extends Microfleet {
     config.users = {
       audience: config.jwt.defaultAudience,
       verify: `${prefix}.verify`,
+      trustedVerify: `${prefix}.verify-trusted`,
       timeouts: {
         verify: 5000,
+        trustedVerify: 5000,
       },
     };
 
@@ -139,7 +140,8 @@ class Users extends Microfleet {
       });
     }
 
-    if (this.config.revocationRules.enabled) {
+    const { jwt: { stateless } } = this.config;
+    if (stateless.enabled) {
       this.initJwtRevocationRules();
     }
 
@@ -167,16 +169,15 @@ class Users extends Microfleet {
     this.initConsul();
 
     const pluginName = 'JwtRevocationRules';
+    const { jwt: { stateless: { storage } } } = this.config;
 
     this.addConnector(ConnectorsTypes.application, () => {
-      this.revocationRulesManager = new RevocationRulesManager(this);
-
       const watcher = new ConsulWatcher(this.consul, this.log);
-
+      this.revocationRulesManager = new RevocationRulesManager(this);
       this.revocationRulesStorage = new RevocationRulesStorage(
         this.revocationRulesManager,
         watcher,
-        this.config.revocationRules,
+        storage,
         this.log
       );
 

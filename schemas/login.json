@@ -34,6 +34,10 @@
         "isOAuthFollowUp": {
             "default": false,
             "type": "boolean"
+        },
+        "isStatelessAuth": {
+          "type": "boolean",
+          "default": false
         }
     },
     "if": {

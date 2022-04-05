@@ -24,4 +24,25 @@ exports.jwt = {
       isSameSite: 'Lax',
     },
   },
+  stateless: {
+    force: false,
+    enabled: false,
+    trustHeaders: false,
+    // additional metadata fields to encode in token
+    // hardcoded fields: ['alias', 'roles', 'org']
+    fields: [],
+    refreshTTL: 365 * 24 * 60 * 60 * 1000, // 1 year
+    refreshRotation: {
+      enabled: false,
+      always: false,
+      interval: 100 * 24 * 60 * 60 * 1000, // 100 days
+    },
+    storage: {
+      storageCacheTTL: 60 * 1000, // 1 min
+      watchOptions: {
+        backoffFactor: 100,
+        backoffMax: 30000,
+      },
+    },
+  },
 };

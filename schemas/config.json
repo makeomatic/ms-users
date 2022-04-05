@@ -145,7 +145,8 @@
         "secret",
         "ttl",
         "defaultAudience",
-        "issuer"
+        "issuer",
+        "stateless"
       ],
       "properties": {
         "hashingFunction": {
@@ -166,6 +167,9 @@
         "issuer": {
           "type": "string",
           "minLength": 1
+        },
+        "stateless": {
+          "$ref": "#/definitions/statelessJWTConfig"
         }
       }
     },
@@ -777,6 +781,70 @@
         },
         "organizationUserAdd": {
           "type": "string"
+        }
+      }
+    },
+    "statelessJWTConfig": {
+      "type": "object",
+      "required": [ "enabled" ],
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": ["force", "storage", "refreshTTL", "refreshRotation"]
+      },
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "force": {
+          "type": "boolean",
+          "default": false
+        },
+        "refreshTTL": {
+          "type": "number"
+        },
+        "refreshRotation": {
+          "type": "object",
+          "required": [ "always", "enabled" ],
+          "if": {
+            "properties": {
+              "always": { "const": false }
+            }
+          },
+          "then": {
+            "required": [ "interval" ]
+          },
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "always": {
+              "type": "boolean"
+            },
+            "interval": {
+              "type": "number"
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [ "watchOptions" ],
+          "properties": {
+            "storageCacheTTL": {
+              "type": "number"
+            },
+            "watchOptions": {
+              "type": "object",
+              "description": "See https://github.com/silas/node-consul#consulwatchoptions"
+            }
+          }
         }
       }
     }

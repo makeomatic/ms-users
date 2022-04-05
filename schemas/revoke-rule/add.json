@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "revoke-rule.add",
+  "type": "object",
+  "required": [ "rule" ],
+  "additionalProperties": false,
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rule": {
+      "type": "object",
+      "description": "Rule spec for JWT filter",
+      "minProperties": 1,
+      "properties": {
+        "_or": { "type": "boolean" }
+      },
+      "additionalProperties": {
+        "anyOf": [
+          { "$ref": "#/definitions/opBlock" },
+          { "type": "string" },
+          { "type": "number" },
+          { "type": "boolean" }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "opBlock": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "eq": { "type": "string" },
+        "ne": { "type": "string" },
+        "gte": { "type": "number" },
+        "lte": { "type": "number" },
+        "gt": { "type": "number" },
+        "lt": { "type": "number" },
+        "regex": { "type": "string" },
+        "sw": { "type": "string" },
+        "_or": { "type": "boolean" }
+      }
+    }
+  }
+}

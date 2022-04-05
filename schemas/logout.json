@@ -8,8 +8,7 @@
     "properties": {
         "jwt": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 256
+            "minLength": 1
         },
         "audience": {
             "type": "string",

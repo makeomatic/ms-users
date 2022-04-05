@@ -1,0 +1,18 @@
+{
+  "$id": "refresh",
+  "type": "object",
+  "required": [
+      "token",
+      "audience"
+  ],
+  "properties": {
+      "token": {
+        "type": "string",
+        "minLength": 1
+      },
+      "audience": {
+        "type": "string",
+        "minLength": 1
+      }
+  }
+}

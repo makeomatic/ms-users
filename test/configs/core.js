@@ -43,6 +43,9 @@ module.exports = {
     cookies: {
       enabled: true,
     },
+    stateless: {
+      enabled: false,
+    },
   },
   rateLimiters: {
     userLogin: {
@@ -65,6 +68,7 @@ module.exports = {
   consul: {
     base: {
       host: 'consul',
+      promisify: true,
     },
   },
 };

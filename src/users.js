@@ -10,6 +10,8 @@ const conf = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
+const { ConsulWatcher } = require('./utils/consul-watcher');
+const { rule: { RevocationRulesStorage, RevocationRulesManager } } = require('./utils/stateless-jwt');
 
 /**
  * @namespace Users
@@ -46,8 +48,10 @@ class Users extends Microfleet {
     config.users = {
       audience: config.jwt.defaultAudience,
       verify: `${prefix}.verify`,
+      trustedVerify: `${prefix}.verify-trusted`,
       timeouts: {
         verify: 5000,
+        trustedVerify: 5000,
       },
     };
 
@@ -123,10 +127,7 @@ class Users extends Microfleet {
     }
 
     if (this.config.cfAccessList.enabled) {
-      if (!this.hasPlugin('consul')) {
-        const consul = require('@microfleet/plugin-consul');
-        this.initPlugin(consul, this.config.consul);
-      }
+      this.initConsul();
 
       this.addConnector(ConnectorsTypes.application, () => {
         this.cfWorker = new CloudflareWorker(this, this.config.cfAccessList);
@@ -137,6 +138,11 @@ class Users extends Microfleet {
       this.addDestructor(ConnectorsTypes.application, () => {
         this.cfWorker.stop();
       });
+    }
+
+    const { jwt: { stateless } } = this.config;
+    if (stateless.enabled) {
+      this.initJwtRevocationRules();
     }
 
     // init account seed
@@ -150,6 +156,37 @@ class Users extends Microfleet {
         this.initFakeAccounts()
       ), 'dev accounts');
     }
+  }
+
+  initConsul() {
+    if (!this.hasPlugin('consul') && !this.consul) {
+      const consul = require('@microfleet/plugin-consul');
+      this.initPlugin(consul, this.config.consul);
+    }
+  }
+
+  initJwtRevocationRules() {
+    this.initConsul();
+
+    const pluginName = 'JwtRevocationRules';
+    const { jwt: { stateless: { storage } } } = this.config;
+
+    this.addConnector(ConnectorsTypes.application, () => {
+      const watcher = new ConsulWatcher(this.consul, this.log);
+      this.revocationRulesManager = new RevocationRulesManager(this);
+      this.revocationRulesStorage = new RevocationRulesStorage(
+        this.revocationRulesManager,
+        watcher,
+        storage,
+        this.log
+      );
+
+      this.revocationRulesStorage.startSync();
+    }, pluginName);
+
+    this.addDestructor(ConnectorsTypes.application, () => {
+      this.revocationRulesStorage.stopSync();
+    }, pluginName);
   }
 }
 

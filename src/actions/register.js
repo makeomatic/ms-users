@@ -142,6 +142,7 @@ async function performRegistration({ service, params }) {
     audience,
     metadata,
     challengeType,
+    isStatelessAuth,
   } = params;
 
   const {
@@ -261,7 +262,7 @@ async function performRegistration({ service, params }) {
       .return(['users:activate', userId, params, metadata])
       .spread(service.hook)
       // login & return JWT
-      .return([userId, creatorAudience])
+      .return([userId, creatorAudience, isStatelessAuth])
       .spread(jwt.login);
   }
 
@@ -316,6 +317,7 @@ async function performRegistration({ service, params }) {
  * @apiParam (Payload) {Boolean} [skipPassword=false] - disable setting password
  * @apiParam (Payload) {String} [challengeType="email"] - challenge type
  * @apiParam (Payload) {String} [referral] - pass id/fingerprint of the client to see if it was stored before and associate with this account
+ * @apiParam (Payload) {Boolean} [isStatelessAuth=false] - users Stateless JWT token flow
  *
  * @this { import('@microfleet/core-types').Microfleet }
  */

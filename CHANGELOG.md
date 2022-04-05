@@ -1,3 +1,10 @@
+## [15.1.7](https://github.com/makeomatic/ms-users/compare/v15.1.6...v15.1.7) (2022-04-05)
+
+
+### Bug Fixes
+
+* generate random name for bypass user ([#551](https://github.com/makeomatic/ms-users/issues/551)) ([4f0085e](https://github.com/makeomatic/ms-users/commit/4f0085e2bd5e4a6c7d19651d695ea8ba3fdecf53))
+
 ## [15.1.6](https://github.com/makeomatic/ms-users/compare/v15.1.5...v15.1.6) (2022-04-04)
 
 

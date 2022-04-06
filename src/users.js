@@ -123,7 +123,11 @@ class Users extends Microfleet {
       this.addConnector(ConnectorsTypes.essential, () => {
         const MastersService = require('./utils/bypass/masters');
         this.bypass[schemeName] = new MastersService(this, schemeConfig);
-      });
+      }, schemeName);
+
+      this.addDestructor(ConnectorsTypes.database, async () => {
+        await this.bypass[schemeName].close();
+      }, schemeName);
     }
 
     if (this.config.cfAccessList.enabled) {

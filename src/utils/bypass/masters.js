@@ -10,7 +10,7 @@ const contacts = require('../contacts');
 const AJV_SCHEME_ID = 'masters.profile';
 
 const retryConfig = {
-  retries: 3,
+  retries: process.env.BYPASS_RETRIES || 5,
   factor: 1.5,
   minTimeout: 500,
   maxTimeout: 2000,
@@ -54,10 +54,16 @@ class MastersService {
     this.service = service;
     this.config = config;
 
-    this.httpPool = new undici.Pool(this.config.baseUrl, {
-      connections: 1,
-      pipelining: 1,
-      ...this.config.httpPoolOptions,
+    const baseUrls = Array.isArray(this.config.baseUrl)
+      ? this.config.baseUrl
+      : [this.config.baseUrl];
+
+    this.pools = baseUrls.map((baseUrl) => {
+      return [new undici.Pool(baseUrl, {
+        connections: 1,
+        pipelining: 1,
+        ...this.config.httpPoolOptions,
+      }), baseUrl];
     });
 
     this.registerUser = this.registerUser.bind(this);
@@ -215,23 +221,30 @@ class MastersService {
     let response;
 
     try {
-      const { body, statusCode } = await this.httpPool.request({
+      const params = {
         headersTimeout: 5000,
         bodyTimeout: 5000,
         ...this.config.httpClientOptions,
         path: `${this.config.authPath}?token=${profileToken}`,
         method: 'GET',
-      });
+      };
 
-      if (statusCode === 200) {
-        response = await body.json();
-      } else {
-        response = await body.text();
-        this.service.log.error({ err: response, statusCode, profileToken, account }, 'failed to retrieve profile');
-        throw new Error('failed to retrieve profile');
-      }
+      response = await Promise.any(this.pools.map(async ([pool, baseUrl]) => {
+        const { statusCode, body } = await pool.request(params);
+
+        let output;
+        if (statusCode === 200) {
+          output = await body.json();
+        } else {
+          output = await body.text();
+          this.service.log.error({ err: output, statusCode, profileToken, account, baseUrl }, 'failed to retrieve profile');
+          throw new HttpStatusError(statusCode, output);
+        }
+
+        return output;
+      }));
     } catch (e) {
-      this.service.log.warn({ err: e }, 'failed to get user from masters');
+      this.service.log.warn({ err: e, profileToken }, 'failed to get user from masters');
       throw USERS_INVALID_TOKEN;
     }
 
@@ -247,6 +260,10 @@ class MastersService {
   async authenticate(profileToken, account) {
     const userProfile = await pRetry(() => this.retrieveUser(profileToken, account), retryConfig);
     return this.registerAndLogin(userProfile);
+  }
+
+  async close() {
+    await this.pools.map(([pool]) => pool.close());
   }
 }
 

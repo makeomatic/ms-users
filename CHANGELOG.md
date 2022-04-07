@@ -1,3 +1,10 @@
+## [15.2.1](https://github.com/makeomatic/ms-users/compare/v15.2.0...v15.2.1) (2022-04-07)
+
+
+### Bug Fixes
+
+* masters multi-pool support ([03e6f42](https://github.com/makeomatic/ms-users/commit/03e6f4271dcb1e55204ebbde5fbc1b87e353a953))
+
 # [15.2.0](https://github.com/makeomatic/ms-users/compare/v15.1.7...v15.2.0) (2022-04-05)
 
 

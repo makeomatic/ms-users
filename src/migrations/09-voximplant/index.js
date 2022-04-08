@@ -20,6 +20,7 @@ async function voxReg({ redis, config, log }) {
     return null;
   }
 
+  // eslint-disable-next-line no-unused-vars
   const registerVoxUser = async (userId) => {
     // const redisKey = makeRedisKey(userId, USERS_METADATA, audience);
     const redisVoxKey = makeRedisKey(userId, USERS_METADATA, voxAudience);
@@ -55,10 +56,11 @@ async function voxReg({ redis, config, log }) {
   const checkAndRegister = async (userId) => {
     const redisKey = makeRedisKey(userId, USERS_METADATA, voxAudience);
     const voxCredExist = await redis.exists(redisKey);
+    log.info({ voxCredExist }, 'checking vox complete');
 
-    if (!voxCredExist) {
-      return registerVoxUser(userId);
-    }
+    // if (!voxCredExist) {
+    // return registerVoxUser(userId);
+    // }
 
     log.info({ userId }, 'skip user, vox exist');
 
@@ -76,7 +78,12 @@ async function voxReg({ redis, config, log }) {
 
       const jobs = usersIds.map(checkAndRegister);
 
-      await Promise.all(jobs);
+      try {
+        await Promise.all(jobs);
+      } catch (e) {
+        log.error({ err: e }, 'job failed');
+        reject(e);
+      }
       stream.resume();
     });
 

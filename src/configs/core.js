@@ -129,3 +129,14 @@ exports.mfa = {
     window: 10,
   },
 };
+
+exports.voximplant = {
+  credentials: {
+    account_id: process.env.VOXIMPLANT_ACCOUNT_ID,
+    api_key: process.env.VOXIMPLANT_API_KEY,
+    application_id: process.env.VOXIMPLANT_APPLICATION_ID,
+  },
+  appName: 'demo-app',
+  accountName: 'streamlayer',
+  userAudience: 'voximplant',
+};

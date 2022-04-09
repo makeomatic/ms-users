@@ -12,6 +12,7 @@ const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
 const { ConsulWatcher } = require('./utils/consul-watcher');
 const { rule: { RevocationRulesStorage, RevocationRulesManager } } = require('./utils/stateless-jwt');
+const voxUser = require('./vox-users');
 
 /**
  * @namespace Users
@@ -153,6 +154,10 @@ class Users extends Microfleet {
     this.addConnector(ConnectorsTypes.application, () => (
       this.initAdminAccounts()
     ), 'admins');
+
+    this.addConnector(ConnectorsTypes.application, () => (
+      voxUser(this)
+    ), 'voxUser');
 
     // fake accounts for development
     if (process.env.NODE_ENV === 'development') {

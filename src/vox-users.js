@@ -3,29 +3,25 @@ const got = require('got');
 const {
   USERS_METADATA,
   USERS_INDEX,
-} = require('../../constants');
-const makeRedisKey = require('../../utils/key');
+} = require('./constants');
+const makeRedisKey = require('./utils/key');
 
 const voximplantInstance = got.extend({
   prefixUrl: 'https://api.voximplant.com/platform_api/',
   responseType: 'json',
 });
+
 async function voxReg({ redis, config, log }) {
-  // const { jwt } = config;
-  // const audience = jwt.defaultAudience;
   const { appName, accountName, credentials, userAudience: voxAudience } = config.voximplant;
   log.info({ vox: config.voximplant }, 'vox config');
+  let usersCount = 0;
 
   if (!credentials.account_id) {
     return null;
   }
 
-  // eslint-disable-next-line no-unused-vars
   const registerVoxUser = async (userId) => {
-    // const redisKey = makeRedisKey(userId, USERS_METADATA, audience);
     const redisVoxKey = makeRedisKey(userId, USERS_METADATA, voxAudience);
-
-    // const username = await redis.hget(redisKey, 'username');
 
     const password = generatePassword(8);
     const voxUsername = `${userId}@${appName}.${accountName}.voximplant.com`;
@@ -42,10 +38,11 @@ async function voxReg({ redis, config, log }) {
       });
 
       if (statusCode === 200) {
-        await redis.hmset(redisVoxKey, { password, username: voxUsername });
+        await redis.hmset(redisVoxKey, { password: `"${password}"`, username: `"${voxUsername}"` });
       } else {
         log.warn({ err: body.text(), statusCode }, 'failed to register voximplant user');
       }
+      usersCount += 1;
     } catch (e) {
       log.warn({ err: e }, 'failed error to register voximplant user');
 
@@ -58,9 +55,9 @@ async function voxReg({ redis, config, log }) {
     const voxCredExist = await redis.exists(redisKey);
     log.info({ voxCredExist }, 'checking vox complete');
 
-    // if (!voxCredExist) {
-    // return registerVoxUser(userId);
-    // }
+    if (!voxCredExist) {
+      return registerVoxUser(userId);
+    }
 
     log.info({ userId }, 'skip user, vox exist');
 
@@ -71,7 +68,6 @@ async function voxReg({ redis, config, log }) {
     const stream = redis.sscanStream(USERS_INDEX, {
       count: 100,
     });
-    const usersCount = 0;
 
     stream.on('data', async (usersIds) => {
       stream.pause();
@@ -95,8 +91,4 @@ async function voxReg({ redis, config, log }) {
   }));
 }
 
-module.exports = {
-  script: voxReg,
-  min: 8,
-  final: 9,
-};
+module.exports = voxReg;

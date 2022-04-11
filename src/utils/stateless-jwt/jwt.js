@@ -1,6 +1,6 @@
-const Promise = require('bluebird');
+// const Promise = require('bluebird');
 const pick = require('lodash/pick');
-const jwt = Promise.promisifyAll(require('jsonwebtoken'));
+// const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 const {
   USERS_USERNAME_FIELD,
@@ -52,11 +52,14 @@ const createRule = async (service, ruleSpec) => {
   return service.dispatch(REVOKE_RULE_ADD_ACTION, { params: ruleSpec });
 };
 
-function createToken(service, audience, payload) {
+/**
+ * @param {Microfleet & { JWE: JWE }} service
+ */
+async function createToken(service, audience, payload) {
   const { config, flake } = service;
-  const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
-
+  // const { jwt: jwtConfig } = config;
+  // const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
+  const { issuer } = config;
   const cs = flake.next();
 
   const finalPayload = {
@@ -64,15 +67,18 @@ function createToken(service, audience, payload) {
     cs,
     iat: Date.now(),
     st: 1,
+    iss: issuer,
+    aud: audience,
   };
 
   return {
-    token: jwt.sign(finalPayload, secret, { algorithm, audience, issuer }),
+    // token: jwt.sign(finalPayload, secret, { algorithm, audience, issuer }),
+    token: await service.JWE.encode(finalPayload),
     payload: finalPayload,
   };
 }
 
-function createRefreshToken(service, payload, audience) {
+async function createRefreshToken(service, payload, audience) {
   const exp = Date.now() + service.config.jwt.stateless.refreshTTL;
   return createToken(service, audience, {
     ...payload,
@@ -81,7 +87,7 @@ function createRefreshToken(service, payload, audience) {
   });
 }
 
-function createAccessToken(service, refreshToken, payload, audience) {
+async function createAccessToken(service, refreshToken, payload, audience) {
   const exp = Date.now() + service.config.jwt.ttl;
 
   return createToken(service, audience, {
@@ -100,8 +106,8 @@ async function login(service, userId, audience, metadata) {
   const refreshPayload = createRefreshPayload(userId);
   const accessPayload = createAccessPayload(userId, metadata, fields);
 
-  const { token: jwtRefresh, payload: jwtRefreshPayload } = createRefreshToken(service, refreshPayload, audience);
-  const { token: accessToken } = createAccessToken(
+  const { token: jwtRefresh, payload: jwtRefreshPayload } = await createRefreshToken(service, refreshPayload, audience);
+  const { token: accessToken } = await createAccessToken(
     service,
     jwtRefreshPayload,
     accessPayload,
@@ -134,14 +140,14 @@ async function checkToken(service, token) {
   throw USERS_INVALID_TOKEN;
 }
 
-function refreshTokenStrategy({
+async function refreshTokenStrategy({
   service, refreshToken, encodedRefreshToken, accessPayload, refreshPayload, audience,
 }) {
   const { refreshRotation: { enabled, always, interval } } = service.config.jwt.stateless;
 
   if (enabled && (always || (Date.now() > refreshToken.exp - interval))) {
-    const refreshTkn = createRefreshToken(service, refreshPayload, audience);
-    const access = createAccessToken(service, refreshTkn.payload, accessPayload, audience);
+    const refreshTkn = await createRefreshToken(service, refreshPayload, audience);
+    const access = await createAccessToken(service, refreshTkn.payload, accessPayload, audience);
 
     return {
       access,
@@ -150,7 +156,7 @@ function refreshTokenStrategy({
   }
 
   return {
-    access: createAccessToken(service, refreshToken, accessPayload, audience),
+    access: await createAccessToken(service, refreshToken, accessPayload, audience),
     refresh: {
       token: encodedRefreshToken,
       payload: refreshToken,
@@ -166,7 +172,7 @@ async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audi
   const refreshPayload = createRefreshPayload(userId);
   const accessPayload = createAccessPayload(userId, metadata, fields);
 
-  const { refresh, access } = refreshTokenStrategy({
+  const { refresh, access } = await refreshTokenStrategy({
     service,
     audience,
     refreshToken,

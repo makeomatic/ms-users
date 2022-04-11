@@ -25,6 +25,21 @@ exports.jwt = {
     },
   },
   stateless: {
+    jwe: {
+      key: {
+        symetric: true,
+        value: 'a'.repeat(64),
+      },
+      // https://connect2id.com/products/nimbus-jose-jwt/algorithm-selection-guide#encryption
+      // cypher: {
+      //   alg: 'RSA-OAEP',
+      //   enc: 'A256GCM',
+      // },
+      cypher: {
+        alg: 'dir',
+        enc: 'A256CBC-HS512',
+      },
+    },
     force: false,
     enabled: false,
     trustHeaders: false,

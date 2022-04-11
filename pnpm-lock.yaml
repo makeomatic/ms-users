@@ -64,6 +64,7 @@ specifiers:
   hyperid: ^3.0.1
   ioredis: ^4.28.5
   is: ^3.3.0
+  jose: ^4.6.0
   json: ^11.0.0
   jsonwebtoken: ^8.5.1
   jwa: ^2.0.0
@@ -143,6 +144,7 @@ dependencies:
   handlebars: 4.7.7
   ioredis: 4.28.5
   is: 3.3.0
+  jose: 4.6.0
   jsonwebtoken: 8.5.1
   jwa: 2.0.0
   jwks-rsa: 2.0.5
@@ -5466,6 +5468,10 @@ packages:
     engines: {node: '>=10.13.0 < 13 || >=13.7.0'}
     dependencies:
       '@panva/asn1.js': 1.0.0
+    dev: false
+
+  /jose/4.6.0:
+    resolution: {integrity: sha512-0hNAkhMBNi4soKSAX4zYOFV+aqJlEz/4j4fregvasJzEVtjDChvWqRjPvHwLqr5hx28Ayr6bsOs1Kuj87V0O8w==}
     dev: false
 
   /joycon/3.1.1:

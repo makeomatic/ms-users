@@ -8,7 +8,6 @@ class JoseWrapper {
   }
 
   async getKey(kid = null) {
-    console.debug(this);
     if (this.keys.has(kid)) {
       return this.keys.get(kid);
     }

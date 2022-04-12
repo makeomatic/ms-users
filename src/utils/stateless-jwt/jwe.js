@@ -1,43 +1,47 @@
-const crypto = require('crypto');
 const jose = require('jose');
 
-class JWE {
+class JoseWrapper {
   constructor(config) {
     this.config = config;
-    this.key = JWE.loadKey(this.config.key);
   }
 
-  async encode(payload) {
-    const { cypher } = this.config;
+  async getKey() {
+    if (this._key) {
+      return this._key;
+    }
+
+    this._key = await jose.importJWK(this.config.jwk);
+
+    return this._key;
+  }
+
+  async encrypt(payload) {
+    const { cypher, jwk } = this.config;
+    const key = await this.getKey();
     const encoder = new jose.EncryptJWT(payload);
 
-    encoder.setProtectedHeader(cypher);
+    encoder.setProtectedHeader({
+      ...cypher,
+      kid: jwk.kid,
+    });
 
-    return encoder.encrypt(this.key);
+    return encoder.encrypt(key);
   }
 
-  async decode(data, params) {
-    return jose.jwtDecrypt(data, this.key, params);
+  async decrypt(data, params) {
+    const key = await this.getKey();
+    return jose.jwtDecrypt(data, key, params);
   }
 
   // eslint-disable-next-line class-methods-use-this
   async verify(token, params) {
-    return jose.jwtVerify(token, this.key, params);
+    const key = await this.getKey();
+    return jose.jwtVerify(token, key, params);
   }
 
-  static isJWEToken(token) {
+  static isJweToken(token) {
     return token.split('.').length === 5;
-  }
-
-  static loadKey(keyConfig) {
-    const { symetric, value } = keyConfig;
-
-    if (symetric) {
-      return crypto.createSecretKey(Buffer.from(value));
-    }
-
-    return crypto.createPrivateKey(value);
   }
 }
 
-module.exports = { JWE };
+module.exports = { JoseWrapper };

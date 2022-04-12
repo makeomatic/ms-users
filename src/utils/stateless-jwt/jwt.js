@@ -53,7 +53,7 @@ const createRule = async (service, ruleSpec) => {
 };
 
 /**
- * @param {Microfleet & { JWE: JWE }} service
+ * @param {Microfleet & { jwe: JoseWrapper }} service
  */
 async function createToken(service, audience, payload) {
   const { config, flake } = service;
@@ -73,7 +73,7 @@ async function createToken(service, audience, payload) {
 
   return {
     // token: jwt.sign(finalPayload, secret, { algorithm, audience, issuer }),
-    token: await service.JWE.encode(finalPayload),
+    token: await service.jwe.encrypt(finalPayload),
     payload: finalPayload,
   };
 }

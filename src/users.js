@@ -12,7 +12,7 @@ const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
 const { ConsulWatcher } = require('./utils/consul-watcher');
 const { rule: { RevocationRulesStorage, RevocationRulesManager } } = require('./utils/stateless-jwt');
-const { JWE } = require('./utils/stateless-jwt/jwe');
+const { JoseWrapper } = require('./utils/stateless-jwt/jwe');
 
 /**
  * @namespace Users
@@ -178,7 +178,7 @@ class Users extends Microfleet {
 
     this.addConnector(ConnectorsTypes.application, () => {
       const watcher = new ConsulWatcher(this.consul, this.log);
-      this.JWE = new JWE(jwe);
+      this.jwe = new JoseWrapper(jwe);
       this.revocationRulesManager = new RevocationRulesManager(this);
       this.revocationRulesStorage = new RevocationRulesStorage(
         this.revocationRulesManager,

@@ -795,7 +795,7 @@
         }
       },
       "then": {
-        "required": ["force", "storage", "refreshTTL", "refreshRotation"]
+        "required": ["force", "storage", "refreshTTL", "refreshRotation", "jwe"]
       },
       "properties": {
         "enabled": {
@@ -805,6 +805,31 @@
         "force": {
           "type": "boolean",
           "default": false
+        },
+        "jwe": {
+          "type": "object",
+          "required": ["jwk", "cypher"],
+          "properties": {
+            "jwk": {
+              "type": "object",
+              "description": "JWK object. See https://openid.net/specs/draft-jones-json-web-key-03.html"
+            },
+            "cypher": {
+              "type": "object",
+              "description": "JWE encryption/decryption parameters",
+              "required": ["alg", "enc"],
+              "properties": {
+                "alg": {
+                  "type": "string",
+                  "description": "Encryption algorithm. See https://openid.net/specs/draft-jones-json-web-encryption-02.html#AlgTable"
+                },
+                "enc": {
+                  "type": "string",
+                  "description": "Plaintext ecryption algorithm. See https://openid.net/specs/draft-jones-json-web-encryption-02.html#EncTable"
+                }
+              }
+            }
+          }
         },
         "refreshTTL": {
           "type": "number"

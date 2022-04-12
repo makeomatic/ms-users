@@ -64,6 +64,10 @@ class JoseWrapper {
   static isJweToken(token) {
     return token.split('.').length === 5;
   }
+
+  static decodeHeader(token) {
+    return jose.decodeProtectedHeader(token);
+  }
 }
 
 module.exports = { JoseWrapper };

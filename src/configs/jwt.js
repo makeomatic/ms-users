@@ -26,13 +26,16 @@ exports.jwt = {
   },
   stateless: {
     jwe: {
-      jwk: {
-        kty: 'oct',
-        use: 'enc',
-        kid: 'enc-2022-04-12T07:25:52Z',
-        k: 'm0kTI7Vp2Hm5A5whjrYw9V5GtvQcrZEFYQiwjXqM1A1Iy_bmYENOHAjztDEBWHx-OwpsYMJ8HT2X-iIE-u1UFQ',
-        alg: 'dir',
-      },
+      jwk: [
+        {
+          defaultKey: true,
+          kty: 'oct',
+          use: 'enc',
+          kid: 'enc-2022-04-12T07:25:52Z',
+          k: 'm0kTI7Vp2Hm5A5whjrYw9V5GtvQcrZEFYQiwjXqM1A1Iy_bmYENOHAjztDEBWHx-OwpsYMJ8HT2X-iIE-u1UFQ',
+          alg: 'dir',
+        },
+      ],
       // // https://connect2id.com/products/nimbus-jose-jwt/algorithm-selection-guide#encryption
       // // cypher: {
       // //   alg: 'RSA-OAEP',

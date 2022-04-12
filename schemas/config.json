@@ -811,8 +811,17 @@
           "required": ["jwk", "cypher"],
           "properties": {
             "jwk": {
-              "type": "object",
-              "description": "JWK object. See https://openid.net/specs/draft-jones-json-web-key-03.html"
+              "type": "array",
+              "description": "JWK's used for decryption. First JWK used in encryption.",
+              "items": {
+                "type": "object",
+                "required": [ "kid" ],
+                "properties": {
+                  "kid": { "type": "string" },
+                  "defaultKey": { "type": "boolean" }
+                },
+                "description": "JWK object. See https://openid.net/specs/draft-jones-json-web-key-03.html"
+              }
             },
             "cypher": {
               "type": "object",

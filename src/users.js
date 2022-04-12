@@ -176,9 +176,12 @@ class Users extends Microfleet {
     const pluginName = 'JwtRevocationRules';
     const { jwt: { stateless: { storage, jwe } } } = this.config;
 
-    this.addConnector(ConnectorsTypes.application, () => {
+    this.addConnector(ConnectorsTypes.application, async () => {
       const watcher = new ConsulWatcher(this.consul, this.log);
       this.jwe = new JoseWrapper(jwe);
+
+      await this.jwe.init();
+
       this.revocationRulesManager = new RevocationRulesManager(this);
       this.revocationRulesStorage = new RevocationRulesStorage(
         this.revocationRulesManager,

@@ -1,6 +1,11 @@
 const { assert } = require('@hapi/hoek');
 const jose = require('jose');
 
+const getKeyId = (token, keyId) => {
+  const tokenHeader = jose.decodeProtectedHeader(token);
+  return keyId || tokenHeader.kid;
+};
+
 class JoseWrapper {
   constructor(config) {
     this.config = config;
@@ -18,9 +23,12 @@ class JoseWrapper {
   async init() {
     const promises = this.config.jwk.map(async ({ defaultKey, ...jwk }) => {
       const importedKey = await jose.importJWK(jwk);
-      this.keys.set(jwk.kid, importedKey);
+      const keyStoreValue = { kid: jwk.kid, key: importedKey };
+
+      this.keys.set(jwk.kid, keyStoreValue);
+
       if (defaultKey) {
-        this.defaultKey = importedKey;
+        this.defaultKey = keyStoreValue;
       }
     });
 
@@ -29,26 +37,27 @@ class JoseWrapper {
     assert(this.defaultKey, 'One of the keys should be default');
   }
 
-  async encrypt(payload, kid = null) {
-    const { cypher, jwk } = this.config;
-    const key = await this.getKey(kid);
-    const encoder = new jose.EncryptJWT(payload);
+  async encrypt(payload, keyId = null) {
+    const { cypher } = this.config;
+    const { kid, key } = await this.getKey(keyId);
 
-    encoder.setProtectedHeader({
-      ...cypher,
-      kid: jwk.kid,
-    });
+    const encoder = new jose.EncryptJWT(payload)
+      .setProtectedHeader({ ...cypher, kid });
 
     return encoder.encrypt(key);
   }
 
-  async decrypt(data, params = {}, kid = null) {
-    const key = await this.getKey(kid);
-    return jose.jwtDecrypt(data, key, params);
+  async decrypt(token, params = {}, kid = null) {
+    const keyId = getKeyId(token, kid);
+    const { key } = await this.getKey(keyId);
+
+    return jose.jwtDecrypt(token, key, params);
   }
 
   async verify(token, params = {}, kid = null) {
-    const key = await this.getKey(kid);
+    const keyId = getKeyId(token, kid);
+    const { key } = await this.getKey(keyId);
+
     return jose.jwtVerify(token, key, params);
   }
 

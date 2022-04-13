@@ -57,8 +57,6 @@ const createRule = async (service, ruleSpec) => {
  */
 async function createToken(service, audience, payload) {
   const { config, flake } = service;
-  // const { jwt: jwtConfig } = config;
-  // const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
   const { issuer } = config;
   const cs = flake.next();
 
@@ -72,7 +70,6 @@ async function createToken(service, audience, payload) {
   };
 
   return {
-    // token: jwt.sign(finalPayload, secret, { algorithm, audience, issuer }),
     token: await service.jwe.encrypt(finalPayload),
     payload: finalPayload,
   };

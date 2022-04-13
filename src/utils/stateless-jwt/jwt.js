@@ -1,6 +1,4 @@
-// const Promise = require('bluebird');
 const pick = require('lodash/pick');
-// const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 const {
   USERS_USERNAME_FIELD,

@@ -1,6 +1,5 @@
 const Errors = require('common-errors');
-const Promise = require('bluebird');
-const jwt = Promise.promisifyAll(require('jsonwebtoken'));
+const jose = require('jose');
 
 // internal modules
 const redisKey = require('./key');
@@ -31,9 +30,15 @@ exports.login = async function login(service, userId, audience) {
   const payload = {
     [USERS_USERNAME_FIELD]: userId,
     cs: flake.next(),
+    aud: audience,
   };
 
-  const token = jwt.sign(payload, secret, { algorithm, audience, issuer: 'ms-users' });
+  const signer = new jose.SignJWT(payload);
+  const token = await signer
+    .setProtectedHeader({ alg: algorithm })
+    .setIssuedAt()
+    .setIssuer('ms-users')
+    .sign(Buffer.from(secret));
 
   const lastAccessUpdated = await redis.zadd(redisKey(userId, USERS_TOKENS), Date.now(), token);
 
@@ -154,14 +159,32 @@ exports.signData = function signData(payload, tokenOptions) {
   const {
     hashingFunction: algorithm, secret, issuer, extra,
   } = tokenOptions;
-  return jwt.sign(payload, secret, { ...extra, algorithm, issuer });
+
+  const { expiresIn, ...otherExtra } = extra;
+
+  const signer = new jose.SignJWT({
+    ...payload,
+    ...otherExtra,
+  });
+
+  if (expiresIn) {
+    signer.setExpirationTime(expiresIn);
+  }
+
+  return signer
+    .setProtectedHeader({ alg: algorithm })
+    .setIssuedAt()
+    .setIssuer(issuer)
+    .sign(Buffer.from(secret));
 };
 
-exports.verifyData = function verifyData(token, tokenOptions, extraOpts = {}) {
-  return jwt.verifyAsync(token, tokenOptions.secret, {
+exports.verifyData = async function verifyData(token, tokenOptions, extraOpts = {}) {
+  const { payload } = await jose.jwtVerify(token, Buffer.from(tokenOptions.secret), {
     ...tokenOptions.extra,
     ...extraOpts,
     issuer: tokenOptions.issuer,
     algorithms: [tokenOptions.hashingFunction],
   });
+
+  return payload;
 };

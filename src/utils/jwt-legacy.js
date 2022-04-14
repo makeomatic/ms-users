@@ -50,25 +50,16 @@ exports.login = async function login(service, userId, audience) {
 };
 
 /**
- * Erases the token
- */
-function eraseToken(decoded) {
-  return this.redis.zrem(redisKey(decoded[USERS_USERNAME_FIELD], USERS_TOKENS), this.token);
-}
-
-/**
  * Removes token if it is valid
  * @param  {String} token
  * @param  {String} audience
  * @return {Promise}
  */
-exports.logout = function logout(service, encodedToken, decodedToken) {
+exports.logout = async function logout(service, encodedToken, decodedToken) {
   const { redis } = service;
+  await redis.zrem(redisKey(decodedToken[USERS_USERNAME_FIELD], USERS_TOKENS), encodedToken);
 
-  return Promise.resolve(decodedToken)
-    .bind({ redis, token: encodedToken })
-    .then(eraseToken)
-    .return({ success: true });
+  return { success: true };
 };
 
 /**

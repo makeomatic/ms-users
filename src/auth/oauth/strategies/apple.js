@@ -1,6 +1,5 @@
-const { sign, verify } = require('jsonwebtoken');
+const jose = require('jose');
 const getJwksClient = require('jwks-rsa');
-const Bluebird = require('bluebird');
 
 // @todo more options from config
 const jwksClient = getJwksClient({
@@ -26,7 +25,7 @@ async function fixAppleCallbackForBell(request, h) {
   return h.continue;
 }
 
-function getSecretKey(iss, sub, keyId, privateKey) {
+async function getSecretKey(iss, sub, keyId, privateKey) {
   const claims = {
     iss,
     sub,
@@ -35,10 +34,13 @@ function getSecretKey(iss, sub, keyId, privateKey) {
     aud: 'https://appleid.apple.com',
   };
 
-  const token = sign(claims, privateKey, {
-    keyid: keyId,
-    algorithm: 'ES256',
-  });
+  const signer = new jose.SignJWT(claims);
+  const token = await signer
+    .setProtectedHeader({
+      alg: 'ES256',
+      keyId,
+    })
+    .sign(privateKey);
 
   return token;
 }
@@ -54,9 +56,8 @@ function getJwkFromResponse(header, callback) {
 }
 
 async function getProfile(credentials, params) {
-  const response = await Bluebird.fromCallback(
-    (callback) => verify(params.id_token, getJwkFromResponse, callback)
-  );
+  const response = await jose.jwtVerify(params.id_token, getJwkFromResponse);
+
   const {
     sub,
     email,
@@ -95,7 +96,7 @@ function getProvider(options, server) {
     clientId,
     isSameSite,
     cookie,
-    clientSecret: () => getSecretKey(teamId, clientId, keyId, privateKey),
+    clientSecret: async () => getSecretKey(teamId, clientId, keyId, privateKey),
     forceHttps: true,
     providerParams: {
       response_mode: 'form_post',

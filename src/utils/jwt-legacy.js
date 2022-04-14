@@ -33,8 +33,8 @@ exports.login = async function login(service, userId, audience) {
     aud: audience,
   };
 
-  const signer = new jose.SignJWT(payload);
-  const token = await signer
+  const signJwt = new jose.SignJWT(payload);
+  const token = await signJwt
     .setProtectedHeader({ alg: algorithm })
     .setIssuedAt()
     .setIssuer('ms-users')
@@ -153,16 +153,16 @@ exports.signData = function signData(payload, tokenOptions) {
 
   const { expiresIn, ...otherExtra } = extra;
 
-  const signer = new jose.SignJWT({
+  const signJwt = new jose.SignJWT({
     ...payload,
     ...otherExtra,
   });
 
   if (expiresIn) {
-    signer.setExpirationTime(expiresIn);
+    signJwt.setExpirationTime(expiresIn);
   }
 
-  return signer
+  return signJwt
     .setProtectedHeader({ alg: algorithm })
     .setIssuedAt()
     .setIssuer(issuer)

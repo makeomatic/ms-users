@@ -34,8 +34,8 @@ async function getSecretKey(iss, sub, keyId, privateKey) {
     aud: 'https://appleid.apple.com',
   };
 
-  const signer = new jose.SignJWT(claims);
-  const token = await signer
+  const signJwt = new jose.SignJWT(claims);
+  const token = await signJwt
     .setProtectedHeader({
       alg: 'ES256',
       keyId,

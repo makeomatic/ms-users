@@ -28,7 +28,7 @@ exports.jwt = {
     jwe: {
       jwk: [
         {
-          defaultKey: true,
+          default: true,
           kty: 'oct',
           use: 'enc',
           kid: 'enc-2022-04-12T07:25:52Z',

@@ -4,6 +4,6 @@ const exec = promisify(require('child_process').exec);
 
 module.exports = async (cmd) => {
   const { stderr, stdout } = await exec(cmd);
-  assert(stderr.trim() === '');
+  assert(stderr.trim() === '', `Got stderr: '${stderr}'`);
   return stdout;
 };

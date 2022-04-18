@@ -21,7 +21,7 @@ class JoseWrapper {
   }
 
   async init() {
-    const promises = this.config.jwk.map(async ({ defaultKey, ...jwk }) => {
+    const promises = this.config.jwk.map(async ({ default: defaultKey, ...jwk }) => {
       const importedKey = await jose.importJWK(jwk);
       const keyStoreValue = { kid: jwk.kid, key: importedKey };
 

@@ -818,7 +818,7 @@
                 "required": [ "kid" ],
                 "properties": {
                   "kid": { "type": "string" },
-                  "defaultKey": { "type": "boolean" }
+                  "default": { "type": "boolean" }
                 },
                 "description": "JWK object. See https://openid.net/specs/draft-jones-json-web-key-03.html"
               }

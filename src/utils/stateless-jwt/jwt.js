@@ -8,6 +8,7 @@ const {
   USERS_INVALID_TOKEN,
 } = require('../../constants');
 const { GLOBAL_RULE_GROUP } = require('./rule-manager');
+const { toSeconds } = require('./to-seconds');
 
 const REVOKE_RULE_ADD_ACTION = 'revoke-rule.add';
 const META_CREDENTIALS = ['alias', 'roles', 'org'];
@@ -61,7 +62,7 @@ async function createToken(service, audience, payload) {
   const finalPayload = {
     ...payload,
     cs,
-    iat: Date.now(),
+    iat: toSeconds(Date.now()),
     st: 1,
     iss: issuer,
     aud: audience,
@@ -74,7 +75,7 @@ async function createToken(service, audience, payload) {
 }
 
 async function createRefreshToken(service, payload, audience) {
-  const exp = Date.now() + service.config.jwt.stateless.refreshTTL;
+  const exp = toSeconds(Date.now() + service.config.jwt.stateless.refreshTTL);
   return createToken(service, audience, {
     ...payload,
     exp,
@@ -83,7 +84,7 @@ async function createRefreshToken(service, payload, audience) {
 }
 
 async function createAccessToken(service, refreshToken, payload, audience) {
-  const exp = Date.now() + service.config.jwt.ttl;
+  const exp = toSeconds(Date.now() + service.config.jwt.ttl);
 
   return createToken(service, audience, {
     ...payload,
@@ -116,16 +117,17 @@ async function login(service, userId, audience, metadata) {
 }
 
 async function checkToken(service, token) {
-  if (token.exp < Date.now()) {
+  const now = toSeconds(Date.now());
+
+  if (token.exp < now) {
     throw USERS_INVALID_TOKEN;
   }
 
   const userId = token[USERS_USERNAME_FIELD];
   const { revocationRulesStorage } = service;
-  const now = Date.now();
 
   const globalRules = await revocationRulesStorage.getFilter(GLOBAL_RULE_GROUP);
-  if (!globalRules.match(token)) {
+  if (!globalRules.match(token, now)) {
     const localRules = await revocationRulesStorage.getFilter(userId);
     if (!localRules.match(token, now)) {
       return;
@@ -139,8 +141,8 @@ async function refreshTokenStrategy({
   service, refreshToken, encodedRefreshToken, accessPayload, refreshPayload, audience,
 }) {
   const { refreshRotation: { enabled, always, interval } } = service.config.jwt.stateless;
-
-  if (enabled && (always || (Date.now() > refreshToken.exp - interval))) {
+  const now = toSeconds(Date.now());
+  if (enabled && (always || (now > refreshToken.exp - interval))) {
     const refreshTkn = await createRefreshToken(service, refreshPayload, audience);
     const access = await createAccessToken(service, refreshTkn.payload, accessPayload, audience);
 
@@ -186,7 +188,7 @@ async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audi
       rule: {
         expireAt: refreshToken.exp,
         rt: refreshToken.cs,
-        iat: { lt: access.payload.iat },
+        iat: { lte: access.payload.iat },
       },
     });
   }
@@ -232,7 +234,7 @@ async function reset(service, userId) {
   await createRule(service, {
     username: userId,
     rule: {
-      iat: { lte: Date.now() },
+      iat: { lte: toSeconds(Date.now()) },
     },
   });
 }

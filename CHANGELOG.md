@@ -1,3 +1,10 @@
+# [15.3.0](https://github.com/makeomatic/ms-users/compare/v15.2.1...v15.3.0) (2022-04-19)
+
+
+### Features
+
+* encrypted stateless tokens ([#554](https://github.com/makeomatic/ms-users/issues/554)) ([c4b1a24](https://github.com/makeomatic/ms-users/commit/c4b1a24198b97814bbb0c08f3ed190a9b1608182))
+
 ## [15.2.1](https://github.com/makeomatic/ms-users/compare/v15.2.0...v15.2.1) (2022-04-07)
 
 

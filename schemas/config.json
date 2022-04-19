@@ -795,7 +795,7 @@
         }
       },
       "then": {
-        "required": ["force", "storage", "refreshTTL", "refreshRotation", "jwe"]
+        "required": ["force", "storage", "refreshTTL", "accessTTL", "refreshRotation", "jwe"]
       },
       "properties": {
         "enabled": {
@@ -840,8 +840,13 @@
             }
           }
         },
+        "accessTTL": {
+          "type": "number",
+          "description": "Access token ttl."
+        },
         "refreshTTL": {
-          "type": "number"
+          "type": "number",
+          "description": "Refresh token ttl."
         },
         "refreshRotation": {
           "type": "object",

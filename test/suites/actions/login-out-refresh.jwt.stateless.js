@@ -351,7 +351,7 @@ describe('#stateless-jwt', function loginSuite() {
       assert.strictEqual(rules[0].rule.cs, accessTokenDecoded.cs);
       assert.strictEqual(rules[0].rule.rt, accessTokenDecoded.cs);
       assert.ok(rules[0].rule._or);
-      assert.ok(rules[0].params.expireAt - now >= this.users.config.jwt.ttl);
+      assert.ok(rules[0].params.expireAt - now >= this.users.config.jwt.stateless.accessTTL);
 
       // try again with same access token
       await assert.rejects(

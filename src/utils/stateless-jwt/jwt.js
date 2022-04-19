@@ -84,7 +84,7 @@ async function createRefreshToken(service, payload, audience) {
 }
 
 async function createAccessToken(service, refreshToken, payload, audience) {
-  const exp = toSeconds(Date.now() + service.config.jwt.ttl);
+  const exp = toSeconds(Date.now() + service.config.jwt.stateless.accessTTL);
 
   return createToken(service, audience, {
     ...payload,
@@ -210,7 +210,7 @@ async function logout(service, token) {
   await createRule(service, {
     username: token[USERS_USERNAME_FIELD],
     rule: {
-      expireAt: token.exp || now + service.config.jwt.ttl,
+      expireAt: token.exp || now + service.config.jwt.stateless.accessTTL,
       _or: true,
       cs: token.cs,
       rt: token.cs,

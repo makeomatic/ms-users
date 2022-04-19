@@ -40,9 +40,16 @@ class JoseWrapper {
   async encrypt(payload, keyId = null) {
     const { cypher } = this.config;
     const { kid, key } = await this.getKey(keyId);
-
+    const { exp, iat, irt, st } = payload;
     const encoder = new jose.EncryptJWT(payload)
-      .setProtectedHeader({ ...cypher, kid });
+      .setProtectedHeader({
+        ...cypher,
+        kid,
+        exp,
+        iat,
+        irt,
+        st,
+      });
 
     return encoder.encrypt(key);
   }

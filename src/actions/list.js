@@ -33,9 +33,9 @@ async function fetchIds() {
    */
   const preFilter = [...args];
   preFilter[2] = '{}';
-  const result = await redis.fsort(keys, preFilter);
+
   if (args[2] === '{}') {
-    return result;
+    return redis.fsort(keys, preFilter);
   }
 
   return redis.fsort(keys, args);

@@ -1,7 +1,7 @@
 const assert = require('assert');
 
 const { RuleGroup } = require('./rule-group');
-
+const { toSeconds } = require('./to-seconds');
 /**
  * Matches provided object to specific rule group
  */
@@ -20,7 +20,7 @@ class ListFilter {
    * @param {Object} obj
    * @returns {boolean}
    */
-  match(obj, at = Date.now()) {
+  match(obj, at = toSeconds(Date.now())) {
     for (const ruleGroup of this.ruleGroups) {
       if (ruleGroup.isActive(at) && ruleGroup.match(obj)) {
         return true;

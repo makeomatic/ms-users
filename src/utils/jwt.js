@@ -9,8 +9,13 @@ const {
 const getMetadata = require('./get-metadata');
 
 const legacyJWT = require('./jwt-legacy');
+const { JoseWrapper } = require('./stateless-jwt/jwe');
 const statelessJWT = require('./stateless-jwt/jwt');
 const { fromTokenData } = require('./verify');
+
+/**
+ * @typedef { import("@microfleet/core-types").Microfleet } Microfleet
+ * */
 
 const {
   assertRefreshToken,
@@ -41,6 +46,7 @@ const mapJWT = (userId, { jwt, jwtRefresh }, metadata) => ({
 
 /**
  * Verify data
+ * @param  {Microfleet & { jwe: JoseWrapper }} service
  * @param  {String} token
  * @param  {Object} tokenOptions
  * @return {Promise}
@@ -48,6 +54,11 @@ const mapJWT = (userId, { jwt, jwtRefresh }, metadata) => ({
 async function decodeAndVerify(service, token, audience) {
   const { jwt } = service.config;
   try {
+    if (JoseWrapper.isJweToken(token)) {
+      const { payload } = await service.jwe.decrypt(token, audience);
+      return payload;
+    }
+
     // should await here, otherwise jwt.Error thrown
     const decoded = await verifyData(token, jwt, { audience });
     return decoded;

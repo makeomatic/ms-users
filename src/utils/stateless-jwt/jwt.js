@@ -1,6 +1,4 @@
-const Promise = require('bluebird');
 const pick = require('lodash/pick');
-const jwt = Promise.promisifyAll(require('jsonwebtoken'));
 
 const {
   USERS_USERNAME_FIELD,
@@ -10,6 +8,7 @@ const {
   USERS_INVALID_TOKEN,
 } = require('../../constants');
 const { GLOBAL_RULE_GROUP } = require('./rule-manager');
+const { toSeconds } = require('./to-seconds');
 
 const REVOKE_RULE_ADD_ACTION = 'revoke-rule.add';
 const META_CREDENTIALS = ['alias', 'roles', 'org'];
@@ -52,28 +51,31 @@ const createRule = async (service, ruleSpec) => {
   return service.dispatch(REVOKE_RULE_ADD_ACTION, { params: ruleSpec });
 };
 
-function createToken(service, audience, payload) {
+/**
+ * @param {Microfleet & { jwe: JoseWrapper }} service
+ */
+async function createToken(service, audience, payload) {
   const { config, flake } = service;
-  const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, secret, issuer } = jwtConfig;
-
+  const { issuer } = config;
   const cs = flake.next();
 
   const finalPayload = {
     ...payload,
     cs,
-    iat: Date.now(),
+    iat: toSeconds(Date.now()),
     st: 1,
+    iss: issuer,
+    aud: audience,
   };
 
   return {
-    token: jwt.sign(finalPayload, secret, { algorithm, audience, issuer }),
+    token: await service.jwe.encrypt(finalPayload),
     payload: finalPayload,
   };
 }
 
-function createRefreshToken(service, payload, audience) {
-  const exp = Date.now() + service.config.jwt.stateless.refreshTTL;
+async function createRefreshToken(service, payload, audience) {
+  const exp = toSeconds(Date.now() + service.config.jwt.stateless.refreshTTL);
   return createToken(service, audience, {
     ...payload,
     exp,
@@ -81,8 +83,8 @@ function createRefreshToken(service, payload, audience) {
   });
 }
 
-function createAccessToken(service, refreshToken, payload, audience) {
-  const exp = Date.now() + service.config.jwt.ttl;
+async function createAccessToken(service, refreshToken, payload, audience) {
+  const exp = toSeconds(Date.now() + service.config.jwt.stateless.accessTTL);
 
   return createToken(service, audience, {
     ...payload,
@@ -100,8 +102,8 @@ async function login(service, userId, audience, metadata) {
   const refreshPayload = createRefreshPayload(userId);
   const accessPayload = createAccessPayload(userId, metadata, fields);
 
-  const { token: jwtRefresh, payload: jwtRefreshPayload } = createRefreshToken(service, refreshPayload, audience);
-  const { token: accessToken } = createAccessToken(
+  const { token: jwtRefresh, payload: jwtRefreshPayload } = await createRefreshToken(service, refreshPayload, audience);
+  const { token: accessToken } = await createAccessToken(
     service,
     jwtRefreshPayload,
     accessPayload,
@@ -115,16 +117,17 @@ async function login(service, userId, audience, metadata) {
 }
 
 async function checkToken(service, token) {
-  if (token.exp < Date.now()) {
+  const now = toSeconds(Date.now());
+
+  if (token.exp < now) {
     throw USERS_INVALID_TOKEN;
   }
 
   const userId = token[USERS_USERNAME_FIELD];
   const { revocationRulesStorage } = service;
-  const now = Date.now();
 
   const globalRules = await revocationRulesStorage.getFilter(GLOBAL_RULE_GROUP);
-  if (!globalRules.match(token)) {
+  if (!globalRules.match(token, now)) {
     const localRules = await revocationRulesStorage.getFilter(userId);
     if (!localRules.match(token, now)) {
       return;
@@ -134,14 +137,14 @@ async function checkToken(service, token) {
   throw USERS_INVALID_TOKEN;
 }
 
-function refreshTokenStrategy({
+async function refreshTokenStrategy({
   service, refreshToken, encodedRefreshToken, accessPayload, refreshPayload, audience,
 }) {
   const { refreshRotation: { enabled, always, interval } } = service.config.jwt.stateless;
-
-  if (enabled && (always || (Date.now() > refreshToken.exp - interval))) {
-    const refreshTkn = createRefreshToken(service, refreshPayload, audience);
-    const access = createAccessToken(service, refreshTkn.payload, accessPayload, audience);
+  const now = toSeconds(Date.now());
+  if (enabled && (always || (now > refreshToken.exp - interval))) {
+    const refreshTkn = await createRefreshToken(service, refreshPayload, audience);
+    const access = await createAccessToken(service, refreshTkn.payload, accessPayload, audience);
 
     return {
       access,
@@ -150,7 +153,7 @@ function refreshTokenStrategy({
   }
 
   return {
-    access: createAccessToken(service, refreshToken, accessPayload, audience),
+    access: await createAccessToken(service, refreshToken, accessPayload, audience),
     refresh: {
       token: encodedRefreshToken,
       payload: refreshToken,
@@ -166,7 +169,7 @@ async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audi
   const refreshPayload = createRefreshPayload(userId);
   const accessPayload = createAccessPayload(userId, metadata, fields);
 
-  const { refresh, access } = refreshTokenStrategy({
+  const { refresh, access } = await refreshTokenStrategy({
     service,
     audience,
     refreshToken,
@@ -185,7 +188,7 @@ async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audi
       rule: {
         expireAt: refreshToken.exp,
         rt: refreshToken.cs,
-        iat: { lt: access.payload.iat },
+        iat: { lte: access.payload.iat },
       },
     });
   }
@@ -207,7 +210,7 @@ async function logout(service, token) {
   await createRule(service, {
     username: token[USERS_USERNAME_FIELD],
     rule: {
-      expireAt: token.exp || now + service.config.jwt.ttl,
+      expireAt: token.exp || now + service.config.jwt.stateless.accessTTL,
       _or: true,
       cs: token.cs,
       rt: token.cs,
@@ -231,7 +234,7 @@ async function reset(service, userId) {
   await createRule(service, {
     username: userId,
     rule: {
-      iat: { lte: Date.now() },
+      iat: { lte: toSeconds(Date.now()) },
     },
   });
 }

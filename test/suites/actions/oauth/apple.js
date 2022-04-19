@@ -1,5 +1,5 @@
 const { strict: assert, strictEqual } = require('assert');
-const { decode } = require('jsonwebtoken');
+const { decodeJwt } = require('jose');
 const request = require('request-promise');
 const Bell = require('@hapi/bell');
 
@@ -91,7 +91,7 @@ describe('sign in with apple', function suite() {
 
     // extract JSON from html response
     const body = JSON.parse(response.body.match(/{".+"}/)[0].replace('undefined', 'null'));
-    const data = decode(body.payload.token);
+    const data = decodeJwt(body.payload.token);
 
     strictEqual(body.payload.provider, 'apple');
     strictEqual(body.error, false);

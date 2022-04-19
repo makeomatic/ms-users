@@ -309,6 +309,15 @@ type jwt {
     enabled: boolean;
 		refreshTTL: number;
     trustHeaders: boolean;
+    jwe: {
+      jwk: [
+        {} // JWK key
+      ],
+      cypher: {
+        alg: string;
+        enc: string;
+      }
+    },
     refreshRotation: {
       enabled: false,
       always: false,

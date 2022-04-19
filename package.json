@@ -74,7 +74,7 @@
     "handlebars": "^4.7.7",
     "ioredis": "^4.28.5",
     "is": "^3.3.0",
-    "jsonwebtoken": "^8.5.1",
+    "jose": "^4.6.0",
     "jwa": "^2.0.0",
     "jwks-rsa": "^2.0.5",
     "lodash": "^4.17.21",

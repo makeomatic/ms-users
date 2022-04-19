@@ -3,6 +3,7 @@ const { chunk } = require('lodash');
 const { KEY_PREFIX_REVOCATION_RULES } = require('../../constants');
 
 const handlePipelineError = require('../pipeline-error');
+const { toSeconds } = require('./to-seconds');
 
 const REDIS_KEY_PREFIX = 'jwt-rules';
 const GLOBAL_RULE_GROUP = 'g';
@@ -43,7 +44,7 @@ class RevocationRulesManager {
 
     const pipeline = this.redis.pipeline();
 
-    pipeline.zremrangebyscore(ruleKey, 1, now);
+    pipeline.zremrangebyscore(ruleKey, 1, toSeconds(now));
     pipeline.zrange(ruleKey, 0, -1, 'WITHSCORES');
 
     const [, raw] = handlePipelineError(await pipeline.exec());
@@ -67,7 +68,7 @@ class RevocationRulesManager {
     const now = Date.now();
 
     // @TODO lua?
-    pipeline.zremrangebyscore(ruleKey, 1, now);
+    pipeline.zremrangebyscore(ruleKey, 1, toSeconds(now));
     pipeline.zadd(ruleKey, expireAt, jsonEncoded);
 
     handlePipelineError(await pipeline.exec());

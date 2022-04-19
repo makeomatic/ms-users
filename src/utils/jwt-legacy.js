@@ -1,6 +1,5 @@
 const Errors = require('common-errors');
-const Promise = require('bluebird');
-const jwt = Promise.promisifyAll(require('jsonwebtoken'));
+const jose = require('jose');
 
 // internal modules
 const redisKey = require('./key');
@@ -31,9 +30,15 @@ exports.login = async function login(service, userId, audience) {
   const payload = {
     [USERS_USERNAME_FIELD]: userId,
     cs: flake.next(),
+    aud: audience,
   };
 
-  const token = jwt.sign(payload, secret, { algorithm, audience, issuer: 'ms-users' });
+  const signJwt = new jose.SignJWT(payload);
+  const token = await signJwt
+    .setProtectedHeader({ alg: algorithm })
+    .setIssuedAt()
+    .setIssuer('ms-users')
+    .sign(Buffer.from(secret));
 
   const lastAccessUpdated = await redis.zadd(redisKey(userId, USERS_TOKENS), Date.now(), token);
 
@@ -45,25 +50,16 @@ exports.login = async function login(service, userId, audience) {
 };
 
 /**
- * Erases the token
- */
-function eraseToken(decoded) {
-  return this.redis.zrem(redisKey(decoded[USERS_USERNAME_FIELD], USERS_TOKENS), this.token);
-}
-
-/**
  * Removes token if it is valid
  * @param  {String} token
  * @param  {String} audience
  * @return {Promise}
  */
-exports.logout = function logout(service, encodedToken, decodedToken) {
+exports.logout = async function logout(service, encodedToken, decodedToken) {
   const { redis } = service;
+  await redis.zrem(redisKey(decodedToken[USERS_USERNAME_FIELD], USERS_TOKENS), encodedToken);
 
-  return Promise.resolve(decodedToken)
-    .bind({ redis, token: encodedToken })
-    .then(eraseToken)
-    .return({ success: true });
+  return { success: true };
 };
 
 /**
@@ -154,14 +150,32 @@ exports.signData = function signData(payload, tokenOptions) {
   const {
     hashingFunction: algorithm, secret, issuer, extra,
   } = tokenOptions;
-  return jwt.sign(payload, secret, { ...extra, algorithm, issuer });
+
+  const { expiresIn, ...otherExtra } = extra;
+
+  const signJwt = new jose.SignJWT({
+    ...payload,
+    ...otherExtra,
+  });
+
+  if (expiresIn) {
+    signJwt.setExpirationTime(expiresIn);
+  }
+
+  return signJwt
+    .setProtectedHeader({ alg: algorithm })
+    .setIssuedAt()
+    .setIssuer(issuer)
+    .sign(Buffer.from(secret));
 };
 
-exports.verifyData = function verifyData(token, tokenOptions, extraOpts = {}) {
-  return jwt.verifyAsync(token, tokenOptions.secret, {
+exports.verifyData = async function verifyData(token, tokenOptions, extraOpts = {}) {
+  const { payload } = await jose.jwtVerify(token, Buffer.from(tokenOptions.secret), {
     ...tokenOptions.extra,
     ...extraOpts,
     issuer: tokenOptions.issuer,
     algorithms: [tokenOptions.hashingFunction],
   });
+
+  return payload;
 };

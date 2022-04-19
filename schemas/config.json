@@ -795,7 +795,7 @@
         }
       },
       "then": {
-        "required": ["force", "storage", "refreshTTL", "refreshRotation"]
+        "required": ["force", "storage", "refreshTTL", "accessTTL", "refreshRotation", "jwe"]
       },
       "properties": {
         "enabled": {
@@ -806,8 +806,47 @@
           "type": "boolean",
           "default": false
         },
+        "jwe": {
+          "type": "object",
+          "required": ["jwk", "cypher"],
+          "properties": {
+            "jwk": {
+              "type": "array",
+              "description": "JWK's used for decryption. First JWK used in encryption.",
+              "items": {
+                "type": "object",
+                "required": [ "kid" ],
+                "properties": {
+                  "kid": { "type": "string" },
+                  "default": { "type": "boolean" }
+                },
+                "description": "JWK object. See https://openid.net/specs/draft-jones-json-web-key-03.html"
+              }
+            },
+            "cypher": {
+              "type": "object",
+              "description": "JWE encryption/decryption parameters",
+              "required": ["alg", "enc"],
+              "properties": {
+                "alg": {
+                  "type": "string",
+                  "description": "Encryption algorithm. See https://openid.net/specs/draft-jones-json-web-encryption-02.html#AlgTable"
+                },
+                "enc": {
+                  "type": "string",
+                  "description": "Plaintext ecryption algorithm. See https://openid.net/specs/draft-jones-json-web-encryption-02.html#EncTable"
+                }
+              }
+            }
+          }
+        },
+        "accessTTL": {
+          "type": "number",
+          "description": "Access token ttl."
+        },
         "refreshTTL": {
-          "type": "number"
+          "type": "number",
+          "description": "Refresh token ttl."
         },
         "refreshRotation": {
           "type": "object",

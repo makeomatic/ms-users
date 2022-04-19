@@ -19,12 +19,16 @@ describe('#verify', function verifySuite() {
   });
 
   it('must reject on an expired JWT token', async function test() {
-    const jwt = require('jsonwebtoken');
-
+    const { SignJWT } = require('jose');
     const {
       hashingFunction: algorithm, secret, issuer, defaultAudience,
     } = this.users.config.jwt;
-    const token = jwt.sign({ username: 'vitaly' }, secret, { algorithm, audience: defaultAudience, issuer });
+
+    const token = await new SignJWT({ username: 'vitaly' })
+      .setProtectedHeader({ alg: algorithm })
+      .setAudience(defaultAudience)
+      .setIssuer(issuer)
+      .sign(Buffer.from(secret));
 
     await assert.rejects(
       this.users.dispatch('verify', { params: { token, audience: defaultAudience } }),

@@ -132,7 +132,7 @@ describe('#stateless-jwt', function loginSuite() {
       assert.strictEqual(rules.length, 1);
 
       assert.strictEqual(rules[0].rule.rt, oldTokenDecoded.rt);
-      assert.deepStrictEqual(rules[0].rule.iat, { lt: newTokenDecoded.iat });
+      assert.deepStrictEqual(rules[0].rule.iat, { lte: newTokenDecoded.iat });
       assert.strictEqual(rules[0].params.expireAt, refreshTokenDecoded.exp);
       assert.deepStrictEqual(oldTokenDecoded.audience, newTokenDecoded.audience);
 
@@ -189,7 +189,7 @@ describe('#stateless-jwt', function loginSuite() {
       await this.users.dispatch('revoke-rule.add', {
         params: {
           rule: {
-            iat: { lte: Date.now() },
+            iat: { lte: Math.round(Date.now() / 1000) },
           },
         },
       });
@@ -351,7 +351,7 @@ describe('#stateless-jwt', function loginSuite() {
       assert.strictEqual(rules[0].rule.cs, accessTokenDecoded.cs);
       assert.strictEqual(rules[0].rule.rt, accessTokenDecoded.cs);
       assert.ok(rules[0].rule._or);
-      assert.ok(rules[0].params.expireAt - now >= this.users.config.jwt.ttl);
+      assert.ok(rules[0].params.expireAt - now >= this.users.config.jwt.stateless.accessTTL);
 
       // try again with same access token
       await assert.rejects(

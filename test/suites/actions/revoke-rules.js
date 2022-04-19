@@ -112,7 +112,7 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
       },
     });
 
-    const expireTime = Date.now();
+    const expireTime = Math.round(Date.now() / 1000);
     await createRule({ iss: 'ms-users-global' });
     await createRule({ expireAt: expireTime });
 
@@ -121,7 +121,7 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
 
     assert.deepStrictEqual(redisData, ['{"iss":"ms-users-global"}', '0', '{"iss":"ms-users-test"}', expireTime.toString()]);
 
-    const newExpireTime = expireTime + 1000;
+    const newExpireTime = expireTime + 1;
     await createRule({ iss: 'ms-users-test-1', expireAt: newExpireTime });
 
     const rulesAfter = await this.users.dispatch(listAction, { params: { username } });

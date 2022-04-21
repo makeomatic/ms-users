@@ -54,7 +54,7 @@ const createRule = async (service, ruleSpec) => {
 /**
  * @param {Microfleet & { jwe: JoseWrapper }} service
  */
-async function createToken(service, audience, payload) {
+async function createToken(service, audience, payload, extraSeconds = 0) {
   const { config, flake } = service;
   const { issuer } = config;
   const cs = flake.next();
@@ -62,7 +62,7 @@ async function createToken(service, audience, payload) {
   const finalPayload = {
     ...payload,
     cs,
-    iat: toSeconds(Date.now()) + 1,
+    iat: toSeconds(Date.now()) + extraSeconds,
     st: 1,
     iss: issuer,
     aud: audience,
@@ -83,16 +83,17 @@ async function createRefreshToken(service, payload, audience) {
   });
 }
 
-async function createAccessToken(service, refreshToken, payload, audience) {
+async function createAccessToken(service, refreshToken, payload, audience, extraSeconds) {
   const exp = toSeconds(Date.now() + service.config.jwt.stateless.accessTTL);
-
-  return createToken(service, audience, {
+  const finalPayload = {
     ...payload,
     // should not exceed refreshToken exp
     exp: exp > refreshToken.exp ? refreshToken.exp : exp,
     // refresh token id
     rt: refreshToken.cs,
-  });
+  };
+
+  return createToken(service, audience, finalPayload, extraSeconds);
 }
 
 async function login(service, userId, audience, metadata) {
@@ -146,7 +147,7 @@ async function refreshTokenStrategy({
 
   if (enabled && (always || (now > expireInterval))) {
     const refreshTkn = await createRefreshToken(service, refreshPayload, audience);
-    const access = await createAccessToken(service, refreshTkn.payload, accessPayload, audience);
+    const access = await createAccessToken(service, refreshTkn.payload, accessPayload, audience, 1);
 
     return {
       access,
@@ -155,7 +156,7 @@ async function refreshTokenStrategy({
   }
 
   return {
-    access: await createAccessToken(service, refreshToken, accessPayload, audience),
+    access: await createAccessToken(service, refreshToken, accessPayload, audience, 1),
     refresh: {
       token: encodedRefreshToken,
       payload: refreshToken,

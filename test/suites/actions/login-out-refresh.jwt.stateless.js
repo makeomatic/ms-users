@@ -189,7 +189,7 @@ describe('#stateless-jwt', function loginSuite() {
       await this.users.dispatch('revoke-rule.add', {
         params: {
           rule: {
-            iat: { lte: Math.round(Date.now() / 1000) + 1 },
+            iat: { lte: Math.round(Date.now() / 1000) },
           },
         },
       });

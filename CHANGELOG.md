@@ -1,3 +1,10 @@
+## [15.3.1](https://github.com/makeomatic/ms-users/compare/v15.3.0...v15.3.1) (2022-04-21)
+
+
+### Bug Fixes
+
+* **stateless-token:** refresh token strategy ([#556](https://github.com/makeomatic/ms-users/issues/556)) ([33003f0](https://github.com/makeomatic/ms-users/commit/33003f089f61e2e86d9348687bcfcc499cb30b60))
+
 # [15.3.0](https://github.com/makeomatic/ms-users/compare/v15.2.1...v15.3.0) (2022-04-19)
 
 

@@ -142,7 +142,9 @@ async function refreshTokenStrategy({
 }) {
   const { refreshRotation: { enabled, always, interval } } = service.config.jwt.stateless;
   const now = toSeconds(Date.now());
-  if (enabled && (always || (now > refreshToken.exp - interval))) {
+  const expireInterval = refreshToken.exp - toSeconds(interval);
+
+  if (enabled && (always || (now > expireInterval))) {
     const refreshTkn = await createRefreshToken(service, refreshPayload, audience);
     const access = await createAccessToken(service, refreshTkn.payload, accessPayload, audience);
 

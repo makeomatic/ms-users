@@ -85,14 +85,15 @@ async function createRefreshToken(service, payload, audience) {
 
 async function createAccessToken(service, refreshToken, payload, audience) {
   const exp = toSeconds(Date.now() + service.config.jwt.stateless.accessTTL);
-
-  return createToken(service, audience, {
+  const finalPayload = {
     ...payload,
     // should not exceed refreshToken exp
     exp: exp > refreshToken.exp ? refreshToken.exp : exp,
     // refresh token id
     rt: refreshToken.cs,
-  });
+  };
+
+  return createToken(service, audience, finalPayload);
 }
 
 async function login(service, userId, audience, metadata) {
@@ -142,7 +143,9 @@ async function refreshTokenStrategy({
 }) {
   const { refreshRotation: { enabled, always, interval } } = service.config.jwt.stateless;
   const now = toSeconds(Date.now());
-  if (enabled && (always || (now > refreshToken.exp - interval))) {
+  const expireInterval = refreshToken.exp - toSeconds(interval);
+
+  if (enabled && (always || (now > expireInterval))) {
     const refreshTkn = await createRefreshToken(service, refreshPayload, audience);
     const access = await createAccessToken(service, refreshTkn.payload, accessPayload, audience);
 
@@ -188,7 +191,7 @@ async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audi
       rule: {
         expireAt: refreshToken.exp,
         rt: refreshToken.cs,
-        iat: { lte: access.payload.iat },
+        iat: { lt: access.payload.iat },
       },
     });
   }

@@ -112,7 +112,7 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
       },
     });
 
-    const expireTime = Math.round(Date.now() / 1000);
+    const expireTime = Math.floor(Date.now() / 1000);
     await createRule({ iss: 'ms-users-global' });
     await createRule({ expireAt: expireTime });
 

@@ -191,7 +191,7 @@ async function refreshTokenPair(service, encodedRefreshToken, refreshToken, audi
       rule: {
         expireAt: refreshToken.exp,
         rt: refreshToken.cs,
-        iat: { lte: access.payload.iat },
+        iat: { lt: access.payload.iat },
       },
     });
   }

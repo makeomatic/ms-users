@@ -1,3 +1,3 @@
 module.exports = {
-  toSeconds: (epochTime) => Math.round(epochTime / 1000),
+  toSeconds: (timestamp) => Math.floor(timestamp / 1000),
 };

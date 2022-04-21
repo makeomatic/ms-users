@@ -75,7 +75,7 @@ describe('#stateless-jwt', function loginSuite() {
         },
       });
 
-      await delay(100);
+      await delay(400);
     });
 
     after('stop', async () => {
@@ -179,7 +179,7 @@ describe('#stateless-jwt', function loginSuite() {
       assert.ok(rules[0].rule._or);
 
       // requires rule propagation
-      await delay(200);
+      await delay(1000);
 
       // try again with same access token
       await assert.rejects(
@@ -199,7 +199,7 @@ describe('#stateless-jwt', function loginSuite() {
         },
       });
 
-      await delay(100);
+      await delay(1000);
 
       await assert.rejects(
         this.users.dispatch('verify', { params: { token: jwt, audience: user.audience } }),
@@ -235,7 +235,7 @@ describe('#stateless-jwt', function loginSuite() {
           },
         });
 
-        await delay(100);
+        await delay(1000);
       });
 
       after('stop', async () => {
@@ -284,7 +284,7 @@ describe('#stateless-jwt', function loginSuite() {
           },
         });
 
-        await delay(100);
+        await delay(1000);
       });
 
       after('stop', async () => {
@@ -323,7 +323,7 @@ describe('#stateless-jwt', function loginSuite() {
         },
       });
 
-      await delay(100);
+      await delay(1000);
     });
 
     after('stop', async () => {

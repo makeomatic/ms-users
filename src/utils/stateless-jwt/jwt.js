@@ -62,7 +62,7 @@ async function createToken(service, audience, payload) {
   const finalPayload = {
     ...payload,
     cs,
-    iat: toSeconds(Date.now()),
+    iat: toSeconds(Date.now()) + 1,
     st: 1,
     iss: issuer,
     aud: audience,

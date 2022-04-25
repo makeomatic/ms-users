@@ -40,7 +40,7 @@ async function getSecretKey(iss, sub, keyId, privateKey) {
       alg: 'ES256',
       keyId,
     })
-    .sign(privateKey);
+    .sign(Buffer.from(privateKey));
 
   return token;
 }

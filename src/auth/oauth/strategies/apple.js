@@ -1,5 +1,6 @@
 const jose = require('jose');
 const getJwksClient = require('jwks-rsa');
+const crypto = require('crypto');
 
 // @todo more options from config
 const jwksClient = getJwksClient({
@@ -40,7 +41,7 @@ async function getSecretKey(iss, sub, keyId, privateKey) {
       alg: 'ES256',
       keyId,
     })
-    .sign(Buffer.from(privateKey));
+    .sign(crypto.createPrivateKey(privateKey));
 
   return token;
 }

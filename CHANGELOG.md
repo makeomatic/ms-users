@@ -1,3 +1,10 @@
+## [15.3.2](https://github.com/makeomatic/ms-users/compare/v15.3.1...v15.3.2) (2022-04-25)
+
+
+### Bug Fixes
+
+* restore jsonwebtoken usage for apple sign-in ([#557](https://github.com/makeomatic/ms-users/issues/557)) ([ff8db5a](https://github.com/makeomatic/ms-users/commit/ff8db5a75e30394b8f32f318f05d0220d50a3705))
+
 ## [15.3.1](https://github.com/makeomatic/ms-users/compare/v15.3.0...v15.3.1) (2022-04-21)
 
 

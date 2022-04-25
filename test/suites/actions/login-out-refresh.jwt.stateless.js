@@ -179,7 +179,7 @@ describe('#stateless-jwt', function loginSuite() {
       assert.ok(rules[0].rule._or);
 
       // requires rule propagation
-      await delay(1000);
+      await delay(2000);
 
       // try again with same access token
       await assert.rejects(

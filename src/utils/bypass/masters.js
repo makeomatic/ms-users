@@ -198,6 +198,8 @@ class MastersService {
 
     MastersService.matchData(userMeta, userProfile, 'firstName', updatedProps);
     MastersService.matchData(userMeta, userProfile, 'lastName', updatedProps);
+    // keep masters id users previously registered in streamlayer
+    MastersService.matchData(userMeta, userProfile, 'masters', updatedProps);
 
     if (updatedProps.length === 0) {
       return loginResponse;

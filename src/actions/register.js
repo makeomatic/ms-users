@@ -45,6 +45,7 @@ const {
   USERS_REFERRAL_INDEX,
   TOKEN_METADATA_FIELD_METADATA,
   ErrorConflictUserExists,
+  USERS_INVALID_TOKEN,
 } = require('../constants');
 
 // cached helpers
@@ -416,7 +417,8 @@ module.exports.allowed = async function transformSSO({ params }) {
   const ssoTokenOptions = this.config.oauth.token;
 
   // verify SSO token & rewrite params.sso
-  const credentials = await jwt.verifyData(sso, ssoTokenOptions);
+  const credentials = await jwt.verifyData(sso, ssoTokenOptions)
+    .catch(() => { throw USERS_INVALID_TOKEN; });
 
   const {
     uid, provider, email, profile,

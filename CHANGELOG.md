@@ -1,3 +1,10 @@
+## [15.3.3](https://github.com/makeomatic/ms-users/compare/v15.3.2...v15.3.3) (2022-05-03)
+
+
+### Bug Fixes
+
+* wrap sso token error with 403 ([#559](https://github.com/makeomatic/ms-users/issues/559)) ([971824c](https://github.com/makeomatic/ms-users/commit/971824c38c07cd335fd7acff8ad3abcb79751130))
+
 ## [15.3.2](https://github.com/makeomatic/ms-users/compare/v15.3.1...v15.3.2) (2022-04-25)
 
 

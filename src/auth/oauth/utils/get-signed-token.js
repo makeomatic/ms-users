@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const { USERS_INVALID_TOKEN } = require('../../../constants');
 const { signData, verifyData } = require('../../../utils/jwt');
 
 /**
@@ -24,7 +25,8 @@ async function getSignedToken(account) {
  * @return {Object} account data
  */
 async function verifySignedToken(token) {
-  return verifyData(token, this.config.oauth.token);
+  return verifyData(token, this.config.oauth.token)
+    .catch(() => { throw USERS_INVALID_TOKEN; });
 }
 
 exports.getSignedToken = getSignedToken;

@@ -3,7 +3,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');
-const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, USERS_API_TOKENS_SCOPE } = require('../../constants');
+const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
 const { getUserId } = require('../../utils/userData');
 
 function eraseData(userId) {
@@ -13,13 +13,11 @@ function eraseData(userId) {
   // zset & key
   const zset = redisKey(USERS_API_TOKENS_ZSET, userId);
   const key = redisKey(USERS_API_TOKENS, payload);
-  const scopesKey = redisKey(USERS_API_TOKENS_SCOPE, payload);
 
   // remove key
   return redis
     .pipeline()
     .del(key)
-    .del(scopesKey)
     .zrem(zset, payload)
     .exec()
     .then(handlePipelineError);

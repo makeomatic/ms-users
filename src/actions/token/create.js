@@ -9,7 +9,7 @@ const { getUserId } = require('../../utils/userData');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, BEARER_USERNAME_FIELD } = require('../../constants');
 
 function storeData(userId) {
-  const { redis, name } = this;
+  const { redis, name, scopes } = this;
   const tokenPart = uuidv4();
 
   // transform input
@@ -28,6 +28,7 @@ function storeData(userId) {
       [BEARER_USERNAME_FIELD]: userId,
       name,
       uuid: tokenPart,
+      scopes: scopes ? JSON.stringify(scopes) : null,
     })
     .zadd(zset, Date.now(), payload)
     .exec()
@@ -47,11 +48,12 @@ function storeData(userId) {
  *
  * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {String} name - used to identify token
+ * @apiParam (Payload) {String} scopes - access scopes of the token
  */
 function createToken({ params }) {
-  const { username, name } = params;
+  const { username, name, scopes } = params;
   const { redis, config } = this;
-  const context = { name, redis, config };
+  const context = { name, redis, config, scopes };
 
   return Promise
     .bind(context, username)

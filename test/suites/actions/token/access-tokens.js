@@ -59,7 +59,7 @@ describe('#token.*', function activateSuite() {
         .then((tokens) => {
           // default page size
           assert.equal(tokens.length, 20);
-
+          console.debug('== tokens', tokens);
           // take first token, ensure it's newest
           const [token] = tokens;
 
@@ -69,7 +69,7 @@ describe('#token.*', function activateSuite() {
           assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
-          assert.equal(Object.keys(token).length, 4);
+          assert.equal(Object.keys(token).length, 5);
         });
     });
 
@@ -86,7 +86,7 @@ describe('#token.*', function activateSuite() {
           assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
-          assert.equal(Object.keys(token).length, 4);
+          assert.equal(Object.keys(token).length, 5);
         });
     });
   });
@@ -112,7 +112,7 @@ describe('#token.*', function activateSuite() {
           assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
-          assert.equal(Object.keys(token).length, 4);
+          assert.equal(Object.keys(token).length, 5);
         });
     });
   });

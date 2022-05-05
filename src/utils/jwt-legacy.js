@@ -133,10 +133,11 @@ exports.internal = async function verifyInternalToken(service, token) {
   // erase or expired
   const key = redisKey(USERS_API_TOKENS, payload);
   const tokenField = isLegacyToken ? BEARER_LEGACY_USERNAME_FIELD : BEARER_USERNAME_FIELD;
-  const id = await service.redis.hget(key, tokenField);
+  const [id, scopes] = await service.redis.hmget(key, tokenField, 'scopes');
 
   return {
     [tokenField]: id,
+    scopes: scopes ? JSON.parse(scopes) : null,
   };
 };
 

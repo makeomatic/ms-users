@@ -27,6 +27,19 @@ function getAbility(rules) {
 }
 
 /**
+ * Verifies whether action is available on provided bubject.
+ * @param {Ability} ability
+ * @param {string} action
+ * @param {string|Object} sub
+ * @returns
+ */
+function isActionPossible(ability, action, sub) {
+  const [parentAction] = action.split(':');
+
+  return ability.can(parentAction, sub) || ability.can(action, sub);
+}
+
+/**
  * Verifies whether action is available on provided object.
  * Wraps object with secified Subject to mach rules.
  *
@@ -37,18 +50,7 @@ function getAbility(rules) {
  * @returns
  */
 function isObjectActionPossible(ability, action, sub, obj) {
-  return ability.can(action, subject(sub, obj));
-}
-
-/**
- * Verifies whether action is available on provided bubject.
- * @param {Ability} ability
- * @param {string} action
- * @param {string|Object} sub
- * @returns
- */
-function isActionPossible(ability, action, sub) {
-  return ability.can(action, sub);
+  return isActionPossible(ability, action, subject(sub, obj));
 }
 
 module.exports = {

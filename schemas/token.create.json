@@ -17,7 +17,7 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "description": "RBAC scopes list. See https://casl.js.org/v5/en/guide/define-rules",
+        "description": "PBAC/RBAC scopes list. See https://casl.js.org/v5/en/guide/define-rules",
         "required": ["action"],
         "properties": {
           "action": { "type": "string" },

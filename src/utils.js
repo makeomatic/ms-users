@@ -6,5 +6,5 @@ module.exports = {
     strategy: require('./auth/strategies'),
     statelessJWT: require('./utils/stateless-jwt'),
   },
-  rbac: require('./utils/rbac'),
+  pbac: require('./utils/pbac'),
 };

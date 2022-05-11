@@ -36,6 +36,10 @@ function getAllFromPipeline(token) {
  * Merges fetched data from redis
  */
 function mergeWithData(prop, idx) {
+  if (prop.scopes) {
+    prop.scopes = JSON.parse(prop.scopes);
+  }
+
   Object.assign(this[idx], prop);
 }
 

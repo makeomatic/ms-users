@@ -97,6 +97,20 @@ exports.verify = async function verifyToken(service, encodedToken, token, peek) 
   return token;
 };
 
+function extractTokenParts(tokenParts) {
+  const { length } = tokenParts;
+
+  if (length < 3 && length > 4) {
+    throw USERS_MALFORMED_TOKEN;
+  }
+
+  if (tokenParts.length === 4) {
+    return tokenParts;
+  }
+
+  return [null, ...tokenParts];
+}
+
 /**
  * Verifies internal token
  * @param {String} token
@@ -106,12 +120,7 @@ exports.verify = async function verifyToken(service, encodedToken, token, peek) 
  */
 exports.internal = async function verifyInternalToken(service, token) {
   const tokenParts = token.split('.');
-
-  if (tokenParts.length !== 3) {
-    return Promise.reject(USERS_MALFORMED_TOKEN);
-  }
-
-  const [userId, uuid, signature] = tokenParts;
+  const [, userId, uuid, signature] = extractTokenParts(tokenParts);
 
   // token is malformed, must be username.uuid.signature
   if (!userId || !uuid || !signature) {
@@ -137,7 +146,7 @@ exports.internal = async function verifyInternalToken(service, token) {
 
   return {
     [tokenField]: id,
-    scopes: scopes ? JSON.parse(scopes) : null,
+    scopes: scopes ? JSON.parse(scopes) : undefined,
   };
 };
 

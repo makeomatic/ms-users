@@ -9,11 +9,11 @@ const { getUserId } = require('../../utils/userData');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, BEARER_USERNAME_FIELD } = require('../../constants');
 
 function storeData(userId) {
-  const { redis, name, scopes } = this;
+  const { redis, name, scopes, prefix } = this;
   const tokenPart = uuidv4();
 
   // transform input
-  const payload = `${userId}.${tokenPart}`;
+  const payload = prefix ? `${prefix}.${userId}.${tokenPart}` : `${userId}.${tokenPart}`;
   const signature = sign.call(this, payload);
   const token = `${payload}.${signature}`;
 
@@ -21,15 +21,20 @@ function storeData(userId) {
   const key = redisKey(USERS_API_TOKENS, payload);
   const zset = redisKey(USERS_API_TOKENS_ZSET, userId);
 
+  const redisData = {
+    [BEARER_USERNAME_FIELD]: userId,
+    name,
+    uuid: tokenPart,
+  };
+
+  if (scopes) {
+    redisData.scopes = JSON.stringify(scopes);
+  }
+
   // prepare to store
   return redis
     .pipeline()
-    .hmset(key, {
-      [BEARER_USERNAME_FIELD]: userId,
-      name,
-      uuid: tokenPart,
-      scopes: scopes ? JSON.stringify(scopes) : null,
-    })
+    .hmset(key, redisData)
     .zadd(zset, Date.now(), payload)
     .exec()
     .then(handlePipelineError)
@@ -48,12 +53,13 @@ function storeData(userId) {
  *
  * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {String} name - used to identify token
- * @apiParam (Payload) {String} scopes - access scopes of the token
+ * @apiParam (Payload) {String} [prefix] - generated token prefix
+ * @apiParam (Payload) {String} [scopes] - access scopes of the token
  */
 function createToken({ params }) {
-  const { username, name, scopes } = params;
+  const { username, name, scopes, prefix } = params;
   const { redis, config } = this;
-  const context = { name, redis, config, scopes };
+  const context = { name, redis, config, scopes, prefix };
 
   return Promise
     .bind(context, username)

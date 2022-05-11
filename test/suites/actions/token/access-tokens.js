@@ -42,6 +42,47 @@ describe('#token.*', function activateSuite() {
         });
     });
 
+    it('registers token with prefix', async function test() {
+      const token = await this.users.dispatch(createRoute, {
+        params: {
+          username,
+          prefix: 'xtkn',
+          name: 'token with prefix',
+        },
+      });
+
+      assert.equal(token.split('.').length, 4, 'invalid token format');
+      assert.equal(token.split('.')[0], 'xtkn', 'invalid token prefix');
+      assert.equal(token.split('.')[1], this.userId, 'invalid input hash');
+    });
+
+    it('registers token with scope', async function test() {
+      const token = await this.users.dispatch(createRoute, {
+        params: {
+          username,
+          name: 'token with scope',
+          scopes: [{
+            action: 'some',
+            subject: 'read',
+          }],
+        },
+      });
+
+      assert.equal(token.split('.').length, 3, 'invalid token format');
+      assert.equal(token.split('.')[0], this.userId, 'invalid input hash');
+    });
+
+    it('#list returns token scope', async function test() {
+      const tokens = await this.users.dispatch(listRoute, { params: { username } });
+      const token = tokens.find((t) => !!t.scopes);
+
+      assert.ok(token, 'token should exist');
+      assert.deepStrictEqual(token.scopes, [{
+        action: 'some',
+        subject: 'read',
+      }]);
+    });
+
     it('registers more tokens', function test() {
       return Promise
         .map(iterator, (val, idx) => (
@@ -69,16 +110,15 @@ describe('#token.*', function activateSuite() {
           assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
-          assert.equal(Object.keys(token).length, 5);
         });
     });
 
-    it('returns third page, one token', function test() {
+    it('returns third page, three tokens', function test() {
       return this.users.dispatch(listRoute, { params: { username, page: 2 } })
         .then((tokens) => {
           // default page size
-          assert.equal(tokens.length, 1);
-          const [token] = tokens;
+          assert.equal(tokens.length, 3);
+          const [,, token] = tokens;
 
           // check it's first token
           assert.equal(token.name, 'initial token');
@@ -86,7 +126,6 @@ describe('#token.*', function activateSuite() {
           assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
-          assert.equal(Object.keys(token).length, 5);
         });
     });
   });
@@ -99,12 +138,12 @@ describe('#token.*', function activateSuite() {
       ));
     });
 
-    it('returns first page, one token', function test() {
+    it('returns first page, three tokens', function test() {
       return this.users.dispatch(listRoute, { params: { username } })
         .then((tokens) => {
           // default page size
-          assert.equal(tokens.length, 1);
-          const [token] = tokens;
+          assert.equal(tokens.length, 3);
+          const [,, token] = tokens;
 
           // check it's first token
           assert.equal(token.name, 'initial token');
@@ -112,7 +151,6 @@ describe('#token.*', function activateSuite() {
           assert.equal(token.userId, this.userId);
           assert.ok(token.added);
           assert.ok(token.uuid);
-          assert.equal(Object.keys(token).length, 5);
         });
     });
   });

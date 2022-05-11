@@ -1,3 +1,10 @@
+## [15.3.4](https://github.com/makeomatic/ms-users/compare/v15.3.3...v15.3.4) (2022-05-11)
+
+
+### Bug Fixes
+
+* save masters id for the previously registered users ([#558](https://github.com/makeomatic/ms-users/issues/558)) ([198eb9f](https://github.com/makeomatic/ms-users/commit/198eb9f6ce062fb7fe20b7efdb7c174b6f8c6a36))
+
 ## [15.3.3](https://github.com/makeomatic/ms-users/compare/v15.3.2...v15.3.3) (2022-05-03)
 
 

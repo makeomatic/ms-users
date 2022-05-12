@@ -27,7 +27,7 @@ module.exports = {
     waitChallenge: true,
   },
   oauth: {
-    enabled: false,
+    enabled: true,
     providers: {
       facebook: {
         enabled: true,

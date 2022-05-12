@@ -3,5 +3,5 @@
  * @type {Object}
  */
 exports.organizations = {
-  audience: '*.localhost',
+  audience: 'organizations',
 };

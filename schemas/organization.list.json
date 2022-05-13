@@ -23,6 +23,11 @@
     "criteria": {
       "type": "string"
     },
+    "username": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
+    },
     "expiration": {
       "type": "integer"
     },

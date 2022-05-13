@@ -68,4 +68,16 @@ describe('#organizations list', function registerSuite() {
         assert.deepEqual(data[0].attributes, organization);
       });
   });
+
+  it('must be able to return organizations by username', async function test() {
+    const opts = {
+      username: this.userNames[0].email,
+    };
+    const { members, invites, ...organization } = this.organization;
+
+    return this.users.dispatch('organization.list', { params: opts })
+      .then(({ data }) => {
+        assert.deepEqual(data[0].attributes, organization);
+      });
+  });
 });

@@ -5,7 +5,43 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 
 const redisKey = require('../../utils/key');
 const { getOrganizationMetadata, getInternalData } = require('../../utils/organization');
+const getMetadata = require('../../utils/get-metadata');
+const { getUserId } = require('../../utils/userData');
 const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
+
+async function findUserOrganization(username) {
+  const { audience: orgAudience } = this.config.organizations;
+
+  const userId = await getUserId.call(this, username, true);
+  const res = await getMetadata.call(this, userId, orgAudience);
+
+  return [Object.keys(res[orgAudience])];
+}
+
+async function findOrganization({
+  criteria,
+  order,
+  strFilter,
+  currentTime,
+  offset,
+  limit,
+  expiration,
+}) {
+  const organizationsIds = await this.redis.fsort(
+    ORGANIZATIONS_INDEX,
+    redisKey('*', ORGANIZATIONS_DATA),
+    criteria,
+    order,
+    strFilter,
+    currentTime,
+    offset,
+    limit,
+    expiration
+  );
+  const length = +organizationsIds.pop();
+
+  return [organizationsIds, length];
+}
 
 /**
  * @api {amqp} <prefix>.list Retrieve Organizations list
@@ -19,6 +55,7 @@ const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
  * @apiParam (Payload) {Number} [offset=0] - cursor for pagination
  * @apiParam (Payload) {Number} [limit=10] - profiles per page
  * @apiParam (Payload) {String="ASC","DESC"} [order=ASC] - sort order
+ * @apiParam (Payload) {String} [username] - if supplied, return user organizations
  * @apiParam (Payload) {String} [criteria] - if supplied, sort will be performed based on this field
  * @apiParam (Payload) {Object} [filter] to use, consult https://github.com/makeomatic/redis-filtered-sort, can already be stringified
 
@@ -36,7 +73,6 @@ const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
  * @apiSuccess (Response) {Number} meta.total - total.
  */
 async function getOrganizationsList({ params }) {
-  const { redis } = this;
   const {
     criteria,
     audience,
@@ -45,24 +81,23 @@ async function getOrganizationsList({ params }) {
     order = 'ASC',
     expiration = 30000,
     filter,
+    username, // return only user orgnization, ignore other filters and pagination
   } = params;
 
   const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
   const currentTime = Date.now();
 
-  const organizationsIds = await redis.fsort(
-    ORGANIZATIONS_INDEX,
-    redisKey('*', ORGANIZATIONS_DATA),
-    criteria,
-    order,
-    strFilter,
-    currentTime,
-    offset,
-    limit,
-    expiration
-  );
-
-  const length = +organizationsIds.pop();
+  const [organizationsIds, length = 0] = username
+    ? await findUserOrganization.call(this, username)
+    : await findOrganization.call(this, {
+      criteria,
+      order,
+      strFilter,
+      currentTime,
+      offset,
+      limit,
+      expiration,
+    });
 
   const organizations = await Promise.map(organizationsIds, async (organizationId) => {
     const [organization, metadata] = await Promise.all([

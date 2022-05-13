@@ -1,3 +1,10 @@
+# [15.4.0](https://github.com/makeomatic/ms-users/compare/v15.3.4...v15.4.0) (2022-05-13)
+
+
+### Features
+
+* return organization list by username ([#561](https://github.com/makeomatic/ms-users/issues/561)) ([3f70955](https://github.com/makeomatic/ms-users/commit/3f70955d7b2802829b0f831ed35779f746cf6e36))
+
 ## [15.3.4](https://github.com/makeomatic/ms-users/compare/v15.3.3...v15.3.4) (2022-05-11)
 
 

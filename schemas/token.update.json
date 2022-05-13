@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "token",
+    "username",
+    "scopes"
+  ],
+  "properties": {
+    "username": {
+      "$ref": "common.json#/definitions/userId"
+    },
+    "token": {
+      "$ref": "common.json#/definitions/uuid-v4"
+    },
+    "scopes": {
+      "$ref": "token.create#/definitions/scopes"
+    }
+  }
+}

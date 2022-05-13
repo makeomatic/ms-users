@@ -18,6 +18,11 @@
       "maxLength": 10
     },
     "scopes": {
+      "$ref": "#/definitions/scopes"
+    }
+  },
+  "definitions": {
+    "scopes": {
       "type": "array",
       "minItems": 1,
       "items": {

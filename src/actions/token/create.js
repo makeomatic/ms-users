@@ -7,29 +7,30 @@ const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');
 const { getUserId } = require('../../utils/userData');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, BEARER_USERNAME_FIELD } = require('../../constants');
+const { serializeTokenData } = require('../../utils/api-token');
 
 function storeData(userId) {
   const { redis, name, scopes, prefix } = this;
   const tokenPart = uuidv4();
 
   // transform input
-  const payload = prefix ? `${prefix}.${userId}.${tokenPart}` : `${userId}.${tokenPart}`;
+  const dbPayload = `${userId}.${tokenPart}`;
+  const payload = prefix ? `${prefix}.${dbPayload}` : dbPayload;
   const signature = sign.call(this, payload);
   const token = `${payload}.${signature}`;
 
   // stores all issued keys and it's date
-  const key = redisKey(USERS_API_TOKENS, payload);
+  const key = redisKey(USERS_API_TOKENS, dbPayload);
   const zset = redisKey(USERS_API_TOKENS_ZSET, userId);
 
-  const redisData = {
-    [BEARER_USERNAME_FIELD]: userId,
+  const redisData = serializeTokenData({
     name,
+    scopes,
     uuid: tokenPart,
-  };
+    [BEARER_USERNAME_FIELD]: userId,
+  });
 
-  if (scopes) {
-    redisData.scopes = JSON.stringify(scopes);
-  }
+  if (prefix) redisData.prefix = prefix;
 
   // prepare to store
   return redis

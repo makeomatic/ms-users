@@ -5,6 +5,7 @@ const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');
 const { USERS_API_TOKENS_ZSET, USERS_API_TOKENS } = require('../../constants');
 const { getUserId } = require('../../utils/userData');
+const { deserializeTokenData } = require('../../utils/api-token');
 
 /**
  * Parses redis response and returns keys, as well as date of publication
@@ -36,11 +37,7 @@ function getAllFromPipeline(token) {
  * Merges fetched data from redis
  */
 function mergeWithData(prop, idx) {
-  if (prop.scopes) {
-    prop.scopes = JSON.parse(prop.scopes);
-  }
-
-  Object.assign(this[idx], prop);
+  Object.assign(this[idx], deserializeTokenData(prop));
 }
 
 /**

@@ -142,7 +142,7 @@ const writeUserToOutput = (user) => {
  */
 const listUsers = (amqp) => (
   amqp
-    .publishAndWait(route, iterator, { timeout: 5000 })
+    .publishAndWait(route, iterator, { timeout: 30000 })
     .then((data) => {
       data.users.forEach(writeUserToOutput);
 

@@ -1,3 +1,10 @@
+## [15.4.1](https://github.com/makeomatic/ms-users/compare/v15.4.0...v15.4.1) (2022-05-16)
+
+
+### Bug Fixes
+
+* longer time for dumping ([d907e13](https://github.com/makeomatic/ms-users/commit/d907e13dc14950511ecf041070e79c30b1049fc1))
+
 # [15.4.0](https://github.com/makeomatic/ms-users/compare/v15.3.4...v15.4.0) (2022-05-13)
 
 

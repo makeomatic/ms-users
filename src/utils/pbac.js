@@ -1,11 +1,6 @@
-const { Ability, createAliasResolver, subject } = require('@casl/ability');
+const { Ability, subject } = require('@casl/ability');
 
 const { USERS_ADMIN_ROLE, USERS_SUPER_ADMIN_ROLE } = require('../constants');
-
-const resolveAction = createAliasResolver({
-  modify: ['update', 'delete', 'write'],
-  access: ['read', 'modify'],
-});
 
 const manageAllScope = {
   action: 'manage',
@@ -23,7 +18,7 @@ const defaultScopes = {
  * @returns
  */
 function getAbility(rules) {
-  return new Ability(rules, { resolveAction });
+  return new Ability(rules);
 }
 
 /**

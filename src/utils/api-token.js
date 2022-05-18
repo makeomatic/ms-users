@@ -2,9 +2,6 @@ const { NotFoundError } = require('common-errors');
 
 function deserializeTokenData(raw) {
   const { scopes } = raw;
-
-  console.debug('=== RAW', raw);
-
   if (scopes) {
     raw.scopes = JSON.parse(raw.scopes);
   }
@@ -13,11 +10,13 @@ function deserializeTokenData(raw) {
 }
 
 function serializeTokenData(raw) {
-  const { scopes, ...restData } = raw;
+  const { scopes, prefix, ...restData } = raw;
 
   if (Array.isArray(scopes)) {
     restData.scopes = JSON.stringify(raw.scopes);
   }
+
+  if (prefix) restData.prefix = prefix;
 
   return restData;
 }

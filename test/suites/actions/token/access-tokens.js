@@ -159,8 +159,6 @@ describe('#token.*', function activateSuite() {
         action: 'other',
         subject: 'manage',
       }]);
-
-      console.debug('=== updated token', updatedToken);
     });
   });
 

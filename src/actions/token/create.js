@@ -27,16 +27,15 @@ function storeData(userId) {
     name,
     scopes,
     uuid: tokenPart,
+    prefix,
     [BEARER_USERNAME_FIELD]: userId,
   });
-
-  if (prefix) redisData.prefix = prefix;
 
   // prepare to store
   return redis
     .pipeline()
     .hmset(key, redisData)
-    .zadd(zset, Date.now(), payload)
+    .zadd(zset, Date.now(), dbPayload)
     .exec()
     .then(handlePipelineError)
     .return(token);

@@ -38,6 +38,11 @@ describe('#RBAC/PBAC', function RevocationRulesSyncSuite() {
     const ability = getAbility([
       {
         subject: 'parent:some',
+        action: 'manage',
+        inverted: true,
+      },
+      {
+        subject: 'parent:some',
         action: 'read',
       },
       {
@@ -49,6 +54,10 @@ describe('#RBAC/PBAC', function RevocationRulesSyncSuite() {
     ok(!isActionPossible(ability, 'manage', 'parent:some'));
     ok(!isActionPossible(ability, 'write', 'parent:some'));
     ok(isActionPossible(ability, 'read', 'parent:some'));
+
+    ok(!isActionPossible(ability, 'manage', 'parent:some-more'));
+    ok(isActionPossible(ability, 'write', 'parent:some-more'));
+    ok(!isActionPossible(ability, 'read', 'parent:some-more'));
 
     ok(!isActionPossible(ability, 'manage', 'parent'));
     ok(!isActionPossible(ability, 'read', 'parent'));

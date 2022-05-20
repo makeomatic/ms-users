@@ -12,13 +12,13 @@ const { getUserId } = require('../../utils/userData');
  *
  * @apiParam (Payload) {String} username -
  */
-module.exports = async function add({ params }) {
-  const userId = await getUserId.call(this, params.username);
-  const contact = await contacts.add.call(this, { contact: params.contact, userId });
+module.exports = async function add({ params: { username, contact, skipChallenge } }) {
+  const userId = await getUserId.call(this, username);
+  const attributes = await contacts.add.call(this, { contact, userId, skipChallenge });
 
   return {
     data: {
-      attributes: contact,
+      attributes,
     },
   };
 };

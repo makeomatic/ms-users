@@ -13,6 +13,9 @@
     "contact": {
       "$ref": "common.json#/definitions/contact",
       "required": ["value"]
+    },
+    "metadata": {
+      "type": "object"
     }
   }
 }

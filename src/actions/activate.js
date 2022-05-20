@@ -21,6 +21,7 @@ const {
   USERS_ACTION_ACTIVATE,
   USERS_ACTIVATED_FIELD,
 } = require('../constants');
+const { contacts } = require('../configs/contacts');
 
 // cache error
 const Forbidden = new HttpStatusError(403, 'invalid token');
@@ -113,6 +114,7 @@ function verifyRequest() {
 /**
  * Activates account after it was verified
  * @param  {Object} data internal user data
+ * @param  {Object} metadata user metadata
  * @return {Promise}
  */
 async function activateAccount(data, metadata) {
@@ -188,11 +190,12 @@ function hook(userId) {
  * @apiParam (Payload) {String} [remoteip] - not used, but is reserved for security log in the future
  * @apiParam (Payload) {String} [audience] - additional metadata will be pushed there from custom hooks
  * @apiParam (Payload) {Boolean} [isStatelessAuth=false] - users Stateless JWT token flow
+ * @apiParam (Payload) {Boolean} [shouldVerifyContact=false] - users Stateless JWT token flow
  */
 async function activateAction({ log, params }) {
   // TODO: add security logs
   // var remoteip = request.params.remoteip;
-  const { token, username, isStatelessAuth } = params;
+  const { token, username, isStatelessAuth, shouldVerifyContact } = params;
   const { config } = this;
   const { jwt: { defaultAudience } } = config;
   const audience = params.audience || defaultAudience;
@@ -219,6 +222,10 @@ async function activateAction({ log, params }) {
     ))
     .spread(activateAccount)
     .tap(hook);
+
+  if (shouldVerifyContact) {
+    await contacts.setVerifiedIfExist({ redis: this.redis, userId, value: username || userId });
+  }
 
   return jwt.login.call(this, userId, audience, isStatelessAuth);
 }

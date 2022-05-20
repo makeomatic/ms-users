@@ -12,6 +12,10 @@
     },
     "contact": {
       "$ref": "common.json#/definitions/contact"
+    },
+    "skipChallenge": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

@@ -1,10 +1,13 @@
 const { ok } = require('assert');
 
-const { defaultScopes, getAbility, isActionPossible, isObjectActionPossible } = require('../../../src/utils/pbac');
+const { getAbility, isActionPossible, isObjectActionPossible } = require('../../../src/utils/pbac');
 
 describe('#RBAC/PBAC', function RevocationRulesSyncSuite() {
   it('should provide access to admin', () => {
-    const ability = getAbility(defaultScopes.admin);
+    const ability = getAbility([{
+      subject: 'all',
+      action: 'manage',
+    }]);
 
     ok(isActionPossible(ability, 'manage', 'some'));
     ok(isActionPossible(ability, 'access', 'some'));
@@ -14,7 +17,10 @@ describe('#RBAC/PBAC', function RevocationRulesSyncSuite() {
   });
 
   it('should validate passed object and subject', () => {
-    const ability = getAbility(defaultScopes.admin);
+    const ability = getAbility([{
+      subject: 'all',
+      action: 'manage',
+    }]);
 
     ok(isObjectActionPossible(ability, 'manage', 'some', {}));
     ok(isObjectActionPossible(ability, 'access', 'some', {}));

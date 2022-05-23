@@ -1,17 +1,5 @@
 const { Ability, subject } = require('@casl/ability');
 
-const { USERS_ADMIN_ROLE, USERS_SUPER_ADMIN_ROLE } = require('../constants');
-
-const manageAllScope = {
-  action: 'manage',
-  subject: 'all',
-};
-
-const defaultScopes = {
-  [USERS_ADMIN_ROLE]: [manageAllScope],
-  [USERS_SUPER_ADMIN_ROLE]: [manageAllScope],
-};
-
 /**
  * Creates ability based on passed rules
  * @param {*} rules
@@ -56,7 +44,6 @@ function isObjectActionPossible(ability, action, sub, obj) {
 }
 
 module.exports = {
-  defaultScopes,
   getAbility,
   isObjectActionPossible,
   isActionPossible,

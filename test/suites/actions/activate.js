@@ -120,4 +120,25 @@ describe('#activate', function activateSuite() {
     assert.equal(response.user.id, userId);
     assert.ok(/^\d+$/.test(response.user.metadata[opts.audience].aa));
   });
+
+  it('should verify contact too if shouldVerifyContact true', async function test() {
+    const user = {
+      username: 'v1@makeomatic.ru', password: '123', audience: 'ok', metadata: { wolf: true }, activate: false,
+    };
+    await this.users.dispatch('register', { params: user });
+
+    const params = {
+      username: user.username,
+      contact: {
+        value: user.username,
+        type: 'email',
+      },
+    };
+
+    await this.users.dispatch('contacts.add', { params });
+    await this.users.dispatch('activate', { params: { username: user.username, shouldVerifyContact: true } });
+    const { data } = await this.users.dispatch('contacts.list', { params: { username: user.username } });
+    const firstContact = data.find((contact) => contact.value === params.contact.value);
+    assert.strictEqual(firstContact.verified, true);
+  });
 });

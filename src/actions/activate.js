@@ -8,6 +8,7 @@ const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const handlePipeline = require('../utils/pipeline-error');
 const setMetadata = require('../utils/update-metadata');
+const contacts = require('../utils/contacts');
 const {
   USERS_INDEX,
   USERS_DATA,
@@ -21,7 +22,6 @@ const {
   USERS_ACTION_ACTIVATE,
   USERS_ACTIVATED_FIELD,
 } = require('../constants');
-const { contacts } = require('../configs/contacts');
 
 // cache error
 const Forbidden = new HttpStatusError(403, 'invalid token');

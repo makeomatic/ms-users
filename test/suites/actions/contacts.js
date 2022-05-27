@@ -178,4 +178,64 @@ describe('#user contacts', function registerSuite() {
     const list = await this.users.dispatch('contacts.list', { params: { username: this.testUser.username } });
     assert.equal(list.data.length, 0);
   });
+
+  it('must be able to add user contact with skipChallenge, onlyOneVerifiedEmail', async function test() {
+    const params = {
+      username: this.testUser.username,
+      skipChallenge: true,
+      contact: {
+        value: 'nomail@example.com',
+        type: 'email',
+      },
+    };
+
+    const { data: { attributes: { value, verified } } } = await this.users.dispatch('contacts.add', { params });
+    assert.equal(value, params.contact.value);
+    assert.strictEqual(verified, true);
+
+    const params2 = {
+      username: this.testUser.username,
+      skipChallenge: true,
+      contact: {
+        value: 'nomail2@example.com',
+        type: 'email',
+      },
+    };
+
+    const { data: { attributes } } = await this.users.dispatch('contacts.add', { params: params2 });
+    assert.equal(attributes.value, params2.contact.value);
+    assert.strictEqual(attributes.verified, true);
+
+    const { data } = await this.users.dispatch('contacts.list', { params: { username: this.testUser.username } });
+    const firstContact = data.find((contact) => contact.value === params.contact.value);
+    assert.strictEqual(firstContact.verified, false);
+  });
+
+  it('should validate email', async function test() {
+    const sendMailPath = 'mailer.predefined';
+    const params = {
+      username: this.testUser.username,
+      contact: {
+        value: 'nomail@example.com',
+        type: 'email',
+      },
+    };
+
+    await this.users.dispatch('contacts.add', { params });
+
+    const amqpStub = sinon.stub(this.users.amqp, 'publish');
+
+    amqpStub.withArgs(sendMailPath)
+      .resolves({ queued: true });
+
+    await this.users.dispatch('contacts.challenge', { params });
+    const { args: [[path, { ctx: { template: { token: { secret } } } }]] } = amqpStub;
+    assert.equal(path, sendMailPath);
+
+    const { data: { attributes: { value, verified } } } = await this.users.dispatch('contacts.verify-email', { params: { secret } });
+
+    assert.equal(value, params.contact.value);
+    assert.strictEqual(verified, true);
+    amqpStub.restore();
+  });
 });

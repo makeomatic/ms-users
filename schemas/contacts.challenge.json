@@ -14,6 +14,11 @@
       "$ref": "common.json#/definitions/contact",
       "required": ["value"]
     },
+    "i18nLocale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10
+    },
     "metadata": {
       "type": "object"
     }

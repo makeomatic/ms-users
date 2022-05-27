@@ -43,7 +43,21 @@ async function setVerifiedIfExist({ redis, userId, value }) {
   return key;
 }
 
-async function add({ userId, contact, skipChallenge }) {
+async function setAllEmailContactsOfUserAsUnVerified(redis, userId) {
+  const key = redisKey(userId, USERS_CONTACTS);
+  const contacts = await redis.smembers(key);
+  if (contacts.length) {
+    const pipe = redis.pipeline();
+    contacts.forEach((value) => {
+      if (/@/.test(value)) {
+        pipe.hset(redisKey(userId, USERS_CONTACTS, value), 'verified', false);
+      }
+    });
+    await pipe.exec().then(handlePipeline);
+  }
+}
+
+async function add({ userId, contact, skipChallenge = false }) {
   this.log.debug({ userId, contact }, 'add contact key params');
 
   const { redis } = this;
@@ -53,9 +67,13 @@ async function add({ userId, contact, skipChallenge }) {
   try {
     const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
+    if (skipChallenge && this.config.contacts.onlyOneVerifiedEmail) {
+      await setAllEmailContactsOfUserAsUnVerified(redis, userId);
+    }
+
     const contactData = {
       ...contact,
-      verified: false,
+      verified: skipChallenge,
     };
 
     const pipe = redis.pipeline();
@@ -64,10 +82,6 @@ async function add({ userId, contact, skipChallenge }) {
 
     if (!contactsCount) {
       pipe.set(redisKey(userId, USERS_DEFAULT_CONTACT), contact.value);
-    }
-
-    if (skipChallenge) {
-      pipe.hset(key, 'verified', true);
     }
 
     await pipe.exec().then(handlePipeline);
@@ -118,23 +132,12 @@ async function challenge({ userId, contact, i18nLocale }) {
   };
 }
 
-async function setAllEmailContactsOfUserAsUnVerified(redis, userId) {
-  const key = redisKey(userId, USERS_CONTACTS);
-  const contacts = await redis.smembers(key);
-
-  if (contacts.length) {
-    const pipe = redis.pipeline();
-    contacts.forEach((kkey) => pipe.hset(kkey, 'verified', false));
-    await pipe.exec().then(handlePipeline);
-  }
-}
-
-async function verifyEmail(secret) {
+async function verifyEmail({ secret }) {
   const { redis, tokenManager } = this;
   const { metadata: { contact, userId } } = await tokenManager.verify(secret);
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
-  if (this.config.contacts.onlyOneEmail) {
+  if (this.config.contacts.onlyOneVerifiedEmail) {
     await setAllEmailContactsOfUserAsUnVerified(redis, userId);
   }
 

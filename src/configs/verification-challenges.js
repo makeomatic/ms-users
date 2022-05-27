@@ -74,5 +74,5 @@ exports.phone = {
  */
 exports.contacts = {
   max: 5,
-  onlyOneEmail: true,
+  onlyOneVerifiedEmail: true,
 };

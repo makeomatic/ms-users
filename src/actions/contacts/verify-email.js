@@ -12,10 +12,8 @@ const contacts = require('../../utils/contacts');
  *
  * @apiParam (Payload) {String} secret -
  */
-module.exports = async function verifyEmail({ secret }) {
-  const contact = await contacts.verifyEmail.call(this, {
-    token: secret,
-  });
+module.exports = async function verifyEmail({ params: { secret } }) {
+  const contact = await contacts.verifyEmail.call(this, { secret });
 
   return {
     data: {

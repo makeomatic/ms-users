@@ -9,6 +9,7 @@ const {
   USERS_CONTACTS,
 } = require('../../constants');
 const redisKey = require('../../utils/key');
+const handlePipeline = require('../../utils/pipeline-error');
 
 const stringifyObj = (obj) => {
   const newObj = Object.create(null);
@@ -20,32 +21,54 @@ const stringifyObj = (obj) => {
 };
 
 function copyUsernameToContact({
-  redis, log,
+  redis,
+  log,
 }) {
-  // used for renaming metadata keys
-  const pipeline = redis.pipeline();
+  return (new Promise((resolve, reject) => {
+    const stream = redis.sscanStream(USERS_INDEX, {
+      count: 1000,
+    });
+    let usersCount = 0;
 
-  return redis
-    .smembers(USERS_INDEX)
-    .tap(({ length }) => log.info('Users count:', length))
-    .map((userId) => Promise.join(userId, redis.hgetall(redisKey(userId, USERS_DATA))))
-    .each(([userId, { username, active }]) => {
-      log.info('Progress userId: ', userId, 'username: ', username);
-      if (/@/.test(username) && active) {
-        log.info('email: ', username);
-        const key = redisKey(userId, USERS_CONTACTS, username);
-        pipeline.hmset(key, stringifyObj({
-          value: username,
-          type: 'email',
-          verified: true,
-        }));
+    stream.on('data', async (usersIds) => {
+      stream.pause();
+
+      const pipeline = redis.pipeline();
+      for await (const userId of usersIds) {
+        usersCount += 1;
+        const { username, active } = await redis.hgetall(redisKey(userId, USERS_DATA));
+
+        log.info('Progress userId: ', userId, 'username: ', username);
+        if (/@/.test(username) && active) {
+          log.info('email: ', username);
+          const key = redisKey(userId, USERS_CONTACTS, username);
+          pipeline.hmset(key, stringifyObj({
+            value: username,
+            type: 'email',
+            verified: true,
+          }));
+        }
       }
-    })
-    .then(() => pipeline.exec());
+
+      pipeline.exec()
+        .then(handlePipeline)
+        .then(() => {
+          stream.resume();
+          return true;
+        })
+        .catch(reject);
+    });
+
+    stream.on('error', reject);
+    stream.on('end', () => {
+      log.info(`Process ${usersCount} users`);
+      resolve();
+    });
+  }));
 }
 
 module.exports = {
   script: copyUsernameToContact,
-  min: 1,
-  final: 4,
+  min: 8,
+  final: 9,
 };

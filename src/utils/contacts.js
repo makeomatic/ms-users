@@ -37,7 +37,7 @@ async function setVerifiedIfExist({ redis, userId, value }) {
   const key = redisKey(userId, USERS_CONTACTS, value);
   const exist = await redis.hexists(key, 'verified');
   if (exist) {
-    await redis.hset(key, 'verified', true);
+    await redis.hset(key, 'verified', 'true');
   }
 
   return key;
@@ -50,7 +50,7 @@ async function setAllEmailContactsOfUserAsUnVerified(redis, userId) {
     const pipe = redis.pipeline();
     contacts.forEach((value) => {
       if (/@/.test(value)) {
-        pipe.hset(redisKey(userId, USERS_CONTACTS, value), 'verified', false);
+        pipe.hset(redisKey(userId, USERS_CONTACTS, value), 'verified', 'false');
       }
     });
     await pipe.exec().then(handlePipeline);
@@ -136,14 +136,15 @@ async function verifyEmail({ secret }) {
   const { redis, tokenManager } = this;
   const { metadata: { contact, userId } } = await tokenManager.verify(secret);
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
+  const pipe = redis.pipeline();
 
   if (this.config.contacts.onlyOneVerifiedEmail) {
     await setAllEmailContactsOfUserAsUnVerified(redis, userId);
   }
 
-  await redis.hset(key, 'verified', true);
-
-  return redis.hgetall(key).then(parseObj);
+  pipe.hset(key, 'verified', 'true');
+  pipe.hgetall(key);
+  return pipe.exec().then(handlePipeline).then(([, verifiedContact]) => parseObj(verifiedContact));
 }
 
 async function verify({ userId, contact, token }) {
@@ -162,7 +163,7 @@ async function verify({ userId, contact, token }) {
   };
 
   await tokenManager.verify(args, { erase: false });
-  await redis.hset(key, 'verified', true);
+  await redis.hset(key, 'verified', 'true');
 
   return redis.hgetall(key).then(parseObj);
 }

@@ -33,7 +33,29 @@ async function checkLimit({ userId }) {
   return contactsLength;
 }
 
-async function add({ userId, contact }) {
+async function setVerifiedIfExist({ redis, userId, value }) {
+  const key = redisKey(userId, USERS_CONTACTS, value);
+  await redis.setVerifyContactIfExist(1, key, 'verified', 'true');
+
+  return key;
+}
+
+async function removeAllEmailContactsOfUser(redis, userId, exceptEmail) {
+  const key = redisKey(userId, USERS_CONTACTS);
+  const contacts = await redis.smembers(key);
+  if (contacts.length) {
+    const pipe = redis.pipeline();
+    contacts.forEach((value) => {
+      if (/@/.test(value) && value !== exceptEmail) {
+        pipe.del(redisKey(userId, USERS_CONTACTS, value));
+        pipe.srem(redisKey(userId, USERS_CONTACTS), value);
+      }
+    });
+    await pipe.exec().then(handlePipeline);
+  }
+}
+
+async function add({ userId, contact, skipChallenge = false }) {
   this.log.debug({ userId, contact }, 'add contact key params');
 
   const { redis } = this;
@@ -43,9 +65,13 @@ async function add({ userId, contact }) {
   try {
     const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
+    if (skipChallenge && this.config.contacts.onlyOneVerifiedEmail) {
+      await removeAllEmailContactsOfUser(redis, userId);
+    }
+
     const contactData = {
       ...contact,
-      verified: false,
+      verified: skipChallenge,
     };
 
     const pipe = redis.pipeline();
@@ -80,7 +106,7 @@ async function list({ userId }) {
   return [];
 }
 
-async function challenge({ userId, contact }) {
+async function challenge({ userId, contact, i18nLocale }) {
   const { redis } = this;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
@@ -92,15 +118,31 @@ async function challenge({ userId, contact }) {
     throttle,
     action: USERS_ACTION_VERIFY_CONTACT,
     id: contact.value,
+    metadata: { contact, userId },
     ...this.config.token[contactData.type],
   };
 
-  const { context } = await challengeAct.call(this, contactData.type, challengeOpts, contactData);
+  const { context } = await challengeAct.call(this, contactData.type, challengeOpts, { ...contactData, i18nLocale });
 
   return {
     ...contact,
     challenge_uid: context.token.uid,
   };
+}
+
+async function verifyEmail({ secret }) {
+  const { redis, tokenManager } = this;
+  const { metadata: { contact, userId } } = await tokenManager.verify(secret);
+  const key = redisKey(userId, USERS_CONTACTS, contact.value);
+  const pipe = redis.pipeline();
+
+  if (this.config.contacts.onlyOneVerifiedEmail) {
+    await removeAllEmailContactsOfUser(redis, userId, contact.value);
+  }
+
+  pipe.hset(key, 'verified', 'true');
+  pipe.hgetall(key);
+  return pipe.exec().then(handlePipeline).then(([, verifiedContact]) => parseObj(verifiedContact));
 }
 
 async function verify({ userId, contact, token }) {
@@ -119,7 +161,7 @@ async function verify({ userId, contact, token }) {
   };
 
   await tokenManager.verify(args, { erase: false });
-  await redis.hset(key, 'verified', true);
+  await redis.hset(key, 'verified', 'true');
 
   return redis.hgetall(key).then(parseObj);
 }
@@ -160,4 +202,6 @@ module.exports = {
   remove,
   list,
   checkLimit,
+  verifyEmail,
+  setVerifiedIfExist,
 };

@@ -29,6 +29,10 @@
         "audience": {
             "type": "string",
             "minLength": 1
+        },
+        "shouldVerifyContact": {
+          "type": "boolean",
+          "default": false
         }
     }
 }

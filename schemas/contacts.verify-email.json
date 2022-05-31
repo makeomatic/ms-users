@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "required": [
+    "secret"
+  ],
+  "properties": {
+    "secret": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 1000
+    }
+  }
+}

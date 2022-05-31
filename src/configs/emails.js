@@ -7,6 +7,7 @@ exports.validation = {
     activate: '/activate',
     reset: '/reset',
     invite: '/register',
+    'verify-contact': '/verify-contact',
   },
   subjects: {
     activate: 'Activate your account',
@@ -14,6 +15,7 @@ exports.validation = {
     password: 'Account Recovery',
     register: 'Account Registration',
     invite: 'Invitation to Register',
+    'verify-contact': 'Verify your contact',
   },
   senders: {
     activate: 'noreply <support@example.com>',
@@ -21,6 +23,7 @@ exports.validation = {
     password: 'noreply <support@example.com>',
     register: 'noreply <support@example.com>',
     invite: 'noreply <support@example.com>',
+    'verify-contact': 'noreply <support@example.com>',
   },
   templates: {
     // specify template names here

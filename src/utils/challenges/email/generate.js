@@ -16,6 +16,7 @@ const {
   USERS_ACTION_ORGANIZATION_INVITE,
   USERS_ACTION_ORGANIZATION_REGISTER,
   USERS_ACTION_ORGANIZATION_ADD,
+  USERS_ACTION_VERIFY_CONTACT,
 } = require('../../../constants');
 
 // will be replaced later
@@ -38,6 +39,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
     case USERS_ACTION_ACTIVATE:
     case USERS_ACTION_RESET:
     case USERS_ACTION_INVITE:
+    case USERS_ACTION_VERIFY_CONTACT:
       // generate secret
       context.qs = `?${stringify({
         q: context.token.secret,

@@ -35,22 +35,20 @@ async function checkLimit({ userId }) {
 
 async function setVerifiedIfExist({ redis, userId, value }) {
   const key = redisKey(userId, USERS_CONTACTS, value);
-  const exist = await redis.hexists(key, 'verified');
-  if (exist) {
-    await redis.hset(key, 'verified', 'true');
-  }
+  await redis.setVerifyContactIfExist(1, key, 'verified', 'true');
 
   return key;
 }
 
-async function setAllEmailContactsOfUserAsUnVerified(redis, userId) {
+async function removeAllEmailContactsOfUser(redis, userId, exceptEmail) {
   const key = redisKey(userId, USERS_CONTACTS);
   const contacts = await redis.smembers(key);
   if (contacts.length) {
     const pipe = redis.pipeline();
     contacts.forEach((value) => {
-      if (/@/.test(value)) {
-        pipe.hset(redisKey(userId, USERS_CONTACTS, value), 'verified', 'false');
+      if (/@/.test(value) && value !== exceptEmail) {
+        pipe.del(redisKey(userId, USERS_CONTACTS, value));
+        pipe.srem(redisKey(userId, USERS_CONTACTS), value);
       }
     });
     await pipe.exec().then(handlePipeline);
@@ -68,7 +66,7 @@ async function add({ userId, contact, skipChallenge = false }) {
     const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
     if (skipChallenge && this.config.contacts.onlyOneVerifiedEmail) {
-      await setAllEmailContactsOfUserAsUnVerified(redis, userId);
+      await removeAllEmailContactsOfUser(redis, userId);
     }
 
     const contactData = {
@@ -139,7 +137,7 @@ async function verifyEmail({ secret }) {
   const pipe = redis.pipeline();
 
   if (this.config.contacts.onlyOneVerifiedEmail) {
-    await setAllEmailContactsOfUserAsUnVerified(redis, userId);
+    await removeAllEmailContactsOfUser(redis, userId, contact.value);
   }
 
   pipe.hset(key, 'verified', 'true');

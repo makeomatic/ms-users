@@ -207,8 +207,9 @@ describe('#user contacts', function registerSuite() {
     assert.strictEqual(attributes.verified, true);
 
     const { data } = await this.users.dispatch('contacts.list', { params: { username: this.testUser.username } });
-    const firstContact = data.find((contact) => contact.value === params.contact.value);
-    assert.strictEqual(firstContact.verified, false);
+    assert.equal(data.length, 1);
+    assert.strictEqual(data[0].verified, true);
+    assert.equal(data[0].value, params2.contact.value);
   });
 
   it('should validate email', async function test() {

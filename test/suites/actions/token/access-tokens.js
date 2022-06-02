@@ -45,34 +45,19 @@ describe('#token.*', function activateSuite() {
         });
     });
 
-    it('registers token with prefix', async function test() {
-      const token = await this.users.dispatch(createRoute, {
-        params: {
-          username,
-          prefix: 'xtkn',
-          name: 'token with prefix',
-        },
-      });
-
-      assert.equal(token.split('.').length, 4, 'invalid token format');
-      assert.equal(token.split('.')[0], 'xtkn', 'invalid token prefix');
-      assert.equal(token.split('.')[1], this.userId, 'invalid input hash');
-
-      tokenHolder.push(token);
-    });
-
     it('registers token with scope', async function test() {
       const token = await this.users.dispatch(createRoute, {
         params: {
           username,
           name: 'token with scope',
+          type: 'sign',
           scopes: [{
             action: 'some',
             subject: 'read',
           }],
         },
       });
-
+      tokenHolder.push(token);
       assert.equal(token.split('.').length, 3, 'invalid token format');
       assert.equal(token.split('.')[0], this.userId, 'invalid input hash');
     });
@@ -111,13 +96,24 @@ describe('#token.*', function activateSuite() {
 
     it('retrieves token data', async function test() {
       const tokenData = await this.users.dispatch(getRoute, {
-        params: { username, token: tokenHolder[1].split('.')[2] },
+        params: { username, token: tokenHolder[1].split('.')[1] },
       });
 
-      console.debug('=== retrieved token', tokenData);
+      assert.deepStrictEqual(tokenData.name, 'token with scope');
+      assert.deepStrictEqual(tokenData.type, 'sign');
+    });
 
-      assert.deepStrictEqual(tokenData.prefix, 'xtkn');
-      assert.deepStrictEqual(tokenData.name, 'token with prefix');
+    it('retrieves sensitive token data', async function test() {
+      const tokenData = await this.users.dispatch(getRoute, {
+        params: {
+          username,
+          token: tokenHolder[1].split('.')[1],
+          sensitive: true,
+        },
+      });
+
+      assert.deepStrictEqual(tokenData.name, 'token with scope');
+      assert.deepStrictEqual(tokenData.raw, tokenHolder[1]);
     });
   });
 
@@ -136,7 +132,7 @@ describe('#token.*', function activateSuite() {
 
     it('updates token scopes', async function test() {
       const token = tokenHolder[1];
-      const tokenId = token.split('.')[2];
+      const tokenId = token.split('.')[1];
 
       const updateResult = await this.users.dispatch(updateRoute, {
         params: {
@@ -187,8 +183,8 @@ describe('#token.*', function activateSuite() {
       return this.users.dispatch(listRoute, { params: { username, page: 2 } })
         .then((tokens) => {
           // default page size
-          assert.equal(tokens.length, 3);
-          const [,, token] = tokens;
+          assert.equal(tokens.length, 2);
+          const [, token] = tokens;
 
           // check it's first token
           assert.equal(token.name, 'initial token');
@@ -212,8 +208,8 @@ describe('#token.*', function activateSuite() {
       return this.users.dispatch(listRoute, { params: { username } })
         .then((tokens) => {
           // default page size
-          assert.equal(tokens.length, 3);
-          const [,, token] = tokens;
+          assert.equal(tokens.length, 2);
+          const [, token] = tokens;
 
           // check it's first token
           assert.equal(token.name, 'initial token');

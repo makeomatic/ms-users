@@ -11,6 +11,9 @@
     },
     "token": {
       "$ref": "common.json#/definitions/uuid-v4"
+    },
+    "sensitive": {
+      "type": "boolean"
     }
   }
 }

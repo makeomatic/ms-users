@@ -12,10 +12,10 @@
     "name": {
       "type": "string"
     },
-    "prefix": {
+    "type": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 10
+      "const": "sign"
     },
     "scopes": {
       "$ref": "#/definitions/scopes"

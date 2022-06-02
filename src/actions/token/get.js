@@ -1,10 +1,7 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 
-const redisKey = require('../../utils/key');
-
 const { getUserId } = require('../../utils/userData');
-const { USERS_API_TOKENS } = require('../../constants');
-const { checkTokenData, deserializeTokenData } = require('../../utils/api-token');
+const { getToken: getApiToken } = require('../../utils/api-token');
 
 /**
  * @api {amqp} <prefix>.token.get Get Token information
@@ -16,21 +13,15 @@ const { checkTokenData, deserializeTokenData } = require('../../utils/api-token'
  *
  * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {String} token - used to identify token
+ * @apiParam (Payload) {boolean} [sensitive] - true, to show sensitive information
  */
 async function getToken({ params }) {
-  const { username, token } = params;
-  const { redis } = this;
+  const { username, token, sensitive } = params;
 
   const userId = await getUserId.call(this, username);
+  const tokenBody = `${userId}.${token}`;
 
-  // transform input
-  const payload = `${userId}.${token}`;
-  const key = redisKey(USERS_API_TOKENS, payload);
-
-  const tokenData = await redis.hgetall(key);
-  checkTokenData(tokenData);
-
-  return deserializeTokenData(tokenData);
+  return getApiToken(this, tokenBody, sensitive);
 }
 
 getToken.transports = [ActionTransport.amqp, ActionTransport.internal];

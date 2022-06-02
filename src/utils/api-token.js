@@ -1,22 +1,28 @@
 const { NotFoundError } = require('common-errors');
 
-function deserializeTokenData(raw) {
-  const { scopes } = raw;
+const { USERS_API_TOKENS } = require('../constants');
+const redisKey = require('./key');
+
+// display raw token data only when requested
+function deserializeTokenData(raw, showSensitive = false) {
+  const { scopes, raw: rawToken, ...restData } = raw;
   if (scopes) {
-    raw.scopes = JSON.parse(raw.scopes);
+    restData.scopes = JSON.parse(raw.scopes);
   }
 
-  return raw;
+  if (restData.type === 'sign' && showSensitive) {
+    restData.raw = rawToken;
+  }
+
+  return restData;
 }
 
 function serializeTokenData(raw) {
-  const { scopes, prefix, ...restData } = raw;
+  const { scopes, ...restData } = raw;
 
   if (Array.isArray(scopes)) {
     restData.scopes = JSON.stringify(raw.scopes);
   }
-
-  if (prefix) restData.prefix = prefix;
 
   return restData;
 }
@@ -29,8 +35,17 @@ function checkTokenData(raw) {
   return raw;
 }
 
+async function getToken(service, tokenBody, sensitive = false) {
+  const key = redisKey(USERS_API_TOKENS, tokenBody);
+  const tokenData = await service.redis.hgetall(key);
+  checkTokenData(tokenData);
+
+  return deserializeTokenData(tokenData, sensitive);
+}
+
 module.exports = {
   deserializeTokenData,
   serializeTokenData,
   checkTokenData,
+  getToken,
 };

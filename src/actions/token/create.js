@@ -10,32 +10,36 @@ const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, BEARER_USERNAME_FIELD } = requi
 const { serializeTokenData } = require('../../utils/api-token');
 
 function storeData(userId) {
-  const { redis, name, scopes, prefix } = this;
+  const { redis, name, scopes, type } = this;
   const tokenPart = uuidv4();
 
-  // transform input
-  const dbPayload = `${userId}.${tokenPart}`;
-  const payload = prefix ? `${prefix}.${dbPayload}` : dbPayload;
+  const payload = `${userId}.${tokenPart}`;
   const signature = sign.call(this, payload);
   const token = `${payload}.${signature}`;
 
   // stores all issued keys and it's date
-  const key = redisKey(USERS_API_TOKENS, dbPayload);
+  const key = redisKey(USERS_API_TOKENS, payload);
   const zset = redisKey(USERS_API_TOKENS_ZSET, userId);
 
-  const redisData = serializeTokenData({
+  const tokenData = {
     name,
     scopes,
     uuid: tokenPart,
-    prefix,
+    type: type || undefined,
     [BEARER_USERNAME_FIELD]: userId,
-  });
+  };
+
+  if (type === 'sign') {
+    tokenData.raw = token;
+  }
+
+  const redisData = serializeTokenData(tokenData);
 
   // prepare to store
   return redis
     .pipeline()
     .hmset(key, redisData)
-    .zadd(zset, Date.now(), dbPayload)
+    .zadd(zset, Date.now(), payload)
     .exec()
     .then(handlePipelineError)
     .return(token);
@@ -55,11 +59,13 @@ function storeData(userId) {
  * @apiParam (Payload) {String} name - used to identify token
  * @apiParam (Payload) {String} [prefix] - generated token prefix
  * @apiParam (Payload) {String} [scopes] - access scopes of the token
+ * @apiParam (Payload) {String} [type] - access token type
+ * @apiParam (Payload) {boolean} [displayable] - set to true, if token could be shown again after creation
  */
 function createToken({ params }) {
-  const { username, name, scopes, prefix } = params;
+  const { username, name, scopes, prefix, type, displayable } = params;
   const { redis, config } = this;
-  const context = { name, redis, config, scopes, prefix };
+  const context = { name, redis, config, scopes, prefix, type, displayable };
 
   return Promise
     .bind(context, username)

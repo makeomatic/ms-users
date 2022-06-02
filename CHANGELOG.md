@@ -1,3 +1,10 @@
+# [15.5.0](https://github.com/makeomatic/ms-users/compare/v15.4.1...v15.5.0) (2022-06-02)
+
+
+### Features
+
+* verifiable contact email ([#562](https://github.com/makeomatic/ms-users/issues/562)) ([158e875](https://github.com/makeomatic/ms-users/commit/158e8757b04a5abbd0e62fc2dbdc7e3ce93a01f6))
+
 ## [15.4.1](https://github.com/makeomatic/ms-users/compare/v15.4.0...v15.4.1) (2022-05-16)
 
 

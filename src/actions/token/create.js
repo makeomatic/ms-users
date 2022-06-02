@@ -60,12 +60,11 @@ function storeData(userId) {
  * @apiParam (Payload) {String} [prefix] - generated token prefix
  * @apiParam (Payload) {String} [scopes] - access scopes of the token
  * @apiParam (Payload) {String} [type] - access token type
- * @apiParam (Payload) {boolean} [displayable] - set to true, if token could be shown again after creation
  */
 function createToken({ params }) {
-  const { username, name, scopes, prefix, type, displayable } = params;
+  const { username, name, scopes, prefix, type } = params;
   const { redis, config } = this;
-  const context = { name, redis, config, scopes, prefix, type, displayable };
+  const context = { name, redis, config, scopes, prefix, type };
 
   return Promise
     .bind(context, username)

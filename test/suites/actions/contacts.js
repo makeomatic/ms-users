@@ -179,6 +179,26 @@ describe('#user contacts', function registerSuite() {
     assert.equal(list.data.length, 0);
   });
 
+  it('must be able to remove unchallenged contact', async function test() {
+    const params = {
+      username: this.testUser.username,
+      contact: {
+        value: 'unchallenged@example.com',
+        type: 'email',
+      },
+    };
+
+    const { data: { attributes: { value, verified } } } = await this.users.dispatch('contacts.add', { params: { ...params, skipChallenge: true } });
+    assert.equal(value, params.contact.value);
+    assert.strictEqual(verified, true);
+
+    const response = await this.users.dispatch('contacts.remove', { params });
+
+    assert(response);
+    const list = await this.users.dispatch('contacts.list', { params: { username: this.testUser.username } });
+    assert.equal(list.data.length, 0);
+  });
+
   it('must be able to add user contact with skipChallenge, onlyOneVerifiedEmail', async function test() {
     const params = {
       username: this.testUser.username,

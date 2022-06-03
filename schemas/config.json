@@ -599,6 +599,12 @@
     },
     "cfAccessList": {
       "$ref": "#/definitions/cfAccessList"
+    },
+    "auth": {
+      "required":["signedRequest"],
+      "properties": {
+        "signedRequest": { "$ref": "#/definitions/authSignedRequestConfig"}
+      }
     }
   },
   "definitions": {
@@ -884,6 +890,30 @@
               "description": "See https://github.com/silas/node-consul#consulwatchoptions"
             }
           }
+        }
+      }
+    },
+    "authSignedRequestConfig": {
+      "type" :"object",
+      "required": ["headers", "payloadDigest", "clockSkew"],
+      "properties": {
+        "headers": {
+          "description": "Headers to include in signature",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "payloadDigest": {
+          "description": "Payload signature digest algorithm",
+          "type": "string",
+          "enum": ["base64", "hex"]
+        },
+        "clockSkew": {
+          "description": "Secods after request is considered as invalid",
+          "type": "number",
+          "minimum": 1
         }
       }
     }

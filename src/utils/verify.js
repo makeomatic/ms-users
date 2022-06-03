@@ -12,7 +12,7 @@ const { USERS_MFA_FLAG } = require('../constants');
  *  mfa: boolean,
  * }>}
  */
-async function fromTokenData(service, { username, userId, scopes }, params) {
+async function fromTokenData(service, { username, userId, scopes, signKey }, params) {
   if (!userId && !username) {
     throw new HttpStatusError(403, 'forged or expired token');
   }
@@ -37,6 +37,7 @@ async function fromTokenData(service, { username, userId, scopes }, params) {
     id: resolveduserId,
     metadata,
     scopes,
+    signKey,
   };
 
   if (hasMFA !== undefined) {

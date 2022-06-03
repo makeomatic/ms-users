@@ -23,7 +23,9 @@ async function Verify({ params }) {
   const { keyId } = params;
   const audience = toArray(params.audience);
   const [userId] = keyId.split('.');
-  const { raw: signKey, type } = await getToken(this, keyId, true);
+  const tokenData = await getToken(this, keyId, true);
+
+  const { raw: signKey, type } = tokenData;
 
   if (type !== 'sign') {
     throw USERS_INVALID_TOKEN;
@@ -33,11 +35,11 @@ async function Verify({ params }) {
     this,
     {
       [USERS_USERNAME_FIELD]: userId,
+      signKey,
     },
     {
       defaultAudience: this.config.jwt.defaultAudience,
       audience,
-      signKey,
     }
   );
 }

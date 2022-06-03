@@ -33,27 +33,37 @@ function getAuthToken(authHeader) {
   }
 }
 
-// @TODO validation header configuration + etc
-async function validateSignature(service, headers, params) {
+async function validateSignature(service, reqInfo) {
+  const { headers, params, requestParams } = reqInfo;
   const { amqp, config } = service;
-  const { users: { verifyKey, timeouts } } = config;
+  const { users: { audience: defaultAudience, verifyKey, timeouts }, auth: { signedRequest } } = config;
+  const audience = (is.object(params) && params.audience) || defaultAudience;
 
-  const signature = parseRequest({ headers });
-  const { signKey: key, ...validateResult } = await amqp.publishAndWait(
+  const signature = parseRequest(reqInfo, {
+    strict: true,
+    headers: signedRequest.headers,
+    clockSkew: signedRequest.clockSkew,
+  });
+
+  const tokenInfo = await amqp.publishAndWait(
     verifyKey,
-    { keyId: signature.keyId },
+    { keyId: signature.keyId, audience },
     { timeout: timeouts.verifyKey }
   );
 
-  if (!verifyHMAC(signature, key)) {
+  const { signKey, ...validateResult } = tokenInfo;
+
+  if (!verifyHMAC(signature, signKey)) {
     throw USERS_INVALID_TOKEN;
   }
 
-  if (params) {
-    const hmac = createHmac(signature.algorithm, key);
-    hmac.update(JSON.stringify(params));
+  if (requestParams) {
+    const algo = signature.algorithm.split('-')[1];
+    const hmac = createHmac(algo, signKey);
+    hmac.update(JSON.stringify(requestParams));
+    const digest = hmac.digest(signedRequest.digest);
 
-    if (headers.digest !== hmac.digest('hex')) {
+    if (headers.digest !== digest) {
       throw USERS_INVALID_TOKEN;
     }
   }
@@ -70,13 +80,14 @@ function validateToken(service, params, token, accessToken) {
   return amqp.publishAndWait(verify, { token, audience, accessToken }, { timeout });
 }
 
-function checkTokenHeader(service, strategy, params, headers) {
+function checkTokenHeader(service, strategy, reqInfo) {
+  const { headers, params } = reqInfo;
   const authHeader = headers ? headers.authorization : null;
 
   if (authHeader) {
     const { accessToken, token, requestSignature } = getAuthToken(authHeader);
     if (requestSignature) {
-      return validateSignature(service, headers, params).catch((error) => {
+      return validateSignature(service, reqInfo).catch((error) => {
         service.log.error({ error }, 'signature validation error');
         throw USERS_INVALID_TOKEN;
       });
@@ -93,14 +104,20 @@ function checkTokenHeader(service, strategy, params, headers) {
 }
 
 function tokenAuth(request) {
-  const { method, action } = request;
+  const { method, action, transport } = request;
   const { auth } = action;
   const { strategy = 'required' } = auth;
 
   // NOTE: should normalize on the ~transport level
   // select actual headers location based on the transport
   const headers = method === 'amqp' ? request.headers.headers : request.headers;
+  // extract url + search params for signinature check
+  const url = transport === 'http'
+    ? `${request.transportRequest.url.pathname}${request.transportRequest.url.search}`
+    : action.actionName;
   const params = method === 'get' ? request.query : request.params;
+  // extract post params that not a part of query string
+  const requestParams = request.params;
 
   if (hasTrustedHeader(headers) && hasStatelessToken(headers)) {
     // fallback fn is required to handle the case of the offline ingress token backend
@@ -108,11 +125,13 @@ function tokenAuth(request) {
       this,
       headers,
       params,
-      () => checkTokenHeader(this, strategy, params, headers)
+      () => checkTokenHeader(this, strategy, { headers, params, requestParams, method, url })
     );
   }
 
-  return checkTokenHeader(this, strategy, params, headers);
+  return checkTokenHeader(this, strategy, { headers, params, requestParams, method, url });
 }
+
+tokenAuth.validateSignature = validateSignature;
 
 module.exports = tokenAuth;

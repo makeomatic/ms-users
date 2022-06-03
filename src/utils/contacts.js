@@ -167,7 +167,7 @@ async function verify({ userId, contact, token }) {
 }
 
 async function remove({ userId, contact }) {
-  const { redis, tokenManager } = this;
+  const { redis, tokenManager, log } = this;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
   const contactData = await redis.hgetall(key).then(parseObj);
@@ -183,10 +183,14 @@ async function remove({ userId, contact }) {
     throw new HttpStatusError(400, 'cannot remove default contact');
   }
 
-  await tokenManager.remove({
-    id: contact.value,
-    action: USERS_ACTION_VERIFY_CONTACT,
-  });
+  try {
+    await tokenManager.remove({
+      id: contact.value,
+      action: USERS_ACTION_VERIFY_CONTACT,
+    });
+  } catch (e) {
+    log.debug(e, 'Challenge havent been invoked on this removing contact');
+  }
 
   const pipe = redis.pipeline();
   pipe.del(key);

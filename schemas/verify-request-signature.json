@@ -1,14 +1,25 @@
 {
-  "$id": "verify-key-id",
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "verify-request-signature",
   "type": "object",
   "required": [
-      "keyId",
+      "request",
       "audience"
   ],
   "properties": {
-      "keyId": {
-          "type": "string",
-          "minLength": 1
+      "request": {
+          "type": "object",
+          "required": [ "url", "method", "headers" ],
+          "properties": {
+            "url": { "type": "string" },
+            "method": { "type": "string" },
+            "headers": {
+              "type": "object"
+            },
+            "params": {
+              "type": "object"
+            }
+          }
       },
       "audience": {
           "oneOf": [

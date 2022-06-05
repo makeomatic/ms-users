@@ -50,11 +50,11 @@ class Users extends Microfleet {
       audience: config.jwt.defaultAudience,
       verify: `${prefix}.verify`,
       trustedVerify: `${prefix}.verify-trusted`,
-      verifyKey: `${prefix}.verify-key-id`,
+      verifyRequestSignature: `${prefix}.verify-request-signature`,
       timeouts: {
         verify: 5000,
         trustedVerify: 5000,
-        verifyKey: 5000,
+        verifyRequestSignature: 5000,
       },
     };
 

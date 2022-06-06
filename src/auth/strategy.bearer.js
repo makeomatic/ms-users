@@ -51,7 +51,7 @@ function validateToken(service, token, accessToken, audience) {
 }
 
 function checkTokenHeader(service, strategy, reqInfo, audience) {
-  const { headers, params } = reqInfo;
+  const { headers } = reqInfo;
   const authHeader = headers ? headers.authorization : null;
 
   if (authHeader) {
@@ -63,7 +63,7 @@ function checkTokenHeader(service, strategy, reqInfo, audience) {
       });
     }
 
-    return validateToken(service, params, token, accessToken, audience);
+    return validateToken(service, token, accessToken, audience);
   }
 
   if (strategy === 'required') {

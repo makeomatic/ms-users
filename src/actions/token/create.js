@@ -23,8 +23,8 @@ function storeData(userId) {
 
   const tokenData = {
     name,
-    scopes,
     uuid: tokenPart,
+    scopes: scopes || undefined,
     type: type || undefined,
     [BEARER_USERNAME_FIELD]: userId,
   };
@@ -57,14 +57,13 @@ function storeData(userId) {
  *
  * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {String} name - used to identify token
- * @apiParam (Payload) {String} [prefix] - generated token prefix
  * @apiParam (Payload) {String} [scopes] - access scopes of the token
  * @apiParam (Payload) {String} [type] - access token type
  */
 function createToken({ params }) {
-  const { username, name, scopes, prefix, type } = params;
+  const { username, name, scopes, type } = params;
   const { redis, config } = this;
-  const context = { name, redis, config, scopes, prefix, type };
+  const context = { name, redis, config, scopes, type };
 
   return Promise
     .bind(context, username)

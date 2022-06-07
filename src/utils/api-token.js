@@ -1,4 +1,4 @@
-const { NotFoundError } = require('common-errors');
+const { HttpStatusError } = require('common-errors');
 
 const { USERS_API_TOKENS } = require('../constants');
 const redisKey = require('./key');
@@ -33,7 +33,7 @@ function serializeTokenData(raw) {
 
 function checkTokenData(raw) {
   if (Object.keys(raw).length < 1) {
-    throw new NotFoundError('token not found');
+    throw new HttpStatusError(404, 'token not found');
   }
 
   return raw;

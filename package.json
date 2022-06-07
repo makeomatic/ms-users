@@ -32,7 +32,6 @@
     "consul": "^0.40.0"
   },
   "dependencies": {
-    "@casl/ability": "^5.4.3",
     "@faker-js/faker": "^6.1.2",
     "@hapi/bell": "^12.3.0",
     "@hapi/boom": "^9.1.4",

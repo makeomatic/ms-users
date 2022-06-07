@@ -18,7 +18,11 @@ function deserializeTokenData(raw, showSensitive = false) {
 }
 
 function serializeTokenData(raw) {
-  const { scopes, ...restData } = raw;
+  const { scopes, type, ...restData } = raw;
+
+  if (type) {
+    restData.type = type;
+  }
 
   if (Array.isArray(scopes)) {
     restData.scopes = JSON.stringify(raw.scopes);

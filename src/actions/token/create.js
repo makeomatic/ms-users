@@ -24,8 +24,8 @@ function storeData(userId) {
   const tokenData = {
     name,
     uuid: tokenPart,
-    scopes: scopes || undefined,
-    type: type || undefined,
+    scopes,
+    type,
     [BEARER_USERNAME_FIELD]: userId,
   };
 

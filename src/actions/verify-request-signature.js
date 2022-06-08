@@ -20,7 +20,7 @@ const toArray = (maybeArray) => (isArray(maybeArray) ? maybeArray : [maybeArray]
  * @apiParam (Payload) {string} request.url - requested url
  * @apiParam (Payload) {string} request.params - request params
  */
-async function Verify({ params }) {
+async function verify({ params }) {
   const { request } = params;
   const audience = toArray(params.audience);
 
@@ -41,6 +41,6 @@ async function Verify({ params }) {
   return keyAndUserData;
 }
 
-Verify.transports = [ActionTransport.amqp, ActionTransport.internal];
+verify.transports = [ActionTransport.amqp, ActionTransport.internal];
 
-module.exports = Verify;
+module.exports = verify;

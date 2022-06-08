@@ -84,7 +84,7 @@ function tokenAuth(request) {
   // select actual headers location based on the transport
   const headers = method === 'amqp' ? request.headers.headers : request.headers;
 
-  // extract url + search params for signinature check
+  // extract url + search params for signature check
   const url = transport === 'http'
     ? `${request.transportRequest.url.pathname}${request.transportRequest.url.search}`
     : action.actionName;

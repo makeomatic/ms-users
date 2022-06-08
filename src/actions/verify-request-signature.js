@@ -13,7 +13,7 @@ const toArray = (maybeArray) => (isArray(maybeArray) ? maybeArray : [maybeArray]
  * @apiName verifyRequestSignature
  * @apiGroup Users
  *
- * @apiParam (Payload) {String[]} audience - which namespaces of metadata to return
+ * @apiParam (Payload) {String[]|String} audience - which namespaces of metadata to return
  * @apiParam (Payload) {Object} request - request like object
  * @apiParam (Payload) {Object} request.headers - headers passed in request
  * @apiParam (Payload) {Object} request.method - request method

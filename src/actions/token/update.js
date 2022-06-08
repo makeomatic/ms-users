@@ -16,7 +16,7 @@ const { checkTokenData } = require('../../utils/api-token');
  *
  * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {String} token - used to identify token
- * @apiParam (Payload) {String} [scopes] - access scopes of the token
+ * @apiParam (Payload) {String} scopes - access scopes of the token
  */
 async function updateToken({ params }) {
   const { username, token, scopes } = params;

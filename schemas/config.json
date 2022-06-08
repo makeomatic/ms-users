@@ -911,7 +911,7 @@
           "enum": ["base64", "hex"]
         },
         "clockSkew": {
-          "description": "Secods after request is considered as invalid",
+          "description": "Seconds after request is considered as invalid",
           "type": "number",
           "minimum": 1
         }

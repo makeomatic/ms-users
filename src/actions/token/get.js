@@ -13,7 +13,7 @@ const { getToken: getApiToken } = require('../../utils/api-token');
  *
  * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {String} token - used to identify token
- * @apiParam (Payload) {boolean} [sensitive] - true, to show sensitive information
+ * @apiParam (Payload) {boolean} [sensitive=false] - true, to show sensitive information
  */
 async function getToken({ params }) {
   const { username, token, sensitive } = params;

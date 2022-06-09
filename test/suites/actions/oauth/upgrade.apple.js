@@ -22,5 +22,6 @@ describe('oauth.upgrade action', function suite() {
     });
 
     // @TODO assert
+    console.log(response);
   });
 });

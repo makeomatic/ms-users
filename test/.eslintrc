@@ -1,7 +1,7 @@
 {
   "rules": {
     "promise/always-return": 0,
-    "no-console": 0
+    "no-console": 1
   },
   "env": {
     "mocha": true

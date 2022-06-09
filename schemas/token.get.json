@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "token",
+    "username"
+  ],
+  "properties": {
+    "username": {
+      "$ref": "common.json#/definitions/userId"
+    },
+    "token": {
+      "$ref": "common.json#/definitions/uuid-v4"
+    },
+    "sensitive": {
+      "type": "boolean"
+    }
+  }
+}

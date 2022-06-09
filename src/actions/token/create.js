@@ -7,12 +7,12 @@ const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');
 const { getUserId } = require('../../utils/userData');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, BEARER_USERNAME_FIELD } = require('../../constants');
+const { serializeTokenData } = require('../../utils/api-token');
 
 function storeData(userId) {
-  const { redis, name } = this;
+  const { redis, name, scopes, type } = this;
   const tokenPart = uuidv4();
 
-  // transform input
   const payload = `${userId}.${tokenPart}`;
   const signature = sign.call(this, payload);
   const token = `${payload}.${signature}`;
@@ -21,14 +21,24 @@ function storeData(userId) {
   const key = redisKey(USERS_API_TOKENS, payload);
   const zset = redisKey(USERS_API_TOKENS_ZSET, userId);
 
+  const tokenData = {
+    name,
+    uuid: tokenPart,
+    scopes,
+    type,
+    [BEARER_USERNAME_FIELD]: userId,
+  };
+
+  if (type === 'sign') {
+    tokenData.raw = token;
+  }
+
+  const redisData = serializeTokenData(tokenData);
+
   // prepare to store
   return redis
     .pipeline()
-    .hmset(key, {
-      [BEARER_USERNAME_FIELD]: userId,
-      name,
-      uuid: tokenPart,
-    })
+    .hmset(key, redisData)
     .zadd(zset, Date.now(), payload)
     .exec()
     .then(handlePipelineError)
@@ -47,11 +57,13 @@ function storeData(userId) {
  *
  * @apiParam (Payload) {String} username - id of the user
  * @apiParam (Payload) {String} name - used to identify token
+ * @apiParam (Payload) {String} [scopes] - access scopes of the token
+ * @apiParam (Payload) {String} [type] - access token type
  */
 function createToken({ params }) {
-  const { username, name } = params;
+  const { username, name, scopes, type } = params;
   const { redis, config } = this;
-  const context = { name, redis, config };
+  const context = { name, redis, config, scopes, type };
 
   return Promise
     .bind(context, username)

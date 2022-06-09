@@ -39,6 +39,8 @@ describe('#verify', function verifySuite() {
   describe('valid-signature', function validSuite() {
     let token;
     let keyId;
+    let nonSignToken;
+    let nonSignKeyId;
 
     before(async function createToken() {
       await this.users.dispatch('register', {
@@ -64,7 +66,42 @@ describe('#verify', function verifySuite() {
         },
       });
 
+      nonSignToken = await this.users.dispatch('token.create', {
+        params: {
+          username: 'v777@makeomatic.ru',
+          name: 'sample-legacy',
+        },
+      });
+
       keyId = token.split('.').slice(0, 2).join('.');
+      nonSignKeyId = token.split('.').slice(0, 2).join('.');
+    });
+
+    it('should not accept non sign token', async function test() {
+      const req = new RequestLike({
+        url: 'http://localhost:3000/foo/bar',
+        method: 'get',
+      });
+
+      signRequest(req, {
+        keyId: nonSignKeyId,
+        key: nonSignToken,
+        algorithm: 'hmac-sha512',
+        ...this.users.config.auth.signedRequest,
+      });
+
+      const promise = this.users.dispatch('verify-request-signature', {
+        params: {
+          audience: this.users.config.jwt.defaultAudience,
+          request: {
+            headers: req.headers,
+            url: req.path,
+            method: 'get',
+          },
+        },
+      });
+
+      await assert.rejects(promise, /invalid token/);
     });
 
     it('should accept valid signature and return user information + scopes', async function test() {
@@ -87,6 +124,40 @@ describe('#verify', function verifySuite() {
             headers: req.headers,
             url: req.path,
             method: 'get',
+          },
+        },
+      });
+
+      assert.deepStrictEqual(res.scopes, [{ action: 'manage', subject: 'all' }]);
+      assert.deepStrictEqual(res.metadata['*.localhost'].username, 'v777@makeomatic.ru');
+      assert.ok(res.id);
+      assert.deepStrictEqual(res.mfa, false);
+    });
+
+    it('should accept valid signature and return user information + scopes + post method', async function test() {
+      const json = { param: 'foo' };
+
+      const req = new RequestLike({
+        url: 'http://localhost:3000/foo/bar',
+        method: 'post',
+        json,
+      });
+
+      signRequest(req, {
+        keyId,
+        key: token,
+        algorithm: 'hmac-sha512',
+        ...this.users.config.auth.signedRequest,
+      });
+
+      const res = await this.users.dispatch('verify-request-signature', {
+        params: {
+          audience: this.users.config.jwt.defaultAudience,
+          request: {
+            headers: req.headers,
+            url: req.path,
+            method: 'post',
+            params: json,
           },
         },
       });

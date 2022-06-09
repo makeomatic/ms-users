@@ -179,7 +179,7 @@ describe('#token.*', function activateSuite() {
         });
     });
 
-    it('returns third page, three tokens', function test() {
+    it('returns third page, two tokens', function test() {
       return this.users.dispatch(listRoute, { params: { username, page: 2 } })
         .then((tokens) => {
           // default page size
@@ -204,7 +204,7 @@ describe('#token.*', function activateSuite() {
       ));
     });
 
-    it('returns first page, three tokens', function test() {
+    it('returns first page, two tokens', function test() {
       return this.users.dispatch(listRoute, { params: { username } })
         .then((tokens) => {
           // default page size

@@ -1,21 +1,7 @@
 const { strict: assert } = require('assert');
-const { sign } = require('http-signature');
 const { default: got } = require('got');
-const { createHmac } = require('crypto');
 
-function OptsWrapper(opts) {
-  console.debug(opts);
-  return {
-    ...opts,
-    getHeader(name) {
-      return opts.headers[name];
-    },
-    setHeader(name, value) {
-      opts.headers[name] = value;
-    },
-    path: `${opts.url.pathname}${opts.url.search}`,
-  };
-}
+const { preRequest } = require('../utils/sign-request');
 
 const req = got.extend({
   prefixUrl: 'https://ms-users.local/users',
@@ -35,37 +21,7 @@ const req = got.extend({
         return error;
       },
     ],
-    beforeRequest: [
-      (options) => {
-        const { signature } = options;
-
-        if (!signature) {
-          return;
-        }
-
-        const wrapped = new OptsWrapper(options);
-        let toSign = '';
-        if (options.json) {
-          toSign = JSON.stringify(options.json);
-        }
-
-        if (options.body) {
-          toSign = options.body;
-        }
-
-        const digestSignature = createHmac('sha512', signature.key)
-          .update(toSign)
-          .digest('base64');
-
-        wrapped.setHeader('digest', digestSignature);
-
-        sign(wrapped, {
-          ...options.signature,
-          strict: true,
-          headers: ['digest', '(request-target)', '(algorithm)', '(keyid)'],
-        });
-      },
-    ],
+    beforeRequest: [preRequest],
   },
 });
 

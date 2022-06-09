@@ -106,22 +106,23 @@ exports.verify = async function verifyToken(service, encodedToken, token, peek) 
  */
 exports.internal = async function verifyInternalToken(service, token) {
   const tokenParts = token.split('.');
-  const { length } = tokenParts;
 
-  if (length < 3 && length > 4) {
-    throw USERS_MALFORMED_TOKEN;
+  if (tokenParts.length !== 3) {
+    return Promise.reject(USERS_MALFORMED_TOKEN);
   }
 
-  const signature = tokenParts.pop();
-  const [userId, uuid] = tokenParts.slice(-2);
+  const [userId, uuid, signature] = tokenParts;
+
+  // token is malformed, must be username.uuid.signature
+  if (!userId || !uuid || !signature) {
+    return Promise.reject(USERS_MALFORMED_TOKEN);
+  }
 
   // md5 hash
   const isLegacyToken = userId.length === 32 && /^[a-fA-F0-9]{32}$/.test(userId);
 
   // this is needed to pass ctx of the
-  const payload = tokenParts.join('.');
-  const dbPayload = `${userId}.${uuid}`;
-
+  const payload = `${userId}.${uuid}`;
   const isValid = verifyHMAC.call(service, payload, signature);
 
   if (!isValid) {
@@ -130,7 +131,7 @@ exports.internal = async function verifyInternalToken(service, token) {
 
   // at this point signature is valid and we need to verify that it was not
   // erase or expired
-  const key = redisKey(USERS_API_TOKENS, dbPayload);
+  const key = redisKey(USERS_API_TOKENS, payload);
   const tokenField = isLegacyToken ? BEARER_LEGACY_USERNAME_FIELD : BEARER_USERNAME_FIELD;
   const [id, scopes] = await service.redis.hmget(key, tokenField, 'scopes');
 

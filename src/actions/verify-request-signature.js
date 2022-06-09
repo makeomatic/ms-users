@@ -24,12 +24,11 @@ async function verify({ params }) {
   const { request } = params;
   const audience = toArray(params.audience);
 
-  const { userId, signKey, scopes } = await validateRequestSignature(this, request);
+  const { userId, scopes } = await validateRequestSignature(this, request);
   const keyAndUserData = await fromTokenData(
     this,
     {
       [USERS_USERNAME_FIELD]: userId,
-      signKey,
       scopes,
     },
     {

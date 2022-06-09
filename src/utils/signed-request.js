@@ -4,6 +4,22 @@ const { createHmac } = require('crypto');
 const { USERS_INVALID_TOKEN } = require('../constants');
 const { getToken } = require('./api-token');
 
+function getSignature(service, request) {
+  const { config } = service;
+  const { auth: { signedRequest } } = config;
+
+  try {
+    return parseRequest(request, {
+      strict: true,
+      headers: signedRequest.headers,
+      clockSkew: signedRequest.clockSkew,
+    });
+  } catch (error) {
+    service.log.error({ error }, 'unable to parse request signature');
+    throw USERS_INVALID_TOKEN;
+  }
+}
+
 async function validateRequestSignature(service, request) {
   const { config } = service;
   const { auth: { signedRequest } } = config;
@@ -14,12 +30,7 @@ async function validateRequestSignature(service, request) {
     request.method = headers['x-auth-method'];
   }
 
-  const signature = parseRequest(request, {
-    strict: true,
-    headers: signedRequest.headers,
-    clockSkew: signedRequest.clockSkew,
-  });
-
+  const signature = getSignature(service, request);
   const tokenData = await getToken(service, signature.keyId, true);
   const { raw: signKey, type, scopes = [] } = tokenData;
 

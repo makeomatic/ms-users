@@ -3,7 +3,7 @@ const request = require('request-promise');
 const Users = require('../../../../src');
 
 // @TODO stub
-describe('oauth.upgrade action', function suite() {
+describe.skip('oauth.upgrade action', function suite() {
   const service = new Users({ oauth: { providers: { apple: { enabled: true } } } });
 
   before(() => service.connect());

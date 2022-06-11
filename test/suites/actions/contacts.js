@@ -240,6 +240,9 @@ describe('#user contacts', function registerSuite() {
         value: 'nomail@example.com',
         type: 'email',
       },
+      metadata: {
+        name: 'Test',
+      },
     };
 
     await this.users.dispatch('contacts.add', { params });
@@ -253,10 +256,12 @@ describe('#user contacts', function registerSuite() {
     const { args: [[path, { ctx: { template: { token: { secret } } } }]] } = amqpStub;
     assert.equal(path, sendMailPath);
 
-    const { data: { attributes: { value, verified } } } = await this.users.dispatch('contacts.verify-email', { params: { secret } });
+    const { data: { attributes: { contact: { value, verified }, metadata: { name } } } } = await this.users
+      .dispatch('contacts.verify-email', { params: { secret } });
 
     assert.equal(value, params.contact.value);
     assert.strictEqual(verified, true);
+    assert.equal(name, params.metadata.name);
     amqpStub.restore();
   });
 });

@@ -176,10 +176,10 @@ async function remove({ userId, contact }) {
     throw new HttpStatusError(404);
   }
 
-  const contactsCount = await checkLimit.call(this, { userId });
+  const contactsCount = await this.redis.scard(redisKey(userId, USERS_CONTACTS));
   const defaultContact = await redis.get(redisKey(userId, USERS_DEFAULT_CONTACT));
 
-  if (defaultContact === contact.value && contactsCount !== 1) {
+  if (defaultContact === contact.value && contactsCount !== 1 && !this.config.contacts.allowRemoveFirstContact) {
     throw new HttpStatusError(400, 'cannot remove default contact');
   }
 

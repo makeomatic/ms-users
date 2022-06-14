@@ -42,7 +42,9 @@ async function upgrade(request) {
 
   if (provider === 'apple') {
     try {
-      const redirectUrl = transportRequest.url.href.replace(/\/upgrade$/, '/apple');
+      const redirectUrl = transportRequest.url.href
+        .replace(/\/upgrade$/, '/apple')
+        .replace(/^http:\/\//, 'https://');
       const tokenResponse = await validateGrantCode(providerSettings, token, redirectUrl);
       credentials = await profile(providerSettings, tokenResponse);
       credentials.query = query;

@@ -19,6 +19,10 @@
     },
     "isStatelessAuth": {
       "type": "boolean"
+    },
+    "authCode": {
+      "description": "Used for `apple` provider to select right redirect url.",
+      "type": "boolean"
     }
   }
 }

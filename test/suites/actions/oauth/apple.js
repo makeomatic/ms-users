@@ -7,6 +7,7 @@ const Users = require('../../../../src');
 
 describe('sign in with apple', function suite() {
   let service;
+
   afterEach(async () => {
     await service?.close();
   });
@@ -119,5 +120,63 @@ describe('sign in with apple', function suite() {
     assert(data.exp !== undefined);
 
     Bell.simulate(false);
+  });
+
+  it('should be able to return auth code (init sign in and redirect to apple.com)', async () => {
+    // it's here because of Bell.simulate
+    service = new Users({ oauth: { providers: { apple: { enabled: true } } } });
+    await service.connect();
+
+    const { headers } = await request.get('https://ms-users.local/users/oauth/apple?authCode=1', {
+      strictSSL: false,
+      followRedirect: false,
+      simple: false,
+      resolveWithFullResponse: true,
+    });
+
+    assert(headers.location !== undefined);
+
+    const redirectUri = new URL(headers.location);
+
+    strictEqual(redirectUri.origin, 'https://appleid.apple.com');
+    strictEqual(redirectUri.pathname, '/auth/authorize');
+    strictEqual(redirectUri.hash, '');
+    strictEqual(redirectUri.searchParams.get('response_mode'), 'form_post');
+    strictEqual(redirectUri.searchParams.get('response_type'), 'code');
+    strictEqual(redirectUri.searchParams.get('client_id'), 'com.test.service');
+    strictEqual(redirectUri.searchParams.get('redirect_uri'), 'https://ms-users.local/users/oauth/apple-code');
+    strictEqual(redirectUri.searchParams.get('scope'), 'name email');
+    assert(redirectUri.searchParams.get('state') !== undefined);
+
+    this.state = redirectUri.searchParams.get('state');
+    // bell cookie
+    [this.cookie] = headers['set-cookie'][0].split(';');
+  });
+
+  // depends on previous test
+  it('should be able to return auth code (callback from apple.com with code)', async () => {
+    service = new Users({ oauth: { providers: { apple: { enabled: true } } } });
+    await service.connect();
+
+    const response = await request.post('https://ms-users.local/users/oauth/apple-code', {
+      form: {
+        state: this.state,
+        code: 'cd776798269fb4d2fb619fe5766b5a4a1.0.rrqty.9vb4ocSgzKC-b5DAAJM31g',
+        user: '{"name":{"firstName":"Perchik","lastName":"The Cat"},"email":"q5skaas7cn@privaterelay.appleid.com"}',
+      },
+      headers: {
+        cookie: this.cookie,
+      },
+      followRedirect: false,
+      simple: false,
+      resolveWithFullResponse: true,
+      strictSSL: false,
+    });
+
+    // extract JSON from html response
+    const body = JSON.parse(response.body.match(/{".+"}/)[0].replace('undefined', 'null'));
+
+    strictEqual(body.code, 'cd776798269fb4d2fb619fe5766b5a4a1.0.rrqty.9vb4ocSgzKC-b5DAAJM31g');
+    strictEqual(body.user, '{"name":{"firstName":"Perchik","lastName":"The Cat"},"email":"q5skaas7cn@privaterelay.appleid.com"}');
   });
 });

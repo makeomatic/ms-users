@@ -122,6 +122,14 @@ function getProvider(options, server) {
     cookie,
     clientSecret: () => getSecretKey(teamId, clientId, keyId, privateKey),
     forceHttps: true,
+    location: (r) => {
+      if (r.query.authCode === '1') {
+        // @TODO make path using router method
+        return `${r.headers['x-forwarded-proto'] || r.connection.info.protocol}://${r.info.host}${r.path}-code`;
+      }
+
+      return null;
+    },
     providerParams: {
       response_mode: 'form_post',
       response_type: 'code', // has no effect, bell forces query.response_type = 'code'

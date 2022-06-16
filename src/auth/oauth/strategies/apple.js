@@ -54,11 +54,13 @@ function getJwkFromResponse(header, callback) {
   });
 }
 
-async function getProfile(providerSettings, tokenResponse) {
+async function getProfile(providerSettings, tokenResponse, query) {
   const {
     access_token: accessToken,
     id_token: idToken,
     refresh_token: refreshToken,
+    token_type: tokenType,
+    expires_in: expiresIn,
   } = tokenResponse;
   const response = await Bluebird.fromCallback(
     (callback) => verify(idToken, getJwkFromResponse, callback)
@@ -69,10 +71,12 @@ async function getProfile(providerSettings, tokenResponse) {
     email_verified: emailVerified,
     is_private_email: isPrivateEmail,
   } = response;
+  const credentials = Object.create(null);
 
-  tokenResponse.email = email;
-  tokenResponse.profile = { id: sub, email };
-  tokenResponse.internals = {
+  credentials.query = query;
+  credentials.email = email;
+  credentials.profile = { id: sub, email };
+  credentials.internals = {
     email,
     emailVerified,
     isPrivateEmail,
@@ -80,9 +84,11 @@ async function getProfile(providerSettings, tokenResponse) {
     accessToken,
     idToken,
     refreshToken,
+    tokenType,
+    expiresIn,
   };
 
-  return tokenResponse;
+  return credentials;
 }
 
 async function validateGrantCode(providerSettings, code, redirectUrl) {

@@ -1,13 +1,5 @@
 {
   "$id": "oauth.apple",
   "type": "object",
-  "additionalProperties": true,
-  "properties": {
-    "authCode": {
-      "description": "Pass this parameter to return apple auth code only (this section using for description only, has no validation effect, details: `src/auth/oauth/strategies/apple.js`)",
-      "type": "string",
-      "enum": ["0", "1"],
-      "default": "0"
-    }
-  }
+  "additionalProperties": true
 }

@@ -46,7 +46,7 @@ async function upgrade(request) {
         .replace(/\/upgrade$/, '/apple')
         .replace(/^http:\/\//, 'https://');
       const tokenResponse = await validateGrantCode(providerSettings, token, redirectUrl);
-      credentials = await profile(providerSettings, tokenResponse, query);
+      credentials = await profile.call(providerSettings, tokenResponse);
     } catch (error) {
       throw Boom.internal(error);
     }

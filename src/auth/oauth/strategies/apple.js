@@ -54,7 +54,7 @@ function getJwkFromResponse(header, callback) {
   });
 }
 
-async function getProfile(providerSettings, tokenResponse, query) {
+async function getProfile(tokenResponse) {
   const {
     access_token: accessToken,
     id_token: idToken,
@@ -73,7 +73,6 @@ async function getProfile(providerSettings, tokenResponse, query) {
   } = response;
   const credentials = Object.create(null);
 
-  credentials.query = query;
   credentials.email = email;
   credentials.profile = { id: sub, email };
   credentials.internals = {

@@ -54,7 +54,7 @@ function getJwkFromResponse(header, callback) {
   });
 }
 
-async function getProfile(tokenResponse) {
+async function getProfile(credentials, tokenResponse) {
   const {
     access_token: accessToken,
     id_token: idToken,
@@ -71,7 +71,6 @@ async function getProfile(tokenResponse) {
     email_verified: emailVerified,
     is_private_email: isPrivateEmail,
   } = response;
-  const credentials = Object.create(null);
 
   credentials.email = email;
   credentials.profile = { id: sub, email };

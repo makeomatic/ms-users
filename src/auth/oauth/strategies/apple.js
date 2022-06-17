@@ -92,12 +92,12 @@ async function getProfile(providerSettings, tokenResponse, query) {
 }
 
 async function validateGrantCode(providerSettings, code, redirectUrl) {
-  const { provider, clientId, clientSecret } = providerSettings;
+  const { provider, appId, clientSecret } = providerSettings;
   const response = await httpRequest.post(provider.token, {
     form: {
       code,
-      client_id: clientId,
-      client_secret: clientSecret(),
+      client_id: appId,
+      client_secret: clientSecret(appId),
       grant_type: 'authorization_code',
       redirect_uri: redirectUrl,
     },
@@ -109,6 +109,7 @@ async function validateGrantCode(providerSettings, code, redirectUrl) {
 
 function getProvider(options, server) {
   const {
+    appId,
     clientId,
     teamId,
     keyId,
@@ -122,11 +123,12 @@ function getProvider(options, server) {
   server.ext('onRequest', fixAppleCallbackForBell);
 
   return {
+    appId,
     password,
     clientId,
     isSameSite,
     cookie,
-    clientSecret: () => getSecretKey(teamId, clientId, keyId, privateKey),
+    clientSecret: (cid) => getSecretKey(teamId, cid || clientId, keyId, privateKey),
     forceHttps: true,
     providerParams: {
       response_mode: 'form_post',

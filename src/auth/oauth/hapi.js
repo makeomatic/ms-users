@@ -1,6 +1,6 @@
 const is = require('is');
 const { strict: assert } = require('assert');
-const defaults = require('lodash/defaults');
+const { defaults, omit } = require('lodash');
 const { providers: Providers } = require('@hapi/bell');
 const strategies = require('./providers');
 
@@ -83,7 +83,7 @@ module.exports = function OauthHandler(server, config) {
     const settings = name === 'apple' ? defaultOptions(options, server) : { provider, ...rest };
 
     // init strategy
-    server.auth.strategy(name, 'bell', settings);
+    server.auth.strategy(name, 'bell', omit(settings, 'appId'));
 
     // https://github.com/hapijs/bell/blob/master/lib/index.js#L125-L135
     // repeats the code from here to get another settings object and reuse it

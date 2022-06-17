@@ -2,6 +2,7 @@ const { sign, verify } = require('jsonwebtoken');
 const getJwksClient = require('jwks-rsa');
 const Bluebird = require('bluebird');
 const httpRequest = require('request-promise');
+const Boom = require('@hapi/boom');
 
 // @todo more options from config
 const jwksClient = getJwksClient({
@@ -144,8 +145,31 @@ function getProvider(options, server) {
   };
 }
 
+async function upgradeAppleCode({ providerSettings, code, query, redirectUrl }) {
+  const { profile } = providerSettings.provider;
+
+  try {
+    const tokenResponse = await validateGrantCode(providerSettings, code, redirectUrl);
+    const credentials = await profile.call(
+      providerSettings,
+      {
+        query,
+        token: tokenResponse.access_token,
+        refreshToken: tokenResponse.refresh_token,
+        expiresIn: tokenResponse.expires_in,
+      },
+      tokenResponse
+    );
+
+    return credentials;
+  } catch (error) {
+    throw Boom.internal(error);
+  }
+}
+
 module.exports = {
   transformAccountToResponseFormat,
   validateGrantCode,
+  upgradeAppleCode,
   options: getProvider,
 };

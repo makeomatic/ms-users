@@ -1,3 +1,10 @@
+# [15.6.0](https://github.com/makeomatic/ms-users/compare/v15.5.0...v15.6.0) (2022-06-09)
+
+
+### Features
+
+* http-signature based auth + sign tokens ([#560](https://github.com/makeomatic/ms-users/issues/560)) ([247db24](https://github.com/makeomatic/ms-users/commit/247db2426354c6e13b22c18ecd9c3fbd2d36299e))
+
 # [15.5.0](https://github.com/makeomatic/ms-users/compare/v15.4.1...v15.5.0) (2022-06-02)
 
 

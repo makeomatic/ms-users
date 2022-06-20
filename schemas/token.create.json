@@ -11,6 +11,30 @@
     },
     "name": {
       "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1,
+      "const": "sign"
+    },
+    "scopes": {
+      "$ref": "#/definitions/scopes"
+    }
+  },
+  "definitions": {
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "PBAC/RBAC scopes list. See https://casl.js.org/v5/en/guide/define-rules",
+        "required": ["action"],
+        "properties": {
+          "action": { "type": "string" },
+          "subject": { "type": "string" },
+          "conditions": { "type": "object" },
+          "inverted": { "type": "boolean" }
+        }
+      }
     }
   }
 }

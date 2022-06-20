@@ -1,3 +1,10 @@
+## [15.6.1](https://github.com/makeomatic/ms-users/compare/v15.6.0...v15.6.1) (2022-06-20)
+
+
+### Bug Fixes
+
+* remove unchalleged contact ([#563](https://github.com/makeomatic/ms-users/issues/563)) ([21f82b0](https://github.com/makeomatic/ms-users/commit/21f82b0780b077f17194990eeda0fc0c3b132602))
+
 # [15.6.0](https://github.com/makeomatic/ms-users/compare/v15.5.0...v15.6.0) (2022-06-09)
 
 

@@ -13,9 +13,9 @@ const { getUserId } = require('../../utils/userData');
  * @apiParam (Payload) {String} username -
  */
 module.exports = async function challenge({ params }) {
-  const { i18nLocale, contact } = params;
+  const { i18nLocale, contact, metadata } = params;
   const userId = await getUserId.call(this, params.username);
-  const attributes = await contacts.challenge.call(this, { contact, userId, i18nLocale });
+  const attributes = await contacts.challenge.call(this, { contact, userId, i18nLocale, metadata });
 
   return {
     data: {

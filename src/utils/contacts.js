@@ -106,7 +106,7 @@ async function list({ userId }) {
   return [];
 }
 
-async function challenge({ userId, contact, i18nLocale }) {
+async function challenge({ userId, contact, i18nLocale, metadata = {} }) {
   const { redis } = this;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
@@ -118,7 +118,7 @@ async function challenge({ userId, contact, i18nLocale }) {
     throttle,
     action: USERS_ACTION_VERIFY_CONTACT,
     id: contact.value,
-    metadata: { contact, userId },
+    metadata: { metadata, contact, userId },
     ...this.config.token[contactData.type],
   };
 
@@ -132,17 +132,18 @@ async function challenge({ userId, contact, i18nLocale }) {
 
 async function verifyEmail({ secret }) {
   const { redis, tokenManager } = this;
-  const { metadata: { contact, userId } } = await tokenManager.verify(secret);
+  const { metadata } = await tokenManager.verify(secret);
+  const { userId, contact } = metadata;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
-  const pipe = redis.pipeline();
 
   if (this.config.contacts.onlyOneVerifiedEmail) {
     await removeAllEmailContactsOfUser(redis, userId, contact.value);
   }
 
-  pipe.hset(key, 'verified', 'true');
-  pipe.hgetall(key);
-  return pipe.exec().then(handlePipeline).then(([, verifiedContact]) => parseObj(verifiedContact));
+  await redis.hset(key, 'verified', 'true');
+  metadata.contact.verified = true;
+
+  return metadata;
 }
 
 async function verify({ userId, contact, token }) {
@@ -167,7 +168,7 @@ async function verify({ userId, contact, token }) {
 }
 
 async function remove({ userId, contact }) {
-  const { redis, tokenManager } = this;
+  const { redis, tokenManager, log } = this;
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
   const contactData = await redis.hgetall(key).then(parseObj);
@@ -176,17 +177,21 @@ async function remove({ userId, contact }) {
     throw new HttpStatusError(404);
   }
 
-  const contactsCount = await checkLimit.call(this, { userId });
+  const contactsCount = await this.redis.scard(redisKey(userId, USERS_CONTACTS));
   const defaultContact = await redis.get(redisKey(userId, USERS_DEFAULT_CONTACT));
 
-  if (defaultContact === contact.value && contactsCount !== 1) {
+  if (defaultContact === contact.value && contactsCount !== 1 && !this.config.contacts.allowRemoveFirstContact) {
     throw new HttpStatusError(400, 'cannot remove default contact');
   }
 
-  await tokenManager.remove({
-    id: contact.value,
-    action: USERS_ACTION_VERIFY_CONTACT,
-  });
+  try {
+    await tokenManager.remove({
+      id: contact.value,
+      action: USERS_ACTION_VERIFY_CONTACT,
+    });
+  } catch (e) {
+    log.debug(e, 'Challenge havent been invoked on this removing contact');
+  }
 
   const pipe = redis.pipeline();
   pipe.del(key);

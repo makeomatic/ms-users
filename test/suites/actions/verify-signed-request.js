@@ -104,6 +104,66 @@ describe('#verify', function verifySuite() {
       await assert.rejects(promise, /invalid token/);
     });
 
+    it('should reject on not eisting token', async function test() {
+      const req = new RequestLike({
+        url: 'http://localhost:3000/foo/bar',
+        method: 'get',
+      });
+
+      signRequest(req, {
+        keyId: `${nonSignKeyId}x`,
+        key: nonSignToken,
+        algorithm: 'hmac-sha512',
+        ...this.users.config.auth.signedRequest,
+      });
+
+      const promise = this.users.dispatch('verify-request-signature', {
+        params: {
+          audience: this.users.config.jwt.defaultAudience,
+          request: {
+            headers: req.headers,
+            url: req.path,
+            method: 'get',
+          },
+        },
+      });
+
+      await assert.rejects(promise, /invalid token/);
+    });
+
+    it('should not accept modified payload', async function test() {
+      const json = { param: 'foo' };
+
+      const req = new RequestLike({
+        url: 'http://localhost:3000/foo/bar',
+        method: 'post',
+        json,
+      });
+
+      signRequest(req, {
+        keyId,
+        key: token,
+        algorithm: 'hmac-sha512',
+        ...this.users.config.auth.signedRequest,
+      });
+
+      const promise = this.users.dispatch('verify-request-signature', {
+        params: {
+          audience: this.users.config.jwt.defaultAudience,
+          request: {
+            headers: req.headers,
+            url: req.path,
+            method: 'post',
+            params: {
+              param: 'foO',
+            },
+          },
+        },
+      });
+
+      await assert.rejects(promise, /invalid token/);
+    });
+
     it('should accept valid signature and return user information + scopes', async function test() {
       const req = new RequestLike({
         url: 'http://localhost:3000/foo/bar',

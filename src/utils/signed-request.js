@@ -31,7 +31,12 @@ async function validateRequestSignature(service, request) {
   }
 
   const signature = getSignature(service, request);
-  const tokenData = await getToken(service, signature.keyId, true);
+  const tokenData = await getToken(service, signature.keyId, true)
+    .catch((error) => {
+      service.log.error({ error, keyId: signature.keyId }, 'get token error');
+      throw USERS_INVALID_TOKEN;
+    });
+
   const { raw: signKey, type, scopes = [] } = tokenData;
 
   if (type !== 'sign' || !verifyHMAC(signature, signKey)) {

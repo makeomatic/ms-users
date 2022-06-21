@@ -1,3 +1,10 @@
+## [15.6.2](https://github.com/makeomatic/ms-users/compare/v15.6.1...v15.6.2) (2022-06-21)
+
+
+### Bug Fixes
+
+* wrap verify signature error with 403 ([#564](https://github.com/makeomatic/ms-users/issues/564)) ([455cc4e](https://github.com/makeomatic/ms-users/commit/455cc4e74814e38d82b5b15bf6b30879025f9477))
+
 ## [15.6.1](https://github.com/makeomatic/ms-users/compare/v15.6.0...v15.6.1) (2022-06-20)
 
 

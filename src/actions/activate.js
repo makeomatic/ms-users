@@ -162,7 +162,7 @@ async function activateAccount(data, metadata) {
   }
 
   if (shouldVerifyContact) {
-    await contacts.setVerifiedIfExist({ redis: this.redis, userId, value: username });
+    await contacts.setVerifiedIfExist({ redis, userId, value: username });
   }
 
   return userId;

@@ -120,9 +120,10 @@ function verifyRequest() {
 async function activateAccount(data, metadata) {
   const userId = data[USERS_ID_FIELD];
   const alias = data[USERS_ALIAS_FIELD];
+  const username = data[USERS_USERNAME_FIELD];
   const referral = metadata[USERS_REFERRAL_FIELD];
   const userKey = redisKey(userId, USERS_DATA);
-  const { defaultAudience, service } = this;
+  const { defaultAudience, service, shouldVerifyContact } = this;
   const { redis } = service;
 
   // if this goes through, but other async calls fail its ok to repeat that
@@ -158,6 +159,10 @@ async function activateAccount(data, metadata) {
 
   if (isActive === 'true') {
     throw new HttpStatusError(417, `Account ${userId} was already activated`);
+  }
+
+  if (shouldVerifyContact) {
+    await contacts.setVerifiedIfExist({ redis, userId, value: username });
   }
 
   return userId;
@@ -208,6 +213,7 @@ async function activateAction({ log, params }) {
     defaultAudience,
     token,
     username,
+    shouldVerifyContact,
     service: this,
     erase: config.token.erase,
   };
@@ -222,10 +228,6 @@ async function activateAction({ log, params }) {
     ))
     .spread(activateAccount)
     .tap(hook);
-
-  if (shouldVerifyContact) {
-    await contacts.setVerifiedIfExist({ redis: this.redis, userId, value: username || userId });
-  }
 
   return jwt.login.call(this, userId, audience, isStatelessAuth);
 }

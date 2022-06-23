@@ -104,11 +104,7 @@ function verifyRequest() {
     return verifyToken.call(context, token, { erase, control: { action } });
   }
 
-  if (username) {
-    return Promise.resolve(username);
-  }
-
-  throw new HttpStatusError(400, 'invalid params');
+  return Promise.resolve(username);
 }
 
 /**

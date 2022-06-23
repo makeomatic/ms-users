@@ -53,7 +53,7 @@ describe('#activate', function activateSuite() {
       });
     });
 
-    it('must fail to activate already active user', async function test() {
+    it('must fail to activate already active user with both token and username provided', async function test() {
       await assert.rejects(this.users.dispatch('activate', { params: { token: this.token, username: email } }), (activation) => {
         expect(activation.name).to.be.eq('HttpStatusError');
         expect(activation.statusCode).to.be.eq(409);

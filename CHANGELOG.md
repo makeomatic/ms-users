@@ -1,3 +1,10 @@
+## [15.6.3](https://github.com/makeomatic/ms-users/compare/v15.6.2...v15.6.3) (2022-06-23)
+
+
+### Bug Fixes
+
+* verify email on activate ([#565](https://github.com/makeomatic/ms-users/issues/565)) ([5e4f13f](https://github.com/makeomatic/ms-users/commit/5e4f13f6c4ee8af9edf33f5fe4d3eaa0d6449d73))
+
 ## [15.6.2](https://github.com/makeomatic/ms-users/compare/v15.6.1...v15.6.2) (2022-06-21)
 
 

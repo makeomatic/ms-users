@@ -25,13 +25,15 @@ const { placeholder } = partial;
 function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
   const { config } = this;
   const { validation, server, pwdReset } = config;
-  const { paths } = validation;
+  const { paths, hosts = {} } = validation;
 
   // in the case of emails namespace is email where we send data to
   const { wait = false, send = false } = opts;
   const context = { ...ctx };
   const actions = {};
   const templateName = validation.templates[type] || type;
+  const { host } = server;
+  const serverConfig = { ...server, host: hosts[type] || host };
 
   context.lng = context.i18nLocale;
 
@@ -45,7 +47,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
         q: context.token.secret,
         lng: context.lng,
       })}`;
-      context.link = generateLink(server, paths[type]);
+      context.link = generateLink(serverConfig, paths[type]);
       break;
     case USERS_ACTION_ORGANIZATION_ADD:
       context.qs = `?${stringify({
@@ -55,7 +57,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
         organizationId: ctx.organizationId,
         lng: context.lng,
       })}`;
-      context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_ADD]);
+      context.link = generateLink(serverConfig, paths[USERS_ACTION_ORGANIZATION_ADD]);
       break;
     case USERS_ACTION_ORGANIZATION_REGISTER:
       context.qs = `?${stringify({
@@ -66,7 +68,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
         organizationId: ctx.organizationId,
         lng: context.lng,
       })}`;
-      context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_REGISTER]);
+      context.link = generateLink(serverConfig, paths[USERS_ACTION_ORGANIZATION_REGISTER]);
       break;
     case USERS_ACTION_ORGANIZATION_INVITE:
       context.qs = `?${stringify({
@@ -78,7 +80,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
         skipPassword: ctx.skipPassword,
         lng: context.lng,
       })}`;
-      context.link = generateLink(server, paths[USERS_ACTION_ORGANIZATION_INVITE]);
+      context.link = generateLink(serverConfig, paths[USERS_ACTION_ORGANIZATION_INVITE]);
       break;
 
     case USERS_ACTION_PASSWORD:

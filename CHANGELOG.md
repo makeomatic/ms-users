@@ -1,3 +1,10 @@
+## [15.6.4](https://github.com/makeomatic/ms-users/compare/v15.6.3...v15.6.4) (2022-06-26)
+
+
+### Bug Fixes
+
+* validation host configuration ([#566](https://github.com/makeomatic/ms-users/issues/566)) ([9362e4a](https://github.com/makeomatic/ms-users/commit/9362e4abc5f2360515b0739396be5953d70d89ca))
+
 ## [15.6.3](https://github.com/makeomatic/ms-users/compare/v15.6.2...v15.6.3) (2022-06-23)
 
 

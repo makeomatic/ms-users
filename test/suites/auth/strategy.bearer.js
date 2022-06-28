@@ -38,6 +38,34 @@ describe('/_/me', function verifySuite() {
       },
       statusCode: 403,
     });
+
+    await assert.rejects(request.get({
+      headers: {
+        authorization: 'JWT ',
+      },
+    }), {
+      error: {
+        name: 'HttpStatusError',
+        message: 'invalid token',
+        error: 'Forbidden',
+        statusCode: 403,
+      },
+      statusCode: 403,
+    });
+
+    await assert.rejects(request.get({
+      headers: {
+        authorization: ' stop.not.working',
+      },
+    }), {
+      error: {
+        name: 'HttpStatusError',
+        message: 'invalid token',
+        error: 'Forbidden',
+        statusCode: 403,
+      },
+      statusCode: 403,
+    });
   });
 
   it('must reject on an expired JWT token', async function test() {

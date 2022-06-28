@@ -15,8 +15,8 @@ const { ActionTransport } = require('@microfleet/plugin-router');
  *
  */
 async function Me({ auth }) {
-  const { id, mfa, metadata } = auth.credentials;
-  return { id, mfa, metadata };
+  const { id, mfa, metadata, scopes } = auth.credentials;
+  return { id, mfa, metadata, scopes };
 }
 
 Me.auth = {

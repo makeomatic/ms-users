@@ -97,7 +97,7 @@ function tokenAuth(request) {
   const audience = (is.object(params) && params.audience) || defaultAudience;
 
   // extract post params that not a part of query string
-  const requestInfo = { headers, payload: requestBody, method, url };
+  const requestInfo = { headers, params: requestBody, method, url };
 
   if (hasTrustedHeader(headers) && hasStatelessToken(headers)) {
     // fallback fn is required to handle the case of the offline ingress token backend

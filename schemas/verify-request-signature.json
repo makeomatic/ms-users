@@ -10,13 +10,14 @@
       "request": {
           "type": "object",
           "required": [ "url", "method", "headers" ],
+          "additionalProperties": false,
           "properties": {
             "url": { "type": "string" },
             "method": { "type": "string" },
             "headers": {
               "type": "object"
             },
-            "payload": {
+            "params": {
               "oneOf": [
                 { "type": "object" },
                 { "type": "string" }

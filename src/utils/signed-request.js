@@ -23,7 +23,7 @@ function getSignature(service, request) {
 async function validateRequestSignature(service, request) {
   const { config } = service;
   const { auth: { signedRequest } } = config;
-  const { headers, payload } = request;
+  const { headers, params } = request;
 
   if (headers['x-auth-url']) {
     request.url = headers['x-auth-url'];
@@ -44,12 +44,12 @@ async function validateRequestSignature(service, request) {
     throw USERS_INVALID_TOKEN;
   }
 
-  if (payload && request.method.toLowerCase() !== 'get') {
+  if (params && request.method.toLowerCase() !== 'get') {
     const algo = signature.algorithm.split('-')[1];
     const hmac = createHmac(algo, signKey);
-    const dataToVerify = typeof payload === 'string' || payload instanceof Buffer
-      ? payload
-      : JSON.stringify(payload);
+    const dataToVerify = typeof payload === 'string' || params instanceof Buffer
+      ? params
+      : JSON.stringify(params);
     hmac.update(dataToVerify, 'utf8');
 
     const digest = hmac.digest(signedRequest.payloadDigest);

@@ -89,11 +89,15 @@ function tokenAuth(request) {
     ? `${request.transportRequest.url.pathname}${request.transportRequest.url.search}`
     : action.actionName;
 
+  const requestBody = transport === 'http'
+    ? request.transportRequest.plugins['raw-request'].body
+    : request.params;
+
   const params = method === 'get' ? request.query : request.params;
   const audience = (is.object(params) && params.audience) || defaultAudience;
 
   // extract post params that not a part of query string
-  const requestInfo = { headers, params: request.params, method, url };
+  const requestInfo = { headers, payload: requestBody, method, url };
 
   if (hasTrustedHeader(headers) && hasStatelessToken(headers)) {
     // fallback fn is required to handle the case of the offline ingress token backend

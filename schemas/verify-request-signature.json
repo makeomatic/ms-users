@@ -16,8 +16,11 @@
             "headers": {
               "type": "object"
             },
-            "params": {
-              "type": "object"
+            "payload": {
+              "oneOf": [
+                { "type": "object" },
+                { "type": "string" }
+              ]
             }
           }
       },

@@ -18,7 +18,7 @@ const toArray = (maybeArray) => (isArray(maybeArray) ? maybeArray : [maybeArray]
  * @apiParam (Payload) {Object} request.headers - headers passed in request
  * @apiParam (Payload) {Object} request.method - request method
  * @apiParam (Payload) {string} request.url - requested url
- * @apiParam (Payload) {string} request.params - request params
+ * @apiParam (Payload) {string|Object|Buffer} request.payload - request params
  */
 async function verify({ params }) {
   const { request } = params;

@@ -104,7 +104,7 @@ describe('#verify', function verifySuite() {
       await assert.rejects(promise, /invalid token/);
     });
 
-    it('should reject on not eisting token', async function test() {
+    it('should reject on not existing token', async function test() {
       const req = new RequestLike({
         url: 'http://localhost:3000/foo/bar',
         method: 'get',
@@ -154,7 +154,7 @@ describe('#verify', function verifySuite() {
             headers: req.headers,
             url: req.path,
             method: 'post',
-            params: {
+            payload: {
               param: 'foO',
             },
           },
@@ -217,7 +217,7 @@ describe('#verify', function verifySuite() {
             headers: req.headers,
             url: req.path,
             method: 'post',
-            params: json,
+            payload: json,
           },
         },
       });

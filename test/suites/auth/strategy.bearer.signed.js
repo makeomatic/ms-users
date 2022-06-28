@@ -29,6 +29,10 @@ const signGetRequest = (url, extra, signature) => {
   return req.get(url, { ...extra, signature });
 };
 
+const signPostRequest = (url, extra, signature) => {
+  return req.post(url, { ...extra, signature });
+};
+
 const verifyBody = (body) => {
   assert.ok(body.id);
   assert.equal(body.metadata['*.localhost'].username, 'v@makeomatic.ru');
@@ -81,5 +85,22 @@ describe('/_/me', function verifySuite() {
     });
 
     verifyBody(res.body);
+  });
+
+  it('supports valid signature #post', async function test() {
+    const promise = signPostRequest('_/me', {
+      searchParams: { audience: 'test' },
+      json: {
+        data: {},
+      },
+    }, {
+      keyId,
+      key: bearerToken,
+      algorithm: 'hmac-sha512',
+    });
+
+    // yes! validation error thrown because me action should not be used like this,
+    // but this error shows that auth middleware worked and signature was valid
+    await assert.rejects(promise, /me validation failed: data must NOT have additional properties/);
   });
 });

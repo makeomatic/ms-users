@@ -9,6 +9,7 @@ function RequestLike(opts) {
   return {
     ...opts,
     url,
+    json: opts.json,
     getHeader(name) {
       return opts.headers[name];
     },
@@ -38,7 +39,7 @@ const signRequest = (wrapped, signature) => {
     .digest('base64');
 
   wrapped.setHeader('digest', digestSignature);
-  console.debug({ signature });
+  console.debug({ signature, toSign });
 
   sign(wrapped, {
     ...signature,

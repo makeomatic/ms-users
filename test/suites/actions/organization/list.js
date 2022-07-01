@@ -77,7 +77,29 @@ describe('#organizations list', function registerSuite() {
 
     return this.users.dispatch('organization.list', { params: opts })
       .then(({ data }) => {
-        assert.deepEqual(data[0].attributes, organization);
+        const { relationships, ...org } = data[0].attributes;
+
+        assert.ok(relationships);
+        assert.deepEqual(org, organization);
+      });
+  });
+
+  it('responds with member details on request byusername', async function test() {
+    const opts = {
+      username: this.userNames[0].email,
+    };
+
+    return this.users.dispatch('organization.list', { params: opts })
+      .then(({ data }) => {
+        const organization = data[0].attributes;
+
+        assert(organization.relationships);
+        const member = organization.relationships;
+        assert(member);
+        assert(member.id);
+        assert.strictEqual(member.type, 'organizationMember');
+        assert(member.attributes);
+        assert(member.attributes.joinedAt);
       });
   });
 });

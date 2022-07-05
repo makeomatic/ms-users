@@ -20,4 +20,5 @@ exports.plugins = [
   'hapi',
   'dlock',
   'prometheus',
+  'signed-request',
 ];

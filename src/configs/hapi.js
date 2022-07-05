@@ -1,6 +1,5 @@
 const path = require('path');
 const hbs = require('handlebars');
-const rawRequestPlugin = require('../utils/hapi-raw-request');
 
 exports.routerHapi = {
   prefix: '',
@@ -31,7 +30,6 @@ exports.hapi = {
   plugins: {
     list: [
       { plugin: '@hapi/bell' },
-      { plugin: rawRequestPlugin },
     ],
   },
   server: {

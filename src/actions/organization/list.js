@@ -4,18 +4,29 @@ const fsort = require('redis-filtered-sort');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const redisKey = require('../../utils/key');
-const { getOrganizationMetadata, getInternalData } = require('../../utils/organization');
+const { getOrganizationMetadata, getInternalData, getOrganizationMemberDetails } = require('../../utils/organization');
 const getMetadata = require('../../utils/get-metadata');
 const { getUserId } = require('../../utils/userData');
 const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
 
-async function findUserOrganization(username) {
+async function findUserOrganization(userId) {
   const { audience: orgAudience } = this.config.organizations;
 
-  const userId = await getUserId.call(this, username, true);
   const res = await getMetadata.call(this, userId, orgAudience);
 
   return [Object.keys(res[orgAudience])];
+}
+
+function relatedMember(member) {
+  const { id, ...props } = member;
+
+  return {
+    id,
+    type: 'organizationMember',
+    attributes: {
+      ...props,
+    },
+  };
 }
 
 async function findOrganization({
@@ -87,8 +98,10 @@ async function getOrganizationsList({ params }) {
   const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
   const currentTime = Date.now();
 
+  const userId = username ? await getUserId.call(this, username, true) : null;
+
   const [organizationsIds, length = 0] = username
-    ? await findUserOrganization.call(this, username)
+    ? await findUserOrganization.call(this, userId)
     : await findOrganization.call(this, {
       criteria,
       order,
@@ -100,14 +113,20 @@ async function getOrganizationsList({ params }) {
     });
 
   const organizations = await Promise.map(organizationsIds, async (organizationId) => {
-    const [organization, metadata] = await Promise.all([
+    const getMember = userId ? [getOrganizationMemberDetails.call(this, organizationId, userId)] : [];
+
+    const [organization, metadata, member] = await Promise.all([
       getInternalData.call(this, organizationId, true),
       getOrganizationMetadata.call(this, organizationId, audience),
+      ...getMember,
     ]);
+
+    const relatedData = member ? { relationships: relatedMember({ id: userId, ...member }) } : {};
 
     return {
       ...organization,
       metadata,
+      ...relatedData,
     };
   });
 

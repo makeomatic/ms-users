@@ -1,3 +1,10 @@
+## [15.6.5](https://github.com/makeomatic/ms-users/compare/v15.6.4...v15.6.5) (2022-07-05)
+
+
+### Bug Fixes
+
+* **user-org-list:** add joined_at to response by username ([#569](https://github.com/makeomatic/ms-users/issues/569)) ([b73e272](https://github.com/makeomatic/ms-users/commit/b73e27261425c41e0c7af0bb82b95097a97b1604))
+
 ## [15.6.4](https://github.com/makeomatic/ms-users/compare/v15.6.3...v15.6.4) (2022-06-26)
 
 

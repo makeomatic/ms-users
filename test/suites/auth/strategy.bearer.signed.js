@@ -74,7 +74,7 @@ describe('/_/me', function verifySuite() {
       headers: {
         authorization: 'Signature sskdd',
       },
-    }), /invalid token/);
+    }), /invalid request signature/);
   });
 
   it('supports valid signature', async function test() {

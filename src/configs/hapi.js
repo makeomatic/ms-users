@@ -28,9 +28,9 @@ exports.hapi = {
     path: path.resolve(__dirname, '../templates'),
   },
   plugins: {
-    list: [
-      { plugin: '@hapi/bell' },
-    ],
+    list: [{
+      plugin: '@hapi/bell',
+    }],
   },
   server: {
     port: 3000,

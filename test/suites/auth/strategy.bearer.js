@@ -41,16 +41,16 @@ describe('/_/me', function verifySuite() {
 
     await assert.rejects(request.get({
       headers: {
-        authorization: 'JWT ',
+        authorization: 'JWT',
       },
     }), {
       error: {
-        name: 'HttpStatusError',
-        message: 'invalid token',
-        error: 'Forbidden',
-        statusCode: 403,
+        error: 'Unauthorized',
+        message: 'An attempt was made to perform an operation without authentication: Token must be present',
+        name: 'AuthenticationRequiredError',
+        statusCode: 401,
       },
-      statusCode: 403,
+      statusCode: 401,
     });
 
     await assert.rejects(request.get({
@@ -59,12 +59,12 @@ describe('/_/me', function verifySuite() {
       },
     }), {
       error: {
-        name: 'HttpStatusError',
-        message: 'invalid token',
-        error: 'Forbidden',
-        statusCode: 403,
+        error: 'Unauthorized',
+        message: 'An attempt was made to perform an operation without authentication: Token must be present',
+        name: 'AuthenticationRequiredError',
+        statusCode: 401,
       },
-      statusCode: 403,
+      statusCode: 401,
     });
   });
 

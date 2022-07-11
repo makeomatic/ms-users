@@ -93,7 +93,7 @@ async function addOrganizationMembers({ organizationId, members, audience }, opt
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const pipe = redis.pipeline();
 
-  const { sendInvite: sendInviteFlag, acceptRequired } = options
+  const { sendInvite: sendInviteFlag, inviteAccepted } = options;
 
   organizationMembers.forEach(addMember, { organizationId, audience, pipe, membersKey, inviteAccepted });
   await pipe.exec().then(handlePipeline);

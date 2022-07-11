@@ -50,7 +50,7 @@ async function acceptOrganizationMember({ params }) {
     organizationId,
     audience,
     members: [member],
-  });
+  }, { inviteAccepted: true });
 
   await this.tokenManager.remove({ id: inviteId(organizationId, member.email), action: USERS_ACTION_ORGANIZATION_INVITE });
   await this.redis.srem(organizationInvite(organizationId), member.email);

@@ -232,12 +232,14 @@ describe('#token.*', function activateSuite() {
       } });
     });
 
-    it('verifies that prefixed token works', function test() {
-      return this.users.dispatch(verifyRoute, { params: {
-        token: tokenHolder[1],
-        accessToken: true,
-        audience: '*.localhost',
-      } });
+    it('verifies that prefixed token denied', async function test() {
+      await assert.rejects(
+        this.users.dispatch(verifyRoute, { params: {
+          token: tokenHolder[1],
+          accessToken: true,
+          audience: '*.localhost',
+        } })
+      );
     });
 
     it('verifies that all other tokens dont work', function test() {

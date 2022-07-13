@@ -1,8 +1,8 @@
 const { sign, verify } = require('jsonwebtoken');
 const getJwksClient = require('jwks-rsa');
 const Bluebird = require('bluebird');
-const httpRequest = require('request-promise');
 const Boom = require('@hapi/boom');
+const { request: httpRequest } = require('undici');
 
 // @todo more options from config
 const jwksClient = getJwksClient({
@@ -92,18 +92,22 @@ async function getProfile(credentials, tokenResponse) {
 
 async function validateGrantCode(providerSettings, code, redirectUrl) {
   const { provider, appId, clientSecret } = providerSettings;
-  const response = await httpRequest.post(provider.token, {
-    form: {
+  const { body } = await httpRequest(provider.token, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
       code,
       client_id: appId,
       client_secret: clientSecret(appId),
       grant_type: 'authorization_code',
       redirect_uri: redirectUrl,
-    },
-    json: true,
+    }),
+    throwOnError: true,
   });
 
-  return response;
+  return body.json();
 }
 
 function getProvider(options, server) {
@@ -145,7 +149,8 @@ function getProvider(options, server) {
   };
 }
 
-async function upgradeAppleCode({ providerSettings, code, query, redirectUrl }) {
+async function upgradeAppleCode(params) {
+  const { providerSettings, code, query, redirectUrl } = params;
   const { profile } = providerSettings.provider;
 
   try {
@@ -163,7 +168,7 @@ async function upgradeAppleCode({ providerSettings, code, query, redirectUrl }) 
 
     return credentials;
   } catch (error) {
-    throw Boom.internal(error);
+    throw Boom.internal(error.body?.error, undefined, error.statusCode);
   }
 }
 

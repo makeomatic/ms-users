@@ -4,7 +4,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { oauthVerification, mserviceVerification } = require('../../auth/oauth');
 const formOAuthResponse = require('../../auth/oauth/utils/form-oauth-response');
-const { upgradeAppleCode } = require('../../auth/oauth/strategies/apple');
+const appleStrategy = require('../../auth/oauth/strategies/apple');
 
 /**
  * @api {amqp} <prefix>.oauth.upgrade Upgardes existing SSO token to service-verified token
@@ -38,7 +38,7 @@ async function upgrade(request) {
   }
 
   const credentials = provider === 'apple'
-    ? await upgradeAppleCode({
+    ? await appleStrategy.upgradeAppleCode({
       query,
       providerSettings,
       code: token,

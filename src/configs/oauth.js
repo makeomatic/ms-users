@@ -47,7 +47,6 @@ exports.oauth = {
     apple: {
       enabled: false,
       // used in /oauth/upgrade action as client ID
-      // for upgrade auth code from iOS app
       appId: 'com.test.app',
       clientId: 'com.test.service', // service id from apple
       clientSecret: 'just-for-validation', // not used

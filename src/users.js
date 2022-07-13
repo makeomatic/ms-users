@@ -51,7 +51,7 @@ class Users extends Microfleet {
       verify: `${prefix}.verify`,
       trustedVerify: `${prefix}.verify-trusted`,
       apiTokenVerify: `${prefix}.verify-api-token`,
-      getToken: `${prefix}.token.get`,
+      tokenGet: `${prefix}.token.get`,
       timeouts: {
         verify: 5000,
         trustedVerify: 5000,

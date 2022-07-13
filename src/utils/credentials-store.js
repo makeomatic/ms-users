@@ -1,3 +1,5 @@
+const { USERS_INVALID_TOKEN } = require('../constants');
+
 class CredentialsStore {
   constructor(amqp, config) {
     this.amqp = amqp;
@@ -5,16 +7,19 @@ class CredentialsStore {
   }
 
   async getKey(keyId) {
-    const { getToken, timeouts: { getToken: timeout } } = this.config;
+    const { tokenGet, timeouts: { tokenGet: timeout } } = this.config;
     const [username, uuid] = keyId.split('.');
+    try {
+      const { raw } = await this.amqp.publishAndWait(
+        tokenGet,
+        { username, token: uuid, sensitive: true },
+        { timeout }
+      );
 
-    const { raw } = await this.amqp.publishAndWait(
-      getToken,
-      { username, token: uuid, sensitive: true },
-      { timeout }
-    );
-
-    return raw;
+      return raw;
+    } catch (e) {
+      throw USERS_INVALID_TOKEN;
+    }
   }
 
   async getCredentials(keyId, audience) {

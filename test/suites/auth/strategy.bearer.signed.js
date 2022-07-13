@@ -77,6 +77,14 @@ describe('/_/me', function verifySuite() {
     }), /invalid request signature/);
   });
 
+  it('sign token denied when used as bearer', async function test() {
+    await assert.rejects(req.get('_/me', {
+      headers: {
+        authorization: `Bearer ${bearerToken}`,
+      },
+    }), /invalid token/);
+  });
+
   it('supports valid signature', async function test() {
     const res = await signGetRequest('_/me', { searchParams: { audience: 'test' } }, {
       keyId,

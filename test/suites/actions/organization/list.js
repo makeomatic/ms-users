@@ -99,7 +99,7 @@ describe('#organizations list', function registerSuite() {
         assert(member.id);
         assert.strictEqual(member.type, 'organizationMember');
         assert(member.attributes);
-        assert(member.attributes.joinedAt);
+        assert('joinedAt' in member.attributes);
       });
   });
 });

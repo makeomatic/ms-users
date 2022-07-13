@@ -118,8 +118,6 @@ exports.accessTokens = {
     // NOTE: MAKE SURE TO SET THIS IN PRODUCTION
     production: '',
   },
-  // deny specific token type
-  denyAsBearer: [],
 };
 
 /**

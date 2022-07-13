@@ -71,7 +71,4 @@ module.exports = {
       promisify: true,
     },
   },
-  accessTokens: {
-    denyAsBearer: ['sign'],
-  },
 };

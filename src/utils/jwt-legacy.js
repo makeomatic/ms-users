@@ -15,6 +15,8 @@ const {
   USERS_INVALID_TOKEN,
 } = require('../constants');
 
+const { API_TOKEN_TYPE_SIGN } = require('./api-token');
+
 /**
  * Logs user in and returns JWT and User Object
  * @param  {String}  username
@@ -136,7 +138,7 @@ exports.internal = async function verifyInternalToken(service, token) {
   const tokenField = isLegacyToken ? BEARER_LEGACY_USERNAME_FIELD : BEARER_USERNAME_FIELD;
   const [id, scopes, type] = await service.redis.hmget(key, tokenField, 'scopes', 'type');
 
-  if (service.config.accessTokens.denyAsBearer.includes(type)) {
+  if (type === API_TOKEN_TYPE_SIGN) {
     throw USERS_INVALID_TOKEN;
   }
 

@@ -7,7 +7,7 @@ const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');
 const { getUserId } = require('../../utils/userData');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, BEARER_USERNAME_FIELD } = require('../../constants');
-const { serializeTokenData } = require('../../utils/api-token');
+const { serializeTokenData, API_TOKEN_TYPE_SIGN } = require('../../utils/api-token');
 
 function storeData(userId) {
   const { redis, name, scopes, type } = this;
@@ -29,7 +29,7 @@ function storeData(userId) {
     [BEARER_USERNAME_FIELD]: userId,
   };
 
-  if (type === 'sign') {
+  if (type === API_TOKEN_TYPE_SIGN) {
     tokenData.raw = token;
   }
 

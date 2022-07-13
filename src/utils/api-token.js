@@ -3,6 +3,8 @@ const { HttpStatusError } = require('common-errors');
 const { USERS_API_TOKENS } = require('../constants');
 const redisKey = require('./key');
 
+const API_TOKEN_TYPE_SIGN = 'sign';
+
 // display raw token data only when requested
 function deserializeTokenData(raw, showSensitive = false) {
   const { scopes, raw: rawToken, ...restData } = raw;
@@ -10,7 +12,7 @@ function deserializeTokenData(raw, showSensitive = false) {
     restData.scopes = JSON.parse(raw.scopes);
   }
 
-  if (restData.type === 'sign' && showSensitive) {
+  if (restData.type === API_TOKEN_TYPE_SIGN && showSensitive) {
     restData.raw = rawToken;
   }
 
@@ -48,6 +50,7 @@ async function getToken(service, tokenBody, sensitive = false) {
 }
 
 module.exports = {
+  API_TOKEN_TYPE_SIGN,
   deserializeTokenData,
   serializeTokenData,
   checkTokenData,

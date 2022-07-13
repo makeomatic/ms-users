@@ -279,7 +279,7 @@ describe('#invite organization', function registerSuite() {
     this.member2.token = this.spy.lastCall.args[3].token;
   });
 
-  it('must be able to accept invite existing member', async function test() {
+  it('must be able to accept invite of existing member', async function test() {
     const opts = {
       organizationId: this.organization.id,
       member: {
@@ -291,7 +291,6 @@ describe('#invite organization', function registerSuite() {
     };
 
     await this.users.dispatch('organization.invites.accept', { params: opts });
-    this.member2.token = this.spy.lastCall.args[3].token;
   });
 
   it('should set timestamp when invite accepted', async function test() {

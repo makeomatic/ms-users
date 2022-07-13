@@ -28,7 +28,7 @@ async function distributeUsersByExist(user) {
   }
 }
 
-async function addMember(member) {
+async function addMember({ password, ...member }) {
   const { organizationId, audience, pipe, membersKey, inviteAccepted } = this;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);

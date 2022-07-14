@@ -1,5 +1,4 @@
 const fs = require('fs')
-const uid = process.getuid()
 const { execSync } = require('child_process')
 
 try {
@@ -22,7 +21,6 @@ exports.docker_compose = './test/docker-compose.yml';
 exports.test_framework = 'c8 /src/node_modules/.bin/mocha';
 exports.extras = {
   tester: {
-    user: `${uid}:${uid}`,
     shm_size: '256m',
     volumes: ['${PWD}/test/configs:/configs:cached'],
     expose: ['3000'],

@@ -168,6 +168,8 @@ async function upgradeAppleCode(params) {
 
     return credentials;
   } catch (error) {
+    console.log(222222, error);
+
     throw Boom.internal(error.body?.error, undefined, error.statusCode);
   }
 }

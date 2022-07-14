@@ -29,14 +29,17 @@ async function distributeUsersByExist(user) {
 }
 
 async function addMember({ password, ...member }) {
-  const { organizationId, audience, pipe, membersKey, inviteAccepted } = this;
+  const { organizationId, audience, pipe, membersKey } = this;
 
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
   const memberOrganizations = redisKey(member.id, USERS_METADATA, audience);
 
+  const timestamp = Date.now();
+
   member.username = member.email;
-  member.invited = Date.now();
-  member.accepted = inviteAccepted ? Date.now() : null;
+  member.invited = timestamp;
+  member.accepted = password ? timestamp : null;
+  member.joinedAt = timestamp;
   member.permissions = member.permissions || [];
 
   const stringifyMember = mapValues(member, JSONStringify);
@@ -74,7 +77,7 @@ async function sendInvite(member) {
 /**
  * Updates metadata on a organization object
  * @param  {Object} opts
- * @param  {Object} (Payload) {Object} - sendInvite, inviteAccepted boolean flags
+ * @param  {Object} (Payload) {Object} - sendInvite boolean flag
  * @return {Promise}
  */
 async function addOrganizationMembers({ organizationId, members, audience }, options = {}) {
@@ -93,9 +96,9 @@ async function addOrganizationMembers({ organizationId, members, audience }, opt
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const pipe = redis.pipeline();
 
-  const { sendInvite: sendInviteFlag, inviteAccepted } = options;
+  const { sendInvite: sendInviteFlag } = options;
 
-  organizationMembers.forEach(addMember, { organizationId, audience, pipe, membersKey, inviteAccepted });
+  organizationMembers.forEach(addMember, { organizationId, audience, pipe, membersKey });
   await pipe.exec().then(handlePipeline);
 
   if (sendInviteFlag) {

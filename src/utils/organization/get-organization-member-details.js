@@ -6,10 +6,10 @@ async function getOrganizationMemberDetails(organizationId, userId) {
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
   const data = await getMemberData.call(this, memberKey);
 
-  const { accepted } = data || {};
+  const { joinedAt } = data || {};
 
   return {
-    joinedAt: accepted,
+    joinedAt,
   };
 }
 module.exports = getOrganizationMemberDetails;

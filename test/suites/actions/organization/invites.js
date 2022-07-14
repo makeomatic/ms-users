@@ -293,7 +293,7 @@ describe('#invite organization', function registerSuite() {
     await this.users.dispatch('organization.invites.accept', { params: opts });
   });
 
-  it('should set timestamp when invite accepted', async function test() {
+  it('should set joinedAt timestamp when invite accepted', async function test() {
     const opts = {
       organizationId: this.organization.id,
       username: this.member2.email,
@@ -303,7 +303,7 @@ describe('#invite organization', function registerSuite() {
       .then((response) => {
         const member = response.data.attributes;
         assert(member);
-        assert(member.accepted);
+        assert(member.joinedAt);
       });
   });
 });

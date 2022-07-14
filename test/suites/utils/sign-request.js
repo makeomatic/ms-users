@@ -39,7 +39,6 @@ const signRequest = (wrapped, signature) => {
     .digest('base64');
 
   wrapped.setHeader('digest', digestSignature);
-  console.debug({ signature, toSign });
 
   sign(wrapped, {
     ...signature,

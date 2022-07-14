@@ -92,18 +92,22 @@ async function getProfile(credentials, tokenResponse) {
 
 async function validateGrantCode(providerSettings, code, redirectUrl) {
   const { provider, appId, clientSecret } = providerSettings;
+  const requestBody = JSON.stringify({
+    code,
+    client_id: appId,
+    client_secret: clientSecret(appId),
+    grant_type: 'authorization_code',
+    redirect_uri: redirectUrl,
+  });
+
+  console.log(1111111, requestBody);
+
   const { body } = await httpRequest(provider.token, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
     },
-    body: JSON.stringify({
-      code,
-      client_id: appId,
-      client_secret: clientSecret(appId),
-      grant_type: 'authorization_code',
-      redirect_uri: redirectUrl,
-    }),
+    body: requestBody,
     throwOnError: true,
   });
 
@@ -155,9 +159,6 @@ async function upgradeAppleCode(params) {
 
   try {
     const tokenResponse = await validateGrantCode(providerSettings, code, redirectUrl);
-
-    console.log(33333, tokenResponse);
-
     const credentials = await profile.call(
       providerSettings,
       {
@@ -171,8 +172,6 @@ async function upgradeAppleCode(params) {
 
     return credentials;
   } catch (error) {
-    console.log(222222, error);
-
     throw Boom.internal(error.body?.error, undefined, error.statusCode);
   }
 }

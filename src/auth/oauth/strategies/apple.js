@@ -155,6 +155,9 @@ async function upgradeAppleCode(params) {
 
   try {
     const tokenResponse = await validateGrantCode(providerSettings, code, redirectUrl);
+
+    console.log(33333, tokenResponse);
+
     const credentials = await profile.call(
       providerSettings,
       {

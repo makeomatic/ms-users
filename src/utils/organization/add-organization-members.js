@@ -34,9 +34,12 @@ async function addMember({ password, ...member }) {
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, member.id);
   const memberOrganizations = redisKey(member.id, USERS_METADATA, audience);
 
+  const timestamp = Date.now();
+
   member.username = member.email;
-  member.invited = Date.now();
-  member.accepted = password ? Date.now() : null;
+  member.invited = timestamp;
+  member.accepted = password ? timestamp : null;
+  member.joinedAt = timestamp;
   member.permissions = member.permissions || [];
 
   const stringifyMember = mapValues(member, JSONStringify);
@@ -74,9 +77,10 @@ async function sendInvite(member) {
 /**
  * Updates metadata on a organization object
  * @param  {Object} opts
+ * @param  {Object} (Payload) {Object} - sendInvite boolean flag
  * @return {Promise}
  */
-async function addOrganizationMembers({ organizationId, members, audience }, sendInviteFlag = false) {
+async function addOrganizationMembers({ organizationId, members, audience }, options = {}) {
   const { redis } = this;
 
   const registeredMembers = [];
@@ -91,6 +95,9 @@ async function addOrganizationMembers({ organizationId, members, audience }, sen
   // Add members to organization through pipeline
   const membersKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS);
   const pipe = redis.pipeline();
+
+  const { sendInvite: sendInviteFlag } = options;
+
   organizationMembers.forEach(addMember, { organizationId, audience, pipe, membersKey });
   await pipe.exec().then(handlePipeline);
 

@@ -19,6 +19,11 @@ describe('#invite organization', function registerSuite() {
       permissions: ['member'],
     };
 
+    this.member2 = {
+      email: faker.internet.email(),
+      permissions: ['member'],
+    };
+
     this.spy = sinon.spy(generateEmail, 'call');
 
     const org = await createOrganization.call(this);
@@ -246,5 +251,59 @@ describe('#invite organization', function registerSuite() {
       name: 'HttpStatusError',
       statusCode: 404,
     });
+  });
+
+  it('register user before invitation', async function test() {
+    const opts = {
+      username: this.member2.email,
+      password: 'mynicepassword',
+      activate: true,
+      audience: 'matic.ninja',
+      metadata: {
+        service: 'craft',
+      },
+    };
+
+    const registered = await this.users.dispatch('register', { params: opts });
+    assert(registered);
+  });
+
+  it('must be able to send invite to existing member', async function test() {
+    const opts = {
+      organizationId: this.organization.id,
+      senderId: this.rootAdmin.id,
+      member: this.member2,
+    };
+
+    await this.users.dispatch('organization.invites.send', { params: opts });
+    this.member2.token = this.spy.lastCall.args[3].token;
+  });
+
+  it('must be able to accept invite of existing member', async function test() {
+    const opts = {
+      organizationId: this.organization.id,
+      member: {
+        ...this.member2,
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+      },
+      inviteToken: this.member2.token.secret,
+    };
+
+    await this.users.dispatch('organization.invites.accept', { params: opts });
+  });
+
+  it('should set joinedAt timestamp when invite accepted', async function test() {
+    const opts = {
+      organizationId: this.organization.id,
+      username: this.member2.email,
+    };
+
+    await this.users.dispatch('organization.members.get', { params: opts })
+      .then((response) => {
+        const member = response.data.attributes;
+        assert(member);
+        assert(member.joinedAt);
+      });
   });
 });

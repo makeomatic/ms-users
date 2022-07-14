@@ -92,22 +92,20 @@ async function getProfile(credentials, tokenResponse) {
 
 async function validateGrantCode(providerSettings, code, redirectUrl) {
   const { provider, appId, clientSecret } = providerSettings;
-  const requestBody = JSON.stringify({
-    code,
-    client_id: appId,
-    client_secret: clientSecret(appId),
-    grant_type: 'authorization_code',
-    redirect_uri: redirectUrl,
-  });
-
-  console.log(1111111, requestBody);
+  const form = new URLSearchParams([
+    ['code', code],
+    ['client_id', appId],
+    ['client_secret', clientSecret(appId)],
+    ['grant_type', 'authorization_code'],
+    ['redirect_uri', redirectUrl],
+  ]);
 
   const { body } = await httpRequest(provider.token, {
     method: 'POST',
     headers: {
-      'content-type': 'application/json',
+      'content-type': 'application/x-www-form-urlencoded',
     },
-    body: requestBody,
+    body: form.toString(),
     throwOnError: true,
   });
 
@@ -172,6 +170,8 @@ async function upgradeAppleCode(params) {
 
     return credentials;
   } catch (error) {
+    console.log(11111111, error);
+
     throw Boom.internal(error.body?.error, undefined, error.statusCode);
   }
 }

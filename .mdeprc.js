@@ -1,4 +1,5 @@
 const fs = require('fs')
+const uid = process.getuid()
 const { execSync } = require('child_process')
 
 try {
@@ -10,7 +11,7 @@ try {
   process.env.DOCKER_SOCKET_PATH = socket
 } catch (e) {}
 
-exports.node = "16";
+exports.node = "16.14.2";
 exports.auto_compose = true;
 exports.with_local_compose = true;
 exports.tester_flavour = "chrome-tester";
@@ -21,6 +22,7 @@ exports.docker_compose = './test/docker-compose.yml';
 exports.test_framework = 'c8 /src/node_modules/.bin/mocha';
 exports.extras = {
   tester: {
+    user: `${uid}:${uid}`,
     shm_size: '256m',
     volumes: ['${PWD}/test/configs:/configs:cached'],
     expose: ['3000'],

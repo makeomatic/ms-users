@@ -38,6 +38,34 @@ describe('/_/me', function verifySuite() {
       },
       statusCode: 403,
     });
+
+    await assert.rejects(request.get({
+      headers: {
+        authorization: 'JWT',
+      },
+    }), {
+      error: {
+        error: 'Unauthorized',
+        message: 'An attempt was made to perform an operation without authentication: Token must be present',
+        name: 'AuthenticationRequiredError',
+        statusCode: 401,
+      },
+      statusCode: 401,
+    });
+
+    await assert.rejects(request.get({
+      headers: {
+        authorization: ' stop.not.working',
+      },
+    }), {
+      error: {
+        error: 'Unauthorized',
+        message: 'An attempt was made to perform an operation without authentication: Token must be present',
+        name: 'AuthenticationRequiredError',
+        statusCode: 401,
+      },
+      statusCode: 401,
+    });
   });
 
   it('must reject on an expired JWT token', async function test() {

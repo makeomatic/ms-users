@@ -13,7 +13,7 @@ const { CloudflareWorker } = require('./utils/cloudflare/worker');
 const { ConsulWatcher } = require('./utils/consul-watcher');
 const { rule: { RevocationRulesStorage, RevocationRulesManager } } = require('./utils/stateless-jwt');
 const { JoseWrapper } = require('./utils/stateless-jwt/jwe');
-
+const { CredentialsStore } = require('./utils/credentials-store');
 /**
  * @namespace Users
  */
@@ -50,11 +50,13 @@ class Users extends Microfleet {
       audience: config.jwt.defaultAudience,
       verify: `${prefix}.verify`,
       trustedVerify: `${prefix}.verify-trusted`,
-      verifyRequestSignature: `${prefix}.verify-request-signature`,
+      apiTokenVerify: `${prefix}.verify-api-token`,
+      tokenGet: `${prefix}.token.get`,
       timeouts: {
         verify: 5000,
         trustedVerify: 5000,
-        verifyRequestSignature: 5000,
+        apiTokenVerify: 5000,
+        tokenGet: 5000,
       },
     };
 
@@ -63,6 +65,7 @@ class Users extends Microfleet {
 
     this.on('plugin:connect:amqp', (amqp) => {
       this.mailer = new Mailer(amqp, config.mailer);
+      this.credentialsStore = new CredentialsStore(amqp, config.users);
     }, 'mailer');
 
     this.on('plugin:close:amqp', () => {

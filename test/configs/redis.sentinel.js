@@ -22,4 +22,5 @@ exports.plugins = [
   'router-amqp',
   'router-hapi',
   'prometheus',
+  'signed-request',
 ];

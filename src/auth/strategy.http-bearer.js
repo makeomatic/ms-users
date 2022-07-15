@@ -8,6 +8,7 @@ function tokenAuth(request) {
       return bearer.call(this, request);
 
     default:
+      request.auth = { credentials: null };
       return null;
   }
 }

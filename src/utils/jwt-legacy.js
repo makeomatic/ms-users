@@ -12,7 +12,10 @@ const {
   USERS_MALFORMED_TOKEN,
   BEARER_USERNAME_FIELD,
   BEARER_LEGACY_USERNAME_FIELD,
+  USERS_INVALID_TOKEN,
 } = require('../constants');
+
+const { API_TOKEN_TYPE_SIGN } = require('./api-token');
 
 /**
  * Logs user in and returns JWT and User Object
@@ -133,7 +136,11 @@ exports.internal = async function verifyInternalToken(service, token) {
   // erase or expired
   const key = redisKey(USERS_API_TOKENS, payload);
   const tokenField = isLegacyToken ? BEARER_LEGACY_USERNAME_FIELD : BEARER_USERNAME_FIELD;
-  const [id, scopes] = await service.redis.hmget(key, tokenField, 'scopes');
+  const [id, scopes, type] = await service.redis.hmget(key, tokenField, 'scopes', 'type');
+
+  if (type === API_TOKEN_TYPE_SIGN) {
+    throw USERS_INVALID_TOKEN;
+  }
 
   return {
     [tokenField]: id,

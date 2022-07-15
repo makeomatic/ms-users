@@ -1,3 +1,11 @@
+## [15.6.6](https://github.com/makeomatic/ms-users/compare/v15.6.5...v15.6.6) (2022-07-15)
+
+
+### Bug Fixes
+
+* **invite:** set accepted for existing users ([#571](https://github.com/makeomatic/ms-users/issues/571)) ([8c454fe](https://github.com/makeomatic/ms-users/commit/8c454fe5b8d9984e06fba72e53d9915d8b3bfd38))
+* validate signature using raw body ([#567](https://github.com/makeomatic/ms-users/issues/567)) ([16142ca](https://github.com/makeomatic/ms-users/commit/16142caf4cfd649c16499cf8818c099310274f48))
+
 ## [15.6.5](https://github.com/makeomatic/ms-users/compare/v15.6.4...v15.6.5) (2022-07-05)
 
 

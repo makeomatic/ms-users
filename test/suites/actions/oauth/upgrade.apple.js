@@ -28,7 +28,7 @@ describe('oauth.upgrade action', function suite() {
     appleStrategyStub
       .withArgs(
         match(
-          (params) => params.code === 'c75da8efcf25f4acb80e51152fead9fad.0.srqty.7-k4X-G9bBesI_9hDFH6Xg'
+          ({ params }) => params.code === 'c75da8efcf25f4acb80e51152fead9fad.0.srqty.7-k4X-G9bBesI_9hDFH6Xg'
             && params.redirectUrl === 'https://ms-users.local/users/oauth/apple'
             && params.providerSettings.appId === 'com.test.app'
         )

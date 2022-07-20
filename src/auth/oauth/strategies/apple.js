@@ -4,6 +4,11 @@ const Bluebird = require('bluebird');
 const Boom = require('@hapi/boom');
 const { request: httpRequest } = require('undici');
 
+const {
+  ERROR_OAUTH_APPLE_VALIDATE_CODE,
+  ERROR_OAUTH_APPLE_VERIFY_PROFILE,
+} = require('../../../constants');
+
 // @todo more options from config
 const jwksClient = getJwksClient({
   jwksUri: 'https://appleid.apple.com/auth/keys',
@@ -151,13 +156,24 @@ function getProvider(options, server) {
   };
 }
 
-async function upgradeAppleCode(params) {
+async function upgradeAppleCode({ params, log }) {
   const { providerSettings, code, query, redirectUrl } = params;
   const { profile } = providerSettings.provider;
 
+  let tokenResponse;
+
   try {
-    const tokenResponse = await validateGrantCode(providerSettings, code, redirectUrl);
-    const credentials = await profile.call(
+    tokenResponse = await validateGrantCode(providerSettings, code, redirectUrl);
+  } catch (error) {
+    log.error(Boom.internal(error.body?.error, undefined, error.statusCode));
+
+    throw ERROR_OAUTH_APPLE_VALIDATE_CODE;
+  }
+
+  let credentials;
+
+  try {
+    credentials = await profile.call(
       providerSettings,
       {
         query,
@@ -167,11 +183,13 @@ async function upgradeAppleCode(params) {
       },
       tokenResponse
     );
-
-    return credentials;
   } catch (error) {
-    throw Boom.internal(error.body?.error, undefined, error.statusCode);
+    log.error(Boom.internal(error.body?.error, undefined, error.statusCode));
+
+    throw ERROR_OAUTH_APPLE_VERIFY_PROFILE;
   }
+
+  return credentials;
 }
 
 module.exports = {

@@ -111,6 +111,7 @@ async function mserviceVerification({ service, transportRequest }, credentials, 
 
   // user is authenticated and profile is attached
   if (user && userId) {
+    // @TODO code?
     throw new Errors.HttpStatusError(412, 'profile is linked');
   }
 

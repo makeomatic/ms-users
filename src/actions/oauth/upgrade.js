@@ -20,7 +20,7 @@ const appleStrategy = require('../../auth/oauth/strategies/apple');
  * @apiParam (Payload) {String} isStatelessAuth - use stateless JWT tokens when they are optional
  */
 async function upgrade(request) {
-  const { transportRequest, params, query } = request;
+  const { transportRequest, params, query, log } = request;
   const { provider, token, isStatelessAuth } = params;
 
   // fetch settings, otherwise provider is not supported
@@ -39,10 +39,13 @@ async function upgrade(request) {
 
   const credentials = provider === 'apple'
     ? await appleStrategy.upgradeAppleCode({
-      query,
-      providerSettings,
-      code: token,
-      redirectUrl: transportRequest.url.href.replace(/\/upgrade$/, '/apple').replace(/^http:\/\//, 'https://'),
+      log,
+      params: {
+        query,
+        providerSettings,
+        code: token,
+        redirectUrl: transportRequest.url.href.replace(/\/upgrade$/, '/apple').replace(/^http:\/\//, 'https://'),
+      },
     })
     : await profile.call(providerSettings, { token, query });
 

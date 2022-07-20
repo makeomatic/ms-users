@@ -89,6 +89,9 @@ module.exports = exports = {
   ErrorUserNotMember: new HttpStatusError(404, 'username not member of organization'),
   ErrorInvitationExpiredOrUsed: new HttpStatusError(400, 'Invitation has expired or already been used'),
 
+  ERROR_OAUTH_APPLE_VALIDATE_CODE: new HttpStatusError(403, 'Code validation failed'),
+  ERROR_OAUTH_APPLE_VERIFY_PROFILE: new HttpStatusError(403, 'Profile verification failed'),
+
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
   USERS_ACTION_VERIFY_CONTACT: 'verify-contact',
@@ -142,6 +145,9 @@ exports.USERS_AUDIENCE_MISMATCH.code = 'E_TKN_AUDIENCE_MISMATCH';
 exports.USERS_JWT_ACCESS_REQUIRED.code = 'E_TKN_ACCESS_TOKEN_REQUIRED';
 exports.USERS_JWT_REFRESH_REQUIRED.code = 'E_TKN_REFRESH_TOKEN_REQUIRED';
 exports.USERS_JWT_STATELESS_REQUIRED.code = 'E_STATELESS_NOT_ENABLED';
+
+exports.ERROR_OAUTH_APPLE_VALIDATE_CODE.code = 'E_VALIDATE_CODE';
+exports.ERROR_OAUTH_APPLE_VERIFY_PROFILE.code = 'E_VERIFY_PROFILE';
 
 exports.SSO_PROVIDERS = [
   exports.USERS_SSO_FACEBOOK_FIELD,

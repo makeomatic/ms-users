@@ -38,6 +38,8 @@ describe('#create organization', function registerSuite() {
 
     const response = await this.users.dispatch('organization.create', { params });
 
+    await this.users.validator.validate('organization.create.response', response);
+
     const createdOrganization = response.data.attributes;
     assert(createdOrganization.name === params.name);
     assert(createdOrganization.metadata.description === params.metadata.description);

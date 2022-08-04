@@ -64,8 +64,9 @@ describe('#verify', function verifySuite() {
 
     it('must return user object and required audiences information on a valid JWT token', async function test() {
       return this.users.dispatch('verify', { params: { token: this.token, audience: 'test' } })
-        .then((verify) => {
+        .then(async (verify) => {
           assert.ok(verify.id);
+          await this.users.validator.validate('verify.response', verify);
           expect(verify.metadata['*.localhost'].username).to.be.eq('v@makeomatic.ru');
           expect(verify.metadata.test).to.be.deep.eq({
             fine: true,

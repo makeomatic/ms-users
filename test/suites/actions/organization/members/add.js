@@ -28,7 +28,8 @@ describe('#add member to organization', function registerSuite() {
       },
     };
 
-    await this.users.dispatch('organization.members.add', { params: opts });
+    const reply = await this.users.dispatch('organization.members.add', { params: opts });
+    await this.users.validator.validate('organization.members.add.response', reply);
   });
 
   it('must return organization not found error', async function test() {

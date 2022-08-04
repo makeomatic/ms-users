@@ -28,6 +28,7 @@ describe('#register', function registerSuite() {
       };
 
       const registered = await this.users.dispatch('register', { params: opts });
+      await this.users.validator.validate('register.response', registered);
 
       assert(registered.hasOwnProperty('jwt'));
       assert(registered.hasOwnProperty('user'));
@@ -40,7 +41,7 @@ describe('#register', function registerSuite() {
       assert.ifError(registered.user.audience);
     });
 
-    it('must be able to create user with alias', function test() {
+    it('must be able to create user with alias', async function test() {
       const opts = {
         username: 'v@makeomatic.ru',
         audience: 'matic.ninja',
@@ -50,19 +51,20 @@ describe('#register', function registerSuite() {
         },
       };
 
-      return this.users.dispatch('register', { params: opts })
-        .then((registered) => {
-          assert(registered.hasOwnProperty('jwt'));
-          assert(registered.hasOwnProperty('user'));
-          assert.ok(registered.user.id);
-          assert(registered.user.hasOwnProperty('metadata'));
-          assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
-          assert(registered.user.metadata.hasOwnProperty('*.localhost'));
-          assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
-          assert.equal(registered.user.metadata['*.localhost'].alias, opts.alias);
-          assert.ifError(registered.user.password);
-          assert.ifError(registered.user.audience);
-        });
+      const registered = this.users.dispatch('register', { params: opts });
+
+      await this.users.validator.validate('register.response', registered);
+
+      assert(registered.hasOwnProperty('jwt'));
+      assert(registered.hasOwnProperty('user'));
+      assert.ok(registered.user.id);
+      assert(registered.user.hasOwnProperty('metadata'));
+      assert(registered.user.metadata.hasOwnProperty('matic.ninja'));
+      assert(registered.user.metadata.hasOwnProperty('*.localhost'));
+      assert.equal(registered.user.metadata['*.localhost'].username, opts.username);
+      assert.equal(registered.user.metadata['*.localhost'].alias, opts.alias);
+      assert.ifError(registered.user.password);
+      assert.ifError(registered.user.audience);
     });
 
     describe('must reject creating user', function suite() {
@@ -102,6 +104,7 @@ describe('#register', function registerSuite() {
       };
 
       const registered = await this.users.dispatch('register', { params: opts });
+      await this.users.validator.validate('register.response', registered);
 
       console.info('%j', registered);
 
@@ -135,7 +138,10 @@ describe('#register', function registerSuite() {
         },
       };
 
-      const { requiresActivation, id } = await this.users.dispatch('register', { params: opts });
+      const reply = await this.users.dispatch('register', { params: opts });
+      const { requiresActivation, id } = reply;
+
+      await this.users.validator.validate('register.response', reply);
 
       assert.ok(id);
       assert.equal(requiresActivation, true);

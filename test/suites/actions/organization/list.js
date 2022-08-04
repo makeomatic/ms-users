@@ -25,21 +25,22 @@ describe('#organizations list', function registerSuite() {
 
     await Promise.all(jobs);
 
-    return this.users.dispatch('organization.list', { params: opts })
-      .then(({ data, meta }) => {
-        assert.equal(meta.total, organizationsLength);
-        assert.equal(meta.cursor, opts.limit + opts.offset);
-        assert.equal(meta.page, 1);
-        assert.equal(meta.pages, organizationsLength / opts.limit);
-        data.forEach((organization) => {
-          expect(organization).to.have.ownProperty('id');
-          expect(organization).to.have.ownProperty('type');
-          expect(organization.attributes).to.have.ownProperty('id');
-          expect(organization.attributes).to.have.ownProperty('name');
-          expect(organization.attributes).to.have.ownProperty('active');
-          expect(organization.attributes).to.have.ownProperty('metadata');
-        });
-      });
+    const reply = await this.users.dispatch('organization.list', { params: opts });
+    await this.users.validator.validate('organization.list.response', reply);
+    const { data, meta } = reply;
+
+    assert.equal(meta.total, organizationsLength);
+    assert.equal(meta.cursor, opts.limit + opts.offset);
+    assert.equal(meta.page, 1);
+    assert.equal(meta.pages, organizationsLength / opts.limit);
+    data.forEach((organization) => {
+      expect(organization).to.have.ownProperty('id');
+      expect(organization).to.have.ownProperty('type');
+      expect(organization.attributes).to.have.ownProperty('id');
+      expect(organization.attributes).to.have.ownProperty('name');
+      expect(organization.attributes).to.have.ownProperty('active');
+      expect(organization.attributes).to.have.ownProperty('metadata');
+    });
   });
 
   it('must be able to return organizations by filter ', async function test() {

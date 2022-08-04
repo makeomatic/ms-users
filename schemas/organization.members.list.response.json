@@ -1,0 +1,18 @@
+{
+  "$id": "organization.members.list.response",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common.response#/definitions/organization-id"
+    },
+    "type": {
+      "type": "string"
+    },
+    "attributes": {
+      "type": "array",
+      "items": {
+        "$ref": "common.response#/definitions/organizationMember"
+      }
+    }
+  }
+}

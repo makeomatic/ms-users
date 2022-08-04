@@ -45,3 +45,4 @@ ss
 .npmrc
 /.idea
 /local
+/v8-compile-cache-0

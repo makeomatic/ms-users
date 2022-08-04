@@ -25,11 +25,11 @@ describe('#get organization member', function registerSuite() {
       username: this.userNames[0].email,
     };
 
-    await this.users.dispatch('organization.members.get', { params: opts })
-      .then((response) => {
-        expect(response.data).to.have.ownProperty('id');
-        expect(response.data).to.have.ownProperty('type');
-        assert.deepEqual(response.data.attributes.username, opts.username);
-      });
+    const reply = await this.users.dispatch('organization.members.get', { params: opts });
+    await this.users.validator.validate('organization.members.get.response', reply);
+
+    expect(reply.data).to.have.ownProperty('id');
+    expect(reply.data).to.have.ownProperty('type');
+    assert.deepEqual(reply.data.attributes.username, opts.username);
   });
 });

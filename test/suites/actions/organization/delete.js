@@ -24,7 +24,8 @@ describe('#delete organization', function registerSuite() {
     const params = {
       organizationId: this.organization.id,
     };
-    await this.users.dispatch('organization.delete', { params });
+    const reply = await this.users.dispatch('organization.delete', { params });
+    await this.users.validator.validate('organization.delete.response', reply);
   });
 
   it('must return organization not exists error', async function test() {

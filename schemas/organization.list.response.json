@@ -1,0 +1,29 @@
+{
+  "$id": "organization.list.response",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "common.response#/definitions/organization"
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "cursor": {
+          "type": "number"
+        },
+        "page": {
+          "type": "number"
+        },
+        "pages": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

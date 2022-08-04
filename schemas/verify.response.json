@@ -1,0 +1,49 @@
+{
+  "$id": "verify.response",
+  "type": "object",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "created": {
+                "type": "number"
+              },
+              "aa": {
+                "type": "number"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "fine": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "mfa": {
+      "type": "boolean"
+    }
+  }
+}

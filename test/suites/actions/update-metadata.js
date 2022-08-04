@@ -23,14 +23,13 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('must be able to add metadata for a single audience of an existing user', async function test() {
-    return this.users.dispatch('updateMetadata', { params: { username, audience, metadata: { $set: { x: 10 } } } });
+    const reply = await this.users.dispatch('updateMetadata', { params: { username, audience, metadata: { $set: { x: 10 } } } });
+    await this.users.validator.validate('updateMetadata.response', reply);
   });
 
   it('must be able to remove metadata for a single audience of an existing user', async function test() {
-    return this.users.dispatch('updateMetadata', { params: { username, audience, metadata: { $remove: ['x'] } } })
-      .then((data) => {
-        expect(data.$remove).to.be.eq(0);
-      });
+    const reply = await this.users.dispatch('updateMetadata', { params: { username, audience, metadata: { $remove: ['x'] } } });
+    await this.users.validator.validate('updateMetadata.response', reply);
   });
 
   it('rejects on mismatch of audience & metadata arrays', async function test() {
@@ -45,7 +44,7 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('must be able to perform batch operations for multiple audiences of an existing user', async function test() {
-    return this.users.dispatch('updateMetadata', { params: {
+    const reply = await this.users.dispatch('updateMetadata', { params: {
       username,
       audience: [
         audience,
@@ -66,14 +65,8 @@ describe('#updateMetadata', function getMetadataSuite() {
           },
         },
       ],
-    } })
-      .then((data) => {
-        const [mainData, extraData] = data;
-
-        expect(mainData.$set).to.be.eq('OK');
-        expect(mainData.$incr.b).to.be.eq(2);
-        expect(extraData.$incr.b).to.be.eq(3);
-      });
+    } });
+    await this.users.validator.validate('updateMetadata.response', reply);
   });
 
   it('must be able to run dynamic scripts', async function test() {
@@ -88,13 +81,11 @@ describe('#updateMetadata', function getMetadataSuite() {
       },
     };
 
-    return this.users.dispatch('updateMetadata', { params })
-      .then((data) => {
-        expect(data.balance).to.be.deep.eq([
-          `{ms-users}${this.userId}!metadata!${audience}`,
-          `{ms-users}${this.userId}!metadata!${extra}`,
-          'nom-nom',
-        ]);
-      });
+    const reply = await this.users.dispatch('updateMetadata', { params });
+    expect(reply.balance).to.be.deep.eq([
+      `{ms-users}${this.userId}!metadata!${audience}`,
+      `{ms-users}${this.userId}!metadata!${extra}`,
+      'nom-nom',
+    ]);
   });
 });

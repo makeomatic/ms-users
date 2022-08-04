@@ -61,9 +61,9 @@ describe('#login', function loginSuite() {
           .dispatch('alias', { params: { username: userWithValidPassword.username, alias } });
       });
 
-      it('allows to sign in with a valid alias', () => {
-        return this.users
-          .dispatch('login', { params: { ...userWithValidPassword, username: alias } });
+      it('allows to sign in with a valid alias', async () => {
+        const reply = await this.users.dispatch('login', { params: { ...userWithValidPassword, username: alias } });
+        await this.users.validator.validate('login.response', reply);
       });
     });
 
@@ -81,19 +81,19 @@ describe('#login', function loginSuite() {
       });
     });
 
-    it('must login on a valid account with correct credentials', () => {
-      return this.users
-        .dispatch('login', { params: userWithValidPassword });
+    it('must login on a valid account with correct credentials', async () => {
+      const reply = await this.users.dispatch('login', { params: userWithValidPassword });
+      await this.users.validator.validate('login.response', reply);
     });
 
-    it('must login on a valid account without password with isSSO: true', () => {
+    it('must login on a valid account without password with isSSO: true', async () => {
       const ssoUser = {
         ...omit(userWithValidPassword, ['password']),
         isSSO: true,
       };
 
-      return this.users
-        .dispatch('login', { params: ssoUser });
+      const reply = await this.users.dispatch('login', { params: ssoUser });
+      await this.users.validator.validate('login.response', reply);
     });
 
     it('should reject signing in with bogus or expired disposable password', async () => {
@@ -159,6 +159,8 @@ describe('#login', function loginSuite() {
       };
 
       response = await this.users.dispatch('login', { params });
+
+      await this.users.validator.validate('login.response', response);
 
       assert.ok(response.jwt);
       assert.ok(response.user.id);

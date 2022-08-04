@@ -1,0 +1,12 @@
+{
+  "$id": "organization.get.response",
+  "type": "object",
+  "required": [
+    "data"
+  ],
+  "properties": {
+    "data": {
+      "$ref": "common.response#/definitions/organization"
+    }
+  }
+}

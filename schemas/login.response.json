@@ -1,0 +1,66 @@
+{
+  "$id": "login.response",
+  "type": "object",
+  "required": [
+    "jwt",
+    "user"
+  ],
+  "properties": {
+    "jwt": {
+      "type": "string"
+    },
+    "jwtRefresh": {
+      "type": "string"
+    },
+    "user": {
+      "type": "object",
+      "required": [
+        "id",
+        "metadata"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "username"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "firstName": {
+                "type": "string"
+              },
+              "lastName": {
+                "type": "string"
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "created": {
+                "type": "number"
+              },
+              "aa": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "mfa": {
+      "type": "boolean"
+    }
+  }
+}

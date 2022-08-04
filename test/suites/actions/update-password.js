@@ -68,10 +68,9 @@ describe('#updatePassword', function updatePasswordSuite() {
     it('must update password with a valid username/password combination and different newPassword', async function test() {
       const params = { username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0' };
 
-      return this.users.dispatch('updatePassword', { params })
-        .then((updatePassword) => {
-          expect(updatePassword).to.be.deep.eq({ success: true });
-        });
+      const reply = await this.users.dispatch('updatePassword', { params });
+      await this.users.validator.validate('updatePassword.response', reply);
+      expect(reply).to.be.deep.eq({ success: true });
     });
 
     describe('token', function tokenSuite() {
@@ -103,6 +102,7 @@ describe('#updatePassword', function updatePasswordSuite() {
         );
         const hashedPassword = await redis.hget(`${this.userId}!data`, 'password');
 
+        await this.users.validator.validate('updatePassword.response', result);
         deepStrictEqual(result, { success: true });
         strictEqual(hashedPassword.startsWith('scrypt'), true);
         strictEqual(hashedPassword.length > 50, true);
@@ -124,6 +124,7 @@ describe('#updatePassword', function updatePasswordSuite() {
           { resetToken: this.token, newPassword: 'vvv', remoteip: '10.0.0.1' }
         );
 
+        await this.users.validator.validate('updatePassword.response', result);
         deepStrictEqual(result, { success: true });
 
         strictEqual(await redis.zrange(`${this.userId}!ip!10.0.0.1`, 0, -1).get('length'), 0);

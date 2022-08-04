@@ -1,0 +1,9 @@
+{
+  "$id": "logout.response",
+  "type": "object",
+  "properties": {
+    "success": {
+      "type": "boolean"
+    }
+  }
+}

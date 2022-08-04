@@ -1,0 +1,7 @@
+{
+  "$id": "remove.response",
+  "type": "array",
+  "items": {
+    "type": "number"
+  }
+}

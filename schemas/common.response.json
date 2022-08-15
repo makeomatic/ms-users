@@ -126,7 +126,7 @@
           "type": "number"
         },
         "accepted": {
-          "type": "number"
+          "type": ["number", "null"]
         },
         "joinedAt": {
           "type": "number"

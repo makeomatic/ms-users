@@ -22,6 +22,12 @@
               "username": {
                 "type": "string"
               },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "created": {
                 "type": "number"
               },

@@ -31,5 +31,7 @@ async function addOrganizationMember({ params }) {
 }
 
 addOrganizationMember.allowed = checkOrganizationExists;
+addOrganizationMember.validateResponse = true;
+addOrganizationMember.responseSchema = 'organization.members.add.response';
 addOrganizationMember.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = addOrganizationMember;

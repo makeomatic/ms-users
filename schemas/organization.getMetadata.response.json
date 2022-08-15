@@ -1,0 +1,20 @@
+{
+  "$id": "organization.getMetadata.response",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "attributes": {
+          "$ref": "common.response#/definitions/organization-attributes-metadata"
+        }
+      }
+    }
+  }
+}

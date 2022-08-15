@@ -44,4 +44,6 @@ module.exports = function disposablePassword(request) {
     });
 };
 
+module.exports.validateResponse = false;
+
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

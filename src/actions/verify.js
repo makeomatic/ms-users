@@ -38,6 +38,8 @@ async function Verify({ params }) {
   });
 }
 
+Verify.validateResponse = true;
+Verify.responseSchema = 'verify.response';
 Verify.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = Verify;

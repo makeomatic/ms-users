@@ -40,6 +40,7 @@ appleCallbackAction.allowed = isAllowed;
 appleCallbackAction.auth = 'oauth';
 appleCallbackAction.strategy = 'apple';
 appleCallbackAction.passAuthError = true;
+appleCallbackAction.validateResponse = false;
 appleCallbackAction.transports = [ActionTransport.http];
 
 module.exports = appleCallbackAction;

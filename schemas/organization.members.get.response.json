@@ -1,0 +1,9 @@
+{
+  "$id": "organization.members.get.response",
+  "type": "object",
+  "properties": {
+    "data": {
+      "$ref": "common.response#/definitions/organizationMember"
+    }
+  }
+}

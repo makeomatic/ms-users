@@ -24,6 +24,7 @@ async function getToken({ params }) {
   return getApiToken(this, tokenBody, sensitive);
 }
 
+getToken.validateResponse = false;
 getToken.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = getToken;

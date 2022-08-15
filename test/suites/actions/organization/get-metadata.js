@@ -24,11 +24,9 @@ describe('#organization members metadata', function registerSuite() {
       organizationId: this.organization.id,
     };
 
-    return this.users.dispatch('organization.getMetadata', { params: opts })
-      .then((response) => {
-        assert.ok(response.data.attributes);
-        assert.deepEqual(response.data.attributes, this.organization.metadata);
-      });
+    const reply = await this.users.dispatch('organization.getMetadata', { params: opts });
+    assert.ok(reply.data.attributes);
+    assert.deepEqual(reply.data.attributes, this.organization.metadata);
   });
 
   it('must return organization not found error', async function test() {

@@ -23,4 +23,5 @@ module.exports = async function add({ params: { username, contact, skipChallenge
   };
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

@@ -38,5 +38,7 @@ async function getOrganization({ params }) {
 }
 
 getOrganization.allowed = checkOrganizationExists;
+getOrganization.validateResponse = true;
+getOrganization.responseSchema = 'organization.get.response';
 getOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = getOrganization;

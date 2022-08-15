@@ -51,6 +51,7 @@ function regenerateCodes({ locals }) {
 regenerateCodes.mfa = MFA_TYPE_REQUIRED;
 regenerateCodes.allowed = checkMFA;
 regenerateCodes.auth = 'httpBearer';
+regenerateCodes.validateResponse = false;
 regenerateCodes.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
 regenerateCodes.transportOptions = {
   [ActionTransport.http]: {

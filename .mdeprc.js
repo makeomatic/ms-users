@@ -46,11 +46,11 @@ exports.post_exec = 'pnpm exec -- c8 report -r text -r lcov';
 switch (process.env.DB_SRV) {
   case 'redisCluster':
     exports.services = ['rabbitmq', 'redisCluster'];
-    exports.extras.tester.environment.NCONF_FILE_PATH = '["/configs/amqp.js","/configs/core.js","/configs/redis.cluster.js"]';
+    exports.extras.tester.environment.NCONF_FILE_PATH = '["/configs/amqp.js","/configs/core.js","/configs/router.js","/configs/redis.cluster.js"]';
     break;
   case 'redisSentinel':
     exports.services = ['rabbitmq', 'redisSentinel'];
-    exports.extras.tester.environment.NCONF_FILE_PATH = '["/configs/amqp.js","/configs/core.js","/configs/redis.sentinel.js"]';
+    exports.extras.tester.environment.NCONF_FILE_PATH = '["/configs/amqp.js","/configs/core.js","/configs/router.js","/configs/redis.sentinel.js"]';
     break;
 }
 

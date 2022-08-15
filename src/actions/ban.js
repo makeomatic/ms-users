@@ -73,4 +73,6 @@ module.exports = function banUser(request) {
     .then(handlePipeline);
 };
 
+module.exports.validateResponse = false;
+
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

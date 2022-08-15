@@ -41,4 +41,5 @@ module.exports = function isReferral({ params }) {
     .catchReturn(false);
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

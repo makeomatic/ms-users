@@ -44,5 +44,5 @@ async function Verify({ params }) {
 }
 
 Verify.transports = [ActionTransport.amqp, ActionTransport.internal];
-
+Verify.validateResponse = false;
 module.exports = Verify;

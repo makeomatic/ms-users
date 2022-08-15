@@ -59,4 +59,5 @@ module.exports = function requestPassword(request) {
     .return({ success: true });
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

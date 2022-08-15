@@ -33,6 +33,6 @@ describe('#remove', function registerSuite() {
   });
 
   it('must remove registered user', async function test() {
-    return this.users.dispatch('remove', { params: { username: 'normal-1@me.com' } });
+    await this.users.dispatch('remove', { params: { username: 'normal-1@me.com' } });
   });
 });

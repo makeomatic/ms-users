@@ -45,5 +45,6 @@ async function listOrganizationInvite({ params }) {
 }
 
 listOrganizationInvite.allowed = checkOrganizationExists;
+listOrganizationInvite.validateResponse = false;
 listOrganizationInvite.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = listOrganizationInvite;

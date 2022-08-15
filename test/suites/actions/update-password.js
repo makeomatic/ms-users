@@ -68,10 +68,8 @@ describe('#updatePassword', function updatePasswordSuite() {
     it('must update password with a valid username/password combination and different newPassword', async function test() {
       const params = { username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0' };
 
-      return this.users.dispatch('updatePassword', { params })
-        .then((updatePassword) => {
-          expect(updatePassword).to.be.deep.eq({ success: true });
-        });
+      const reply = await this.users.dispatch('updatePassword', { params });
+      expect(reply).to.be.deep.eq({ success: true });
     });
 
     describe('token', function tokenSuite() {

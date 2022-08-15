@@ -54,21 +54,25 @@ describe('#admins', function verifySuite() {
       password: 'megalongsuperpasswordfortest',
       username: 'admin0@x.com',
     } });
+
+    assert.ok(admin0.jwt);
+    assert.ok(admin0.user.metadata['*.localhost'].roles.includes('admin'));
+
     const admin1 = await service.dispatch('login', { params: {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
       username: 'admin1@x.com',
     } });
+
+    assert.ok(admin1.jwt);
+    assert.ok(admin1.user.metadata['*.localhost'].roles.includes('admin'));
+
     const user0 = await service.dispatch('login', { params: {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
       username: 'user0@x.com',
     } });
 
-    assert.ok(admin0.jwt);
-    assert.ok(admin0.user.metadata['*.localhost'].roles.includes('admin'));
-    assert.ok(admin1.jwt);
-    assert.ok(admin1.user.metadata['*.localhost'].roles.includes('admin'));
     assert.ok(user0.jwt);
     assert.equal(user0.user.metadata['*.localhost'].roles.length, 0);
   });

@@ -37,4 +37,5 @@ module.exports = async function storeReferral({ params }) {
   return handlePipeline(await pipeline.exec());
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

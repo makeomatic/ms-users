@@ -1,0 +1,42 @@
+{
+  "$id": "updateMetadata.response",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "$set": {
+          "type": "string"
+        },
+        "$remove": {
+          "type": "number"
+        },
+        "$incr": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "$set": {
+            "type": "string"
+          },
+          "$remove": {
+            "type": "number"
+          },
+          "$incr": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

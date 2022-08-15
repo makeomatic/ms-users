@@ -27,6 +27,7 @@ function verify() {
 
 verify.mfa = MFA_TYPE_REQUIRED;
 verify.allowed = checkMFA;
+verify.validateResponse = false;
 verify.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = verify;

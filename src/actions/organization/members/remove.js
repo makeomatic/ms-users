@@ -43,5 +43,6 @@ async function removeMember({ params }) {
 }
 
 removeMember.allowed = checkOrganizationExists;
+removeMember.validateResponse = false;
 removeMember.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = removeMember;

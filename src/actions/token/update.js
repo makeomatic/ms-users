@@ -35,6 +35,7 @@ async function updateToken({ params }) {
   return token;
 }
 
+updateToken.validateResponse = false;
 updateToken.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = updateToken;

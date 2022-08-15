@@ -44,5 +44,7 @@ async function organizationMembersList({ params }) {
 }
 
 organizationMembersList.allowed = checkOrganizationExists;
+organizationMembersList.validateResponse = true;
+organizationMembersList.responseSchema = 'organization.members.list.response';
 organizationMembersList.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = organizationMembersList;

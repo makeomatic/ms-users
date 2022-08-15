@@ -22,4 +22,5 @@ module.exports = async function verifyEmail({ params: { secret } }) {
   };
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

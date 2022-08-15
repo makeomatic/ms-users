@@ -48,5 +48,6 @@ async function updateMemberData({ params }) {
 }
 
 updateMemberData.allowed = checkOrganizationExists;
+updateMemberData.validateResponse = false;
 updateMemberData.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = updateMemberData;

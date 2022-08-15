@@ -439,6 +439,6 @@ module.exports.allowed = async function transformSSO({ params }) {
 
   return null;
 };
-
-// init transport
+module.exports.validateResponse = true;
+module.exports.responseSchema = 'register.response';
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

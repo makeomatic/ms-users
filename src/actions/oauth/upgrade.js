@@ -67,6 +67,7 @@ async function upgrade(request) {
   return formOAuthResponse(this, request, associatedUserData);
 }
 
+upgrade.validateResponse = false;
 upgrade.transports = [ActionTransport.http];
 upgrade.transportOptions = {
   [ActionTransport.http]: {

@@ -23,5 +23,6 @@ async function revokeOrganizationInvite({ params }) {
 }
 
 revokeOrganizationInvite.allowed = checkOrganizationExists;
+revokeOrganizationInvite.validateResponse = false;
 revokeOrganizationInvite.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = revokeOrganizationInvite;

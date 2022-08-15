@@ -62,6 +62,7 @@ function attach({ params, locals }) {
 attach.mfa = MFA_TYPE_DISABLED;
 attach.allowed = checkMFA;
 attach.auth = 'httpBearer';
+attach.validateResponse = false;
 attach.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
 attach.transportOptions = {
   [ActionTransport.http]: {

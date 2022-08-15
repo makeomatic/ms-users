@@ -23,11 +23,10 @@ describe('#organization members list', function registerSuite() {
       organizationId: this.organization.id,
     };
 
-    return this.users.dispatch('organization.members.list', { params: opts })
-      .then((response) => {
-        assert.ok(response.data.attributes);
-        assert.equal(response.data.attributes.length, 5);
-      });
+    const reply = await this.users.dispatch('organization.members.list', { params: opts });
+
+    assert.ok(reply.data.attributes);
+    assert.equal(reply.data.attributes.length, 5);
   });
 
   it('must return organization not found error', async function test() {

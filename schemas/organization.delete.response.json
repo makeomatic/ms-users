@@ -1,0 +1,4 @@
+{
+  "$id": "organization.delete.response",
+  "type": "array"
+}

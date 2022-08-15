@@ -18,4 +18,5 @@ module.exports = async function remove({ params }) {
   return contacts.remove.call(this, { contact: params.contact, userId });
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

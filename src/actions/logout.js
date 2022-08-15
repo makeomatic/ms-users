@@ -21,6 +21,8 @@ function logout({ params }) {
     .spread(jwt.logout);
 }
 
+logout.validateResponse = true;
+logout.responseSchema = 'logout.response';
 logout.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = logout;

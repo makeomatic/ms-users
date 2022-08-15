@@ -1,0 +1,137 @@
+{
+  "$id": "common.response",
+  "definitions": {
+    "organization": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "attributes"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/organization-id"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["organization"]
+        },
+        "attributes": {
+          "$ref": "#/definitions/organization-attributes"
+        }
+      }
+    },
+    "organization-id": {
+      "type": "string"
+    },
+    "organization-attributes": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/organization-id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "created": {
+          "type": "number"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string"
+              },
+              "firstName": {
+                "type": "string"
+              },
+              "lastName": {
+                "type": "string"
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "metadata": {
+          "$ref": "#/definitions/organization-attributes-metadata"
+        }
+      }
+    },
+    "organization-attributes-metadata": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        }
+      }
+    },
+    "organizationMember": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "attributes"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/organizationMember-id"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["organizationMember"]
+        },
+        "attributes":{
+          "$ref": "#/definitions/organizationMember-attributes"
+        }
+      }
+    },
+    "organizationMember-id": {
+      "type": "string"
+    },
+    "organizationMember-attributes": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/organizationMember-id"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invited": {
+          "type": "number"
+        },
+        "accepted": {
+          "type": ["number", "null"]
+        },
+        "joinedAt": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

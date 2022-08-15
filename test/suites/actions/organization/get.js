@@ -21,10 +21,8 @@ describe('#get organization', function registerSuite() {
 
   it('must be able to get organization', async function test() {
     const { invites, ...organization } = this.organization;
-    return this.users.dispatch('organization.get', { params: { organizationId: this.organization.id } })
-      .then((response) => {
-        assert.deepEqual(response.data.attributes, organization);
-      });
+    const reply = await this.users.dispatch('organization.get', { params: { organizationId: this.organization.id } });
+    assert.deepEqual(reply.data.attributes, organization);
   });
 
   it('must return organization not found error', async function test() {

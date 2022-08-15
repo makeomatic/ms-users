@@ -20,6 +20,7 @@ async function refreshToken({ params }) {
   return jwt.refresh.call(this, token, audience);
 }
 
+refreshToken.validateResponse = false;
 refreshToken.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = refreshToken;

@@ -56,6 +56,7 @@ function detach({ locals }) {
 detach.mfa = MFA_TYPE_REQUIRED;
 detach.allowed = checkMFA;
 detach.auth = 'httpBearer';
+detach.validateResponse = false;
 detach.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
 detach.transportOptions = {
   [ActionTransport.http]: {
@@ -64,3 +65,4 @@ detach.transportOptions = {
 };
 
 module.exports = detach;
+module.exports.validateResponse = false;

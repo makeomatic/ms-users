@@ -90,4 +90,6 @@ async function assignAlias({ params }) {
 
 assignAlias.transports = [ActionTransport.amqp, ActionTransport.internal];
 
+assignAlias.validateResponse = false;
+
 module.exports = assignAlias;

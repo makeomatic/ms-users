@@ -145,5 +145,7 @@ async function getOrganizationsList({ params }) {
   };
 }
 
+getOrganizationsList.validateResponse = true;
+getOrganizationsList.responseSchema = 'organization.list.response';
 getOrganizationsList.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = getOrganizationsList;

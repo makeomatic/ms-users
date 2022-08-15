@@ -34,4 +34,5 @@ module.exports = async function removeInvite({ params }) {
   }
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

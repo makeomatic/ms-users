@@ -95,6 +95,7 @@ function listTokens({ params }) {
     .then(getList);
 }
 
+listTokens.validateResponse = false;
 listTokens.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = listTokens;

@@ -1,17 +1,12 @@
 /* global startService */
 
 const { strict: assert } = require('assert');
-const { join } = require('path');
-
-const { Validator } = require('@microfleet/validation');
 
 describe('#admins', function verifySuite() {
   const constants = require('../../../src/constants');
   const ctx = {};
 
   let service;
-
-  const validator = new Validator(join(__dirname, '../../../schemas'));
 
   before(async () => {
     service = await startService.call(ctx, {
@@ -59,25 +54,25 @@ describe('#admins', function verifySuite() {
       password: 'megalongsuperpasswordfortest',
       username: 'admin0@x.com',
     } });
+
+    assert.ok(admin0.jwt);
+    assert.ok(admin0.user.metadata['*.localhost'].roles.includes('admin'));
+
     const admin1 = await service.dispatch('login', { params: {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
       username: 'admin1@x.com',
     } });
+
+    assert.ok(admin1.jwt);
+    assert.ok(admin1.user.metadata['*.localhost'].roles.includes('admin'));
+
     const user0 = await service.dispatch('login', { params: {
       audience: '*.localhost',
       password: 'megalongsuperpasswordfortest',
       username: 'user0@x.com',
     } });
 
-    await validator.validate('login.response', admin0);
-    await validator.validate('login.response', admin1);
-    await validator.validate('login.response', user0);
-
-    assert.ok(admin0.jwt);
-    assert.ok(admin0.user.metadata['*.localhost'].roles.includes('admin'));
-    assert.ok(admin1.jwt);
-    assert.ok(admin1.user.metadata['*.localhost'].roles.includes('admin'));
     assert.ok(user0.jwt);
     assert.equal(user0.user.metadata['*.localhost'].roles.length, 0);
   });

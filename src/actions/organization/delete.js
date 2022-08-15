@@ -54,5 +54,7 @@ async function deleteOrganization({ params }) {
 }
 
 deleteOrganization.allowed = checkOrganizationExists;
+deleteOrganization.validateResponse = true;
+deleteOrganization.responseSchema = 'organization.delete.response';
 deleteOrganization.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = deleteOrganization;

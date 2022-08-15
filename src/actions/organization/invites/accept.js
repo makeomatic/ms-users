@@ -59,6 +59,7 @@ async function acceptOrganizationMember({ params }) {
 }
 
 acceptOrganizationMember.allowed = checkOrganizationExists;
+acceptOrganizationMember.validateResponse = false;
 acceptOrganizationMember.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = acceptOrganizationMember;

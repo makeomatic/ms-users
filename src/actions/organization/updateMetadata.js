@@ -50,5 +50,6 @@ async function updateOrganizationMetadata({ params }) {
 }
 
 updateOrganizationMetadata.allowed = checkOrganizationExists;
+updateOrganizationMetadata.validateResponse = false;
 updateOrganizationMetadata.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = updateOrganizationMetadata;

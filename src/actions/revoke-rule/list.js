@@ -12,5 +12,5 @@ async function listRevokeRules({ params }) {
 }
 
 listRevokeRules.transports = [ActionTransport.amqp, ActionTransport.internal];
-
+listRevokeRules.validateResponse = false;
 module.exports = listRevokeRules;

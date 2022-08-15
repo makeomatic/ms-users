@@ -26,7 +26,6 @@ describe('#get organization member', function registerSuite() {
     };
 
     const reply = await this.users.dispatch('organization.members.get', { params: opts });
-    await this.users.validator.validate('organization.members.get.response', reply);
 
     expect(reply.data).to.have.ownProperty('id');
     expect(reply.data).to.have.ownProperty('type');

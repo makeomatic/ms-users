@@ -25,8 +25,6 @@ describe('#organization members list', function registerSuite() {
 
     const reply = await this.users.dispatch('organization.members.list', { params: opts });
 
-    await this.users.validator.validate('organization.members.list.response', reply);
-
     assert.ok(reply.data.attributes);
     assert.equal(reply.data.attributes.length, 5);
   });

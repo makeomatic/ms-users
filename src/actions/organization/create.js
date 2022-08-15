@@ -140,3 +140,5 @@ createOrganizationAction.allowed = async function checkOrganizationExistsConflic
 };
 
 module.exports = createOrganizationAction;
+module.exports.validateResponse = true;
+module.exports.responseSchema = 'organization.create.response';

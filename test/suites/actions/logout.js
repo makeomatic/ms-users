@@ -30,8 +30,6 @@ describe('#logout', function logoutSuite() {
     const logout = await this.users
       .dispatch('logout', { params: { jwt: token, audience } });
 
-    await this.users.validator.validate('logout.response', logout);
-
     assert.deepStrictEqual(logout, { success: true });
 
     await assert.rejects(this.users

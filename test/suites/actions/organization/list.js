@@ -26,7 +26,6 @@ describe('#organizations list', function registerSuite() {
     await Promise.all(jobs);
 
     const reply = await this.users.dispatch('organization.list', { params: opts });
-    await this.users.validator.validate('organization.list.response', reply);
     const { data, meta } = reply;
 
     assert.equal(meta.total, organizationsLength);

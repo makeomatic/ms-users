@@ -69,7 +69,6 @@ describe('#updatePassword', function updatePasswordSuite() {
       const params = { username, currentPassword: password, newPassword: 'vvv', remoteip: '10.0.0.0' };
 
       const reply = await this.users.dispatch('updatePassword', { params });
-      await this.users.validator.validate('updatePassword.response', reply);
       expect(reply).to.be.deep.eq({ success: true });
     });
 
@@ -102,7 +101,6 @@ describe('#updatePassword', function updatePasswordSuite() {
         );
         const hashedPassword = await redis.hget(`${this.userId}!data`, 'password');
 
-        await this.users.validator.validate('updatePassword.response', result);
         deepStrictEqual(result, { success: true });
         strictEqual(hashedPassword.startsWith('scrypt'), true);
         strictEqual(hashedPassword.length > 50, true);
@@ -124,7 +122,6 @@ describe('#updatePassword', function updatePasswordSuite() {
           { resetToken: this.token, newPassword: 'vvv', remoteip: '10.0.0.1' }
         );
 
-        await this.users.validator.validate('updatePassword.response', result);
         deepStrictEqual(result, { success: true });
 
         strictEqual(await redis.zrange(`${this.userId}!ip!10.0.0.1`, 0, -1).get('length'), 0);

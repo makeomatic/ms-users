@@ -28,7 +28,6 @@ describe('#register', function registerSuite() {
       };
 
       const registered = await this.users.dispatch('register', { params: opts });
-      await this.users.validator.validate('register.response', registered);
 
       assert(registered.hasOwnProperty('jwt'));
       assert(registered.hasOwnProperty('user'));
@@ -51,9 +50,7 @@ describe('#register', function registerSuite() {
         },
       };
 
-      const registered = this.users.dispatch('register', { params: opts });
-
-      await this.users.validator.validate('register.response', registered);
+      const registered = await this.users.dispatch('register', { params: opts });
 
       assert(registered.hasOwnProperty('jwt'));
       assert(registered.hasOwnProperty('user'));
@@ -104,7 +101,6 @@ describe('#register', function registerSuite() {
       };
 
       const registered = await this.users.dispatch('register', { params: opts });
-      await this.users.validator.validate('register.response', registered);
 
       console.info('%j', registered);
 
@@ -140,8 +136,6 @@ describe('#register', function registerSuite() {
 
       const reply = await this.users.dispatch('register', { params: opts });
       const { requiresActivation, id } = reply;
-
-      await this.users.validator.validate('register.response', reply);
 
       assert.ok(id);
       assert.equal(requiresActivation, true);

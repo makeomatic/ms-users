@@ -29,4 +29,6 @@ module.exports = function updateMetadataAction(request) {
     .then(updateMetadata);
 };
 
+module.exports.validateResponse = true;
+module.exports.responseSchema = 'updateMetadata.response';
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

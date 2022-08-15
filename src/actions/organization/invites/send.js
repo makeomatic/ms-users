@@ -60,5 +60,6 @@ async function sendOrganizationInvite({ params }) {
 }
 
 sendOrganizationInvite.allowed = checkOrganizationExists;
+sendOrganizationInvite.validateResponse = false;
 sendOrganizationInvite.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = sendOrganizationInvite;

@@ -23,13 +23,11 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('must be able to add metadata for a single audience of an existing user', async function test() {
-    const reply = await this.users.dispatch('updateMetadata', { params: { username, audience, metadata: { $set: { x: 10 } } } });
-    await this.users.validator.validate('updateMetadata.response', reply);
+    await this.users.dispatch('updateMetadata', { params: { username, audience, metadata: { $set: { x: 10 } } } });
   });
 
   it('must be able to remove metadata for a single audience of an existing user', async function test() {
-    const reply = await this.users.dispatch('updateMetadata', { params: { username, audience, metadata: { $remove: ['x'] } } });
-    await this.users.validator.validate('updateMetadata.response', reply);
+    await this.users.dispatch('updateMetadata', { params: { username, audience, metadata: { $remove: ['x'] } } });
   });
 
   it('rejects on mismatch of audience & metadata arrays', async function test() {
@@ -44,7 +42,7 @@ describe('#updateMetadata', function getMetadataSuite() {
   });
 
   it('must be able to perform batch operations for multiple audiences of an existing user', async function test() {
-    const reply = await this.users.dispatch('updateMetadata', { params: {
+    await this.users.dispatch('updateMetadata', { params: {
       username,
       audience: [
         audience,
@@ -66,7 +64,6 @@ describe('#updateMetadata', function getMetadataSuite() {
         },
       ],
     } });
-    await this.users.validator.validate('updateMetadata.response', reply);
   });
 
   it('must be able to run dynamic scripts', async function test() {

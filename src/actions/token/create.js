@@ -71,6 +71,7 @@ function createToken({ params }) {
     .then(storeData);
 }
 
+createToken.validateResponse = false;
 createToken.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = createToken;

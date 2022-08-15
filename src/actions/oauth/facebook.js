@@ -17,6 +17,7 @@ facebookCallbackAction.allowed = isAllowed;
 facebookCallbackAction.auth = 'oauth';
 facebookCallbackAction.strategy = 'facebook';
 facebookCallbackAction.passAuthError = true;
+facebookCallbackAction.validateResponse = false;
 facebookCallbackAction.transports = [ActionTransport.http];
 
 module.exports = facebookCallbackAction;

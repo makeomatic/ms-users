@@ -58,4 +58,5 @@ module.exports = async function sendChallenge({ params }) {
   return challenge.call(service, type, challengeOpts, metadata);
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

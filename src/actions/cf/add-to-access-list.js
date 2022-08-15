@@ -12,3 +12,4 @@ async function addToAccessList({ params }) {
 addToAccessList.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = addToAccessList;
+module.exports.validateResponse = false;

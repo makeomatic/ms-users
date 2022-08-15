@@ -23,6 +23,7 @@ async function detachAction(request) {
   return { success: true };
 }
 
+detachAction.validateResponse = false;
 detachAction.transports = [ActionTransport.amqp, ActionTransport.internal];
 
 module.exports = detachAction;

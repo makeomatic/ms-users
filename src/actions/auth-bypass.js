@@ -25,6 +25,7 @@ async function authBypass({ params, log }) {
 }
 
 authBypass.schema = 'auth-bypass';
+authBypass.validateResponse = false;
 authBypass.transports = [ActionTransport.amqp, ActionTransport.internal, ActionTransport.http];
 authBypass.transportOptions = {
   [ActionTransport.http]: {

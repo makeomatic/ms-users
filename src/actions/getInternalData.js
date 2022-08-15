@@ -29,4 +29,5 @@ module.exports = function internalData({ params }) {
     ));
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

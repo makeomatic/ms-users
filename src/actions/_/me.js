@@ -36,3 +36,4 @@ Me.transportOptions = {
 };
 
 module.exports = Me;
+module.exports.validateResponse = false;

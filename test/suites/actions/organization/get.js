@@ -22,7 +22,6 @@ describe('#get organization', function registerSuite() {
   it('must be able to get organization', async function test() {
     const { invites, ...organization } = this.organization;
     const reply = await this.users.dispatch('organization.get', { params: { organizationId: this.organization.id } });
-    await this.users.validator.validate('organization.get.response', reply);
     assert.deepEqual(reply.data.attributes, organization);
   });
 

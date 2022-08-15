@@ -25,7 +25,6 @@ describe('#organization members metadata', function registerSuite() {
     };
 
     const reply = await this.users.dispatch('organization.getMetadata', { params: opts });
-    await this.users.validator.validate('organization.getMetadata.response', reply);
     assert.ok(reply.data.attributes);
     assert.deepEqual(reply.data.attributes, this.organization.metadata);
   });

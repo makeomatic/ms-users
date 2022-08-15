@@ -49,5 +49,6 @@ async function setOrganizationMemberPermission({ params }) {
 }
 
 setOrganizationMemberPermission.allowed = checkOrganizationExists;
+setOrganizationMemberPermission.validateResponse = false;
 setOrganizationMemberPermission.transports = [ActionTransport.amqp, ActionTransport.internal];
 module.exports = setOrganizationMemberPermission;

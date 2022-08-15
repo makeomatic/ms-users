@@ -28,4 +28,5 @@ module.exports = async function verify({ params }) {
   };
 };
 
+module.exports.validateResponse = false;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

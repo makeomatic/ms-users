@@ -1,3 +1,10 @@
+## [15.6.8](https://github.com/makeomatic/ms-users/compare/v15.6.7...v15.6.8) (2022-10-07)
+
+
+### Bug Fixes
+
+* update deps, node 18 docker image ([#575](https://github.com/makeomatic/ms-users/issues/575)) ([4dff7eb](https://github.com/makeomatic/ms-users/commit/4dff7eb69eae1932cb91371e898297106a958881))
+
 ## [15.6.7](https://github.com/makeomatic/ms-users/compare/v15.6.6...v15.6.7) (2022-10-07)
 
 

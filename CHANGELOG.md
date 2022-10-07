@@ -1,3 +1,10 @@
+## [15.6.7](https://github.com/makeomatic/ms-users/compare/v15.6.6...v15.6.7) (2022-10-07)
+
+
+### Bug Fixes
+
+* bump microfleet amqp plugin ([#574](https://github.com/makeomatic/ms-users/issues/574)) ([2181457](https://github.com/makeomatic/ms-users/commit/2181457ba8a8d4a2f10d89e5ba79b44912719fd1))
+
 ## [15.6.6](https://github.com/makeomatic/ms-users/compare/v15.6.5...v15.6.6) (2022-07-15)
 
 

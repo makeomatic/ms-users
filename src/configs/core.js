@@ -130,3 +130,10 @@ exports.mfa = {
     window: 10,
   },
 };
+
+/**
+ * Controls if redis search is available
+ */
+exports.redisSearch = {
+  enabled: false,
+};

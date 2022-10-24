@@ -41,6 +41,70 @@ async function fetchIds() {
   return redis.fsort(keys, args);
 }
 
+async function redisSearchIds() {
+  const {
+    service,
+    redis,
+    keys,
+    args: request, // [criteria, order, filter, strFilter, currentTime, offset, limit, expiration]
+    offset,
+    limit,
+  } = this;
+
+  // TODO implement it
+  const indexName = keys && keys[1]; // TODO get from keys [0, metaKey] ?
+  const args = ['FT.SEARCH', indexName];
+  const query = [];
+  const params = [];
+
+  // TODO populate query & params
+
+  // for (const [_propName, actionTypeOrValue] of Object.entries(filter)) {
+  // let propName = _propName;
+  // if (propName === '#') {
+  //   propName = FILES_ID_FIELD;
+  // } else if (propName === '#multi') {
+  //   propName = actionTypeOrValue.fields.join('|');
+  // } else if (propName === 'alias') {
+  //   propName = 'alias_tag';
+  // }
+  //
+  // }
+
+  if (query.length > 0) {
+    args.push(query.join(' '));
+  } else {
+    args.push('*');
+  }
+
+  if (params.length > 0) {
+    args.push('PARAMS', params.length.toString(), ...params);
+    args.push('DIALECT', '2');
+  }
+
+  // sort the response
+  if (request.criteria) {
+    args.push('SORTBY', request.criteria, request.order);
+  } else {
+    // args.push('SORTBY', FILES_ID_FIELD, request.order);
+  }
+
+  // limits
+  args.push('LIMIT', offset, limit);
+
+  // we'll fetch the data later
+  args.push('NOCONTENT');
+
+  // [total, [ids]]
+  service.log.info({ search: args }, 'search query');
+
+  const [total, ...ids] = await redis.call(...args);
+
+  service.log.info({ total }, 'search result');
+
+  return ids;
+}
+
 function remapData(id, idx) {
   const data = this.props[idx];
   const account = {
@@ -107,7 +171,11 @@ function fetchUserData(ids) {
  * @apiParam (Payload) {Boolean} [userIdsOnly=false] if set to true - will only return userIds
  */
 module.exports = function iterateOverActiveUsers({ params }) {
-  const { redis } = this;
+  const {
+    redis,
+    config,
+
+  } = this;
   const {
     criteria,
     audience,
@@ -151,7 +219,7 @@ module.exports = function iterateOverActiveUsers({ params }) {
     ],
 
     args: [
-      criteria, order, strFilter, currentTime, offset, limit, expiration,
+      criteria, order, filter, strFilter, currentTime, offset, limit, expiration,
     ],
 
     // used in 2 places, hence separate args
@@ -166,9 +234,11 @@ module.exports = function iterateOverActiveUsers({ params }) {
     audience,
   };
 
+  const findUserIds = config.redisSearch.enabled ? redisSearchIds : fetchIds;
+
   return Promise
     .bind(ctx)
-    .then(fetchIds)
+    .then(findUserIds)
     .then(keyOnly ? passThrough : fetchUserData);
 };
 

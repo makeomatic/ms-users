@@ -9,7 +9,7 @@ try {
 
   const socket = dockerHost.replace(/^unix:\/+/, '/').replace(/\n/, '')
   process.env.DOCKER_SOCKET_PATH = socket
-} catch (e) {}
+} catch (e) { }
 
 exports.node = "18";
 exports.auto_compose = true;
@@ -51,6 +51,9 @@ switch (process.env.DB_SRV) {
   case 'redisSentinel':
     exports.services = ['rabbitmq', 'redisSentinel'];
     exports.extras.tester.environment.NCONF_FILE_PATH = '["/configs/amqp.js","/configs/core.js","/configs/redis.sentinel.js"]';
+    exports.extras.redis = {
+      ports: ["6379:6379"]
+    };
     break;
 }
 

@@ -14,6 +14,8 @@ const { ConsulWatcher } = require('./utils/consul-watcher');
 const { rule: { RevocationRulesStorage, RevocationRulesManager } } = require('./utils/stateless-jwt');
 const { JoseWrapper } = require('./utils/stateless-jwt/jwe');
 const { CredentialsStore } = require('./utils/credentials-store');
+const { ensureRedisSearchIndexes } = require('./utils/redis-search-stack');
+
 /**
  * @namespace Users
  */
@@ -106,6 +108,12 @@ class Users extends Microfleet {
       this.addConnector(ConnectorsTypes.migration, () => (
         this.migrate('redis', `${__dirname}/migrations`)
       ), 'redis-migration');
+    }
+
+    if (config.redisSearch.enabled) {
+      this.addConnector(ConnectorsTypes.migration, () => {
+        ensureRedisSearchIndexes(this);
+      }, 'redis-search-index');
     }
 
     this.addConnector(ConnectorsTypes.essential, () => {

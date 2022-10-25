@@ -41,68 +41,9 @@ async function fetchIds() {
   return redis.fsort(keys, args);
 }
 
-async function redisSearchIds() {
-  const {
-    service,
-    redis,
-    keys,
-    args: request, // [criteria, order, filter, strFilter, currentTime, offset, limit, expiration]
-    offset,
-    limit,
-  } = this;
-
+async function redisSearchIds() { //
   // TODO implement it
-  const indexName = keys && keys[1]; // TODO get from keys [0, metaKey] ?
-  const args = ['FT.SEARCH', indexName];
-  const query = [];
-  const params = [];
-
-  // TODO populate query & params
-
-  // for (const [_propName, actionTypeOrValue] of Object.entries(filter)) {
-  // let propName = _propName;
-  // if (propName === '#') {
-  //   propName = FILES_ID_FIELD;
-  // } else if (propName === '#multi') {
-  //   propName = actionTypeOrValue.fields.join('|');
-  // } else if (propName === 'alias') {
-  //   propName = 'alias_tag';
-  // }
-  //
-  // }
-
-  if (query.length > 0) {
-    args.push(query.join(' '));
-  } else {
-    args.push('*');
-  }
-
-  if (params.length > 0) {
-    args.push('PARAMS', params.length.toString(), ...params);
-    args.push('DIALECT', '2');
-  }
-
-  // sort the response
-  if (request.criteria) {
-    args.push('SORTBY', request.criteria, request.order);
-  } else {
-    // args.push('SORTBY', FILES_ID_FIELD, request.order);
-  }
-
-  // limits
-  args.push('LIMIT', offset, limit);
-
-  // we'll fetch the data later
-  args.push('NOCONTENT');
-
-  // [total, [ids]]
-  service.log.info({ search: args }, 'search query');
-
-  const [total, ...ids] = await redis.call(...args);
-
-  service.log.info({ total }, 'search result');
-
-  return ids;
+  return Promise.resolve();
 }
 
 function remapData(id, idx) {
@@ -219,7 +160,7 @@ module.exports = function iterateOverActiveUsers({ params }) {
     ],
 
     args: [
-      criteria, order, filter, strFilter, currentTime, offset, limit, expiration,
+      criteria, order, strFilter, currentTime, offset, limit, expiration,
     ],
 
     // used in 2 places, hence separate args
@@ -227,6 +168,7 @@ module.exports = function iterateOverActiveUsers({ params }) {
     limit,
 
     // extra settings
+    filter,
     keyOnly,
     userIdsOnly,
 

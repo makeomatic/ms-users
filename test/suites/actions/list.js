@@ -3,7 +3,8 @@ const { expect } = require('chai');
 const ld = require('lodash');
 const redisKey = require('../../../src/utils/key');
 
-for (const redisSearchEnabled of [false, true].values()) {
+// TODO uncomment for (const redisSearchEnabled of [false, true].values()) {
+for (const redisSearchEnabled of [false].values()) {
   describe('#list', function listSuite() {
     this.timeout(50000);
 

@@ -13,6 +13,11 @@ const {
   USERS_METADATA,
 } = require('../constants');
 
+const {
+  buildSearchQuery,
+  normalizeFilterProp,
+} = require('../utils/redis-search-stack');
+
 // helper
 const JSONParse = (data) => JSON.parse(data);
 
@@ -41,9 +46,66 @@ async function fetchIds() {
   return redis.fsort(keys, args);
 }
 
-async function redisSearchIds() { //
-  // TODO implement it
-  return Promise.resolve();
+async function redisSearchIds() {
+  const {
+    service,
+    redis,
+    keys,
+    args: request,
+    filter,
+    offset,
+    limit,
+  } = this;
+
+  // TODO specify required index here
+  const indexName = keys && keys[1]; // TODO get from keys [0, metaKey] ?
+  const args = ['FT.SEARCH', indexName];
+
+  const query = [];
+  const params = [];
+
+  for (const [propName, actionTypeOrValue] of Object.entries(filter)) {
+    const prop = normalizeFilterProp(propName, actionTypeOrValue);
+
+    if (actionTypeOrValue !== undefined) {
+      const [sQuery, sParams] = buildSearchQuery(prop, actionTypeOrValue);
+      query.push(sQuery);
+      params.push(...sParams);
+    }
+  }
+
+  if (query.length > 0) {
+    args.push(query.join(' '));
+  } else {
+    args.push('*');
+  }
+  // TODO extract to redis aearch utils
+  if (params.length > 0) {
+    args.push('PARAMS', params.length.toString(), ...params);
+    args.push('DIALECT', '2');
+  }
+
+  // sort the response
+  if (request.criteria) {
+    args.push('SORTBY', request.criteria, request.order);
+  } else {
+    // args.push('SORTBY', FILES_ID_FIELD, request.order);
+  }
+
+  // limits
+  args.push('LIMIT', offset, limit);
+
+  // we'll fetch the data later
+  args.push('NOCONTENT');
+
+  // [total, [ids]]
+  service.log.info({ search: args }, 'search query');
+
+  const [total, ...ids] = await redis.call(...args);
+
+  service.log.info({ total }, 'search result');
+
+  return ids;
 }
 
 function remapData(id, idx) {

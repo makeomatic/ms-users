@@ -127,7 +127,7 @@ t('oauth#upgrade', function oauthFacebookSuite() {
      * Suite checks general service behavior.
      * Token retrieved once and all tests use it.
      */
-    describe('service register/create/detach', () => {
+    describe.skip('service register/create/detach', () => {
       it('should be able to register via facebook', async () => {
         const registered = await createAccount(token);
         checkServiceOkResponse(registered);

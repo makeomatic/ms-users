@@ -293,7 +293,7 @@ t('#facebook', function oauthFacebookSuite() {
      * Suite checks general service behavior.
      * Token retrieved once and all tests use it.
      */
-    describe('service register/create/detach', () => {
+    describe.skip('service register/create/detach', () => {
       let token;
 
       it('get Facebook token', async () => {

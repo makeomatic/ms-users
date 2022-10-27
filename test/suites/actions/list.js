@@ -3,9 +3,7 @@ const { expect } = require('chai');
 const ld = require('lodash');
 const redisKey = require('../../../src/utils/key');
 
-// TODO uncomment for (const redisSearchEnabled of [false, true].values()) {
-for (const redisSearchEnabled of [false].values()) {
-
+for (const redisSearchEnabled of [false].values()) { // TODO [false, true]
   describe('#list', function listSuite() {
     this.timeout(50000);
 
@@ -16,7 +14,7 @@ for (const redisSearchEnabled of [false].values()) {
       await global.startService.call(this, {
         redisSearch: {
           enabled: redisSearchEnabled,
-        }
+        },
       });
     });
 

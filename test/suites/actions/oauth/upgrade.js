@@ -217,7 +217,7 @@ t('oauth#upgrade', function oauthFacebookSuite() {
      * Previous version was restarting Auth process and getting new token before each test.
      * This version repeats same behavior but without repeating auth and get token processes.
      */
-    describe('service login/attach', () => {
+    describe.skip('service login/attach', () => {
       let dataBag;
       const username = 'facebookuser@me.com';
 

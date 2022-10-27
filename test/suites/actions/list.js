@@ -7,17 +7,18 @@ for (const redisSearchEnabled of [false].values()) { // TODO [false, true]
   describe('#list', function listSuite() {
     this.timeout(50000);
 
+    const ctx = {
+      redisSearch: {
+        enabled: redisSearchEnabled,
+      },
+    };
+
     const totalUsers = 105;
     const { faker } = require('@faker-js/faker');
 
-    beforeEach('start service', async () => {
-      await global.startService.call(this, {
-        redisSearch: {
-          enabled: redisSearchEnabled,
-        },
-      });
+    beforeEach(async function startService() {
+      await global.startService.call(this, ctx);
     });
-
     afterEach('reset redis', global.clearRedis);
 
     beforeEach('populate redis', function populateRedis() {

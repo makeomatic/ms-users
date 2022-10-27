@@ -57,6 +57,8 @@ async function redisSearchIds() {
     limit,
   } = this;
 
+  service.log.debug({ criteria: request.criteria, keys, filter }, 'users list searching...');
+
   // TODO specify required index here
   const indexName = keys && keys[1]; // TODO get from keys [0, metaKey] ?
   const args = ['FT.SEARCH', indexName];

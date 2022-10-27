@@ -5,22 +5,21 @@ const redisKey = require('../../../src/utils/key');
 
 // TODO uncomment for (const redisSearchEnabled of [false, true].values()) {
 for (const redisSearchEnabled of [false].values()) {
+
   describe('#list', function listSuite() {
     this.timeout(50000);
 
     const totalUsers = 105;
     const { faker } = require('@faker-js/faker');
 
-    // setup functions
-    before('override config', function overrideConfig() {
-      this.configOverride = {
+    beforeEach('start service', async () => {
+      await global.startService.call(this, {
         redisSearch: {
           enabled: redisSearchEnabled,
-        },
-      };
+        }
+      });
     });
 
-    beforeEach('start service', global.startService);
     afterEach('reset redis', global.clearRedis);
 
     beforeEach('populate redis', function populateRedis() {

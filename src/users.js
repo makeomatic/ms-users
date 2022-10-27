@@ -110,7 +110,7 @@ class Users extends Microfleet {
       ), 'redis-migration');
     }
 
-    if (config.redisSearch.enabled) {
+    if (this.config.redisSearch.enabled) {
       this.addConnector(ConnectorsTypes.migration, () => {
         ensureRedisSearchIndexes(this);
       }, 'redis-search-index');

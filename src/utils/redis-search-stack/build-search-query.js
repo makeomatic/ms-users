@@ -5,7 +5,7 @@ const {
   namedField,
   tag,
   negative,
-  matchAny,
+  containsAny,
 } = require('./expressions');
 
 const EMPTY_VALUE = '""';
@@ -32,7 +32,7 @@ const searchQueryBuilder = {
     const propName = normalizePropName(prop);
     const name = buildParamName('f', propName, 'm');
 
-    return expression(field, matchAny(paramRef(name)));
+    return expression(field, containsAny(paramRef(name)));
   },
 };
 
@@ -58,7 +58,7 @@ const buildSearchQuery = (propName, valueOrExpr) => {
   const field = namedField(propName);
 
   if (typeof valueOrExpr === 'string') { // Value
-    const pName = buildParamName('f', field);
+    const pName = buildParamName('f', propName);
     const query = expression(field, tag(paramRef(pName)));
 
     const params = [pName, valueOrExpr];

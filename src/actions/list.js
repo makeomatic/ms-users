@@ -16,6 +16,7 @@ const {
 const {
   buildSearchQuery,
   normalizeFilterProp,
+  normalizeIndexName,
 } = require('../utils/redis-search-stack');
 
 // helper
@@ -58,9 +59,11 @@ async function redisSearchIds() {
   } = this;
 
   service.log.debug({ criteria: request.criteria, keys, filter }, 'users list searching...');
+  const { keyPrefix } = service.config.redis.options;
 
   // TODO specify required index here
-  const indexName = keys && keys[1]; // TODO get from keys [0, metaKey] ?
+  const indexName = normalizeIndexName(keyPrefix, keys[1]); // TODO generalize
+  service.log.debug({ indexName }, 'use search index');
   const args = ['FT.SEARCH', indexName];
 
   const query = [];
@@ -84,7 +87,7 @@ async function redisSearchIds() {
   // TODO extract to redis aearch utils
   if (params.length > 0) {
     args.push('PARAMS', params.length.toString(), ...params);
-    args.push('DIALECT', '2');
+    args.push('DIALECT', '2'); // use params dialect
   }
 
   // sort the response
@@ -105,7 +108,7 @@ async function redisSearchIds() {
 
   const [total, ...ids] = await redis.call(...args);
 
-  service.log.info({ total }, 'search result');
+  service.log.info({ ids }, 'search result: %d', total);
 
   return ids;
 }

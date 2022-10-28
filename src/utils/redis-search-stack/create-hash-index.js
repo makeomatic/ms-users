@@ -1,3 +1,5 @@
+const normalizeIndexName = require('./normalize-index-name');
+
 /**
  * @param {Object} service provides redis, log
  * @param {Object} keyPrefix root prefix, e.g. {ms-users}
@@ -5,11 +7,11 @@
  * @returns {Promise}
  */
 
-async function createHashIndex({ redis, log }, keyPrefix, definition) {
-  const { key, fields } = definition;
+async function createHashIndex({ redis, config, log }, key, fields) {
+  const { keyPrefix } = config.redis.options;
 
-  const name = `${key.replaceAll('!', '_')}_idx`;
-  log.debug({ keyPrefix, definition }, `create index: ${name}`);
+  const name = normalizeIndexName(keyPrefix, key);
+  log.debug({ key, fields }, `create search index: ${name}`);
 
   try {
     return redis.call(

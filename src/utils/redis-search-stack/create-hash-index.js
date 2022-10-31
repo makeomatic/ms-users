@@ -1,4 +1,5 @@
 const normalizeIndexName = require('./normalize-index-name');
+const redisKey = require('../key');
 
 /**
  * @param {Object} service provides redis, log
@@ -7,11 +8,17 @@ const normalizeIndexName = require('./normalize-index-name');
  * @returns {Promise}
  */
 
-async function createHashIndex({ redis, config, log }, key, fields) {
-  const { keyPrefix } = config.redis.options;
+async function createHashIndex({ redis, log }, prefix, filterKey, fields) {
+  const filterExpr = [];
 
-  const name = normalizeIndexName(keyPrefix, key);
-  log.debug({ key, fields }, `create search index: ${name}`);
+  const name = normalizeIndexName(redisKey(prefix, filterKey));
+  log.debug({ filterKey, fields }, `create search index: ${name}`);
+
+  if (filterKey) {
+    const filter = redisKey('', filterKey); // leading separator
+    filterExpr.push('FILTER');
+    filterExpr.push(`contains(@__key, ${filter})>0`);
+  }
 
   try {
     return redis.call(
@@ -21,7 +28,8 @@ async function createHashIndex({ redis, config, log }, key, fields) {
       'HASH',
       'PREFIX',
       '1',
-      `${keyPrefix}${key}`,
+      `${prefix}`,
+      ...filterExpr,
       'SCHEMA',
       ...fields.flatMap((x) => x)
     );

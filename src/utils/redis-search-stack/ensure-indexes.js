@@ -21,7 +21,7 @@ async function ensureSearchIndexes(service) {
     return result;
   });
 
-  return Promise.allSettled(createIndexes); // TODO or all?
+  return Promise.all(createIndexes);
 }
 
 module.exports = ensureSearchIndexes;

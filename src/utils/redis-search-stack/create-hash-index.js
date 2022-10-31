@@ -9,15 +9,15 @@ const redisKey = require('../key');
  */
 
 async function createHashIndex({ redis, log }, prefix, filterKey, fields) {
-  const filterExpr = [];
-
   const name = normalizeIndexName(redisKey(prefix, filterKey));
   log.debug({ filterKey, fields }, `create search index: ${name}`);
+
+  const filterExpr = [];
 
   if (filterKey) {
     const filter = redisKey('', filterKey); // leading separator
     filterExpr.push('FILTER');
-    filterExpr.push(`contains(@__key, ${filter})>0`);
+    filterExpr.push(`'contains(@__key, ${filter}) > 0'`);
   }
 
   try {

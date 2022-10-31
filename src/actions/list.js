@@ -54,6 +54,7 @@ async function redisSearchIds() {
     keys,
     args: request,
     filter,
+    filterKey,
     offset,
     limit,
   } = this;
@@ -61,8 +62,7 @@ async function redisSearchIds() {
   service.log.debug({ criteria: request.criteria, keys, filter }, 'users list searching...');
   const { keyPrefix } = service.config.redis.options;
 
-  // TODO specify required index here
-  const indexName = normalizeIndexName(keyPrefix, keys[1]); // TODO generalize
+  const indexName = normalizeIndexName(redisKey(keyPrefix, filterKey));
   service.log.debug({ indexName }, 'use search index');
   const args = ['FT.SEARCH', indexName];
 
@@ -198,6 +198,8 @@ module.exports = function iterateOverActiveUsers({ params }) {
 
   const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
   const metaKey = redisKey('*', USERS_METADATA, audience);
+  const filterKey = redisKey(USERS_METADATA, audience);
+
   const currentTime = Date.now();
 
   let index;
@@ -236,6 +238,8 @@ module.exports = function iterateOverActiveUsers({ params }) {
 
     // extra settings
     filter,
+    // redis search filter
+    filterKey,
     keyOnly,
     userIdsOnly,
 

@@ -4,19 +4,11 @@
 */
 
 exports.redisIndexDefinitions = [
-  {
-    baseKey: '*!metadata',
+  { // name: {ms-users}_metadata_*.localhost_idx
+    filterKey: 'metadata',
     audience: ['*.localhost'],
     fields: [
       ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
     ],
   },
-  // {
-  //   baseKey: 'user-iterator-set',
-  //   audience: [],
-  //   fields: [
-  //     ['id', 'TAG', 'SORTABLE'],
-  //     ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
-  //   ],
-  // },
 ];

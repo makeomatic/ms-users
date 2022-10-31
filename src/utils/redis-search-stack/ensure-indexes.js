@@ -8,14 +8,15 @@ const createHashIndex = require('./create-hash-index');
  */
 async function ensureSearchIndexes(service) {
   const { redisIndexDefinitions } = service.config;
+  const { keyPrefix } = service.config.redis.options;
 
-  const createIndexes = redisIndexDefinitions.map(({ baseKey, audience, fields }) => {
+  const createIndexes = redisIndexDefinitions.map(({ filterKey, audience, fields }) => {
     const result = [];
 
     // create indexes matrix depends on all audience
-    for (const name of audience) {
-      const indexOnKey = redisKey(baseKey, name);
-      result.push(createHashIndex(service, indexOnKey, fields));
+    for (const item of audience) {
+      const filter = redisKey(filterKey, item);
+      result.push(createHashIndex(service, keyPrefix, filter, fields));
     }
     return result;
   });

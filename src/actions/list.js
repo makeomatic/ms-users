@@ -104,7 +104,7 @@ async function redisSearchIds() {
   args.push('NOCONTENT');
 
   // [total, [ids]]
-  service.log.info({ search: args }, 'search query');
+  service.log.info('redis search query: %s', args.join(' '));
 
   const [total, ...ids] = await redis.call(...args);
 

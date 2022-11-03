@@ -72,9 +72,8 @@ describe('Redis Search: list', function listSuite() {
         },
       })
       .then((result) => {
-        console.log('USERS=', result.users);
-
         expect(result.users).to.have.length.lte(10);
+        expect(result.users.length);
 
         result.users.forEach((user) => {
           expect(user).to.have.ownProperty('id');

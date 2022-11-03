@@ -60,7 +60,7 @@ const buildSearchQuery = (propName, valueOrExpr) => {
 
   if (typeof valueOrExpr === 'string') { // Value
     const pName = buildParamName(FIELD_PREFIX, propName);
-    const query = expression(field, tag(paramRef(pName)));
+    const query = expression(field, paramRef(pName));
 
     const params = [pName, valueOrExpr];
     return [query, params];

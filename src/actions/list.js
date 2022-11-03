@@ -47,6 +47,13 @@ async function fetchIds() {
   return redis.fsort(keys, args);
 }
 
+/*
+without NOCONTENT format:
+[
+  "{ms-users}6993954371000074240!metadata!*.localhost",
+ ["username", "\"Casandra_Rosenbaum@yahoo.com\"", "firstName", "\"Winnifred\"", "lastName", "\"Spinka\""],
+
+*/
 async function redisSearchIds() {
   const {
     service,
@@ -68,6 +75,8 @@ async function redisSearchIds() {
 
   const query = [];
   const params = [];
+
+  const extractId = (userKey) => userKey.split('!')[0].slice(keyPrefix.length);
 
   for (const [propName, actionTypeOrValue] of Object.entries(filter)) {
     const prop = normalizeFilterProp(propName, actionTypeOrValue);
@@ -101,7 +110,7 @@ async function redisSearchIds() {
   args.push('LIMIT', offset, limit);
 
   // we'll fetch the data later
-  args.push('NOCONTENT');
+  args.push('NOCONTENT'); // TODO consider to use it
 
   // [total, [ids]]
   service.log.info('redis search query: %s', args.join(' '));
@@ -110,7 +119,9 @@ async function redisSearchIds() {
 
   service.log.info({ ids }, 'search result: %d', total);
 
-  return ids;
+  // TODO re-write and use full result
+  const result = ids.map((x) => extractId(x));
+  return result;
 }
 
 function remapData(id, idx) {
@@ -221,6 +232,7 @@ module.exports = function iterateOverActiveUsers({ params }) {
   const ctx = {
     // service parts
     redis,
+    seachEnabled: config.redisSearch.enabled,
     service: this,
 
     // input parts for lua script
@@ -247,11 +259,12 @@ module.exports = function iterateOverActiveUsers({ params }) {
     audience,
   };
 
-  const findUserIds = config.redisSearch.enabled ? redisSearchIds : fetchIds;
+  const findUserIds = ctx.seachEnabled ? redisSearchIds : fetchIds;
 
   return Promise
     .bind(ctx)
     .then(findUserIds)
+    // TODO .then((keyOnly/* || ctx.seachEnabled) ? passThrough : fetchUserData);
     .then(keyOnly ? passThrough : fetchUserData);
 };
 

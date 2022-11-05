@@ -4,6 +4,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { oauthVerification, mserviceVerification } = require('../../auth/oauth');
 const formOAuthResponse = require('../../auth/oauth/utils/form-oauth-response');
+const appleStrategy = require('../../auth/oauth/strategies/apple');
 
 /**
  * @api {amqp} <prefix>.oauth.upgrade Upgardes existing SSO token to service-verified token
@@ -19,7 +20,7 @@ const formOAuthResponse = require('../../auth/oauth/utils/form-oauth-response');
  * @apiParam (Payload) {String} isStatelessAuth - use stateless JWT tokens when they are optional
  */
 async function upgrade(request) {
-  const { transportRequest, params, query } = request;
+  const { transportRequest, params, query, log } = request;
   const { provider, token, isStatelessAuth } = params;
 
   // fetch settings, otherwise provider is not supported
@@ -36,10 +37,17 @@ async function upgrade(request) {
     query.jwt = params.jwt;
   }
 
-  const initialReq = { token, query };
-
-  // verifies token by retreiving profile
-  const credentials = await profile.call(providerSettings, initialReq);
+  const credentials = provider === 'apple'
+    ? await appleStrategy.upgradeAppleCode({
+      log,
+      params: {
+        query,
+        providerSettings,
+        code: token,
+        redirectUrl: transportRequest.url.href.replace(/\/upgrade$/, '/apple').replace(/^http:\/\//, 'https://'),
+      },
+    })
+    : await profile.call(providerSettings, { token, query });
 
   // ensure its a shallow copy as we will mutate it later
   const oauthConfig = { ...this.config.oauth.providers[provider] };

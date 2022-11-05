@@ -464,6 +464,11 @@
               "retryOnMissingPermissions": {
                 "type": "boolean"
               },
+              "appId": {
+                "description": "Used for oauth.upgrade action",
+                "type": "string",
+                "minLength": 1
+              },
               "clientId": {
                 "type": "string",
                 "minLength": 1

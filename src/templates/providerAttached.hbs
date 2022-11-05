@@ -9,7 +9,9 @@
   </head>
   <body>
     <script>
-      var opener = window.opener;
+      var opener = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.appleAuthHandler)
+        ? window.webkit.messageHandlers.appleAuthHandler
+        : window.opener;
       var $ms_users_inj_post_message = {{{ message }}};
       if (opener) {
         opener.postMessage($ms_users_inj_post_message, '{{ targetOrigin }}');

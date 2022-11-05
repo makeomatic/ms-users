@@ -1,6 +1,13 @@
 const { sign, verify } = require('jsonwebtoken');
 const getJwksClient = require('jwks-rsa');
 const Bluebird = require('bluebird');
+const Boom = require('@hapi/boom');
+const { request: httpRequest } = require('undici');
+
+const {
+  ERROR_OAUTH_APPLE_VALIDATE_CODE,
+  ERROR_OAUTH_APPLE_VERIFY_PROFILE,
+} = require('../../../constants');
 
 // @todo more options from config
 const jwksClient = getJwksClient({
@@ -53,9 +60,16 @@ function getJwkFromResponse(header, callback) {
   });
 }
 
-async function getProfile(credentials, params) {
+async function getProfile(credentials, tokenResponse) {
+  const {
+    access_token: accessToken,
+    id_token: idToken,
+    refresh_token: refreshToken,
+    token_type: tokenType,
+    expires_in: expiresIn,
+  } = tokenResponse;
   const response = await Bluebird.fromCallback(
-    (callback) => verify(params.id_token, getJwkFromResponse, callback)
+    (callback) => verify(idToken, getJwkFromResponse, callback)
   );
   const {
     sub,
@@ -71,13 +85,41 @@ async function getProfile(credentials, params) {
     emailVerified,
     isPrivateEmail,
     id: sub,
+    accessToken,
+    idToken,
+    refreshToken,
+    tokenType,
+    expiresIn,
   };
 
   return credentials;
 }
 
+async function validateGrantCode(providerSettings, code, redirectUrl) {
+  const { provider, appId, clientSecret } = providerSettings;
+  const form = new URLSearchParams([
+    ['code', code],
+    ['client_id', appId],
+    ['client_secret', clientSecret(appId)],
+    ['grant_type', 'authorization_code'],
+    ['redirect_uri', redirectUrl],
+  ]);
+
+  const { body } = await httpRequest(provider.token, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded',
+    },
+    body: form.toString(),
+    throwOnError: true,
+  });
+
+  return body.json();
+}
+
 function getProvider(options, server) {
   const {
+    appId,
     clientId,
     teamId,
     keyId,
@@ -91,11 +133,12 @@ function getProvider(options, server) {
   server.ext('onRequest', fixAppleCallbackForBell);
 
   return {
+    appId,
     password,
     clientId,
     isSameSite,
     cookie,
-    clientSecret: () => getSecretKey(teamId, clientId, keyId, privateKey),
+    clientSecret: (cid) => getSecretKey(teamId, cid || clientId, keyId, privateKey),
     forceHttps: true,
     providerParams: {
       response_mode: 'form_post',
@@ -113,7 +156,45 @@ function getProvider(options, server) {
   };
 }
 
+async function upgradeAppleCode({ params, log }) {
+  const { providerSettings, code, query, redirectUrl } = params;
+  const { profile } = providerSettings.provider;
+
+  let tokenResponse;
+
+  try {
+    tokenResponse = await validateGrantCode(providerSettings, code, redirectUrl);
+  } catch (error) {
+    log.error(Boom.internal(error.body?.error, undefined, error.statusCode));
+
+    throw ERROR_OAUTH_APPLE_VALIDATE_CODE;
+  }
+
+  let credentials;
+
+  try {
+    credentials = await profile.call(
+      providerSettings,
+      {
+        query,
+        token: tokenResponse.access_token,
+        refreshToken: tokenResponse.refresh_token,
+        expiresIn: tokenResponse.expires_in,
+      },
+      tokenResponse
+    );
+  } catch (error) {
+    log.error(Boom.internal(error.body?.error, undefined, error.statusCode));
+
+    throw ERROR_OAUTH_APPLE_VERIFY_PROFILE;
+  }
+
+  return credentials;
+}
+
 module.exports = {
   transformAccountToResponseFormat,
+  validateGrantCode,
+  upgradeAppleCode,
   options: getProvider,
 };

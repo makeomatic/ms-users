@@ -34,6 +34,7 @@ async function formOAuthResponse(ctx, request, credentials) {
   }
 
   if (!account) {
+    // @TODO 403?
     throw new HttpStatusError(500, 'no account when jwt isn\'t present');
   }
 

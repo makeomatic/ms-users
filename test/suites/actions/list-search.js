@@ -67,7 +67,7 @@ describe('Redis Search: list', function listSuite() {
 
     await assert.rejects(
       this.users.dispatch('list', query),
-      /Search index does not exist/
+      /Search index does not registered for/
     );
   });
 

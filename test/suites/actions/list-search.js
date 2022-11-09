@@ -144,7 +144,7 @@ describe('Redis Search: list', function listSuite() {
         const [u1] = result.users;
 
         assert(u1);
-        const uname = this.extractUsername(u1);
+        const uname = this.extractUserName(u1);
         expect(uname).to.be.equal('johnny@gmail.org');
       });
   });

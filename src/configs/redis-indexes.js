@@ -6,7 +6,7 @@
 exports.redisIndexDefinitions = [
   { // index name: {ms-users}_metadata_*.localhost_idx
     filterKey: 'metadata',
-    audience: ['*.localhost'],
+    audience: '*.localhost',
     fields: [
       ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['firstName', 'TEXT', 'NOSTEM', 'SORTABLE'],

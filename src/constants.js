@@ -1,4 +1,4 @@
-const { HttpStatusError } = require('common-errors');
+const { HttpStatusError, NotFoundError } = require('common-errors');
 
 module.exports = exports = {
   // indices
@@ -88,6 +88,11 @@ module.exports = exports = {
   ErrorUserNotFound: new HttpStatusError(404, 'username not found'),
   ErrorUserNotMember: new HttpStatusError(404, 'username not member of organization'),
   ErrorInvitationExpiredOrUsed: new HttpStatusError(400, 'Invitation has expired or already been used'),
+
+  // Internal errors
+  ErrorSearchIndexNotFound: (audience) => new NotFoundError(
+    `Search index does not registered for '${audience}'. You need to create it in the config file`
+  ),
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',

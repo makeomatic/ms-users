@@ -1,27 +1,61 @@
 const Promise = require('bluebird');
-const redisKey = require('../key');
+
+const normalizeIndexName = require('./normalize-index-name');
 const createHashIndex = require('./create-hash-index');
 
-/**
- * Creates redis search index matrix for user list action
- * @return {Promise}
- */
-async function ensureSearchIndexes(service) {
-  const { redisIndexDefinitions } = service.config;
-  const { keyPrefix } = service.config.redis.options;
+const redisKey = require('../key');
+const { ErrorSearchIndexNotFound } = require('../../constants');
 
-  const createIndexes = redisIndexDefinitions.map(({ filterKey, audience, fields }) => {
-    const result = [];
+class RedisSearchIndexes {
+  constructor(service) {
+    this.service = service;
+    this.log = service.log;
 
-    // create indexes matrix depends on all audience
-    for (const item of audience) {
-      const filter = redisKey(filterKey, item);
-      result.push(createHashIndex(service, keyPrefix, filter, fields));
+    this.definitions = service.config.redisIndexDefinitions;
+    this.redisConfig = service.config.redis;
+
+    this.indexByAudience = new Map();
+  }
+
+  buildIndexName(filterKey) {
+    const { keyPrefix } = this.redisConfig.options;
+
+    return normalizeIndexName(redisKey(keyPrefix, filterKey));
+  }
+
+  getIndexName(audience) {
+    const name = this.indexByAudience.get(audience);
+    if (!name) {
+      throw ErrorSearchIndexNotFound(audience);
     }
-    return result;
-  });
 
-  return Promise.all(createIndexes);
+    return name;
+  }
+
+  /**
+   * Creates redis search index matrix for user list action
+   * @return {Promise}
+   */
+  ensureSearchIndexes() {
+    const { keyPrefix } = this.redisConfig.options;
+
+    const createIndexes = this.definitions.map(({ filterKey, audience, fields }) => {
+      const result = [];
+      const indexName = this.buildIndexName(filterKey);
+      const filter = redisKey(filterKey, audience);
+
+      this.log.debug('registering FT index for %s: %s', audience, indexName);
+
+      result.push(createHashIndex(this.service, indexName, keyPrefix, filter, fields));
+      this.indexByAudience.set(audience, indexName);
+
+      return result;
+    });
+
+    this.log.info('FT indexes registered: %d', this.indexByAudience.size);
+
+    return Promise.all(createIndexes);
+  }
 }
 
-module.exports = ensureSearchIndexes;
+module.exports = RedisSearchIndexes;

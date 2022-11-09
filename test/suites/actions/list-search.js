@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const { strict: assert } = require('assert');
 const { expect } = require('chai');
 const ld = require('lodash');
 const redisKey = require('../../../src/utils/key');
@@ -55,6 +56,19 @@ describe('Redis Search: list', function listSuite() {
     this.audience = audience;
     this.userStubs = Promise.all(promises);
     return this.userStubs;
+  });
+
+  it('responds with error when index not created', async function test() {
+    const query = {
+      params: {
+        audience: 'not-existing-audience',
+      },
+    };
+
+    await assert.rejects(
+      this.users.dispatch('list', query),
+      /Search index does not exist/
+    );
   });
 
   it('list by username', function test() {

@@ -16,7 +16,6 @@ const {
 const {
   buildSearchQuery,
   normalizeFilterProp,
-  normalizeIndexName,
 } = require('../utils/redis-search-stack');
 
 // helper
@@ -61,7 +60,8 @@ async function redisSearchIds() {
     keys,
     args: request,
     filter,
-    filterKey,
+    audience,
+    // filterKey,
     offset,
     limit,
   } = this;
@@ -69,8 +69,9 @@ async function redisSearchIds() {
   service.log.debug({ criteria: request.criteria, keys, filter }, 'users list searching...');
   const { keyPrefix } = service.config.redis.options;
 
-  const indexName = normalizeIndexName(redisKey(keyPrefix, filterKey));
-  service.log.debug({ indexName }, 'use search index');
+  const indexName = service.redisSearch.getIndexName(audience);
+
+  service.log.debug('search using index: %s', indexName);
   const args = ['FT.SEARCH', indexName];
 
   const query = [];
@@ -209,7 +210,6 @@ module.exports = function iterateOverActiveUsers({ params }) {
 
   const strFilter = typeof filter === 'string' ? filter : fsort.filter(filter || {});
   const metaKey = redisKey('*', USERS_METADATA, audience);
-  const filterKey = redisKey(USERS_METADATA, audience);
 
   const currentTime = Date.now();
 
@@ -251,7 +251,6 @@ module.exports = function iterateOverActiveUsers({ params }) {
     // extra settings
     filter,
     // redis search filter
-    filterKey,
     keyOnly,
     userIdsOnly,
 
@@ -264,7 +263,6 @@ module.exports = function iterateOverActiveUsers({ params }) {
   return Promise
     .bind(ctx)
     .then(findUserIds)
-    // TODO .then((keyOnly/* || ctx.seachEnabled) ? passThrough : fetchUserData);
     .then(keyOnly ? passThrough : fetchUserData);
 };
 

@@ -1,4 +1,3 @@
-const normalizeIndexName = require('./normalize-index-name');
 const redisKey = require('../key');
 
 /**
@@ -8,9 +7,8 @@ const redisKey = require('../key');
  * @returns {Promise}
  */
 
-async function createHashIndex({ redis, log }, prefix, filterKey, fields) {
-  const name = normalizeIndexName(redisKey(prefix, filterKey));
-  log.debug({ filterKey, fields }, `create search index: ${name}`);
+async function createHashIndex({ redis, log }, indexName, prefix, filterKey, fields) {
+  log.debug({ filterKey, fields }, `create search index: ${indexName}`);
 
   const filterExpr = [];
 
@@ -23,7 +21,7 @@ async function createHashIndex({ redis, log }, prefix, filterKey, fields) {
   try {
     return redis.call(
       'FT.CREATE',
-      `${name}`,
+      `${indexName}`,
       'ON',
       'HASH',
       'PREFIX',
@@ -34,7 +32,7 @@ async function createHashIndex({ redis, log }, prefix, filterKey, fields) {
       ...fields.flatMap((x) => x)
     );
   } catch (err) {
-    log.error(`create ${name} index error %j`, err);
+    log.error(`create ${indexName} index error %j`, err);
     throw err;
   }
 }

@@ -1,13 +1,33 @@
 const Promise = require('bluebird');
 const { strict: assert } = require('assert');
 const { expect } = require('chai');
+const { faker } = require('@faker-js/faker');
 const ld = require('lodash');
 const redisKey = require('../../../src/utils/key');
+const { USERS_INDEX, USERS_METADATA } = require('../../../src/constants');
 
 const getUserName = (audience) => (data) => data.metadata[audience].username;
 
 const sortByCaseInsensitive = (getMember) => (list) => list
   .sort((a, b) => getMember(a).toLowerCase() < getMember(b).toLowerCase());
+
+const createUser = (id, { username, firstName, lastName } = {}) => ({
+  id,
+  metadata: {
+    username: username || faker.internet.email(),
+    firstName: firstName || faker.name.firstName(),
+    lastName: lastName || faker.name.lastName(),
+  },
+});
+
+const saveUser = (redis, audience, user) => redis
+  .pipeline()
+  .sadd(USERS_INDEX, user.id)
+  .hmset(
+    redisKey(user.id, USERS_METADATA, audience),
+    ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
+  )
+  .exec();
 
 describe('Redis Search: list', function listSuite() {
   this.timeout(50000);
@@ -19,7 +39,6 @@ describe('Redis Search: list', function listSuite() {
   };
 
   const totalUsers = 105;
-  const { faker } = require('@faker-js/faker');
 
   beforeEach(async function startService() {
     await global.startService.call(this, ctx);
@@ -29,28 +48,11 @@ describe('Redis Search: list', function listSuite() {
   beforeEach('populate redis', function populateRedis() {
     const audience = this.users.config.jwt.defaultAudience;
     const promises = [];
-    const { USERS_INDEX, USERS_METADATA } = require('../../../src/constants');
 
     ld.times(totalUsers, () => {
-      const user = {
-        id: this.users.flake.next(),
-        metadata: {
-          username: faker.internet.email(),
-          firstName: faker.name.firstName(),
-          lastName: faker.name.lastName(),
-        },
-      };
-
-      promises.push((
-        this.users.redis
-          .pipeline()
-          .sadd(USERS_INDEX, user.id)
-          .hmset(
-            redisKey(user.id, USERS_METADATA, audience),
-            ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
-          )
-          .exec()
-      ));
+      const user = createUser(this.users.flake.next());
+      const item = saveUser(this.users.redis, audience, user);
+      promises.push(item);
     });
 
     this.audience = audience;

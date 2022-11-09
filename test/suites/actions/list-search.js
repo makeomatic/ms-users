@@ -38,7 +38,7 @@ describe('Redis Search: list', function listSuite() {
     },
   };
 
-  const totalUsers = 105;
+  const totalUsers = 5;
 
   beforeEach(async function startService() {
     await global.startService.call(this, ctx);
@@ -55,7 +55,22 @@ describe('Redis Search: list', function listSuite() {
       promises.push(item);
     });
 
+    const people = [
+      { username: 'ann@gmail.org', firstName: 'Ann', lastName: faker.lastName },
+      { username: 'johnny@gmail.org', firstName: 'Johhny', lastName: faker.lastName },
+      { username: 'joe@yahoo.org', firstName: 'Joe', lastName: faker.lastName },
+      { username: 'ann@yahoo.org', firstName: 'Anna', lastName: faker.lastName },
+    ];
+
+    for (const x of people) {
+      const user = createUser(this.users.flake.next(), { ...x });
+      const inserted = saveUser(this.users.redis, audience, user);
+      promises.push(inserted);
+    }
+
     this.audience = audience;
+    this.extractUserName = getUserName(this.audience);
+
     this.userStubs = Promise.all(promises);
     return this.userStubs;
   });
@@ -98,16 +113,39 @@ describe('Redis Search: list', function listSuite() {
           expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
         });
 
-        const byUsername = getUserName(this.audience);
-
         const copy = [].concat(result.users);
-        sortByCaseInsensitive(byUsername)(copy);
+        sortByCaseInsensitive(this.extractUserName)(copy);
 
         copy.forEach((data) => {
           expect(data.metadata[this.audience].username).to.match(/yahoo/i);
         });
 
         expect(copy).to.be.deep.eq(result.users);
+      });
+  });
+
+  it('list by first name', function test() {
+    return this
+      .users
+      .dispatch('list', {
+        params: {
+          offset: 0,
+          limit: 5,
+          criteria: 'firstName',
+          audience: this.audience,
+          filter: {
+            firstName: 'Johhny',
+          },
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(1);
+        const [u1] = result.users;
+
+        assert(u1);
+        const uname = this.extractUsername(u1);
+        expect(uname).to.be.equal('johnny@gmail.org');
       });
   });
 });

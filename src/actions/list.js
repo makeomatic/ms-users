@@ -21,6 +21,8 @@ const {
 // helper
 const JSONParse = (data) => JSON.parse(data);
 
+const extractUserId = (keyPrefix) => (userKey) => userKey.split('!')[0].slice(keyPrefix.length);
+
 // fetches basic ids
 async function fetchIds() {
   const {
@@ -57,16 +59,14 @@ async function redisSearchIds() {
   const {
     service,
     redis,
-    keys,
     args: request,
     filter,
     audience,
-    // filterKey,
     offset,
     limit,
   } = this;
 
-  service.log.debug({ criteria: request.criteria, keys, filter }, 'users list searching...');
+  service.log.debug({ criteria: request.criteria, filter }, 'users list searching...');
   const { keyPrefix } = service.config.redis.options;
 
   const indexName = service.redisSearch.getIndexName(audience);
@@ -76,8 +76,6 @@ async function redisSearchIds() {
 
   const query = [];
   const params = [];
-
-  const extractId = (userKey) => userKey.split('!')[0].slice(keyPrefix.length);
 
   for (const [propName, actionTypeOrValue] of Object.entries(filter)) {
     const prop = normalizeFilterProp(propName, actionTypeOrValue);
@@ -116,13 +114,14 @@ async function redisSearchIds() {
   // [total, [ids]]
   service.log.info('redis search query: %s', args.join(' '));
 
-  const [total, ...ids] = await redis.call(...args);
+  const [total, ...keys] = await redis.call(...args);
+
+  const extractId = extractUserId(keyPrefix);
+  const ids = keys.map(extractId);
 
   service.log.info({ ids }, 'search result: %d', total);
 
-  // TODO re-write and use full result
-  const result = ids.map((x) => extractId(x));
-  return result;
+  return ids;
 }
 
 function remapData(id, idx) {
@@ -141,13 +140,14 @@ function remapData(id, idx) {
 function fetchUserData(ids) {
   const {
     redis,
+    seachEnabled,
     audience,
     offset,
     limit,
     userIdsOnly,
   } = this;
 
-  const length = +ids.pop();
+  const length = seachEnabled ? ids.length : +ids.pop(); // TODO check it
 
   // fetch extra data
   let userIds;

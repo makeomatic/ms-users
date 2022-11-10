@@ -67,6 +67,7 @@
     "common-errors": "^1.2.0",
     "csv-write-stream": "^2.0.0",
     "disposable-email-domains": "^1.0.62",
+    "ethers": "^5.7.2",
     "flake-idgen": "^1.4.0",
     "get-stdin": "^8.0.0",
     "get-value": "^3.0.1",

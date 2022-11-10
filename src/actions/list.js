@@ -45,9 +45,7 @@ async function fetchIds() {
     return result;
   }
 
-  const ids = redis.fsort(keys, args);
-  const total = ids.pop();
-  return { total, ids };
+  return redis.fsort(keys, args);
 }
 
 /*
@@ -123,7 +121,7 @@ async function redisSearchIds() {
 
   service.log.info({ ids }, 'search result: %d', total);
 
-  return { total, ids };
+  return ids;
 }
 
 function remapData(id, idx) {
@@ -141,7 +139,7 @@ function remapData(id, idx) {
 // const fetchUserDataFactory = (metaPostfix) => fetchUserData(metaPostfix);
 
 // fetches user data
-function fetchUserData({ total, ids }) {
+function fetchUserData(ids) {
   const {
     service,
     redis,
@@ -153,6 +151,7 @@ function fetchUserData({ total, ids }) {
   } = this;
 
   const dataKey = seachEnabled ? service.redisSearch.getFilterKey(audience) : USERS_METADATA;
+  const total = seachEnabled ? ids.length : +ids.pop();
 
   // fetch extra data
   let userIds;

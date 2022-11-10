@@ -1,4 +1,5 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
+const ethers = require('ethers');
 
 const { USERS_WALLET_ADD, WALLET_INDEX } = require('../constants');
 
@@ -18,27 +19,23 @@ module.exports = async function addWallet({ params }) {
   const { redis, tokenManager } = this;
   const { message, sign } = params;
 
-  //extract timestamp from message
-  const [addressElement, timestampElement] = message.split("\n\n").slice("-2");
-  const timestamp = timestampElement.split(":")[1];
-  const address = addressElement.split(":")[1];
+  // extract timestamp from message
+  const [addressElement, timestampElement] = message.split('\n\n').slice("-2");
+  const timestamp = timestampElement.split(':')[1];
+  const address = addressElement.split(':')[1];
 
   // verify timestamp not older than 5 minutes
   const now = Math.floor(Date.now() / 1000);
   if (now - timestamp > 300) {
-    return res.status(401).json({
-      message: "Bro... this time stamp old af",
-    });
+    throw Error('this time stamp old');
   }
 
   const hashMessage = ethers.utils.hashMessage(message);
-  const pk = ethers.utils.recoverPublicKey(hashMessage, signature);
+  const pk = ethers.utils.recoverPublicKey(hashMessage, sign);
   const recoveredAddress = ethers.utils.computeAddress(pk);
 
   if (recoveredAddress !== address) {
-    return res.status(401).json({
-      message: "Bro... this signature is not for you",
-    });
+    throw Error('this signature is not for you');
   }
 
   const response = await tokenManager.add({

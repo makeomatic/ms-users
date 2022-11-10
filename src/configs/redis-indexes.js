@@ -1,12 +1,14 @@
 /**
  * Provides configuration for searching redis indexes
- * @type {Array} Array of objects: baseKey without prefix, audience list, fields [field, type, attributes]
+ * @type {Array} Array of objects: filterKey without prefix, audience list, fields [field, type, attributes]
 */
 
 exports.redisIndexDefinitions = [
-  { // index name: {ms-users}_metadata_*.localhost_idx
+  // Index Name: {ms-users}_metadata_*.localhost_idx
+  // Index Filter: metadata!*.localhost
+  {
     filterKey: 'metadata',
-    audience: '*.localhost',
+    audience: ['*.localhost'], // for access to index on search
     fields: [
       ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['firstName', 'TEXT', 'NOSTEM', 'SORTABLE'],

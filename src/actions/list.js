@@ -45,7 +45,9 @@ async function fetchIds() {
     return result;
   }
 
-  return redis.fsort(keys, args);
+  const ids = redis.fsort(keys, args);
+  const total = ids.pop();
+  return { total, ids };
 }
 
 /*
@@ -109,7 +111,7 @@ async function redisSearchIds() {
   args.push('LIMIT', offset, limit);
 
   // we'll fetch the data later
-  args.push('NOCONTENT'); // TODO consider to use it
+  args.push('NOCONTENT');
 
   // [total, [ids]]
   service.log.info('redis search query: %s', args.join(' '));
@@ -121,7 +123,7 @@ async function redisSearchIds() {
 
   service.log.info({ ids }, 'search result: %d', total);
 
-  return ids;
+  return { total, ids };
 }
 
 function remapData(id, idx) {
@@ -136,27 +138,26 @@ function remapData(id, idx) {
   return account;
 }
 
+// const fetchUserDataFactory = (metaPostfix) => fetchUserData(metaPostfix);
+
 // fetches user data
-function fetchUserData(ids) {
+function fetchUserData({ total, ids }) {
   const {
     redis,
-    seachEnabled,
     audience,
     offset,
     limit,
     userIdsOnly,
   } = this;
 
-  const length = seachEnabled ? ids.length : +ids.pop(); // TODO check it
-
   // fetch extra data
   let userIds;
-  if (length === 0 || ids.length === 0 || userIdsOnly === true) {
+  if (total === 0 || ids.length === 0 || userIdsOnly === true) {
     userIds = Promise.resolve();
   } else {
     userIds = redis.pipeline()
       .addBatch(ids.map((id) => [
-        'hgetall', redisKey(id, USERS_METADATA, audience),
+        'hgetall', redisKey(id, USERS_METADATA, audience), // TODO generalize for other keys
       ]))
       .exec()
       .then(handlePipeline);
@@ -166,8 +167,8 @@ function fetchUserData(ids) {
     users: userIdsOnly === true ? ids : ids.map(remapData, { audience, props }),
     cursor: offset + limit,
     page: Math.floor(offset / limit) + 1,
-    pages: Math.ceil(length / limit),
-    total: length,
+    pages: Math.ceil(total / limit),
+    total,
   }));
 }
 

@@ -38,7 +38,7 @@ describe('Redis Search: list', function listSuite() {
     },
   };
 
-  const totalUsers = 5;
+  const totalUsers = 10;
 
   beforeEach(async function startService() {
     await global.startService.call(this, ctx);
@@ -70,6 +70,17 @@ describe('Redis Search: list', function listSuite() {
 
     this.audience = audience;
     this.extractUserName = getUserName(this.audience);
+
+    this.filteredListRequest = (filter, criteria = 'username') => {
+      return this.users
+        .dispatch('list', {
+          params: {
+            criteria,
+            audience: this.audience,
+            filter,
+          },
+        });
+    };
 
     this.userStubs = Promise.all(promises);
     return this.userStubs;
@@ -126,18 +137,7 @@ describe('Redis Search: list', function listSuite() {
 
   it('list by first name', function test() {
     return this
-      .users
-      .dispatch('list', {
-        params: {
-          offset: 0,
-          limit: 5,
-          criteria: 'firstName',
-          audience: this.audience,
-          filter: {
-            firstName: 'Johhny',
-          },
-        },
-      })
+      .filteredListRequest({ firstName: 'Johhny' }, 'firstName')
       .then((result) => {
         assert(result);
         expect(result.users).to.have.length(1);
@@ -146,6 +146,24 @@ describe('Redis Search: list', function listSuite() {
         assert(u1);
         const uname = this.extractUserName(u1);
         expect(uname).to.be.equal('johnny@gmail.org');
+      });
+  });
+
+  it('response with empty when username has 2 tokens', function test() {
+    return this
+      .filteredListRequest({ username: 'yahoo.org' })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(0);
+      });
+  });
+
+  it('user list when username has only 1 token', function test() {
+    return this
+      .filteredListRequest({ username: 'org' })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length.gte(4);
       });
   });
 });

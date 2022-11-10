@@ -15,6 +15,7 @@ class RedisSearchIndexes {
     this.redisConfig = service.config.redis;
 
     this.indexByAudience = new Map();
+    this.filterKeyByAudience = new Map();
   }
 
   buildIndexName(indexKey) {
@@ -30,6 +31,10 @@ class RedisSearchIndexes {
     }
 
     return name;
+  }
+
+  getFilterKey(audience) {
+    return this.filterKeyByAudience.get(audience);
   }
 
   /**
@@ -50,7 +55,9 @@ class RedisSearchIndexes {
         result.push(createHashIndex(this.service, indexName, keyPrefix, filter, fields));
 
         this.log.debug('registering FT index for %s audience - %s', audience, indexName);
+
         this.indexByAudience.set(audienceKey, indexName);
+        this.filterKeyByAudience.set(audienceKey, filterKey);
       }
 
       return result;

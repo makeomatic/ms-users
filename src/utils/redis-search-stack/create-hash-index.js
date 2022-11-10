@@ -1,5 +1,4 @@
 const redisKey = require('../key');
-
 /**
  * @param {Object} service provides redis, log
  * @param {Object} keyPrefix root prefix, e.g. {ms-users}
@@ -7,15 +6,15 @@ const redisKey = require('../key');
  * @returns {Promise}
  */
 
-async function createHashIndex({ redis, log }, indexName, prefix, filterKey, fields) {
-  log.debug({ filterKey, fields }, `create search index: ${indexName}`);
+async function createHashIndex({ redis, log }, indexName, prefix, filter, fields) {
+  log.debug({ filter, fields }, `create search index: ${indexName}`);
 
   const filterExpr = [];
 
-  if (filterKey) {
-    const filter = redisKey('', filterKey); // leading separator
+  if (filter) {
+    const key = redisKey('', filter); // leading separator
     filterExpr.push('FILTER');
-    filterExpr.push(`'contains(@__key, ${filter}) > 0'`);
+    filterExpr.push(`'contains(@__key, ${key}) > 0'`);
   }
 
   try {

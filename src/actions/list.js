@@ -143,12 +143,16 @@ function remapData(id, idx) {
 // fetches user data
 function fetchUserData({ total, ids }) {
   const {
+    service,
     redis,
     audience,
+    seachEnabled,
     offset,
     limit,
     userIdsOnly,
   } = this;
+
+  const dataKey = seachEnabled ? service.redisSearch.getFilterKey(audience) : USERS_METADATA;
 
   // fetch extra data
   let userIds;
@@ -157,7 +161,7 @@ function fetchUserData({ total, ids }) {
   } else {
     userIds = redis.pipeline()
       .addBatch(ids.map((id) => [
-        'hgetall', redisKey(id, USERS_METADATA, audience), // TODO generalize for other keys
+        'hgetall', redisKey(id, dataKey, audience),
       ]))
       .exec()
       .then(handlePipeline);
@@ -195,8 +199,8 @@ module.exports = function iterateOverActiveUsers({ params }) {
   const {
     redis,
     config,
-
   } = this;
+
   const {
     criteria,
     audience,

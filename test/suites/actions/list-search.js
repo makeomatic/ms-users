@@ -206,7 +206,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ username: { eq: 'kim@yahoo.org' } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length.eq(0);
+        expect(result.users).to.have.length(0);
       });
   });
 
@@ -226,7 +226,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ username: { match: 'johnny@gmail.org"' } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length.eq(0);
+        expect(result.users).to.have.length(0)
       });
   });
 

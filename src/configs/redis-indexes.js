@@ -4,7 +4,7 @@
 */
 
 exports.redisIndexDefinitions = [
-  // Index Name: {ms-users}_metadata_*.localhost_idx
+  // Index Name: {ms-users}_metadata_*.localhost
   // Index Filter: metadata!*.localhost
   {
     filterKey: 'metadata',

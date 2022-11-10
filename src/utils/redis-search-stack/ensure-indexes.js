@@ -17,10 +17,10 @@ class RedisSearchIndexes {
     this.indexByAudience = new Map();
   }
 
-  buildIndexName(filterKey) {
+  buildIndexName(indexKey) {
     const { keyPrefix } = this.redisConfig.options;
 
-    return normalizeIndexName(redisKey(keyPrefix, filterKey));
+    return normalizeIndexName(redisKey(keyPrefix, indexKey));
   }
 
   getIndexName(audience) {
@@ -41,13 +41,17 @@ class RedisSearchIndexes {
 
     const createIndexes = this.definitions.map(({ filterKey, audience, fields }) => {
       const result = [];
-      const indexName = this.buildIndexName(filterKey);
-      const filter = redisKey(filterKey, audience);
 
-      this.log.debug('registering FT index for %s: %s', audience, indexName);
+      // create indexes matrix depends on all audience
+      for (const audienceKey of audience) {
+        const filter = redisKey(filterKey, audienceKey);
+        const indexName = this.buildIndexName(filter);
 
-      result.push(createHashIndex(this.service, indexName, keyPrefix, filter, fields));
-      this.indexByAudience.set(audience, indexName);
+        result.push(createHashIndex(this.service, indexName, keyPrefix, filter, fields));
+
+        this.log.debug('registering FT index for %s audience - %s', audience, indexName);
+        this.indexByAudience.set(audienceKey, indexName);
+      }
 
       return result;
     });

@@ -7,9 +7,7 @@ const normalizeFilterProp = (propName, actionTypeOrValue) => {
   } else if (field === '#multi') {
     field = actionTypeOrValue.fields.join('|');
   }
-  // else if (field === 'alias') {
-  //   field = 'alias_tag';
-  // }
+
   return field;
 };
 

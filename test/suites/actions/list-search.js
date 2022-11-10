@@ -60,6 +60,7 @@ describe('Redis Search: list', function listSuite() {
       { username: 'johnny@gmail.org', firstName: 'Johhny', lastName: faker.lastName },
       { username: 'joe@yahoo.org', firstName: 'Joe', lastName: faker.lastName },
       { username: 'ann@yahoo.org', firstName: 'Anna', lastName: faker.lastName },
+      { username: 'kim@yahoo.org', firstName: 'Kim', lastName: 'Joe' },
     ];
 
     for (const x of people) {
@@ -149,7 +150,16 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it('response with empty when username has 2 tokens', function test() {
+  it('responds with empty list by full username', function test() {
+    return this
+      .filteredListRequest({ username: '"ann@gmail.org"' })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(0);
+      });
+  });
+
+  it('responds with empty list if username has 2 tokens', function test() {
     return this
       .filteredListRequest({ username: 'yahoo.org' })
       .then((result) => {
@@ -158,12 +168,81 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it('user list when username has only 1 token', function test() {
+  it('user list if username has only 1 token', function test() {
     return this
       .filteredListRequest({ username: 'org' })
       .then((result) => {
         assert(result);
         expect(result.users).to.have.length.gte(4);
+      });
+  });
+
+  it('list with #multi fields', function test() {
+    return this
+      .filteredListRequest({
+        '#multi': {
+          fields: [
+            'firstName',
+            'lastName',
+          ],
+          match: 'Joe',
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length.gte(2);
+
+        const copy = [].concat(result.users);
+        sortByCaseInsensitive(this.extractUserName)(copy);
+
+        const [u1, u2] = copy;
+        expect(this.extractUserName(u1)).to.be.equal('joe@yahoo.org');
+        expect(this.extractUserName(u2)).to.be.equal('kim@yahoo.org');
+      });
+  });
+
+  it('list: EQ action', function test() {
+    return this
+      .filteredListRequest({ username: { eq: 'kim@yahoo.org' } })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length.eq(0);
+      });
+  });
+
+  it('list: MATCH action with one token', function test() {
+    // @firstName:($f_firstName_m*) PARAMS 2 f_firstName_m Johhny
+    return this
+      .filteredListRequest({ firstName: { match: 'Johhny' } })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length.gte(1);
+      });
+  });
+
+  it('list: MATCH action with many tokens', function test() {
+    //  @username:($f_username_m*) PARAMS 2 f_username_m \"johnny@gmail.org\"
+    return this
+      .filteredListRequest({ username: { match: 'johnny@gmail.org"' } })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length.eq(0);
+      });
+  });
+
+  it('list: NE action', function test() {
+    return this
+      .filteredListRequest({ username: { ne: 'gmail' } })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length.gte(2);
+
+        result.users.forEach((user) => {
+          const username = this.extractUserName(user);
+          const domain = username.split('@')[1];
+          expect(domain).to.have.length.gte(1);
+          // TODO expect(domain.includes('gmail')).to.equal(false)
+        });
       });
   });
 });

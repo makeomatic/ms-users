@@ -26,7 +26,7 @@ const searchQueryBuilder = {
   },
   ne: (prop, field) => {
     const name = buildParamName(FIELD_PREFIX, prop, 'ne');
-    return negative(expression(field), tag(paramRef(name)));
+    return negative(expression(field, tag(paramRef(name))));
   },
   match: (prop, field) => {
     // TODO: verify correctness of this
@@ -65,12 +65,19 @@ const buildSearchQuery = (propName, valueOrExpr) => {
     const params = [pName, valueOrExpr];
     return [query, params];
   }
-  // TODO consider to build together
-  const buildQuery = searchQueryBuilder[valueOrExpr];
-  const query = buildQuery(propName, field, valueOrExpr);
+  // omit fields prop in #multi
+  const { fields, ...expr } = valueOrExpr;
+  const action = Object.keys(expr)[0];
 
-  const buildParams = searchParamBuilder[valueOrExpr];
-  const params = buildParams !== undefined ? buildParams(propName, valueOrExpr) : [];
+  const buildQuery = searchQueryBuilder[action];
+  const buildParams = searchParamBuilder[action];
+
+  if (buildQuery === undefined) {
+    throw Error(`Not supported operation: ${valueOrExpr}`);
+  }
+
+  const query = buildQuery(propName, field);
+  const params = (buildParams !== undefined) ? buildParams(propName, valueOrExpr) : [];
 
   return [query, params];
 };

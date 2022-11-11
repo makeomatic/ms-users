@@ -16,7 +16,7 @@ const createUser = (id, { username, firstName, lastName } = {}) => ({
   metadata: {
     username: username || faker.internet.email(),
     firstName: firstName || faker.name.firstName(),
-    lastName: lastName || faker.name.lastName(),
+    lastName: lastName === undefined ? faker.name.lastName() : lastName,
   },
 });
 
@@ -58,7 +58,7 @@ describe('Redis Search: list', function listSuite() {
     const people = [
       { username: 'ann@gmail.org', firstName: 'Ann', lastName: faker.lastName },
       { username: 'johnny@gmail.org', firstName: 'Johhny', lastName: faker.lastName },
-      { username: 'joe@yahoo.org', firstName: 'Joe', lastName: faker.lastName },
+      { username: 'joe@yahoo.org', firstName: 'Joe', lastName: null },
       { username: 'ann@yahoo.org', firstName: 'Anna', lastName: faker.lastName },
       { username: 'kim@yahoo.org', firstName: 'Kim', lastName: 'Joe' },
     ];

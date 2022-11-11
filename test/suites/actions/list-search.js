@@ -29,6 +29,17 @@ const saveUser = (redis, audience, user) => redis
   )
   .exec();
 
+function listRequest(filter, criteria = 'username') {
+  return this.users
+    .dispatch('list', {
+      params: {
+        criteria,
+        audience: this.audience,
+        filter,
+      },
+    });
+}
+
 describe('Redis Search: list', function listSuite() {
   this.timeout(50000);
 
@@ -72,16 +83,7 @@ describe('Redis Search: list', function listSuite() {
     this.audience = audience;
     this.extractUserName = getUserName(this.audience);
 
-    this.filteredListRequest = (filter, criteria = 'username') => {
-      return this.users
-        .dispatch('list', {
-          params: {
-            criteria,
-            audience: this.audience,
-            filter,
-          },
-        });
-    };
+    this.filteredListRequest = listRequest.bind(this);
 
     this.userStubs = Promise.all(promises);
     return this.userStubs;
@@ -242,6 +244,49 @@ describe('Redis Search: list', function listSuite() {
           const domain = username.split('@')[1];
           expect(domain).to.have.length.gte(1);
           // TODO expect(domain.includes('gmail')).to.equal(false)
+        });
+      });
+  });
+
+  it('list: IS_EMPTY action', function test() {
+    return this
+      .filteredListRequest({ lastName: { isempty: true } })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(0); // TODO impl
+      });
+  });
+
+  it('list: EXISTS action', function test() {
+    return this
+      .filteredListRequest({ lastName: { exists: true } })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length.gte(1);
+      });
+  });
+
+  it('list by id', function test() {
+    // -@id:{$f_id_ne} PARAMS 2 f_id_ne unknown
+    return this
+      .users
+      .dispatch('list', {
+        params: {
+          offset: 0,
+          limit: 3,
+          criteria: 'id', // sort by
+          audience: this.audience,
+          filter: {
+            '#': { ne: 'unknown' },
+          },
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(3);
+
+        result.users.forEach((user) => {
+          expect(user).to.have.ownProperty('id');
         });
       });
   });

@@ -24,9 +24,10 @@ const createUser = (id, { username, firstName, lastName } = {}) => ({
   },
 });
 
-const createUserApi = (id, { level } = {}) => ({
+const createUserApi = (id, { username, level } = {}) => ({
   id,
   test: {
+    username: username || faker.internet.email(),
     level: level || 1,
   },
 });
@@ -36,7 +37,7 @@ const saveUser = (redis, category, audience, user) => redis
   .sadd(USERS_INDEX, user.id)
   .hmset(
     redisKey(user.id, category, audience),
-    ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
+    ld.mapValues(user[category], JSON.stringify.bind(JSON))
   )
   .exec();
 
@@ -87,14 +88,16 @@ describe('Redis Search: list', function listSuite() {
     ];
 
     for (let i = 0; i < people.length; i += 1) {
-      const x = people[i];
+      const item = people[i];
       const userId = this.users.flake.next();
-      const user = createUser(userId, { ...x });
+      const user = createUser(userId, { ...item });
 
       const inserted = saveUser(this.users.redis, USERS_METADATA, audience, user);
       promises.push(inserted);
 
-      const api = createUserApi(userId, { level: i * 10 });
+      const { username } = item;
+
+      const api = createUserApi(userId, { username, level: (i + 1) * 10 });
       const data = saveUser(this.users.redis, TEST_CATEGORY, TEST_AUDIENCE, api);
       promises.push(data);
     }
@@ -108,7 +111,7 @@ describe('Redis Search: list', function listSuite() {
     return this.userStubs;
   });
 
-  it.only('responds with error when index not created', async function test() {
+  it('responds with error when index not created', async function test() {
     const query = {
       params: {
         audience: 'not-existing-audience',
@@ -310,28 +313,32 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it.skip('use custom audience', function test() {
+  it('use custom audience', function test() {
+    // FT.SEARCH {ms-users}-test-api-idx @level:[-inf 40]
     return this
       .users
       .dispatch('list', {
         params: {
-          offset: 0,
           criteria: 'level',
           audience: TEST_AUDIENCE,
-        },
-        filter: {
-          level: { lte: 30 },
+          filter: {
+            level: { lte: 30 },
+          },
         },
       })
       .then((result) => {
-        // console.log('USERS==', JSON.stringify(result.users));
-        expect(result.users).to.have.length();
+        expect(result.users).to.have.length(3);
         expect(result.users.length);
 
         result.users.forEach((user) => {
           expect(user).to.have.ownProperty('id');
-          expect(user).to.have.ownProperty('test');
-          expect(user.test[TEST_AUDIENCE]).to.have.ownProperty('level');
+          expect(user).to.have.ownProperty('metadata');
+
+          const data = user.metadata[TEST_AUDIENCE];
+          expect(data).to.have.ownProperty('username');
+
+          expect(data).to.have.ownProperty('level');
+          expect(data.level).to.be.lte(30); // 10 20 30
         });
       });
   });

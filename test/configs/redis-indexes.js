@@ -21,6 +21,7 @@ exports.redisIndexDefinitions = [
     filterKey: 'test',
     audience: ['api'],
     fields: [
+      ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['level', 'NUMERIC', 'SORTABLE'],
     ],
   },

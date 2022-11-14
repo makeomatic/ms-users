@@ -1,3 +1,3 @@
 module.exports = function normalizeIndexName(key) {
-  return `${key.replaceAll('!', '_')}`;
+  return `${key.replaceAll('!', '-')}-idx`;
 };

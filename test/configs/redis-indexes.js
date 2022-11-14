@@ -8,11 +8,20 @@ exports.redisIndexDefinitions = [
   // Index Filter: metadata!*.localhost
   {
     filterKey: 'metadata',
-    audience: ['*.localhost'], // for access to index on search
+    audience: ['*.localhost'],
     fields: [
       ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['firstName', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['lastName', 'TEXT', 'NOSTEM', 'SORTABLE'],
+    ],
+  },
+  // Index Name: {ms-users}-test-api-idx
+  // Index Filter: test!api
+  {
+    filterKey: 'test',
+    audience: ['api'],
+    fields: [
+      ['level', 'NUMERIC', 'SORTABLE'],
     ],
   },
 ];

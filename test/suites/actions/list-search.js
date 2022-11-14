@@ -4,7 +4,11 @@ const { expect } = require('chai');
 const { faker } = require('@faker-js/faker');
 const ld = require('lodash');
 const redisKey = require('../../../src/utils/key');
+const { redisIndexDefinitions } = require('../../configs/redis-indexes');
 const { USERS_INDEX, USERS_METADATA } = require('../../../src/constants');
+
+const TEST_CATEGORY = 'test';
+const TEST_AUDIENCE = 'api';
 
 const getUserName = (audience) => (data) => data.metadata[audience].username;
 
@@ -20,11 +24,18 @@ const createUser = (id, { username, firstName, lastName } = {}) => ({
   },
 });
 
-const saveUser = (redis, audience, user) => redis
+const createUserApi = (id, { level } = {}) => ({
+  id,
+  test: {
+    level: level || 1,
+  },
+});
+
+const saveUser = (redis, category, audience, user) => redis
   .pipeline()
   .sadd(USERS_INDEX, user.id)
   .hmset(
-    redisKey(user.id, USERS_METADATA, audience),
+    redisKey(user.id, category, audience),
     ld.mapValues(user.metadata, JSON.stringify.bind(JSON))
   )
   .exec();
@@ -47,6 +58,7 @@ describe('Redis Search: list', function listSuite() {
     redisSearch: {
       enabled: true,
     },
+    redisIndexDefinitions,
   };
 
   const totalUsers = 10;
@@ -62,7 +74,7 @@ describe('Redis Search: list', function listSuite() {
 
     ld.times(totalUsers, () => {
       const user = createUser(this.users.flake.next());
-      const item = saveUser(this.users.redis, audience, user);
+      const item = saveUser(this.users.redis, USERS_METADATA, audience, user);
       promises.push(item);
     });
 
@@ -74,10 +86,17 @@ describe('Redis Search: list', function listSuite() {
       { username: 'kim@yahoo.org', firstName: 'Kim', lastName: 'Joe' },
     ];
 
-    for (const x of people) {
-      const user = createUser(this.users.flake.next(), { ...x });
-      const inserted = saveUser(this.users.redis, audience, user);
+    for (let i = 0; i < people.length; i += 1) {
+      const x = people[i];
+      const userId = this.users.flake.next();
+      const user = createUser(userId, { ...x });
+
+      const inserted = saveUser(this.users.redis, USERS_METADATA, audience, user);
       promises.push(inserted);
+
+      const api = createUserApi(userId, { level: i * 10 });
+      const data = saveUser(this.users.redis, TEST_CATEGORY, TEST_AUDIENCE, api);
+      promises.push(data);
     }
 
     this.audience = audience;
@@ -89,7 +108,7 @@ describe('Redis Search: list', function listSuite() {
     return this.userStubs;
   });
 
-  it('responds with error when index not created', async function test() {
+  it.only('responds with error when index not created', async function test() {
     const query = {
       params: {
         audience: 'not-existing-audience',
@@ -287,6 +306,32 @@ describe('Redis Search: list', function listSuite() {
 
         result.users.forEach((user) => {
           expect(user).to.have.ownProperty('id');
+        });
+      });
+  });
+
+  it.skip('use custom audience', function test() {
+    return this
+      .users
+      .dispatch('list', {
+        params: {
+          offset: 0,
+          criteria: 'level',
+          audience: TEST_AUDIENCE,
+        },
+        filter: {
+          level: { lte: 30 },
+        },
+      })
+      .then((result) => {
+        // console.log('USERS==', JSON.stringify(result.users));
+        expect(result.users).to.have.length();
+        expect(result.users.length);
+
+        result.users.forEach((user) => {
+          expect(user).to.have.ownProperty('id');
+          expect(user).to.have.ownProperty('test');
+          expect(user.test[TEST_AUDIENCE]).to.have.ownProperty('level');
         });
       });
   });

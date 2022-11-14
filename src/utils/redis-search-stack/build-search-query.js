@@ -83,7 +83,7 @@ const buildSearchQuery = (propName, valueOrExpr) => {
     throw Error(`Not supported operation: ${valueOrExpr}`);
   }
 
-  const query = buildQuery(propName, field);
+  const query = buildQuery(propName, field, valueOrExpr);
   const params = (buildParams !== undefined) ? buildParams(propName, valueOrExpr) : [];
 
   return [query, params];

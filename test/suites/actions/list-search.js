@@ -174,21 +174,26 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it('responds with empty list by full username', function test() {
+  it('list by multi-word email', function test() {
     return this
-      .filteredListRequest({ username: '"ann@gmail.org"' })
+      .filteredListRequest({ username: 'ann@gmail.org' })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(0);
+        assert(result.users.length);
+        expect(result.users).to.have.length.gte(1); // actual 2 TODO
+
+        expect(this.extractUserName(result.users[0])).to.be.equal('ann@gmail.org');
       });
+    // @username:$f_username_1 @username:$f_username_2 @username:$f_username_3
+    // PARAMS 6 f_username_1 ann f_username_2 gmail f_username_3
   });
 
-  it('responds with empty list if username has 2 tokens', function test() {
+  it('list using partial username', function test() {
     return this
       .filteredListRequest({ username: 'yahoo.org' })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(0);
+        assert(result.users.length);
       });
   });
 

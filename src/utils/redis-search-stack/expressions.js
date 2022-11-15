@@ -34,10 +34,6 @@ module.exports = exports = {
   // clause: = (foo bar) => { $weight: 2.0, $slop: 1, $inorder: false, }
 
   // Utils
-  hasPunctuation: (value) => {
-    return typeof value === 'string' && value.match(PUNCTUATION_REGEX);
-  },
-  tokenize: (value) => {
-    return typeof value === 'string' ? value.replace(PUNCTUATION_REGEX, ' ').split(/\s/) : [];
-  },
+  hasPunctuation: (value) => typeof value === 'string' && value.match(PUNCTUATION_REGEX),
+  tokenize: (value) => value.replace(PUNCTUATION_REGEX, ' ').split(/\s/),
 };

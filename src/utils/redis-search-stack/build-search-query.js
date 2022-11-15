@@ -1,3 +1,4 @@
+const { flatten } = require('lodash');
 const {
   expression,
   numericRange,
@@ -6,6 +7,8 @@ const {
   tag,
   negative,
   containsAny,
+  hasPunctuation,
+  tokenize,
 } = require('./expressions');
 
 const EMPTY_VALUE = typeof null; // NOTE Using "" occures the parser error
@@ -19,6 +22,32 @@ const ParamSuffix = {
 
 const buildParamName = (...args) => args.join('_');
 const normalizePropName = (prop) => prop.replace(/\|/g, '_');
+
+const buildStringQuery = (field, propName, value) => {
+  const pName = buildParamName(FIELD_PREFIX, propName);
+  const query = expression(field, paramRef(pName));
+
+  const params = [pName, value];
+  return [query, params];
+};
+
+const buildMultiWord = (field, propName, value) => {
+  const params = [];
+  const query = [];
+
+  const tokens = tokenize(value);
+  for (const [idx, token] of tokens.entries()) {
+    const pName = buildParamName(FIELD_PREFIX, propName, String(idx + 1));
+    const tokenQuery = expression(field, paramRef(pName));
+
+    const tokenParams = [pName, token];
+
+    query.push(tokenQuery);
+    params.push(tokenParams);
+  }
+
+  return [query.join(' '), flatten(params)];
+};
 
 const searchQueryBuilder = {
   // (prop, field, expr)
@@ -64,12 +93,15 @@ const buildSearchQuery = (propName, valueOrExpr) => {
 
   // Process simple value
   if (typeof valueOrExpr === 'string') {
-    const pName = buildParamName(FIELD_PREFIX, propName);
-    const query = expression(field, paramRef(pName));
+    // TODO consider to check props using cofig
+    // if (propName === 'username') get from config  multiwords: [ username]
+    if (hasPunctuation(valueOrExpr)) {
+      return buildMultiWord(field, propName, valueOrExpr);
+    }
 
-    const params = [pName, valueOrExpr];
-    return [query, params];
+    return buildStringQuery(field, propName, valueOrExpr);
   }
+
   // Omit 'fields' prop from  #multi statement if exists
   const { fields, ...expr } = valueOrExpr;
 

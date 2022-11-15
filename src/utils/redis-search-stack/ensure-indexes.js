@@ -14,8 +14,12 @@ class RedisSearchIndexes {
     this.definitions = service.config.redisIndexDefinitions;
     this.redisConfig = service.config.redis;
 
-    this.indexByAudience = new Map();
-    this.filterKeyByAudience = new Map();
+    this.indexMetadata = new Map();
+  }
+
+  setIndexMetadata(audience, indexName, filterKey, multiWords) {
+    const metadata = { indexName, filterKey, multiWords };
+    this.indexMetadata.set(audience, metadata);
   }
 
   buildIndexName(indexKey) {
@@ -24,17 +28,13 @@ class RedisSearchIndexes {
     return normalizeIndexName(redisKey(keyPrefix, indexKey));
   }
 
-  getIndexName(audience) {
-    const name = this.indexByAudience.get(audience);
-    if (!name) {
+  getIndexMetadata(audience) {
+    const metadata = this.indexMetadata.get(audience);
+    if (!metadata) {
       throw ErrorSearchIndexNotFound(audience);
     }
 
-    return name;
-  }
-
-  getFilterKey(audience) {
-    return this.filterKeyByAudience.get(audience);
+    return metadata;
   }
 
   /**
@@ -44,7 +44,7 @@ class RedisSearchIndexes {
   ensureSearchIndexes() {
     const { keyPrefix } = this.redisConfig.options;
 
-    const createIndexes = this.definitions.map(({ filterKey, audience, fields }) => {
+    const createIndexes = this.definitions.map(({ filterKey, audience, fields, multiWords }) => {
       const result = [];
 
       // create indexes matrix depends on all audience
@@ -56,15 +56,13 @@ class RedisSearchIndexes {
 
         this.log.debug('registering FT index for %s audience - %s', audience, indexName);
 
-        this.indexByAudience.set(audienceKey, indexName);
-        this.filterKeyByAudience.set(audienceKey, filterKey);
+        this.setIndexMetadata(audienceKey, indexName, filterKey, multiWords);
       }
 
       return result;
     });
 
-    this.log.info('FT indexes registered: %d', this.indexByAudience.size);
-
+    this.log.info('FT indexes registered: %d', this.indexMetadata.size);
     return Promise.all(createIndexes);
   }
 }

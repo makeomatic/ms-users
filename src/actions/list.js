@@ -1,7 +1,6 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const passThrough = require('lodash/identity');
-const uniq = require('lodash/uniq');
 const fsort = require('redis-filtered-sort');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
@@ -70,7 +69,7 @@ async function redisSearchIds() {
   service.log.debug({ criteria: request.criteria, filter }, 'users list searching...');
   const { keyPrefix } = service.config.redis.options;
 
-  const indexName = service.redisSearch.getIndexName(audience);
+  const { indexName, multiWords } = service.redisSearch.getIndexMetadata(audience);
 
   service.log.debug('search using index: %s', indexName);
   const args = ['FT.SEARCH', indexName];
@@ -82,7 +81,7 @@ async function redisSearchIds() {
     const prop = normalizeFilterProp(propName, actionTypeOrValue);
 
     if (actionTypeOrValue !== undefined) {
-      const [sQuery, sParams] = buildSearchQuery(prop, actionTypeOrValue);
+      const [sQuery, sParams] = buildSearchQuery(prop, actionTypeOrValue, { multiWords });
 
       query.push(sQuery);
       params.push(...sParams); // name, value
@@ -120,7 +119,7 @@ async function redisSearchIds() {
 
   const extractId = extractUserId(keyPrefix);
 
-  const ids = uniq(keys).map(extractId);
+  const ids = keys.map(extractId);
   service.log.info({ ids }, 'search result: %d', total);
 
   return ids;
@@ -150,7 +149,13 @@ function fetchUserData(ids) {
     userIdsOnly,
   } = this;
 
-  const dataKey = seachEnabled ? service.redisSearch.getFilterKey(audience) : USERS_METADATA;
+  let dataKey = USERS_METADATA;
+
+  if (seachEnabled) {
+    const meta = service.redisSearch.getIndexMetadata(audience);
+    dataKey = meta.filterKey;
+  }
+
   const total = seachEnabled ? ids.length : +ids.pop();
 
   // fetch extra data

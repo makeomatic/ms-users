@@ -7,7 +7,6 @@ const {
   tag,
   negative,
   containsAny,
-  hasPunctuation,
   tokenize,
 } = require('./expressions');
 
@@ -88,14 +87,14 @@ const searchParamBuilder = {
   },
 };
 
-const buildSearchQuery = (propName, valueOrExpr) => {
+const buildSearchQuery = (propName, valueOrExpr, options) => {
+  const { multiWords = [] } = options;
+
   const field = namedField(propName);
 
   // Process simple value
   if (typeof valueOrExpr === 'string') {
-    // TODO consider to check props using cofig
-    // if (propName === 'username') get from config  multiwords: [ username]
-    if (hasPunctuation(valueOrExpr)) {
+    if (multiWords.includes(propName)) {
       return buildMultiWord(field, propName, valueOrExpr);
     }
 

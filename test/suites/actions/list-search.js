@@ -84,7 +84,7 @@ describe('Redis Search: list', function listSuite() {
       { username: 'johnny@gmail.org', firstName: 'Johhny', lastName: faker.lastName },
       { username: 'joe@yahoo.org', firstName: 'Joe', lastName: null },
       { username: 'ann@yahoo.org', firstName: 'Anna', lastName: faker.lastName },
-      { username: 'kim@yahoo.org', firstName: 'Kim', lastName: 'Joe' },
+      { username: 'kim@yahoo.org', firstName: 'Kim', lastName: 'Johhny' },
     ];
 
     for (let i = 0; i < people.length; i += 1) {
@@ -214,7 +214,7 @@ describe('Redis Search: list', function listSuite() {
             'firstName',
             'lastName',
           ],
-          match: 'Joe',
+          match: 'Johhny',
         },
       })
       .then((result) => {
@@ -225,7 +225,7 @@ describe('Redis Search: list', function listSuite() {
         sortByCaseInsensitive(this.extractUserName)(copy);
 
         const [u1, u2] = copy;
-        expect(this.extractUserName(u1)).to.be.equal('joe@yahoo.org');
+        expect(this.extractUserName(u1)).to.be.equal('johnny@gmail.org');
         expect(this.extractUserName(u2)).to.be.equal('kim@yahoo.org');
       });
   });
@@ -340,7 +340,8 @@ describe('Redis Search: list', function listSuite() {
           expect(user).to.have.ownProperty('metadata');
 
           const data = user.metadata[TEST_AUDIENCE];
-          expect(data).to.have.ownProperty('username');
+          expect(data).to.have.ownProperty('email');
+          expect(data.email.endsWith('.org'));
 
           expect(data).to.have.ownProperty('level');
           expect(data.level).to.be.lte(30); // 10 20 30

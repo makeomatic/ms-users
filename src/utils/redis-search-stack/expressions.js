@@ -14,6 +14,8 @@ const INFINITY = 'inf';
 const NEGATIVE_RANGE = `${NEGATIVE}${INFINITY}`;
 const POSITIVE_RANGE = `${POSITIVE}${INFINITY}`;
 
+const PUNCTUATION_REGEX = /[,.<>{}[\]"':;!@#$%^&*()\-+=~]+/g;
+
 module.exports = exports = {
   namedField: (propName) => `${FIELD}${propName}`,
   paramRef: (name) => `${PARAM_REFERENCE}${name}`,
@@ -30,4 +32,12 @@ module.exports = exports = {
   tag: (item) => `{${item}}`,
   tags: (items = []) => `{${items.join(PIPE_SEPARATOR)}}`,
   // clause: = (foo bar) => { $weight: 2.0, $slop: 1, $inorder: false, }
+
+  // Utils
+  hasPunctuation: (value) => {
+    return typeof value === 'string' && value.match(PUNCTUATION_REGEX);
+  },
+  tokenize: (value) => {
+    return typeof value === 'string' ? value.replace(PUNCTUATION_REGEX, ' ').split(/\s/) : [];
+  },
 };

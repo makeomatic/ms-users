@@ -82,8 +82,9 @@ async function redisSearchIds() {
 
     if (actionTypeOrValue !== undefined) {
       const [sQuery, sParams] = buildSearchQuery(prop, actionTypeOrValue);
+
       query.push(sQuery);
-      params.push(...sParams);
+      params.push(...sParams); // name, value
     }
   }
 
@@ -135,8 +136,6 @@ function remapData(id, idx) {
 
   return account;
 }
-
-// const fetchUserDataFactory = (metaPostfix) => fetchUserData(metaPostfix);
 
 // fetches user data
 function fetchUserData(ids) {

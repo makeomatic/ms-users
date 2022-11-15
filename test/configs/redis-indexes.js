@@ -14,6 +14,7 @@ exports.redisIndexDefinitions = [
       ['firstName', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['lastName', 'TEXT', 'NOSTEM', 'SORTABLE'],
     ],
+    multiWords: ['username'],
   },
   // Index Name: {ms-users}-test-api-idx
   // Index Filter: test!api
@@ -24,5 +25,6 @@ exports.redisIndexDefinitions = [
       ['email', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['level', 'NUMERIC', 'SORTABLE'],
     ],
+    multiWords: ['email'],
   },
 ];

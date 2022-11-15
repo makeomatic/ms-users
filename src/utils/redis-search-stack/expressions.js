@@ -31,9 +31,7 @@ module.exports = exports = {
   numericRange: (min = NEGATIVE_RANGE, max = POSITIVE_RANGE) => `[${min} ${max}]`,
   tag: (item) => `{${item}}`,
   tags: (items = []) => `{${items.join(PIPE_SEPARATOR)}}`,
-  // clause: = (foo bar) => { $weight: 2.0, $slop: 1, $inorder: false, }
 
   // Utils
-  hasPunctuation: (value) => typeof value === 'string' && value.match(PUNCTUATION_REGEX),
   tokenize: (value) => value.replace(PUNCTUATION_REGEX, ' ').split(/\s/),
 };

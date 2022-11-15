@@ -24,10 +24,10 @@ const createUser = (id, { username, firstName, lastName } = {}) => ({
   },
 });
 
-const createUserApi = (id, { username, level } = {}) => ({
+const createUserApi = (id, { email, level } = {}) => ({
   id,
   test: {
-    username: username || faker.internet.email(),
+    email: email || faker.internet.email(),
     level: level || 1,
   },
 });
@@ -97,7 +97,7 @@ describe('Redis Search: list', function listSuite() {
 
       const { username } = item;
 
-      const api = createUserApi(userId, { username, level: (i + 1) * 10 });
+      const api = createUserApi(userId, { email: username, level: (i + 1) * 10 });
       const data = saveUser(this.users.redis, TEST_CATEGORY, TEST_AUDIENCE, api);
       promises.push(data);
     }
@@ -180,7 +180,7 @@ describe('Redis Search: list', function listSuite() {
       .then((result) => {
         assert(result);
         assert(result.users.length);
-        expect(result.users).to.have.length.gte(1); // actual 2 TODO
+        expect(result.users).to.have.length(1);
 
         expect(this.extractUserName(result.users[0])).to.be.equal('ann@gmail.org');
       });
@@ -280,7 +280,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ lastName: { isempty: true } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(0); // TODO impl
+        expect(result.users).to.have.length(0);
       });
   });
 

@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const mapValues = require('lodash/mapValues');
 const passThrough = require('lodash/identity');
+const uniq = require('lodash/uniq');
 const fsort = require('redis-filtered-sort');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
@@ -118,8 +119,8 @@ async function redisSearchIds() {
   const [total, ...keys] = await redis.call(...args);
 
   const extractId = extractUserId(keyPrefix);
-  const ids = keys.map(extractId);
 
+  const ids = uniq(keys).map(extractId);
   service.log.info({ ids }, 'search result: %d', total);
 
   return ids;

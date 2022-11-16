@@ -2,8 +2,9 @@ const Promise = require('bluebird');
 const { expect } = require('chai');
 const ld = require('lodash');
 const redisKey = require('../../../src/utils/key');
+const { redisIndexDefinitions } = require('../../configs/redis-indexes');
 
-for (const redisSearchEnabled of [false].values()) { // TODO [false, true]
+for (const redisSearchEnabled of [false, true].values()) { // testing in two mode
   describe('#list', function listSuite() {
     this.timeout(50000);
 
@@ -11,6 +12,7 @@ for (const redisSearchEnabled of [false].values()) { // TODO [false, true]
       redisSearch: {
         enabled: redisSearchEnabled,
       },
+      redisIndexDefinitions,
     };
 
     const totalUsers = 105;

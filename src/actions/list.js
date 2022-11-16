@@ -48,19 +48,12 @@ async function fetchIds() {
   return redis.fsort(keys, args);
 }
 
-/*
-without NOCONTENT format:
-[
-  "{ms-users}6993954371000074240!metadata!*.localhost",
- ["username", "\"Casandra_Rosenbaum@yahoo.com\"", "firstName", "\"Winnifred\"", "lastName", "\"Spinka\""],
-
-*/
 async function redisSearchIds() {
   const {
     service,
     redis,
     args: request,
-    filter,
+    filter = {},
     audience,
     offset,
     limit,
@@ -102,10 +95,7 @@ async function redisSearchIds() {
   // sort the response
   if (request.criteria) {
     args.push('SORTBY', request.criteria, request.order);
-  } else {
-    // args.push('SORTBY', FILES_ID_FIELD, request.order);
   }
-
   // limits
   args.push('LIMIT', offset, limit);
 
@@ -120,9 +110,10 @@ async function redisSearchIds() {
   const extractId = extractUserId(keyPrefix);
 
   const ids = keys.map(extractId);
+
   service.log.info({ ids }, 'search result: %d', total);
 
-  return ids;
+  return [...ids, total || 0]; // generalize with 'fsort' response
 }
 
 function remapData(id, idx) {
@@ -156,11 +147,11 @@ function fetchUserData(ids) {
     dataKey = meta.filterKey;
   }
 
-  const total = seachEnabled ? ids.length : +ids.pop();
+  const length = +ids.pop();
 
   // fetch extra data
   let userIds;
-  if (total === 0 || ids.length === 0 || userIdsOnly === true) {
+  if (length === 0 || ids.length === 0 || userIdsOnly === true) {
     userIds = Promise.resolve();
   } else {
     userIds = redis.pipeline()
@@ -175,8 +166,8 @@ function fetchUserData(ids) {
     users: userIdsOnly === true ? ids : ids.map(remapData, { audience, props }),
     cursor: offset + limit,
     page: Math.floor(offset / limit) + 1,
-    pages: Math.ceil(total / limit),
-    total,
+    pages: Math.ceil(length / limit),
+    total: length,
   }));
 }
 

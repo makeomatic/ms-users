@@ -5,7 +5,7 @@ const redisKey = require('../../../src/utils/key');
 const { redisIndexDefinitions } = require('../../configs/redis-indexes');
 
 for (const redisSearchEnabled of [false, true].values()) { // testing in two mode
-  describe('#list', function listSuite() {
+  describe(`#list [FT:${redisSearchEnabled}]`, function listSuite() {
     this.timeout(50000);
 
     const ctx = {

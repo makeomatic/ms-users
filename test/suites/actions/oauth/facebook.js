@@ -293,7 +293,7 @@ t('#facebook', function oauthFacebookSuite() {
      * Suite checks general service behavior.
      * Token retrieved once and all tests use it.
      */
-    describe.skip('service register/create/detach', () => {
+    describe('service register/create/detach', () => {
       let token;
 
       it('get Facebook token', async () => {
@@ -392,7 +392,7 @@ t('#facebook', function oauthFacebookSuite() {
      * Previous version was restarting Auth process and getting new token before each test.
      * This version repeats same behavior but without repeating auth and get token processes.
      */
-    describe.skip('service login/attach', () => {
+    describe('service login/attach', () => {
       let token;
       let dataBag;
 

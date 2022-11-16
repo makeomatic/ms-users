@@ -127,7 +127,7 @@ t('oauth#upgrade', function oauthFacebookSuite() {
      * Suite checks general service behavior.
      * Token retrieved once and all tests use it.
      */
-    describe.skip('service register/create/detach', () => {
+    describe('service register/create/detach', () => {
       it('should be able to register via facebook', async () => {
         const registered = await createAccount(token);
         checkServiceOkResponse(registered);
@@ -217,7 +217,7 @@ t('oauth#upgrade', function oauthFacebookSuite() {
      * Previous version was restarting Auth process and getting new token before each test.
      * This version repeats same behavior but without repeating auth and get token processes.
      */
-    describe.skip('service login/attach', () => {
+    describe('service login/attach', () => {
       let dataBag;
       const username = 'facebookuser@me.com';
 

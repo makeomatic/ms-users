@@ -1,10 +1,10 @@
-const Promise = require('bluebird');
 const { expect } = require('chai');
 const ld = require('lodash');
+const { faker } = require('@faker-js/faker');
 const redisKey = require('../../../src/utils/key');
 const { redisIndexDefinitions } = require('../../configs/redis-indexes');
 
-for (const redisSearchEnabled of [false, true].values()) { // testing in two mode
+for (const redisSearchEnabled of [false, true]) { // testing in two mode
   describe(`#list [FT:${redisSearchEnabled}]`, function listSuite() {
     this.timeout(50000);
 
@@ -16,7 +16,6 @@ for (const redisSearchEnabled of [false, true].values()) { // testing in two mod
     };
 
     const totalUsers = 105;
-    const { faker } = require('@faker-js/faker');
 
     beforeEach(async function startService() {
       await global.startService.call(this, ctx);

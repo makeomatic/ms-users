@@ -86,9 +86,10 @@ async function redisSearchIds() {
   } else {
     args.push('*');
   }
+
   // TODO extract to redis aearch utils
   if (params.length > 0) {
-    args.push('PARAMS', params.length.toString(), ...params);
+    args.push('PARAMS', params.length, ...params);
     args.push('DIALECT', '2'); // use params dialect
   }
 
@@ -117,7 +118,7 @@ async function redisSearchIds() {
 }
 
 function remapData(id, idx) {
-  const data = this.props[idx];
+  const data = this.userIds[idx];
   const account = {
     id,
     metadata: {
@@ -129,7 +130,7 @@ function remapData(id, idx) {
 }
 
 // fetches user data
-function fetchUserData(ids) {
+async function fetchUserData(ids) {
   const {
     service,
     redis,
@@ -152,23 +153,22 @@ function fetchUserData(ids) {
   // fetch extra data
   let userIds;
   if (length === 0 || ids.length === 0 || userIdsOnly === true) {
-    userIds = Promise.resolve();
+    userIds = null;
   } else {
-    userIds = redis.pipeline()
-      .addBatch(ids.map((id) => [
+    userIds = handlePipeline(await redis
+      .pipeline(ids.map((id) => [
         'hgetall', redisKey(id, dataKey, audience),
       ]))
-      .exec()
-      .then(handlePipeline);
+      .exec());
   }
 
-  return userIds.then((props) => ({
-    users: userIdsOnly === true ? ids : ids.map(remapData, { audience, props }),
+  return {
+    users: userIdsOnly === true ? ids : ids.map(remapData, { audience, userIds }),
     cursor: offset + limit,
     page: Math.floor(offset / limit) + 1,
     pages: Math.ceil(length / limit),
     total: length,
-  }));
+  };
 }
 
 /**
@@ -214,19 +214,12 @@ module.exports = function iterateOverActiveUsers({ params }) {
   const currentTime = Date.now();
 
   let index;
-  switch (params.public) {
-    case true:
-      index = USERS_PUBLIC_INDEX;
-      break;
-
-    case undefined:
-    case false:
-      index = USERS_INDEX;
-      break;
-
-    default:
-      index = `${USERS_REFERRAL_INDEX}:${params.public}`;
-      break;
+  if (params.public === true) {
+    index = USERS_PUBLIC_INDEX;
+  } else if (params.public === undefined || params.public === false) {
+    index = USERS_INDEX;
+  } else {
+    index = `${USERS_REFERRAL_INDEX}:${params.public}`;
   }
 
   const ctx = {

@@ -1,5 +1,3 @@
-const Promise = require('bluebird');
-
 const normalizeIndexName = require('./normalize-index-name');
 const createHashIndex = require('./create-hash-index');
 
@@ -22,10 +20,10 @@ class RedisSearchIndexes {
     this.indexMetadata.set(audience, metadata);
   }
 
-  buildIndexName(indexKey) {
+  buildIndexName(indexKey, version = '1') {
     const { keyPrefix } = this.redisConfig.options;
 
-    return normalizeIndexName(redisKey(keyPrefix, indexKey));
+    return normalizeIndexName(redisKey(keyPrefix, indexKey, `v${version}`));
   }
 
   getIndexMetadata(audience) {
@@ -44,13 +42,13 @@ class RedisSearchIndexes {
   ensureSearchIndexes() {
     const { keyPrefix } = this.redisConfig.options;
 
-    const createIndexes = this.definitions.map(({ filterKey, audience, fields, multiWords }) => {
+    const createIndexes = this.definitions.map(({ version = '1', filterKey, audience, fields, multiWords }) => {
       const result = [];
 
       // create indexes matrix depends on all audience
       for (const audienceKey of audience) {
         const filter = redisKey(filterKey, audienceKey);
-        const indexName = this.buildIndexName(filter);
+        const indexName = this.buildIndexName(filter, version);
 
         result.push(createHashIndex(this.service, indexName, keyPrefix, filter, fields));
 

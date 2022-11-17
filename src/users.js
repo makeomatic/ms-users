@@ -110,12 +110,11 @@ class Users extends Microfleet {
     }
 
     if (this.config.redisSearch.enabled) {
-      this.addConnector(ConnectorsTypes.migration, () => {
+      this.addConnector(ConnectorsTypes.migration, async () => {
         // redis search indexes
         const RedisSearchIndexes = require('./utils/redis-search-stack/ensure-indexes');
         this.redisSearch = new RedisSearchIndexes(this);
-
-        return this.redisSearch.ensureSearchIndexes();
+        await this.redisSearch.ensureSearchIndexes();
       }, 'redis-search-index');
     }
 

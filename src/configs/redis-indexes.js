@@ -7,6 +7,7 @@ exports.redisIndexDefinitions = [
   // Index Name: {ms-users}-metadata-*.localhost-idx
   // Index Filter: metadata!*.localhost
   {
+    version: '1',
     filterKey: 'metadata',
     audience: ['*.localhost'], // for access to index on search
     fields: [

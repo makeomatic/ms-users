@@ -3,7 +3,7 @@ const request = require('request-promise');
 const { strict: assert } = require('assert');
 
 const baseOpts = {
-  baseUrl: 'https://graph.facebook.com/v13.0',
+  baseUrl: 'https://graph.facebook.com/v15.0',
   headers: {
     Authorization: `OAuth ${process.env.FACEBOOK_APP_TOKEN}`,
   },
@@ -31,10 +31,10 @@ class GraphAPI {
    */
   static createTestUser(props = {}) {
     return this.graphApi({
-      uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts`,
+      uri: `/${process.env.FACEBOOK_CLIENT_ID}/test-users`,
       method: 'POST',
       body: {
-        installed: false,
+        install_app: false,
         ...props,
       },
     });
@@ -49,11 +49,8 @@ class GraphAPI {
     this.checkUser(user);
 
     return this.graphApi({
-      uri: `/${process.env.FACEBOOK_CLIENT_ID}/accounts`,
+      uri: `/${process.env.FACEBOOK_CLIENT_ID}/${user.id}`,
       method: 'DELETE',
-      body: {
-        uid: user.id,
-      },
     });
   }
 
@@ -102,7 +99,7 @@ class GraphAPI {
       body: {
         uid: user.id,
         owner_access_token: process.env.FACEBOOK_APP_TOKEN,
-        installed: permissions.length > 0,
+        install_app: permissions.length > 0,
         permissions: permissions.length > 0 ? permissions.join(',') : undefined,
       },
     });
@@ -124,7 +121,7 @@ class GraphAPI {
 
     if (data.length === 0) {
       return this.createTestUser({
-        installed,
+        install_app: installed,
         permissions: installed ? permissions.join(',') : undefined,
       });
     }

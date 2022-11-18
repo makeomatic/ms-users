@@ -71,7 +71,7 @@ There are 3 types of Facebook users used In the current test suites:
 ```javascript
 const createTestUser = (localCache = cache) => Promise.props({
   testUser: createTestUserAPI(),
-  testUserInstalled: createTestUserAPI({ installed: true }),
+  testUserInstalled: createTestUserAPI({ install_app: true }),
   testUserInstalledPartial: createTestUserAPI({ permissions: 'public_profile' }),
 })
 ```

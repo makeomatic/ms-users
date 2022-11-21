@@ -1,3 +1,41 @@
+# [15.7.0](https://github.com/makeomatic/ms-users/compare/v15.6.8...v15.7.0) (2022-11-21)
+
+
+### Bug Fixes
+
+* add connector for ensure indexes ([8328f2e](https://github.com/makeomatic/ms-users/commit/8328f2eee64c751bf5b365fa44057f3ccf6f4c9e))
+* add predefined users for serach tests ([f2d4cce](https://github.com/makeomatic/ms-users/commit/f2d4cceb4d8f2f60066a48549befbdd07c2e2d03))
+* add redis search config ([6b08c9e](https://github.com/makeomatic/ms-users/commit/6b08c9e6c11210de6b72531c6a8246cef59efe92))
+* add redis search expressions utils ([ff380d7](https://github.com/makeomatic/ms-users/commit/ff380d79a55949b7f3853292cbc79577cc8d581e))
+* add redisSearchIds skeleton ([a226c1d](https://github.com/makeomatic/ms-users/commit/a226c1de6af0d0f29955cc430a3598a1826f4ce9))
+* add test case for redis search impl ([931c1e2](https://github.com/makeomatic/ms-users/commit/931c1e208d8fe4995f07211fcc84c221e9545119))
+* add tokenization utils ([7d9fb03](https://github.com/makeomatic/ms-users/commit/7d9fb03e68e42f32845781a0e02ec8d2be114194))
+* add uniq for user search result ([90cefcc](https://github.com/makeomatic/ms-users/commit/90cefcc5db3e3e089c9b04de3b715374895d977e))
+* bump dependencies ([61187c5](https://github.com/makeomatic/ms-users/commit/61187c5df6154907c5ac74b967107c288ea668e7))
+* correct search filter function ([e88e14d](https://github.com/makeomatic/ms-users/commit/e88e14dcdbdc6f71f8bdab43fea0a813b0e0c1bd))
+* create indexes depends on audience array ([7634a02](https://github.com/makeomatic/ms-users/commit/7634a0284423864afc336347cb8749fc18008562))
+* extend index definitions with  multi-words ([77bb74c](https://github.com/makeomatic/ms-users/commit/77bb74c3b061b953af9072ce71214b41faa84312))
+* generalize with fsort format for total ([2159e37](https://github.com/makeomatic/ms-users/commit/2159e37c2358788e8d25bdac9028915c03479345))
+* normalize index name, improve tests ([5d03ce3](https://github.com/makeomatic/ms-users/commit/5d03ce315f7287499f207faf17ef737c525b7747))
+* obtain fetch data key from search config ([ed49c1d](https://github.com/makeomatic/ms-users/commit/ed49c1d3919a4f3d25cc95a6d6f69bbfbc41fb98))
+* obtain total for search differently ([1fca49a](https://github.com/makeomatic/ms-users/commit/1fca49a9ef9a6a8c38a185470bf77583d514783f))
+* query actions impl, more tests ([e9ceac8](https://github.com/makeomatic/ms-users/commit/e9ceac8dba387eb40c5ba5cd4b390b58191910e3))
+* redis search ids with additional data fetch ([c286b01](https://github.com/makeomatic/ms-users/commit/c286b01ba199d345a4d073c0025c31bdabd871c3))
+* redis search params builders ([432c6bb](https://github.com/makeomatic/ms-users/commit/432c6bbe03cdc7a8afd53f2d18c05904b2700a42))
+* **redis-search:** add config, ensure indexes utility ([a37a76d](https://github.com/makeomatic/ms-users/commit/a37a76de1396d1a2db8a30766a5e67c92af6a967))
+* register FT index by audience ([d95f62f](https://github.com/makeomatic/ms-users/commit/d95f62fe5abdc7587b0dec3e9ec356f3c45f09a9))
+* rename function ([a7606bb](https://github.com/makeomatic/ms-users/commit/a7606bb0a3a57c3f6a6ea6c0458f4d8075ddc96a))
+* restore back compatobility for bin ([dc2428f](https://github.com/makeomatic/ms-users/commit/dc2428f6439d1a83c11a94f6fa5021832b80fa85))
+* search using tokenization for multi-word params ([e42bd62](https://github.com/makeomatic/ms-users/commit/e42bd629ce311b1f7060963c3b6cc4379506e727))
+* sort lua script paramenters ([52d84df](https://github.com/makeomatic/ms-users/commit/52d84df31f5dfa36e4f55f56c2703160421f787c))
+* update expressions module export ([bb41b9c](https://github.com/makeomatic/ms-users/commit/bb41b9c6eeb82f65b748efe86d638d2416b2e534))
+* use redis search filter ([05d2d00](https://github.com/makeomatic/ms-users/commit/05d2d008763eccd7c5b6ebb718b5e9cf40bc26ae))
+
+
+### Features
+
+* update deps, include index versioning ([f9d490e](https://github.com/makeomatic/ms-users/commit/f9d490e520b196de2da037b35c0efd728e858a13))
+
 ## [15.6.8](https://github.com/makeomatic/ms-users/compare/v15.6.7...v15.6.8) (2022-10-07)
 
 

@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 const rp = require('request-promise').defaults({
-  url: `https://graph.facebook.com/v13.0/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
+  url: `https://graph.facebook.com/v15.0/${process.env.FACEBOOK_CLIENT_ID}/accounts/test-users`,
   json: true,
   qs: {
     access_token: process.env.FACEBOOK_APP_TOKEN,

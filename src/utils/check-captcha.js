@@ -1,7 +1,6 @@
 const Errors = require('common-errors');
 const request = require('request-promise');
 const defaults = require('lodash/defaults');
-const pick = require('lodash/pick');
 const fmt = require('util').format;
 const handlePipeline = require('./pipeline-error');
 
@@ -37,7 +36,7 @@ module.exports = async function checkCaptcha(redis, username, captcha, captchaCo
       throw new Errors.HttpStatusError(200, body);
     }
   } catch (err) {
-    const errData = JSON.stringify(pick(err, ['statusCode', 'error']));
+    const errData = JSON.stringify({ statusCode: err.statusCode, error: err.error });
     throw new Errors.HttpStatusError(412, fmt('Captcha response: %s', errData));
   }
 

@@ -20,18 +20,18 @@ async function createHashIndex({ redis, log }, indexName, prefix, filter, fields
   try {
     return redis.call(
       'FT.CREATE',
-      `${indexName}`,
+      indexName,
       'ON',
       'HASH',
       'PREFIX',
       '1',
-      `${prefix}`,
+      prefix,
       ...filterExpr,
       'SCHEMA',
       ...fields.flatMap((x) => x)
     );
   } catch (err) {
-    log.error(`create ${indexName} index error %j`, err);
+    log.error({ err, indexName }, 'create index error');
 
     return false;
   }

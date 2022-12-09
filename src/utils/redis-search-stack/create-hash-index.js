@@ -32,7 +32,8 @@ async function createHashIndex({ redis, log }, indexName, prefix, filter, fields
     );
   } catch (err) {
     log.error(`create ${indexName} index error %j`, err);
-    throw err;
+
+    return false;
   }
 }
 

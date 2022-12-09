@@ -1,3 +1,11 @@
+## [15.7.1](https://github.com/makeomatic/ms-users/compare/v15.7.0...v15.7.1) (2022-12-09)
+
+
+### Bug Fixes
+
+* log & unused template string ([a05a722](https://github.com/makeomatic/ms-users/commit/a05a722a438969703f5a5f7d2673ea3db811c63b))
+* suppress error on FT index creation ([c7c6444](https://github.com/makeomatic/ms-users/commit/c7c6444918394b9665aab143530e17f53b5f3742))
+
 # [15.7.0](https://github.com/makeomatic/ms-users/compare/v15.6.8...v15.7.0) (2022-11-21)
 
 

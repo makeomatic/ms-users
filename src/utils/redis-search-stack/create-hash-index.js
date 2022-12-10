@@ -18,7 +18,7 @@ async function createHashIndex({ redis, log }, indexName, prefix, filter, fields
   }
 
   try {
-    return redis.call(
+    return await redis.call(
       'FT.CREATE',
       indexName,
       'ON',

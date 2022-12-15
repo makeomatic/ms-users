@@ -172,7 +172,7 @@ module.exports = function iterateOverActiveUsers({ params }) {
   } else if (params.public === undefined || params.public === false) {
     index = USERS_INDEX;
   } else {
-    index = `${USERS_REFERRAL_INDEX}: ${params.public}`;
+    index = `${USERS_REFERRAL_INDEX}:${params.public}`;
   }
 
   const ctx = {

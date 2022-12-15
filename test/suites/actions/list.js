@@ -11,6 +11,7 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
     const ctx = {
       redisSearch: {
         enabled: redisSearchEnabled,
+        queryMethod: 'search',
       },
       redisIndexDefinitions,
     };

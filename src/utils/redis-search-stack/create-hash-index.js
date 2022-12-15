@@ -1,4 +1,6 @@
 const redisKey = require('../key');
+const { containsKeyExpr } = require('./expressions');
+
 /**
  * @param {Object} service provides redis, log
  * @param {Object} keyPrefix root prefix, e.g. {ms-users}
@@ -14,7 +16,7 @@ async function createHashIndex({ redis, log }, indexName, prefix, filter, fields
   if (filter) {
     const key = redisKey('', filter); // leading separator
     filterExpr.push('FILTER');
-    filterExpr.push(`'contains(@__key, ${key}) > 0'`);
+    filterExpr.push(containsKeyExpr(key));
   }
 
   try {

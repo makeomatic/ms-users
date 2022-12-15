@@ -136,4 +136,5 @@ exports.mfa = {
  */
 exports.redisSearch = {
   enabled: false,
+  queryMethod: 'search', //  search | aggregate
 };

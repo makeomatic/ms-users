@@ -1,11 +1,12 @@
 const ensureSearchIndexes = require('./ensure-indexes');
-const normalizeFilterProp = require('./normalize-filter-prop');
 const normalizeIndexName = require('./normalize-index-name');
-const buildSearchQuery = require('./build-search-query');
+
+const redisSearchQuery = require('./query-search');
+const redisAggregateQuery = require('./query-aggregate');
 
 module.exports = {
   ensureSearchIndexes,
-  normalizeFilterProp,
   normalizeIndexName,
-  buildSearchQuery,
+  redisSearchQuery,
+  redisAggregateQuery,
 };

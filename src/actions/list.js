@@ -14,14 +14,12 @@ const {
 } = require('../constants');
 
 const {
-  buildSearchQuery,
-  normalizeFilterProp,
+  redisSearchQuery,
+  redisAggregateQuery,
 } = require('../utils/redis-search-stack');
 
 // helper
 const JSONParse = (data) => JSON.parse(data);
-
-const extractUserId = (keyPrefix) => (userKey) => userKey.split('!')[0].slice(keyPrefix.length);
 
 // fetches basic ids
 async function fetchIds() {
@@ -51,66 +49,21 @@ async function fetchIds() {
 async function redisSearchIds() {
   const {
     service,
-    redis,
-    args: request,
+    args,
     filter = {},
     audience,
-    offset,
-    limit,
+    redisSearchConfig,
   } = this;
 
-  service.log.debug({ criteria: request.criteria, filter }, 'users list searching...');
-  const { keyPrefix } = service.config.redis.options;
+  service.log.debug({ criteria: args.criteria, filter }, 'users list searching...');
 
-  const { indexName, multiWords } = service.redisSearch.getIndexMetadata(audience);
+  const useAggregation = redisSearchConfig.queryMethod === 'aggregate';
+  const searchQuery = useAggregation ? redisAggregateQuery : redisSearchQuery;
 
-  service.log.debug('search using index: %s', indexName);
-  const args = ['FT.SEARCH', indexName];
+  const indexMeta = service.redisSearch.getIndexMetadata(audience);
+  service.log.debug('search using index: %s', indexMeta.indexName);
 
-  const query = [];
-  const params = [];
-
-  for (const [propName, actionTypeOrValue] of Object.entries(filter)) {
-    const prop = normalizeFilterProp(propName, actionTypeOrValue);
-
-    if (actionTypeOrValue !== undefined) {
-      const [sQuery, sParams] = buildSearchQuery(prop, actionTypeOrValue, { multiWords });
-
-      query.push(sQuery);
-      params.push(...sParams); // name, value
-    }
-  }
-
-  if (query.length > 0) {
-    args.push(query.join(' '));
-  } else {
-    args.push('*');
-  }
-
-  // TODO extract to redis aearch utils
-  if (params.length > 0) {
-    args.push('PARAMS', params.length, ...params);
-    args.push('DIALECT', '2'); // use params dialect
-  }
-
-  // sort the response
-  if (request.criteria) {
-    args.push('SORTBY', request.criteria, request.order);
-  }
-  // limits
-  args.push('LIMIT', offset, limit);
-
-  // we'll fetch the data later
-  args.push('NOCONTENT');
-
-  // [total, [ids]]
-  service.log.info('redis search query: %s', args.join(' '));
-
-  const [total, ...keys] = await redis.call(...args);
-
-  const extractId = extractUserId(keyPrefix);
-
-  const ids = keys.map(extractId);
+  const { total, ids } = await searchQuery(indexMeta, this);
 
   service.log.info({ ids }, 'search result: %d', total);
 
@@ -135,7 +88,7 @@ async function fetchUserData(ids) {
     service,
     redis,
     audience,
-    seachEnabled,
+    redisSearchConfig,
     offset,
     limit,
     userIdsOnly,
@@ -143,7 +96,7 @@ async function fetchUserData(ids) {
 
   let dataKey = USERS_METADATA;
 
-  if (seachEnabled) {
+  if (redisSearchConfig.enabled) {
     const meta = service.redisSearch.getIndexMetadata(audience);
     dataKey = meta.filterKey;
   }
@@ -225,8 +178,8 @@ module.exports = function iterateOverActiveUsers({ params }) {
   const ctx = {
     // service parts
     redis,
-    seachEnabled: config.redisSearch.enabled,
     service: this,
+    redisSearchConfig: config.redisSearch,
 
     // input parts for lua script
     keys: [
@@ -251,7 +204,7 @@ module.exports = function iterateOverActiveUsers({ params }) {
     audience,
   };
 
-  const findUserIds = ctx.seachEnabled ? redisSearchIds : fetchIds;
+  const findUserIds = ctx.redisSearchConfig.enabled ? redisSearchIds : fetchIds;
 
   return Promise
     .bind(ctx)

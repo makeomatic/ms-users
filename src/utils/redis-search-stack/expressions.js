@@ -34,4 +34,5 @@ module.exports = exports = {
 
   // Utils
   tokenize: (value) => value.replace(PUNCTUATION_REGEX, ' ').split(/\s/),
+  containsKeyExpr: (value) => `contains(@__key, "${value}")`,
 };

@@ -185,7 +185,7 @@ describe('Redis Search: list', function listSuite() {
 
         expect(this.extractUserName(result.users[0])).to.be.equal('ann@gmail.org');
       });
-    // @username:$f_username_1 @username:$f_username_2 @username:$f_username_3
+    // @username:($f_username_1 $f_username_2 $f_username_3)
     // PARAMS 6 f_username_1 ann f_username_2 gmail f_username_3
   });
 
@@ -250,16 +250,25 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it('list: MATCH action with many tokens', function test() {
-    //  @username:($f_username_m*) PARAMS 2 f_username_m \"johnny@gmail.org\"
+  it('list: MATCH action with multiWords', function test() {
+    //  @username:($f_username_m_1 $f_username_m_2 $f_username_m_3*) PARAMS 6 f_username_m_1 johnny f_username_m_2 gmail f_username_m_3 org
     return this
-      .filteredListRequest({ username: { match: 'johnny@gmail.org"' } })
+      .filteredListRequest({ username: { match: 'johnny@gmail.org' } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(0);
+        expect(result.users).to.have.length(1);
       });
   });
 
+  it('list: MATCH action with multiWords and partial search', function test() {
+    //  @username:($f_username_m_1 $f_username_m_2*) PARAMS 4 f_username_m_1 johnny f_username_m_2 gma
+    return this
+      .filteredListRequest({ username: { match: 'johnny@gma' } })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(1);
+      });
+  });
   it('list: NE action', function test() {
     return this
       .filteredListRequest({ username: { ne: 'gmail' } })

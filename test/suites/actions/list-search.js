@@ -141,7 +141,6 @@ describe('Redis Search: list', function listSuite() {
       .then((result) => {
         expect(result.users).to.have.length.lte(10);
         expect(result.users.length);
-        console.log('USERS==', result.users);
 
         result.users.forEach((user) => {
           expect(user).to.have.ownProperty('id');

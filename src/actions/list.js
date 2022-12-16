@@ -81,7 +81,7 @@ async function fetchUserData(ids) {
     service,
     redis,
     audience,
-    redisSearchConfig,
+    seachEnabled,
     offset,
     limit,
     userIdsOnly,
@@ -89,7 +89,7 @@ async function fetchUserData(ids) {
 
   let dataKey = USERS_METADATA;
 
-  if (redisSearchConfig.enabled) {
+  if (seachEnabled) {
     const meta = service.redisSearch.getIndexMetadata(audience);
     dataKey = meta.filterKey;
   }
@@ -172,7 +172,7 @@ module.exports = function iterateOverActiveUsers({ params }) {
     // service parts
     redis,
     service: this,
-    redisSearchConfig: config.redisSearch,
+    seachEnabled: config.redisSearch.enabled,
 
     // input parts for lua script
     keys: [
@@ -197,7 +197,7 @@ module.exports = function iterateOverActiveUsers({ params }) {
     audience,
   };
 
-  const findUserIds = ctx.redisSearchConfig.enabled ? redisSearchIds : fetchIds;
+  const findUserIds = ctx.seachEnabled ? redisSearchIds : fetchIds;
 
   return Promise
     .bind(ctx)

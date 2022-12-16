@@ -2,6 +2,8 @@ const createHashIndex = require('./create-hash-index');
 const redisKey = require('../key');
 const { ErrorSearchIndexNotFound } = require('../../constants');
 
+const normalizeIndexName = (key) => `${key.replaceAll('!', '-')}-idx`;
+
 class RedisSearchIndexes {
   constructor(service) {
     this.service = service;
@@ -20,9 +22,8 @@ class RedisSearchIndexes {
 
   buildIndexName(indexKey, version = '1') {
     const { keyPrefix } = this.redisConfig.options;
-    const key = redisKey(keyPrefix, indexKey, `v${version}`);
 
-    return `${key.replaceAll('!', '-')}-idx`;
+    return normalizeIndexName(redisKey(keyPrefix, indexKey, `v${version}`));
   }
 
   getIndexMetadata(audience) {

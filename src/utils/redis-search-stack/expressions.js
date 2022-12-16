@@ -26,7 +26,16 @@ module.exports = exports = {
 
   // Values
   selection: (value) => value,
-  containsAny: (prefix) => `(${prefix}${ANY_WHILDCARD})`,
+  partialMatch: (tokens) => {
+    const arr = Array.isArray(tokens) ? tokens : [tokens];
+    const count = arr.length;
+    const values = arr.map((item, index) => {
+      // add * to the last token for partial searching
+      return (index === count - 1) ? `${item}${ANY_WHILDCARD}` : item;
+    });
+
+    return `(${values.join(' ')})`;
+  },
   union: (values = []) => `(${values.join(PIPE_SEPARATOR)})`,
   numericRange: (min = NEGATIVE_RANGE, max = POSITIVE_RANGE) => `[${min} ${max}]`,
   tag: (item) => `{${item}}`,

@@ -6,7 +6,7 @@ const {
   namedField,
   tag,
   negative,
-  containsAny,
+  partialMatch,
   tokenize,
 } = require('./expressions');
 
@@ -30,14 +30,16 @@ const buildStringQuery = (field, propName, value) => {
   return [query, params];
 };
 
-const buildMultiWord = (field, propName, value) => {
+const tokenParamNameBuilder = (prop, index) => buildParamName(FIELD_PREFIX, prop, String(index + 1));
+const tokenQueryBuilder = (field, pName) => expression(field, paramRef(pName));
+
+const buildTokensQuery = (paramBuilder, queryBuilder) => (field, prop, tokens) => {
   const params = [];
   const query = [];
 
-  const tokens = tokenize(value);
   for (const [idx, token] of tokens.entries()) {
-    const pName = buildParamName(FIELD_PREFIX, propName, String(idx + 1));
-    const tokenQuery = expression(field, paramRef(pName));
+    const pName = paramBuilder(prop, idx);
+    const tokenQuery = queryBuilder(field, pName);
 
     const tokenParams = [pName, token];
 
@@ -48,8 +50,16 @@ const buildMultiWord = (field, propName, value) => {
   return [query.join(' '), flatten(params)];
 };
 
+const buildMultiWord = (field, propName, value) => {
+  const tokens = tokenize(value);
+
+  const builder = buildTokensQuery(tokenParamNameBuilder, tokenQueryBuilder);
+
+  return builder(field, propName, tokens);
+};
+
 const searchQueryBuilder = {
-  // (prop, field, expr)
+  // (prop, field, expr, isMultiWords)
   gte: (_, field, expr) => expression(field, numericRange(expr.gte, expr.lte)),
   lte: (_, field, expr) => expression(field, numericRange(expr.gte, expr.lte)),
   exists: (_, field) => negative(expression((field), EMPTY_VALUE)),
@@ -62,11 +72,15 @@ const searchQueryBuilder = {
     const name = buildParamName(FIELD_PREFIX, prop, ParamSuffix.ne);
     return negative(expression(field, tag(paramRef(name))));
   },
-  match: (prop, field) => {
+  match: (prop, field, _, isMultiWords) => {
     const propName = normalizePropName(prop);
-    const name = buildParamName(FIELD_PREFIX, propName, ParamSuffix.match);
 
-    return expression(field, containsAny(paramRef(name)));
+    if (isMultiWords) {
+      // TODO
+    }
+
+    const name = buildParamName(FIELD_PREFIX, propName, ParamSuffix.match);
+    return expression(field, partialMatch(paramRef(name)));
   },
 };
 
@@ -92,9 +106,13 @@ const buildSearchQuery = (propName, valueOrExpr, options) => {
 
   const field = namedField(propName);
 
+  // Split by tokens if multiwords includes the field
+
+  const isMultiWords = multiWords.includes(propName);
+
   // Process simple value
   if (typeof valueOrExpr === 'string') {
-    if (multiWords.includes(propName)) {
+    if (isMultiWords) {
       return buildMultiWord(field, propName, valueOrExpr);
     }
 
@@ -114,8 +132,8 @@ const buildSearchQuery = (propName, valueOrExpr, options) => {
     throw Error(`Not supported operation: ${valueOrExpr}`);
   }
 
-  const query = buildQuery(propName, field, valueOrExpr);
-  const params = (buildParams !== undefined) ? buildParams(propName, valueOrExpr) : [];
+  const query = buildQuery(propName, field, valueOrExpr, isMultiWords);
+  const params = (buildParams !== undefined) ? buildParams(propName, valueOrExpr, isMultiWords) : [];
 
   return [query, params];
 };

@@ -26,12 +26,12 @@ module.exports = exports = {
 
   // Values
   selection: (value) => value,
-  partialMatch: (tokens) => {
-    const arr = Array.isArray(tokens) ? tokens : [tokens];
+  tokensMatch: (paramRefs, usePartial) => {
+    const arr = Array.isArray(paramRefs) ? paramRefs : [paramRefs];
     const count = arr.length;
     const values = arr.map((item, index) => {
-      // add * to the last token for partial searching
-      return (index === count - 1) ? `${item}${ANY_WHILDCARD}` : item;
+      // Extend last token with * for partial search
+      return (usePartial && index === count - 1) ? `${item}${ANY_WHILDCARD}` : item;
     });
 
     return `(${values.join(' ')})`;

@@ -1,5 +1,6 @@
 const buildFilterQuery = require('./build-filter-query');
-const extractUserId = require('./extract-user-id');
+
+const extractUserId = (keyPrefix) => (userKey) => userKey.split('!')[0].slice(keyPrefix.length);
 
 async function redisSearchQuery(indexMeta, context) {
   const {

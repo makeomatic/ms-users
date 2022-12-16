@@ -1,4 +1,3 @@
-const normalizeIndexName = require('./normalize-index-name');
 const createHashIndex = require('./create-hash-index');
 
 const redisKey = require('../key');
@@ -23,7 +22,9 @@ class RedisSearchIndexes {
   buildIndexName(indexKey, version = '1') {
     const { keyPrefix } = this.redisConfig.options;
 
-    return normalizeIndexName(redisKey(keyPrefix, indexKey, `v${version}`));
+    const key = redisKey(keyPrefix, indexKey, `v${version}`);
+
+    return `${key.replaceAll('!', '-')}-idx`;
   }
 
   getIndexMetadata(audience) {

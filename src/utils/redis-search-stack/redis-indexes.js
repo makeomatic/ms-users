@@ -1,5 +1,4 @@
 const createHashIndex = require('./create-hash-index');
-
 const redisKey = require('../key');
 const { ErrorSearchIndexNotFound } = require('../../constants');
 
@@ -21,7 +20,6 @@ class RedisSearchIndexes {
 
   buildIndexName(indexKey, version = '1') {
     const { keyPrefix } = this.redisConfig.options;
-
     const key = redisKey(keyPrefix, indexKey, `v${version}`);
 
     return `${key.replaceAll('!', '-')}-idx`;

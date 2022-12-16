@@ -1,12 +1,7 @@
-const ensureSearchIndexes = require('./ensure-indexes');
-const normalizeIndexName = require('./normalize-index-name');
-
+const RedisSearchIndexes = require('./redis-indexes');
 const redisSearchQuery = require('./query-search');
-const redisAggregateQuery = require('./query-aggregate');
 
 module.exports = {
-  ensureSearchIndexes,
-  normalizeIndexName,
+  RedisSearchIndexes,
   redisSearchQuery,
-  redisAggregateQuery,
 };

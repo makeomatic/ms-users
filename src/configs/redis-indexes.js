@@ -12,8 +12,7 @@ exports.redisIndexDefinitions = [
     audience: ['*.localhost'], // for access to index on search
     fields: [
       ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
-      ['firstName', 'TEXT', 'NOSTEM', 'SORTABLE'],
-      ['lastName', 'TEXT', 'NOSTEM', 'SORTABLE'],
+      ['created', 'NUMERIC', 'SORTABLE'],
     ],
     multiWords: ['username'],
   },

@@ -13,10 +13,7 @@ const {
   USERS_METADATA,
 } = require('../constants');
 
-const {
-  redisSearchQuery,
-  redisAggregateQuery,
-} = require('../utils/redis-search-stack');
+const { redisSearchQuery } = require('../utils/redis-search-stack');
 
 // helper
 const JSONParse = (data) => JSON.parse(data);
@@ -52,18 +49,14 @@ async function redisSearchIds() {
     args,
     filter = {},
     audience,
-    redisSearchConfig,
   } = this;
 
   service.log.debug({ criteria: args.criteria, filter }, 'users list searching...');
 
-  const useAggregation = redisSearchConfig.queryMethod === 'aggregate';
-  const searchQuery = useAggregation ? redisAggregateQuery : redisSearchQuery;
-
   const indexMeta = service.redisSearch.getIndexMetadata(audience);
   service.log.debug('search using index: %s', indexMeta.indexName);
 
-  const { total, ids } = await searchQuery(indexMeta, this);
+  const { total, ids } = await redisSearchQuery(indexMeta, this);
 
   service.log.info({ ids }, 'search result: %d', total);
 

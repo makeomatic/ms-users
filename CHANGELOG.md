@@ -1,3 +1,14 @@
+## [15.7.3](https://github.com/makeomatic/ms-users/compare/v15.7.2...v15.7.3) (2023-01-09)
+
+
+### Bug Fixes
+
+* add aggregation search method ([20e71a9](https://github.com/makeomatic/ms-users/commit/20e71a955192dfc77c27ef6d83a8f80ee39502d6))
+* import RedisSerachIndexes class ([7125be1](https://github.com/makeomatic/ms-users/commit/7125be120b7da3ec2819109d4bc6638ae1434e6f))
+* restore active user index name ([8cde91a](https://github.com/makeomatic/ms-users/commit/8cde91a698d95a423c3778a9c39282598806b0a3))
+* small redis search improvements ([5755464](https://github.com/makeomatic/ms-users/commit/5755464fe7149e42595b3bd294bc35466d87b841))
+* token match query builder ([9ea2879](https://github.com/makeomatic/ms-users/commit/9ea2879b8c4d4c9dcccc5a84370b3a4bfbf93632))
+
 ## [15.7.2](https://github.com/makeomatic/ms-users/compare/v15.7.1...v15.7.2) (2022-12-10)
 
 

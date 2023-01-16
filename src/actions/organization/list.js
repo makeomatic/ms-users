@@ -12,7 +12,7 @@ const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
 async function findUserOrganization(userId) {
   const { audience: orgAudience } = this.config.organizations;
 
-  const res = await getMetadata.call(this, userId, orgAudience);
+  const res = await getMetadata(this, userId, orgAudience);
 
   return [Object.keys(res[orgAudience])];
 }

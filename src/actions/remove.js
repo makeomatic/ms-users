@@ -34,14 +34,13 @@ const {
 // intersection of priority users
 const ADMINS = [USERS_ADMIN_ROLE, USERS_SUPER_ADMIN_ROLE];
 
-function addMetadata(userData) {
+async function addMetadata(userData) {
   const { audience } = this;
   const userId = userData[USERS_ID_FIELD];
 
-  return Promise
-    .bind(this, [userId, audience])
-    .spread(getMetadata)
-    .then((metadata) => [userData, metadata]);
+  const meta = await getMetadata(this, userId, audience);
+
+  return [userData, meta];
 }
 
 async function removeOrganizationUser(userId) {

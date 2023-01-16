@@ -43,8 +43,7 @@ module.exports = function requestPassword(request) {
     .tap(isActive)
     .tap(isBanned)
     .tap(hasPassword)
-    .then((data) => [data[USERS_ID_FIELD], defaultAudience])
-    .spread(getMetadata)
+    .then((data) => getMetadata(this, data[USERS_ID_FIELD], defaultAudience))
     .get(defaultAudience)
     .then((meta) => [
       challengeType,

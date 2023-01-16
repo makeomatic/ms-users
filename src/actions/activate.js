@@ -222,10 +222,10 @@ async function activateAction({ log, params }) {
     .bind(context)
     .then(verifyRequest)
     .then((resolvedUsername) => getInternalData.call(this, resolvedUsername))
-    .then((internalData) => Promise.join(
+    .then((internalData) => Promise.all([
       internalData,
-      getMetadata.call(this, internalData[USERS_ID_FIELD], audience).get(audience)
-    ))
+      getMetadata(this, internalData[USERS_ID_FIELD], audience).then((x) => x[audience]),
+    ]))
     .spread(activateAccount)
     .tap(hook);
 

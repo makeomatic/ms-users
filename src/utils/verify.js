@@ -32,7 +32,7 @@ async function fromTokenData(service, { username, userId, scopes }, params) {
     hasMFA = !!internalData[USERS_MFA_FLAG];
   }
 
-  const metadata = await getMetadata.call(service, resolveduserId, audience);
+  const metadata = await getMetadata(service, resolveduserId, audience);
   const result = {
     id: resolveduserId,
     metadata,

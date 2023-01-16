@@ -13,7 +13,7 @@ const { isArray } = Array;
 
 /**
  * Creates filter for public data based on how we retrieve user information
- * @param  {Array}  audiences
+ * @param  {string[]}  audiences
  * @return {Function}
  */
 function isPublic(audiences) {
@@ -36,10 +36,13 @@ function isPublic(audiences) {
  * @return {Promise}
  */
 async function retrieveMetadata(username) {
-  const { service, audiences, fields, verifyBanned } = this;
+  const { service, audiences, fields, verifyBanned, skipUsernameResolution } = this;
 
-  const userId = await getUserId.call(service, username, verifyBanned);
-  const metadata = await getMetadata.call(service, userId, audiences, fields);
+  const userId = skipUsernameResolution
+    ? username
+    : await getUserId.call(service, username, verifyBanned);
+
+  const metadata = await getMetadata(service, userId, audiences, fields);
 
   this.filter(metadata, username);
 
@@ -77,6 +80,7 @@ async function getMetadataAction(request) {
     public: isPublicResponse,
     includingBanned,
     fields,
+    skipUsernameResolution,
   } = request.params;
 
   const multi = isArray(_username);
@@ -92,11 +96,12 @@ async function getMetadataAction(request) {
     fields,
     verifyBanned: includingBanned === false,
     service: this,
+    skipUsernameResolution,
   };
 
   const response = await Promise
     .bind(ctx, usernames)
-    .map(retrieveMetadata);
+    .map(retrieveMetadata, { concurrency: 50 });
 
   return unnest(response);
 }

@@ -44,9 +44,7 @@ module.exports = async function sendChallenge({ params }) {
   const userId = internalData[USERS_ID_FIELD];
   const resolvedUsername = internalData[USERS_USERNAME_FIELD];
 
-  const metadata = await getMetadata
-    .call(service, userId, defaultAudience)
-    .get(defaultAudience);
+  const { [defaultAudience]: metadata } = await getMetadata(service, userId, defaultAudience);
 
   const challengeOpts = {
     ttl,

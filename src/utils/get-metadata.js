@@ -1,5 +1,3 @@
-const mapValues = require('lodash/mapValues');
-const pick = require('lodash/pick');
 const Promise = require('bluebird');
 const redisKey = require('./key');
 const { USERS_METADATA } = require('../constants');
@@ -7,32 +5,47 @@ const { USERS_METADATA } = require('../constants');
 const { isArray } = Array;
 const JSONParse = (data) => JSON.parse(data);
 
-function getMetadata(userId, _audiences, fields = {}) {
-  const { redis } = this;
+async function partialMeta(redis, key, resp, fields) {
+  const datum = await redis.hmget(key, fields);
+  for (const [idx, field] of fields.entries()) {
+    const value = datum[idx];
+    if (value !== null) {
+      resp[field] = JSONParse(datum[idx]);
+    }
+  }
+}
+
+async function fullMeta(redis, key, resp) {
+  const datum = await redis.hgetall(key);
+  for (const [field, value] of Object.entries(datum)) {
+    resp[field] = JSONParse(value);
+  }
+}
+
+async function getMetadata(ctx, userId, _audiences, fields = {}) {
+  const { redis } = ctx;
   const audiences = isArray(_audiences) ? _audiences : [_audiences];
 
-  return Promise
-    .map(audiences, (audience) => (
-      redis.hgetall(redisKey(userId, USERS_METADATA, audience))
-    ))
-    .then(function remapAudienceData(data) {
-      const output = {};
-      audiences.forEach(function transform(aud, idx) {
-        const datum = data[idx];
+  const work = [];
+  const output = {};
 
-        if (datum) {
-          const pickFields = fields[aud];
-          output[aud] = mapValues(datum, JSONParse);
-          if (pickFields) {
-            output[aud] = pick(output[aud], pickFields);
-          }
-        } else {
-          output[aud] = {};
-        }
-      });
+  for (const audience of audiences) {
+    const reqFields = fields[audience];
+    const hasFields = isArray(reqFields) && reqFields.length > 0;
+    const hashKey = redisKey(userId, USERS_METADATA, audience);
+    const resp = {};
+    output[audience] = resp;
 
-      return output;
-    });
+    const result = hasFields
+      ? partialMeta(redis, hashKey, resp, reqFields)
+      : fullMeta(redis, hashKey, resp);
+
+    work.push(result);
+  }
+
+  await Promise.all(work);
+
+  return output;
 }
 
 module.exports = getMetadata;

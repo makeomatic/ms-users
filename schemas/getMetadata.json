@@ -54,6 +54,10 @@
           "minLength": 1
         }
       }
+    },
+    "skipUsernameResolution": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

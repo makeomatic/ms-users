@@ -11,7 +11,7 @@ try {
   process.env.DOCKER_SOCKET_PATH = socket
 } catch (e) { }
 
-exports.node = "18";
+exports.node = "19";
 exports.auto_compose = true;
 exports.with_local_compose = true;
 exports.tester_flavour = "chrome-tester";

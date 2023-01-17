@@ -1,3 +1,10 @@
+# [15.8.0](https://github.com/makeomatic/ms-users/compare/v15.7.3...v15.8.0) (2023-01-17)
+
+
+### Features
+
+* get-metadata improvements ([5e61461](https://github.com/makeomatic/ms-users/commit/5e61461808c1096cc53bc51d73438f566183803d))
+
 ## [15.7.3](https://github.com/makeomatic/ms-users/compare/v15.7.2...v15.7.3) (2023-01-09)
 
 

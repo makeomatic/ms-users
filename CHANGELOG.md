@@ -1,3 +1,10 @@
+## [15.8.1](https://github.com/makeomatic/ms-users/compare/v15.8.0...v15.8.1) (2023-01-27)
+
+
+### Bug Fixes
+
+* upgrade deps ([1b86dc5](https://github.com/makeomatic/ms-users/commit/1b86dc582019c19f4c4a95ef01c675779cffe590))
+
 # [15.8.0](https://github.com/makeomatic/ms-users/compare/v15.7.3...v15.8.0) (2023-01-17)
 
 

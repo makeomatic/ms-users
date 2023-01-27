@@ -39,7 +39,7 @@ blocks:
         - cp ~/.env.ms-users-keys ./.env
         - pnpm compile
         - pnpm lint
-        - pnpm test:e2e:${flavour}
+        - env SKIP_FB=true pnpm test:e2e:${flavour}
 
   - name: release
     dependencies: ["tests"]

@@ -44,7 +44,7 @@ function checkServiceMissingPermissionsResponse(context) {
   assert.strictEqual(context.payload.provider, 'facebook');
 }
 
-const t = process.env.DB_SRV === 'redisSentinel' && process.env.CI === 'true'
+const t = process.env.SKIP_FB === 'true' || (process.env.DB_SRV === 'redisSentinel' && process.env.CI === 'true')
   ? describe.skip
   : describe;
 

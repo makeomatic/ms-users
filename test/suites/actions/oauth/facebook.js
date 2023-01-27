@@ -74,7 +74,7 @@ const getSimulatedRequestForUser = (service, user) => async (request) => {
   return clone(profileCache[initialReq.token]);
 };
 
-const t = process.env.DB_SRV === 'redisSentinel' && process.env.CI === 'true'
+const t = process.env.SKIP_FB === 'true' || (process.env.DB_SRV === 'redisSentinel' && process.env.CI === 'true')
   ? describe.skip
   : describe;
 

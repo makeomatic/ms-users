@@ -36,6 +36,7 @@ exports.extras = {
       VIRTUAL_HOST: 'ms-users.local',
       VIRTUAL_PORT: 3000,
       CERT_NAME: 'default',
+      SKIP_FB: process.env.SKIP_FB,
     },
   },
 };

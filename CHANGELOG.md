@@ -1,3 +1,10 @@
+# [15.9.0](https://github.com/makeomatic/ms-users/compare/v15.8.1...v15.9.0) (2023-01-31)
+
+
+### Features
+
+* allow amqp publishOptions in phone/mailer service integration ([6596e4f](https://github.com/makeomatic/ms-users/commit/6596e4fd54441ba1db46822f2e0943ad68bf64b6))
+
 ## [15.8.1](https://github.com/makeomatic/ms-users/compare/v15.8.0...v15.8.1) (2023-01-27)
 
 

@@ -64,7 +64,8 @@ exports.phone = {
     [USERS_ACTION_REGISTER]: '%s is your password',
     [USERS_ACTION_RESET]: '%s is your code for reset password',
   },
-  prefix: 'phone',
+  route: 'phone.message.predefined',
+  publishOptions: {},
   waitChallenge: false,
 };
 

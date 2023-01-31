@@ -1,7 +1,6 @@
 const Errors = require('common-errors');
 const generatePassword = require('password-generator');
 const is = require('is');
-const Promise = require('bluebird');
 const {
   USERS_ACTION_ACTIVATE,
   USERS_ACTION_DISPOSABLE_PASSWORD,
@@ -12,7 +11,7 @@ const {
 
 async function send(tel, action, context = {}) {
   const {
-    account, prefix, messages, waitChallenge,
+    account, route, publishOptions, messages, waitChallenge,
   } = this.config.phone;
   const template = messages[action];
   let message;
@@ -35,11 +34,12 @@ async function send(tel, action, context = {}) {
       throw new Errors.NotImplementedError(`Message for action ${action}`);
   }
 
-  const sendingPromise = this.amqp.publishAndWait(`${prefix}.message.predefined`, {
+  // `${prefix}.message.predefined`
+  const sendingPromise = this.amqp.publishAndWait(route, {
     account,
     message,
     to: `+${tel}`,
-  });
+  }, publishOptions);
 
   if (waitChallenge) {
     try {
@@ -62,12 +62,11 @@ async function send(tel, action, context = {}) {
   };
 }
 
-send.register = function register(tel, wait) {
+send.register = async function register(tel, wait) {
   const { pwdReset } = this.config;
   const password = generatePassword(pwdReset.length, pwdReset.memorable);
 
-  return Promise.bind(this, [tel, USERS_ACTION_REGISTER, { password }, wait])
-    .spread(send);
+  return send.call(this, tel, USERS_ACTION_REGISTER, { password }, wait);
 };
 
 module.exports = send;

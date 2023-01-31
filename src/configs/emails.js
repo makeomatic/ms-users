@@ -53,4 +53,8 @@ exports.mailer = {
     adhoc: 'adhoc',
     predefined: 'predefined',
   },
+  publishOptions: {
+    adhoc: {},
+    predefined: {},
+  },
 };

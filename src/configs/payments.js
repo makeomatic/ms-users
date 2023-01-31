@@ -8,4 +8,7 @@ exports.payments = {
   routes: {
     planGet: 'plan.get',
   },
+  publishOptions: {
+    planGet: {},
+  },
 };

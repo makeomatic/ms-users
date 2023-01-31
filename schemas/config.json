@@ -303,6 +303,19 @@
               "minLength": 1
             }
           }
+        },
+        "publishOptions": {
+          "type": "object",
+          "properties": {
+            "adhoc": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "predefined": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
         }
       }
     },
@@ -403,7 +416,8 @@
       "required": [
         "account",
         "messages",
-        "prefix"
+        "route",
+        "publishOptions"
       ],
       "properties": {
         "account": {
@@ -417,8 +431,12 @@
             }
           }
         },
-        "prefix": {
+        "route": {
           "type": "string"
+        },
+        "publishOptions": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     },

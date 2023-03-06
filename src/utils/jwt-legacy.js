@@ -41,7 +41,7 @@ exports.login = async function login(service, userId, audience, metadata) {
   };
 
   if (fields.length > 0) {
-    const extra = payload.e = {};
+    const extra = payload.extra = {};
     for (const field of fields) {
       const datum = metadata[audience][field] ?? metadata[defaultAudience][field];
       if (datum !== undefined && extra[field] === undefined) {

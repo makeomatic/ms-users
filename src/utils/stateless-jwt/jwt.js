@@ -101,7 +101,7 @@ async function login(service, userId, audience, metadata) {
   const { fields } = stateless;
 
   const refreshPayload = createRefreshPayload(userId);
-  const accessPayload = createAccessPayload(userId, metadata, fields);
+  const accessPayload = createAccessPayload(userId, metadata[audience], fields);
 
   const { token: jwtRefresh, payload: jwtRefreshPayload } = await createRefreshToken(service, refreshPayload, audience);
   const { token: accessToken } = await createAccessToken(

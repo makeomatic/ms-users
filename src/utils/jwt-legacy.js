@@ -13,20 +13,24 @@ const {
   BEARER_USERNAME_FIELD,
   BEARER_LEGACY_USERNAME_FIELD,
   USERS_INVALID_TOKEN,
+  USERS_ID_FIELD,
 } = require('../constants');
 
 const { API_TOKEN_TYPE_SIGN } = require('./api-token');
 
 /**
  * Logs user in and returns JWT and User Object
- * @param  {String}  username
- * @param  {String}  _audience
- * @return {Promise}
+ * @param  {Microfleet} service
+ * @param  {string}  username
+ * @param  {string}  audience
+ * @param  {Record<string, any>}
+ * @return {Promise<{ lastAccessUpdated: number, userId: string, jwt: string }>}
  */
-exports.login = async function login(service, userId, audience) {
+exports.login = async function login(service, userId, audience, metadata) {
   const { redis, config, flake } = service;
   const { jwt: jwtConfig } = config;
-  const { hashingFunction: algorithm, secret } = jwtConfig;
+  const { hashingFunction: algorithm, secret, stateless, defaultAudience } = jwtConfig;
+  const { fields = [] } = stateless;
 
   // will have iat field, which is when this token was issued
   // we can check last access and verify the expiration date based on it
@@ -35,6 +39,16 @@ exports.login = async function login(service, userId, audience) {
     cs: flake.next(),
     aud: audience,
   };
+
+  if (fields.length > 0) {
+    const extra = payload.e = {};
+    for (const field of fields) {
+      const datum = metadata[audience][field] ?? metadata[defaultAudience][field];
+      if (datum !== undefined && extra[field] === undefined) {
+        extra[field] = datum;
+      }
+    }
+  }
 
   const signJwt = new jose.SignJWT(payload);
   const token = await signJwt

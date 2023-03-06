@@ -92,10 +92,10 @@ exports.login = async function login(userId, _audience, stateless = false) {
 
   const tokenFlow = enabled && (force || stateless)
     ? (metadata) => statelessJWT.login(this, userId, audience, metadata)
-    : () => legacyJWT.login(this, userId, audience);
+    : (metadata) => legacyJWT.login(this, userId, audience, metadata);
 
   const metadata = await getMetadata(this, userId, metadataAudience);
-  const flowResult = await tokenFlow(metadata[audience]);
+  const flowResult = await tokenFlow(metadata);
 
   return mapJWT(userId, flowResult, metadata);
 };

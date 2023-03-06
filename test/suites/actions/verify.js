@@ -48,27 +48,37 @@ describe('#verify', function verifySuite() {
         username: 'v@makeomatic.ru',
         password: '123',
         audience: 'test',
+        activate: true,
         metadata: {
           fine: true,
+          bogus: '12938109381092',
         },
       } });
 
       this.userId = user.id;
     });
 
-    beforeEach(function pretest() {
-      return jwt.login.call(this.users, this.userId, 'test').then((data) => {
-        this.token = data.jwt;
-      });
+    beforeEach(async function pretest() {
+      const data = await jwt.login.call(this.users, this.userId, 'test');
+      this.token = data.jwt;
+
+      // assert that this.token has embedded fields we need
+      const decoded = JSON.parse(Buffer.from(this.token.split('.')[1], 'base64'));
+
+      assert.equal(decoded.extra.username, 'v@makeomatic.ru');
+      assert.equal(decoded.extra.bogus, '12938109381092');
+      assert(/^\d+$/.test(decoded.username));
     });
 
     it('must return user object and required audiences information on a valid JWT token', async function test() {
-      return this.users.dispatch('verify', { params: { token: this.token, audience: 'test' } })
+      return this.users
+        .dispatch('verify', { params: { token: this.token, audience: 'test' } })
         .then((verify) => {
           assert.ok(verify.id);
           expect(verify.metadata['*.localhost'].username).to.be.eq('v@makeomatic.ru');
           expect(verify.metadata.test).to.be.deep.eq({
             fine: true,
+            bogus: '12938109381092',
           });
         });
     });

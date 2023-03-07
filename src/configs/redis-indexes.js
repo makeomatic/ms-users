@@ -11,7 +11,7 @@ exports.redisIndexDefinitions = [
     filterKey: 'metadata',
     audience: ['*.localhost'], // for access to index on search
     fields: [
-      ['id', 'TAG', 'SORTABLE']
+      ['id', 'TAG', 'SORTABLE'],
       ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['created', 'NUMERIC', 'SORTABLE'],
     ],

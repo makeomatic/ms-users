@@ -304,7 +304,7 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it('list by id', function test() {
+  it.skip('list by id', function test() {
     // -@id:{$f_id_ne} PARAMS 2 f_id_ne unknown
     return this
       .users

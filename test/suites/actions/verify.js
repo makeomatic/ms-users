@@ -1,9 +1,10 @@
+/* global startService, clearRedis */
 const { expect } = require('chai');
 const { strict: assert } = require('assert');
 
 describe('#verify', function verifySuite() {
   beforeEach(async () => {
-    await global.startService.call(this, {
+    await startService.call(this, {
       jwt: {
         stateless: {
           fields: ['username', 'bogus'],
@@ -11,7 +12,7 @@ describe('#verify', function verifySuite() {
       },
     });
   });
-  afterEach(global.clearRedis);
+  afterEach(clearRedis.bind(this));
 
   it('must reject on an invalid JWT token', async function test() {
     const { defaultAudience: audience } = this.users.config.jwt;

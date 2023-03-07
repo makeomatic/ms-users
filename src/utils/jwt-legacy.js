@@ -13,7 +13,6 @@ const {
   BEARER_USERNAME_FIELD,
   BEARER_LEGACY_USERNAME_FIELD,
   USERS_INVALID_TOKEN,
-  USERS_ID_FIELD,
 } = require('../constants');
 
 const { API_TOKEN_TYPE_SIGN } = require('./api-token');

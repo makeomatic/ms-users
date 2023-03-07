@@ -3,8 +3,10 @@ const { expect } = require('chai');
 const { strict: assert } = require('assert');
 
 describe('#verify', function verifySuite() {
-  beforeEach(async () => {
-    await startService.call(this, {
+  const ctx = {};
+
+  before('test', async () => {
+    ctx.service = await startService({
       jwt: {
         stateless: {
           fields: ['username', 'bogus'],
@@ -12,13 +14,13 @@ describe('#verify', function verifySuite() {
       },
     });
   });
-  afterEach(clearRedis.bind(this));
+  afterEach(() => clearRedis());
 
-  it('must reject on an invalid JWT token', async function test() {
-    const { defaultAudience: audience } = this.users.config.jwt;
+  it('must reject on an invalid JWT token', async () => {
+    const { defaultAudience: audience } = ctx.service.config.jwt;
 
     await assert.rejects(
-      this.users.dispatch('verify', { params: { token: 'invalid-token', audience } }),
+      ctx.service.dispatch('verify', { params: { token: 'invalid-token', audience } }),
       {
         name: 'HttpStatusError',
         statusCode: 403,
@@ -27,11 +29,11 @@ describe('#verify', function verifySuite() {
     );
   });
 
-  it('must reject on an expired JWT token', async function test() {
+  it('must reject on an expired JWT token', async () => {
     const { SignJWT } = require('jose');
     const {
       hashingFunction: algorithm, secret, issuer, defaultAudience,
-    } = this.users.config.jwt;
+    } = ctx.service.config.jwt;
 
     const token = await new SignJWT({ username: 'vitaly' })
       .setProtectedHeader({ alg: algorithm })
@@ -40,7 +42,7 @@ describe('#verify', function verifySuite() {
       .sign(Buffer.from(secret));
 
     await assert.rejects(
-      this.users.dispatch('verify', { params: { token, audience: defaultAudience } }),
+      ctx.service.dispatch('verify', { params: { token, audience: defaultAudience } }),
       {
         name: 'HttpStatusError',
         statusCode: 403,
@@ -53,7 +55,7 @@ describe('#verify', function verifySuite() {
     const jwt = require('../../../src/utils/jwt');
 
     beforeEach(async function pretest() {
-      const { user } = await this.users.dispatch('register', { params: {
+      const { user } = await ctx.service.dispatch('register', { params: {
         username: 'v@makeomatic.ru',
         password: '123',
         audience: 'test',
@@ -68,7 +70,7 @@ describe('#verify', function verifySuite() {
     });
 
     beforeEach(async function pretest() {
-      const data = await jwt.login.call(this.users, this.userId, 'test');
+      const data = await jwt.login.call(ctx.service, this.userId, 'test');
       this.token = data.jwt;
 
       // assert that this.token has embedded fields we need
@@ -79,8 +81,8 @@ describe('#verify', function verifySuite() {
       assert(/^\d+$/.test(decoded.username));
     });
 
-    it('must return user object and required audiences information on a valid JWT token', async function test() {
-      return this.users
+    it('must return user object and required audiences information on a valid JWT token', async () => {
+      return ctx.service
         .dispatch('verify', { params: { token: this.token, audience: 'test' } })
         .then((verify) => {
           assert.ok(verify.id);

@@ -57,7 +57,7 @@ specifiers:
   eslint-plugin-promise: ^6.1.1
   eslint-plugin-unicorn: ^46.0.0
   flake-idgen: ^1.4.0
-  get-stdin: ^9.0.0
+  get-stdin: ^8.0.0
   get-value: ^3.0.1
   glob: ^9.2.1
   got: ^11.8.6
@@ -140,7 +140,7 @@ dependencies:
   csv-write-stream: 2.0.0
   disposable-email-domains: 1.0.62
   flake-idgen: 1.4.0
-  get-stdin: 9.0.0
+  get-stdin: 8.0.0
   get-value: 3.0.1
   glob: 9.2.1
   got: 11.8.6
@@ -4927,9 +4927,9 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /get-stdin/9.0.0:
-    resolution: {integrity: sha512-dVKBjfWisLAicarI2Sf+JuBE/DghV4UzNAVe9yhEJuzeREd3JhOTE9cUaJTeSa77fsbQUK3pcOpJfM59+VKZaA==}
-    engines: {node: '>=12'}
+  /get-stdin/8.0.0:
+    resolution: {integrity: sha512-sY22aA6xchAzprjyqmSEQv4UbAAzRN0L2dQB0NlN5acTTK9Don6nhoc3eAbUnpZiCANAMfd/+40kVdKfFygohg==}
+    engines: {node: '>=10'}
     dev: false
 
   /get-stream/5.2.0:

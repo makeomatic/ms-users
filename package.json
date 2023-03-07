@@ -68,7 +68,7 @@
     "csv-write-stream": "^2.0.0",
     "disposable-email-domains": "^1.0.62",
     "flake-idgen": "^1.4.0",
-    "get-stdin": "^9.0.0",
+    "get-stdin": "^8.0.0",
     "get-value": "^3.0.1",
     "glob": "^9.2.1",
     "got": "^11.8.6",

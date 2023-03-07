@@ -18,6 +18,7 @@ const sortByCaseInsensitive = (getMember) => (list) => list
 const createUser = (id, { username, firstName, lastName } = {}) => ({
   id,
   metadata: {
+    id,
     username: username || faker.internet.email(),
     firstName: firstName || faker.name.firstName(),
     lastName: lastName === undefined ? faker.name.lastName() : lastName,
@@ -27,6 +28,7 @@ const createUser = (id, { username, firstName, lastName } = {}) => ({
 const createUserApi = (id, { email, level } = {}) => ({
   id,
   test: {
+    id,
     email: email || faker.internet.email(),
     level: level || 1,
   },

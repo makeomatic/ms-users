@@ -10,6 +10,7 @@ exports.redisIndexDefinitions = [
     filterKey: 'metadata',
     audience: ['*.localhost'],
     fields: [
+      ['id', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['firstName', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['lastName', 'TEXT', 'NOSTEM', 'SORTABLE'],
@@ -22,6 +23,7 @@ exports.redisIndexDefinitions = [
     filterKey: 'test',
     audience: ['api'],
     fields: [
+      ['id', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['email', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['level', 'NUMERIC', 'SORTABLE'],
     ],

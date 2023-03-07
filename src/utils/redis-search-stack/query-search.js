@@ -6,7 +6,7 @@ async function redisSearchQuery(indexMeta, context) {
   const {
     service,
     redis,
-    args: request,
+    args: sort,
     filter = {},
     offset,
     limit,
@@ -15,7 +15,7 @@ async function redisSearchQuery(indexMeta, context) {
   const { keyPrefix } = service.config.redis.options;
   const { indexName, multiWords } = indexMeta;
 
-  const [criteria, order = 'ASC'] = request
+  const [criteria, order = 'ASC'] = sort;
 
   const args = ['FT.SEARCH', indexName];
 

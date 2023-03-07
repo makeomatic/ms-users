@@ -14,7 +14,8 @@ describe('#verify', function verifySuite() {
       },
     });
   });
-  afterEach(() => clearRedis());
+  after(() => clearRedis());
+  afterEach(() => clearRedis(true));
 
   it('must reject on an invalid JWT token', async () => {
     const { defaultAudience: audience } = ctx.service.config.jwt;
@@ -81,7 +82,7 @@ describe('#verify', function verifySuite() {
       assert(/^\d+$/.test(decoded.username));
     });
 
-    it('must return user object and required audiences information on a valid JWT token', async () => {
+    it('must return user object and required audiences information on a valid JWT token', async function test() {
       return ctx.service
         .dispatch('verify', { params: { token: this.token, audience: 'test' } })
         .then((verify) => {

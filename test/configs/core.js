@@ -45,7 +45,6 @@ module.exports = {
     },
     stateless: {
       enabled: false,
-      fields: ['username', 'bogus'],
     },
   },
   rateLimiters: {

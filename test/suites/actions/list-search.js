@@ -18,7 +18,6 @@ const sortByCaseInsensitive = (getMember) => (list) => list
 const createUser = (id, { username, firstName, lastName } = {}) => ({
   id,
   metadata: {
-    id,
     username: username || faker.internet.email(),
     firstName: firstName || faker.name.firstName(),
     lastName: lastName === undefined ? faker.name.lastName() : lastName,
@@ -232,6 +231,30 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
+  it('list with #multi fields (partial search)', function test() {
+    return this
+      .filteredListRequest({
+        '#multi': {
+          fields: [
+            'firstName',
+            'lastName',
+          ],
+          match: 'Joh', // hny
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length.gte(2);
+
+        const copy = [].concat(result.users);
+        sortByCaseInsensitive(this.extractUserName)(copy);
+
+        const [u1, u2] = copy;
+        expect(this.extractUserName(u1)).to.be.equal('johnny@gmail.org');
+        expect(this.extractUserName(u2)).to.be.equal('kim@yahoo.org');
+      });
+  });
+
   it('list: EQ action', function test() {
     return this
       .filteredListRequest({ username: { eq: 'kim@yahoo.org' } })
@@ -304,7 +327,7 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it.skip('list by id', function test() {
+  it('list by id', function test() {
     // -@id:{$f_id_ne} PARAMS 2 f_id_ne unknown
     return this
       .users

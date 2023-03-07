@@ -79,7 +79,7 @@ const searchQueryBuilder = {
     const name = buildParamName(FIELD_PREFIX, propName, ParamSuffix.match);
     const params = paramRef(name);
 
-    return expression(field, tokensMatch(params));
+    return expression(field, tokensMatch(params, true));
   },
 };
 

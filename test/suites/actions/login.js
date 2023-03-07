@@ -8,7 +8,15 @@ describe('#login', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
 
-  before(startService.bind(this));
+  before('start', async () => {
+    await startService.call(this, {
+      jwt: {
+        stateless: {
+          fields: ['username', 'bogus'],
+        },
+      },
+    });
+  });
 
   after(clearRedis.bind(this));
   afterEach(clearRedis.bind(this, true));

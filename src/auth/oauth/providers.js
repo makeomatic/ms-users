@@ -1,10 +1,10 @@
 const path = require('path');
-const glob = require('glob');
+const { globSync } = require('glob');
 
 // initiate strategies
 const strategies = Object.create(null);
 const strategiesFolderPath = path.resolve(__dirname, './strategies');
-const strategiesFiles = glob.sync('*.js', { cwd: strategiesFolderPath, matchBase: true });
+const strategiesFiles = globSync('*.js', { cwd: strategiesFolderPath, matchBase: true });
 
 // remove .js
 strategiesFiles.forEach((filename) => {

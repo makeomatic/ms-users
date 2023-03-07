@@ -1,3 +1,10 @@
+# [15.10.0](https://github.com/makeomatic/ms-users/compare/v15.9.0...v15.10.0) (2023-03-07)
+
+
+### Features
+
+* embed extra fields in old jwt ([#583](https://github.com/makeomatic/ms-users/issues/583)) ([097b658](https://github.com/makeomatic/ms-users/commit/097b6582a0df27edfa5df23e7e4e8a151a913e49))
+
 # [15.9.0](https://github.com/makeomatic/ms-users/compare/v15.8.1...v15.9.0) (2023-01-31)
 
 

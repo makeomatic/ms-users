@@ -2,7 +2,15 @@ const { expect } = require('chai');
 const { strict: assert } = require('assert');
 
 describe('#verify', function verifySuite() {
-  beforeEach(global.startService);
+  beforeEach(async () => {
+    await global.startService.call(this, {
+      jwt: {
+        stateless: {
+          fields: ['username', 'bogus'],
+        },
+      },
+    });
+  });
   afterEach(global.clearRedis);
 
   it('must reject on an invalid JWT token', async function test() {

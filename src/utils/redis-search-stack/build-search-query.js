@@ -79,7 +79,7 @@ const searchQueryBuilder = {
     const name = buildParamName(FIELD_PREFIX, propName, ParamSuffix.match);
     const params = paramRef(name);
 
-    return expression(field, tokensMatch(params));
+    return expression(field, tokensMatch(params, true));
   },
 };
 
@@ -100,6 +100,16 @@ const searchParamBuilder = {
   },
 };
 
+const useTokens = (multiWords, propName) => {
+  const props = propName.split('|');
+
+  if (props.length > 1) { // #multi case
+    return props.some((x) => multiWords.includes(x));
+  }
+
+  return multiWords.includes(propName);
+};
+
 const buildSearchQuery = (propName, valueOrExpr, options) => {
   const { multiWords = [] } = options;
 
@@ -107,7 +117,7 @@ const buildSearchQuery = (propName, valueOrExpr, options) => {
 
   // Split by tokens if multiwords includes the field
 
-  const isMultiWords = multiWords.includes(propName);
+  const isMultiWords = useTokens(multiWords, propName);
 
   // Process simple value
   if (typeof valueOrExpr === 'string') {

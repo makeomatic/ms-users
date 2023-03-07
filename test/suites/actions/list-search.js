@@ -27,6 +27,7 @@ const createUser = (id, { username, firstName, lastName } = {}) => ({
 const createUserApi = (id, { email, level } = {}) => ({
   id,
   test: {
+    id,
     email: email || faker.internet.email(),
     level: level || 1,
   },
@@ -215,6 +216,30 @@ describe('Redis Search: list', function listSuite() {
             'lastName',
           ],
           match: 'Johhny',
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length.gte(2);
+
+        const copy = [].concat(result.users);
+        sortByCaseInsensitive(this.extractUserName)(copy);
+
+        const [u1, u2] = copy;
+        expect(this.extractUserName(u1)).to.be.equal('johnny@gmail.org');
+        expect(this.extractUserName(u2)).to.be.equal('kim@yahoo.org');
+      });
+  });
+
+  it('list with #multi fields (partial search)', function test() {
+    return this
+      .filteredListRequest({
+        '#multi': {
+          fields: [
+            'firstName',
+            'lastName',
+          ],
+          match: 'Joh', // hny
         },
       })
       .then((result) => {

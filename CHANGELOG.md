@@ -1,3 +1,10 @@
+## [15.10.1](https://github.com/makeomatic/ms-users/compare/v15.10.0...v15.10.1) (2023-03-08)
+
+
+### Bug Fixes
+
+* redis search improvements ([#584](https://github.com/makeomatic/ms-users/issues/584)) ([6411075](https://github.com/makeomatic/ms-users/commit/6411075b326c24aa4bd7f86c7a3431b00f741762))
+
 # [15.10.0](https://github.com/makeomatic/ms-users/compare/v15.9.0...v15.10.0) (2023-03-07)
 
 

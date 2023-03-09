@@ -1,3 +1,10 @@
+## [15.10.2](https://github.com/makeomatic/ms-users/compare/v15.10.1...v15.10.2) (2023-03-09)
+
+
+### Bug Fixes
+
+* redis parameter name validation ([#585](https://github.com/makeomatic/ms-users/issues/585)) ([636cbe2](https://github.com/makeomatic/ms-users/commit/636cbe224adb4dc8ef400275a267802efa65a719))
+
 ## [15.10.1](https://github.com/makeomatic/ms-users/compare/v15.10.0...v15.10.1) (2023-03-08)
 
 

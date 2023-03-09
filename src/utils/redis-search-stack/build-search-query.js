@@ -30,12 +30,17 @@ const buildStringQuery = (field, propName, value) => {
   return [query, params];
 };
 
+const PARTIAL_MATCH_PARAMS_OPTIONS = {
+  partialMatch: true,
+  suffix: ParamSuffix.match,
+};
+
 const buildTokensQuery = ({ partialMatch = false, suffix = '' } = {}) => (field, propName, value) => {
   const tokens = tokenize(value);
 
   const params = [];
   const paramRefs = [];
-  const args = suffix.length ? [FIELD_PREFIX, propName, suffix] : [FIELD_PREFIX, propName];
+  const args = suffix.length ? [FIELD_PREFIX, normalizePropName(propName), suffix] : [FIELD_PREFIX, propName];
 
   for (const [idx, token] of tokens.entries()) {
     const pName = buildParamName(...args, String(idx + 1));
@@ -50,14 +55,7 @@ const buildTokensQuery = ({ partialMatch = false, suffix = '' } = {}) => (field,
   return [query, flatten(params)];
 };
 
-const buildMultiTokenMatch = (field, prop, value) => {
-  const options = {
-    partialMatch: true,
-    suffix: ParamSuffix.match,
-  };
-
-  return buildTokensQuery(options)(field, prop, value);
-};
+const buildMultiTokenMatch = (field, prop, value) => buildTokensQuery(PARTIAL_MATCH_PARAMS_OPTIONS)(field, prop, value);
 
 const searchQueryBuilder = {
   // (prop, field, expr)

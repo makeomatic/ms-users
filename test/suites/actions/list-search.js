@@ -42,11 +42,12 @@ const saveUser = (redis, category, audience, user) => redis
   )
   .exec();
 
-function listRequest(filter, criteria = 'username') {
+function listRequest(filter, criteria = 'username', order = 'ASC') {
   return this.users
     .dispatch('list', {
       params: {
         criteria,
+        order,
         audience: this.audience,
         filter,
       },
@@ -231,7 +232,7 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it('list with #multi fields (partial search)', function test() {
+  it('list with #multi fields, partial search, DESC order', function test() {
     return this
       .filteredListRequest({
         '#multi': {
@@ -241,7 +242,7 @@ describe('Redis Search: list', function listSuite() {
           ],
           match: 'Joh', // hny
         },
-      })
+      }, 'username', 'DESC')
       .then((result) => {
         assert(result);
         expect(result.users).to.have.length.gte(2);
@@ -250,8 +251,8 @@ describe('Redis Search: list', function listSuite() {
         sortByCaseInsensitive(this.extractUserName)(copy);
 
         const [u1, u2] = copy;
-        expect(this.extractUserName(u1)).to.be.equal('johnny@gmail.org');
-        expect(this.extractUserName(u2)).to.be.equal('kim@yahoo.org');
+        expect(this.extractUserName(u1)).to.be.equal('kim@yahoo.org');
+        expect(this.extractUserName(u2)).to.be.equal('johnny@gmail.org');
       });
   });
 

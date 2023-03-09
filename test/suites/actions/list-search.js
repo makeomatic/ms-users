@@ -232,7 +232,9 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it('list with #multi fields, partial search, DESC order', function test() {
+  it('list with #multi fields, tokens, partial search, DESC order', function test() {
+    // @firstName|lastName:($f_firstName_lastName_m_1*) PARAMS 2 f_firstName_lastName_m_1 Joh
+    // DIALECT 2 SORTBY username DESC LIMIT 0 10 NOCONTENT
     return this
       .filteredListRequest({
         '#multi': {

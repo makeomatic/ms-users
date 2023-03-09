@@ -35,7 +35,7 @@ const buildTokensQuery = ({ partialMatch = false, suffix = '' } = {}) => (field,
 
   const params = [];
   const paramRefs = [];
-  const args = suffix.length ? [FIELD_PREFIX, propName, suffix] : [FIELD_PREFIX, propName];
+  const args = suffix.length ? [FIELD_PREFIX, normalizePropName(propName), suffix] : [FIELD_PREFIX, propName];
 
   for (const [idx, token] of tokens.entries()) {
     const pName = buildParamName(...args, String(idx + 1));

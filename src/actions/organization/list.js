@@ -8,7 +8,7 @@ const redisKey = require('../../utils/key');
 const { getOrganizationMetadata, getInternalData, getOrganizationMemberDetails } = require('../../utils/organization');
 const getMetadata = require('../../utils/get-metadata');
 const { getUserId } = require('../../utils/userData');
-const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
+const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA, ORGANIZATIONS_ID_FIELD } = require('../../constants');
 
 const bnCompAsc = (a, b) => new BN(a, 10).cmp(new BN(b, 10));
 const bnCompDesc = (a, b) => new BN(b, 10).cmp(new BN(a, 10));
@@ -117,7 +117,7 @@ async function getOrganizationsList({ params }) {
     });
 
   // Additional comparison of ids as big numbers
-  if (criteria === 'id') {
+  if (criteria === ORGANIZATIONS_ID_FIELD) {
     const fn = order === 'DESC' ? bnCompDesc : bnCompAsc;
     organizationsIds.sort(fn);
   }

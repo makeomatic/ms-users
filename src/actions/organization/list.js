@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const fsort = require('redis-filtered-sort');
+const BN = require('bn.js');
 
 const { ActionTransport } = require('@microfleet/plugin-router');
 
@@ -8,6 +9,9 @@ const { getOrganizationMetadata, getInternalData, getOrganizationMemberDetails }
 const getMetadata = require('../../utils/get-metadata');
 const { getUserId } = require('../../utils/userData');
 const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
+
+const bnCompAsc = (a, b) => new BN(a, 10).cmp(new BN(b, 10));
+const bnCompDesc = (a, b) => new BN(b, 10).cmp(new BN(a, 10));
 
 async function findUserOrganization(userId) {
   const { audience: orgAudience } = this.config.organizations;
@@ -111,6 +115,12 @@ async function getOrganizationsList({ params }) {
       limit,
       expiration,
     });
+
+  // Additional comparison of ids as big numbers
+  if (criteria === 'id') {
+    const fn = order === 'DESC' ? bnCompDesc : bnCompAsc;
+    organizationsIds.sort(fn);
+  }
 
   const organizations = await Promise.map(organizationsIds, async (organizationId) => {
     const getMember = userId ? [getOrganizationMemberDetails.call(this, organizationId, userId)] : [];

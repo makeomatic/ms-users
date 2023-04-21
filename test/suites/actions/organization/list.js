@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const BN = require('bn.js');
 const { strict: assert } = require('assert');
 const { expect } = require('chai');
 const times = require('lodash/times');
@@ -100,6 +101,61 @@ describe('#organizations list', function registerSuite() {
         assert.strictEqual(member.type, 'organizationMember');
         assert(member.attributes);
         assert(member.attributes.joinedAt);
+      });
+  });
+
+  it('sort organizations by id asc', async function test() {
+    const opts = {
+      criteria: 'id',
+    };
+
+    const jobs = [];
+    const organizationsLength = 5;
+
+    times(organizationsLength - 1, () => {
+      jobs.push(createOrganization.call(this));
+    });
+
+    await Promise.all(jobs);
+
+    return this.users.dispatch('organization.list', { params: opts })
+      .then(({ data }) => {
+        assert(data.length);
+
+        for (let i = 1; i < data.length; i += 1) {
+          const prev = new BN(data[i - 1].id, 10);
+          const next = new BN(data[i].id, 10);
+
+          assert(next.gt(prev));
+        }
+      });
+  });
+
+  it('sort organizations by id desc', async function test() {
+    const opts = {
+      criteria: 'id',
+      order: 'DESC',
+    };
+
+    const jobs = [];
+    const organizationsLength = 5;
+
+    times(organizationsLength - 1, () => {
+      jobs.push(createOrganization.call(this));
+    });
+
+    await Promise.all(jobs);
+
+    return this.users.dispatch('organization.list', { params: opts })
+      .then(({ data }) => {
+        assert(data.length);
+
+        for (let i = 1; i < data.length; i += 1) {
+          const prev = new BN(data[i - 1].id, 10);
+          const next = new BN(data[i].id, 10);
+
+          assert(next.lt(prev));
+        }
       });
   });
 });

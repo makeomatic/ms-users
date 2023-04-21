@@ -39,6 +39,7 @@ specifiers:
   apidoc-plugin-schema: ^0.1.8
   async: ^3.2.4
   bluebird: ^3.7.2
+  bn.js: ^5.2.1
   bytes: ^3.1.2
   c8: ^7.13.0
   camelcase: ^7.0.1
@@ -133,6 +134,7 @@ dependencies:
   ajv-formats: 2.1.1
   async: 3.2.4
   bluebird: 3.7.2
+  bn.js: 5.2.1
   bytes: 3.1.2
   camelcase: 7.0.1
   cluster-key-slot: 1.1.2
@@ -2884,6 +2886,10 @@ packages:
 
   /bluebird/3.7.2:
     resolution: {integrity: sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==}
+
+  /bn.js/5.2.1:
+    resolution: {integrity: sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==}
+    dev: false
 
   /boolbase/1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}

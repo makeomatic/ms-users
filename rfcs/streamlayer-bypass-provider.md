@@ -15,7 +15,7 @@ StreamLayer Internal Bypass Provider accept JWT token, verify and return it
 ```json
 { 
 	"userKey": "ext generated JWT access token", 
-	"schema": "internal.streamlayer"
+	"schema": "internal:streamlayer"
 }
 ```
 - where `internal` is bypass provider

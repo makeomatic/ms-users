@@ -132,6 +132,13 @@ class Users extends Microfleet {
       }, 'bypass.pumpJack');
     }
 
+    if (this.config.bypass.internal.enabled) {
+      this.addConnector(ConnectorsTypes.essential, () => {
+        const StreamLayerService = require('./utils/bypass/streamlayer');
+        this.bypass.internal = new StreamLayerService(this);
+      }, 'bypass.internal');
+    }
+
     const allowBypasses = Object.entries(this.config.bypass).filter(([, schemeConfig]) => schemeConfig.enabled);
 
     const bypassesMasters = allowBypasses.filter(([, schemeConfig]) => schemeConfig.provider === 'masters');

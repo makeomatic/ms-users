@@ -102,4 +102,43 @@ describe('#organizations list', function registerSuite() {
         assert(member.attributes.joinedAt);
       });
   });
+
+  it('sort organizations by id ASC/DESC', async function test() {
+    const opts = {
+      criteria: 'id',
+    };
+
+    const jobs = [];
+    const organizationsLength = 10;
+
+    times(organizationsLength - 1, () => {
+      jobs.push(createOrganization.call(this));
+    });
+
+    await Promise.all(jobs);
+
+    await this.users.dispatch('organization.list', { params: opts })
+      .then(({ data }) => {
+        assert(data.length);
+
+        for (let i = 1; i < data.length; i += 1) {
+          const prev = BigInt(data[i - 1].id);
+          const next = BigInt(data[i].id);
+
+          assert(next > prev);
+        }
+      });
+
+    return this.users.dispatch('organization.list', { params: { ...opts, order: 'DESC' } })
+      .then(({ data }) => {
+        assert(data.length);
+
+        for (let i = 1; i < data.length; i += 1) {
+          const prev = BigInt(data[i - 1].id);
+          const next = BigInt(data[i].id);
+
+          assert(next < prev);
+        }
+      });
+  });
 });

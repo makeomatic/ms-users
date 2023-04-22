@@ -7,7 +7,8 @@ const redisKey = require('../../utils/key');
 const { getOrganizationMetadata, getInternalData, getOrganizationMemberDetails } = require('../../utils/organization');
 const getMetadata = require('../../utils/get-metadata');
 const { getUserId } = require('../../utils/userData');
-const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
+const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA, ORGANIZATIONS_ID_FIELD } = require('../../constants');
+const { bigIntComparerDesc, bigIntComparerAsc } = require('../../utils/big-int');
 
 async function findUserOrganization(userId) {
   const { audience: orgAudience } = this.config.organizations;
@@ -111,6 +112,12 @@ async function getOrganizationsList({ params }) {
       limit,
       expiration,
     });
+
+  // Additional comparison of ids as big numbers
+  if (criteria === ORGANIZATIONS_ID_FIELD) {
+    const fn = order === 'DESC' ? bigIntComparerDesc : bigIntComparerAsc;
+    organizationsIds.sort(fn);
+  }
 
   const organizations = await Promise.map(organizationsIds, async (organizationId) => {
     const getMember = userId ? [getOrganizationMemberDetails.call(this, organizationId, userId)] : [];

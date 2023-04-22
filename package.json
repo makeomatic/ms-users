@@ -61,7 +61,6 @@
     "ajv-formats": "^2.1.1",
     "async": "^3.2.4",
     "bluebird": "^3.7.2",
-    "bn.js": "^5.2.1",
     "bytes": "^3.1.2",
     "camelcase": "^7.0.1",
     "cluster-key-slot": "^1.1.2",

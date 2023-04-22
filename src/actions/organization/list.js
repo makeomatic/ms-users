@@ -1,6 +1,5 @@
 const Promise = require('bluebird');
 const fsort = require('redis-filtered-sort');
-const BN = require('bn.js');
 
 const { ActionTransport } = require('@microfleet/plugin-router');
 
@@ -9,9 +8,7 @@ const { getOrganizationMetadata, getInternalData, getOrganizationMemberDetails }
 const getMetadata = require('../../utils/get-metadata');
 const { getUserId } = require('../../utils/userData');
 const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA, ORGANIZATIONS_ID_FIELD } = require('../../constants');
-
-const bnCompAsc = (a, b) => new BN(a, 10).cmp(new BN(b, 10));
-const bnCompDesc = (a, b) => new BN(b, 10).cmp(new BN(a, 10));
+const { bigIntComparerDesc, bigIntComparerAsc } = require('../../utils/big-int');
 
 async function findUserOrganization(userId) {
   const { audience: orgAudience } = this.config.organizations;
@@ -118,7 +115,7 @@ async function getOrganizationsList({ params }) {
 
   // Additional comparison of ids as big numbers
   if (criteria === ORGANIZATIONS_ID_FIELD) {
-    const fn = order === 'DESC' ? bnCompDesc : bnCompAsc;
+    const fn = order === 'DESC' ? bigIntComparerDesc : bigIntComparerAsc;
     organizationsIds.sort(fn);
   }
 

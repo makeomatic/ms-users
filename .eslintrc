@@ -3,6 +3,9 @@
   "parserOptions": {
     "ecmaVersion": 2021
   },
+  "env": {
+    "es2020": true
+  },
   "rules": {
     "prefer-destructuring": ["error", {
       "VariableDeclarator": {

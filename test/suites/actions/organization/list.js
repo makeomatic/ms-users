@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const BN = require('bn.js');
 const { strict: assert } = require('assert');
 const { expect } = require('chai');
 const times = require('lodash/times');
@@ -104,13 +103,13 @@ describe('#organizations list', function registerSuite() {
       });
   });
 
-  it('sort organizations by id asc', async function test() {
+  it('sort organizations by id ASC/DESC', async function test() {
     const opts = {
       criteria: 'id',
     };
 
     const jobs = [];
-    const organizationsLength = 5;
+    const organizationsLength = 10;
 
     times(organizationsLength - 1, () => {
       jobs.push(createOrganization.call(this));
@@ -118,43 +117,27 @@ describe('#organizations list', function registerSuite() {
 
     await Promise.all(jobs);
 
-    return this.users.dispatch('organization.list', { params: opts })
+    await this.users.dispatch('organization.list', { params: opts })
       .then(({ data }) => {
         assert(data.length);
 
         for (let i = 1; i < data.length; i += 1) {
-          const prev = new BN(data[i - 1].id, 10);
-          const next = new BN(data[i].id, 10);
+          const prev = BigInt(data[i - 1].id);
+          const next = BigInt(data[i].id);
 
-          assert(next.gt(prev));
+          assert(next > prev);
         }
       });
-  });
 
-  it('sort organizations by id desc', async function test() {
-    const opts = {
-      criteria: 'id',
-      order: 'DESC',
-    };
-
-    const jobs = [];
-    const organizationsLength = 5;
-
-    times(organizationsLength - 1, () => {
-      jobs.push(createOrganization.call(this));
-    });
-
-    await Promise.all(jobs);
-
-    return this.users.dispatch('organization.list', { params: opts })
+    return this.users.dispatch('organization.list', { params: { ...opts, order: 'DESC' } })
       .then(({ data }) => {
         assert(data.length);
 
         for (let i = 1; i < data.length; i += 1) {
-          const prev = new BN(data[i - 1].id, 10);
-          const next = new BN(data[i].id, 10);
+          const prev = BigInt(data[i - 1].id);
+          const next = BigInt(data[i].id);
 
-          assert(next.lt(prev));
+          assert(next < prev);
         }
       });
   });

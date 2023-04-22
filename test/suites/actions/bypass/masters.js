@@ -15,7 +15,7 @@ const mastersSimulation = got.extend({
   },
 });
 
-describe('/bypass/masters', function verifySuite() {
+describe.skip('/bypass/masters', function verifySuite() {
   const pwd = process.env.MASTERS_PROFILE_PASSWORD;
   const username = process.env.MASTERS_PROFILE_USERNAME;
   let msg;

@@ -1,7 +1,7 @@
 /* global startService, clearRedis */
 const { strict: assert } = require('assert');
 
-describe('/bypass/streamlayer', function verifySuite() {
+describe('/bypass/streamlayer', function bypassStreamlayer() {
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
   const account = 'streamlayer';
 

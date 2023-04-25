@@ -1,6 +1,7 @@
-const { assert } = require('@hapi/hoek');
 const { decodeAndVerify } = require('../jwt');
 const legacyJWT = require('../jwt-legacy');
+
+const { USERS_INVALID_TOKEN } = require('../../constants');
 
 class StreamLayerService {
   constructor(service, config) {
@@ -27,7 +28,7 @@ class StreamLayerService {
   async authenticate(token, account) {
     const decodedToken = await decodeAndVerify(this.service, token, this.audience);
 
-    assert(decodedToken?.extra, 'Wrong token');
+    if (!decodedToken?.extra) throw USERS_INVALID_TOKEN;
 
     const { username, extra } = decodedToken;
 

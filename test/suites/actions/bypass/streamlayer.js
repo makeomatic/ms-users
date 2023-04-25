@@ -4,17 +4,18 @@ const { strict: assert } = require('assert');
 describe('/bypass/streamlayer', function bypassStreamlayer() {
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };
   const account = 'streamlayer';
+  const schema = 'streamlayer';
 
   before('start', async () => {
     await startService.call(this, {
       jwt: {
         stateless: {
           enabled: true,
-          fields: ['username', 'extra', 'internal'],
+          fields: ['username', 'extra', 'streamlayer'],
         },
       },
       bypass: {
-        internal: {
+        streamlayer: {
           enabled: true,
           provider: 'streamlayer',
         },
@@ -35,7 +36,7 @@ describe('/bypass/streamlayer', function bypassStreamlayer() {
 
   it('authenticate user with legacy JWT and assing new JWT', async () => {
     const repsonse = await this.users.dispatch('auth-bypass', { params: {
-      schema: `internal:${account}`,
+      schema: `${schema}:${account}`,
       userKey: this.baseJwt,
     } });
 
@@ -43,5 +44,19 @@ describe('/bypass/streamlayer', function bypassStreamlayer() {
     assert(repsonse.user.metadata[userWithValidPassword.audience]);
     assert(repsonse.user.metadata[userWithValidPassword.audience][account]);
     assert.equal(repsonse.user.metadata[userWithValidPassword.audience][account].id, userWithValidPassword.username);
+  });
+
+  it('should not authenticate user with incorrect schema', async () => {
+    const notExistsSchema = 'internal';
+
+    const repsonse = this.users.dispatch('auth-bypass', { params: {
+      schema: `${notExistsSchema}:${account}`,
+      userKey: this.baseJwt,
+    } });
+
+    await assert.rejects(repsonse, {
+      name: 'HttpStatusError',
+      statusCode: 412,
+    });
   });
 });

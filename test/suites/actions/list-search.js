@@ -355,6 +355,58 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
+  it('list_tag: ANY action', function test() {
+    return this
+      .users
+      .dispatch('list', {
+        params: {
+          audience: TEST_AUDIENCE,
+          filter: {
+            email_tag: {
+              any: [
+                'joe@yahoo.org',
+                'ann@yahoo.org',
+              ],
+            },
+          },
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(2);
+
+        result.users.forEach((user) => {
+          expect(user).to.have.ownProperty('id');
+        });
+      });
+  });
+
+  it('list: ANY action', function test() {
+    return this
+      .users
+      .dispatch('list', {
+        params: {
+          audience: TEST_AUDIENCE,
+          filter: {
+            email: {
+              any: [
+                'joe@yahoo.org',
+                'ann@yahoo.org',
+              ],
+            },
+          },
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(2);
+
+        result.users.forEach((user) => {
+          expect(user).to.have.ownProperty('id');
+        });
+      });
+  });
+
   it('use custom audience', function test() {
     // FT.SEARCH {ms-users}-test-api-idx @level:[-inf 40]
     return this

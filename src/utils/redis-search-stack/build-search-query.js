@@ -8,6 +8,7 @@ const {
   negative,
   tokensMatch,
   tokenize,
+  quotedString,
 } = require('./expressions');
 
 const EMPTY_VALUE = typeof null; // NOTE Using "" occures the parser error
@@ -17,6 +18,7 @@ const ParamSuffix = {
   eq: 'eq',
   ne: 'ne',
   match: 'm',
+  any: 'any',
 };
 
 const buildParamName = (...args) => args.join('_');
@@ -79,6 +81,28 @@ const searchQueryBuilder = {
 
     return expression(field, tokensMatch(params, true));
   },
+  any: (prop, field, expr) => {
+    const propName = normalizePropName(prop);
+
+    if (prop.endsWith('_tag')) {
+      const params = expr.any.map((_, index) => {
+        const name = buildParamName(FIELD_PREFIX, propName, ParamSuffix.any, index);
+        return paramRef(name);
+      });
+
+      return expression(field, tag(params.join('|')));
+    }
+
+    const params = expr.any.map((param, index) => {
+      const subparams = tokenize(param).map(
+        (_, tokenIndex) => paramRef(buildParamName(FIELD_PREFIX, propName, ParamSuffix.any, index, tokenIndex))
+      );
+
+      return `'${subparams.join(' ')}'`;
+    });
+
+    return expression(field, `(${params.join('|')})`);
+  },
 };
 
 const searchParamBuilder = {
@@ -95,6 +119,31 @@ const searchParamBuilder = {
     const propName = normalizePropName(prop);
     const name = buildParamName(FIELD_PREFIX, propName, ParamSuffix.match);
     return [name, expr.match];
+  },
+  any: (prop, expr) => {
+    const propName = normalizePropName(prop);
+    const params = [];
+
+    if (prop.endsWith('_tag')) {
+      expr.any.forEach((item, index) => {
+        const name = buildParamName(FIELD_PREFIX, propName, ParamSuffix.any, index);
+        params.push(name, quotedString(item));
+      });
+
+      return params;
+    }
+
+    expr.any.forEach((param, index) => {
+      const subparams = tokenize(param).map(
+        (paramValue, paramIndex) => {
+          const paramName = buildParamName(FIELD_PREFIX, propName, ParamSuffix.any, index, paramIndex);
+          return [paramName, paramValue];
+        }
+      );
+      params.push(...subparams);
+    });
+
+    return flatten(params);
   },
 };
 

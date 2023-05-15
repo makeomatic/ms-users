@@ -26,6 +26,7 @@ exports.redisIndexDefinitions = [
       ['id', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['email', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['level', 'NUMERIC', 'SORTABLE'],
+      ['email', 'AS', 'email_tag', 'TAG', 'SORTABLE'],
     ],
     multiWords: ['email'],
   },

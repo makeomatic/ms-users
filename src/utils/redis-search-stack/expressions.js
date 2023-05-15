@@ -36,7 +36,7 @@ module.exports = exports = {
 
     return `(${values.join(' ')})`;
   },
-  union: (values = []) => `(${values.join(PIPE_SEPARATOR)})`,
+  quotedString: (item) => `\\"${item}\\"`,
   numericRange: (min = NEGATIVE_RANGE, max = POSITIVE_RANGE) => `[${min} ${max}]`,
   tag: (item) => `{${item}}`,
   tags: (items = []) => `{${items.join(PIPE_SEPARATOR)}}`,

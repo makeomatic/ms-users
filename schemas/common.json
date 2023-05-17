@@ -48,6 +48,13 @@
               "^(exists|isempty)$": {
                 "type": "boolean",
                 "const": true
+              },
+              "^any$": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
               }
             }
           }

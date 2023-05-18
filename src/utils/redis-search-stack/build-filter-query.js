@@ -1,7 +1,8 @@
 const buildSearchQuery = require('./build-search-query');
 const normalizeFilterProp = require('./normalize-filter-prop');
+const { namedField } = require('./expressions');
 
-function buildFilterQuery(filter, multiWords) {
+function buildFilterQuery(filter, multiWords, fieldTypes) {
   const query = [];
   const params = [];
 
@@ -9,7 +10,14 @@ function buildFilterQuery(filter, multiWords) {
     const prop = normalizeFilterProp(propName, actionTypeOrValue);
 
     if (actionTypeOrValue !== undefined) {
-      const [sQuery, sParams] = buildSearchQuery(prop, actionTypeOrValue, { multiWords });
+      const field = namedField(prop);
+      const [sQuery, sParams] = buildSearchQuery({
+        prop,
+        field,
+        valueOrExpr: actionTypeOrValue,
+        options: { multiWords, fieldTypes },
+        paramPrefix: '',
+      });
 
       query.push(sQuery);
       params.push(...sParams); // name, value

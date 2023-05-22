@@ -9,6 +9,7 @@ const { USERS_INDEX, USERS_METADATA } = require('../../../src/constants');
 
 const TEST_CATEGORY = 'test';
 const TEST_AUDIENCE = 'api';
+const TEST_AUDIENCE_HTTP = 'http';
 
 const getUserName = (audience) => (data) => data.metadata[audience].username;
 
@@ -102,6 +103,9 @@ describe('Redis Search: list', function listSuite() {
       const api = createUserApi(userId, { email: username, level: (i + 1) * 10 });
       const data = saveUser(this.users.redis, TEST_CATEGORY, TEST_AUDIENCE, api);
       promises.push(data);
+      promises.push(
+        saveUser(this.users.redis, TEST_CATEGORY, TEST_AUDIENCE_HTTP, api)
+      );
     }
 
     this.audience = audience;
@@ -124,6 +128,27 @@ describe('Redis Search: list', function listSuite() {
       this.users.dispatch('list', query),
       /Search index does not registered for/
     );
+  });
+
+  it('adds only specific users to index', function test() {
+    return this.users
+      .dispatch('list', {
+        params: {
+          offset: 0,
+          limit: 100,
+          audience: TEST_AUDIENCE_HTTP,
+          filter: {},
+        },
+      })
+      .then((result) => {
+        expect(result.users.length).to.be.greaterThan(0);
+
+        result.users.forEach((user) => {
+          console.debug(user.metadata);
+          expect(user).to.have.ownProperty('id');
+          expect(user.metadata[TEST_AUDIENCE_HTTP].level).to.be.greaterThanOrEqual(30);
+        });
+      });
   });
 
   it('list by username', function test() {

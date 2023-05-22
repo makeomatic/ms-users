@@ -30,4 +30,16 @@ exports.redisIndexDefinitions = [
     ],
     multiWords: ['email'],
   },
+  {
+    filterKey: 'test',
+    filterByProperty: '@level > 30',
+    audience: ['http'],
+    fields: [
+      ['id', 'TEXT', 'NOSTEM', 'SORTABLE'],
+      ['email', 'TEXT', 'NOSTEM', 'SORTABLE'],
+      ['level', 'NUMERIC', 'SORTABLE'],
+      ['email', 'AS', 'email_tag', 'TAG', 'SORTABLE'],
+    ],
+    multiWords: ['email'],
+  },
 ];

@@ -43,7 +43,7 @@ class RedisSearchIndexes {
   ensureSearchIndexes() {
     const { keyPrefix } = this.redisConfig.options;
 
-    const createIndexes = this.definitions.map(({ version = '1', filterKey, audience, fields, multiWords }) => {
+    const createIndexes = this.definitions.map(({ version = '1', filterKey, filterByProperty, audience, fields, multiWords }) => {
       const result = [];
 
       // create indexes matrix depends on all audience
@@ -51,7 +51,7 @@ class RedisSearchIndexes {
         const filter = redisKey(filterKey, audienceKey);
         const indexName = this.buildIndexName(filter, version);
 
-        result.push(createHashIndex(this.service, indexName, keyPrefix, filter, fields));
+        result.push(createHashIndex(this.service, indexName, keyPrefix, filter, filterByProperty, fields));
         const fieldTypes = extractFieldTypes(fields);
 
         this.log.debug('registering FT index for %s audience - %s', audience, indexName, fieldTypes);

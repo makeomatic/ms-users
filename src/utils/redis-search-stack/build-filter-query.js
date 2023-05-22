@@ -6,15 +6,15 @@ function buildFilterQuery(filter, multiWords, fieldTypes) {
   const query = [];
   const params = [];
 
-  for (const [propName, actionTypeOrValue] of Object.entries(filter)) {
-    const prop = normalizeFilterProp(propName, actionTypeOrValue);
+  for (const [propName, valueOrExpr] of Object.entries(filter)) {
+    const prop = normalizeFilterProp(propName, valueOrExpr);
 
-    if (actionTypeOrValue !== undefined) {
+    if (valueOrExpr !== undefined) {
       const field = namedField(prop);
       const [sQuery, sParams] = buildSearchQuery({
         prop,
         field,
-        valueOrExpr: actionTypeOrValue,
+        valueOrExpr,
         options: { multiWords, fieldTypes },
         paramPrefix: '',
       });

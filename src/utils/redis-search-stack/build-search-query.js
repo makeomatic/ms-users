@@ -124,7 +124,7 @@ const operator = {
     };
   },
   any: (prop, __field, expr, paramPrefix, options) => {
-    const subExpressions = expr.any.map((subExp, index) => {
+    const subExpressions = expr.any.map((valueOrExpr, index) => {
       const field = namedField(prop);
 
       // eslint-disable-next-line no-use-before-define
@@ -132,7 +132,7 @@ const operator = {
         prop,
         paramPrefix: `${paramPrefix}any_${index}`,
         field,
-        valueOrExpr: subExp,
+        valueOrExpr,
         options,
       });
     });
@@ -196,7 +196,6 @@ const buildSearchQuery = (buildParams) => {
 
   const { query, params = [] } = buildQuery(prop, field, valueOrExpr, paramPrefix, options);
 
-  console.debug('>> build search query', { prop, valueOrExpr, query, params });
   return [query, params];
 };
 

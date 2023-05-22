@@ -22,7 +22,7 @@ async function createHashIndex({ redis, log }, indexName, prefix, keyFilter, fil
     filterExpr.push(filterByProperty);
   }
 
-  const filterParam = (filterExpr.length > 1 ? ['FILTER', filterExpr.join('&&')] : []);
+  const filterParam = (filterExpr.length > 0 ? ['FILTER', `(${filterExpr.join(' && ')})`] : []);
 
   try {
     return await redis.call(

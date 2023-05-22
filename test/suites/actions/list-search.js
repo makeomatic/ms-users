@@ -8,6 +8,7 @@ const { redisIndexDefinitions } = require('../../configs/redis-indexes');
 const { USERS_INDEX, USERS_METADATA } = require('../../../src/constants');
 
 const TEST_CATEGORY = 'test';
+const TEST_CATEGORY_PROPFILTER = 'wpropfilter';
 const TEST_AUDIENCE = 'api';
 const TEST_AUDIENCE_HTTP = 'http';
 
@@ -31,6 +32,12 @@ const createUserApi = (id, { email, level } = {}) => ({
     id,
     email: email || faker.internet.email(),
     level: level || 1,
+  },
+  [TEST_CATEGORY_PROPFILTER]: {
+    id,
+    email: email || faker.internet.email(),
+    level: level || 1,
+    xMeta: 1,
   },
 });
 
@@ -104,7 +111,7 @@ describe('Redis Search: list', function listSuite() {
       const data = saveUser(this.users.redis, TEST_CATEGORY, TEST_AUDIENCE, api);
       promises.push(data);
       promises.push(
-        saveUser(this.users.redis, TEST_CATEGORY, TEST_AUDIENCE_HTTP, api)
+        saveUser(this.users.redis, TEST_CATEGORY_PROPFILTER, TEST_AUDIENCE_HTTP, api)
       );
     }
 

@@ -355,7 +355,12 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
-  it('list_tag: ANY action', function test() {
+  it('list: TAG ANY action', function test() {
+    // More readable query is:
+    //   @email_tag: {$f_any_0_email_tag, $f_any_1_email_tag }
+    // This one in a bit more complex:
+    //   ( (@email_tag:{$f_any_0_email_tag}) | (@email_tag:{$f_any_1_email_tag}) )
+    //   PARAMS 4 f_any_0_email_tag \\\"joe@yahoo.org\\\" f_any_1_email_tag \\\"ann@yahoo.org\\\"
     return this
       .users
       .dispatch('list', {
@@ -382,6 +387,17 @@ describe('Redis Search: list', function listSuite() {
   });
 
   it('list: ANY action', function test() {
+    // (
+    //  (@email:($f_email_any_0_1 $f_email_any_0_2 $f_email_any_0_3))
+    //  |
+    //  (@email:($f_email_any_1_1 $f_email_any_1_2 $f_email_any_1_3))
+    // ) PARAMS 12
+    //     f_email_any_0_1 joe f_email_any_0_2 yahoo f_email_any_0_3 org f_email_any_1_1 ann f_email_any_1_2 yahoo f_email_any_1_3 org
+    const emails = [
+      'joe@yahoo.org',
+      'ann@yahoo.org',
+    ];
+
     return this
       .users
       .dispatch('list', {
@@ -389,10 +405,7 @@ describe('Redis Search: list', function listSuite() {
           audience: TEST_AUDIENCE,
           filter: {
             email: {
-              any: [
-                'joe@yahoo.org',
-                'ann@yahoo.org',
-              ],
+              any: emails,
             },
           },
         },
@@ -403,6 +416,41 @@ describe('Redis Search: list', function listSuite() {
 
         result.users.forEach((user) => {
           expect(user).to.have.ownProperty('id');
+          // one of the emails
+          expect(emails).to.contain(user.metadata.api.email);
+        });
+      });
+  });
+
+  it('list: ANY action gte/lte fn', function test() {
+    // ( (@level:[10 20]) | (@level:[35 +inf]) )
+    const levels = [
+      {
+        gte: 10, lte: 20,
+      },
+      { gte: 35 },
+    ];
+
+    return this
+      .users
+      .dispatch('list', {
+        params: {
+          audience: TEST_AUDIENCE,
+          filter: {
+            level: {
+              any: levels,
+            },
+          },
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(4);
+
+        result.users.forEach((user) => {
+          expect(user).to.have.ownProperty('id');
+          expect(user.metadata[TEST_AUDIENCE].level)
+            .to.satisfy((value) => (value >= 10 && value <= 20) || value >= 35);
         });
       });
   });

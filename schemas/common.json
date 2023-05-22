@@ -34,31 +34,41 @@
             "minLength": 1
           },
           {
-            "type": "object",
-            "minProperties": 1,
-            "maxProperties": 2,
-            "patternProperties": {
-              "^(ne|eq|match)$": {
+            "$ref": "#/definitions/filterOps"
+          }
+        ]
+      }
+    },
+    "filterOps": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 2,
+      "patternProperties": {
+        "^(ne|eq|match)$": {
+          "type": "string",
+          "minLength": 1
+        },
+        "^(gte|lte)$": {
+          "type": "number"
+        },
+        "^(exists|isempty)$": {
+          "type": "boolean",
+          "const": true
+        },
+        "^any$": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
                 "type": "string",
                 "minLength": 1
               },
-              "^(gte|lte)$": {
-                "type": "number"
-              },
-              "^(exists|isempty)$": {
-                "type": "boolean",
-                "const": true
-              },
-              "^any$": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
+              {
+                "$ref": "#/definitions/filterOps"
               }
-            }
+            ]
           }
-        ]
+        }
       }
     },
     "challengeType": {

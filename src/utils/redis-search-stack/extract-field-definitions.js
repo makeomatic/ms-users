@@ -15,7 +15,7 @@ const fieldTypes = [
 
 function extractFieldTypes(fields) {
   const extractedFields = fields.map((definition) => {
-    // assume always [name, fieldType]
+    // assume always [name, fieldType, aliasName, aliasType ]
     const [name, fieldType, aliasName, fieldAliasType] = definition;
 
     assert(fieldTypes.includes(fieldType), `invalid field type '${fieldType}' for field '${name}'`);
@@ -26,8 +26,6 @@ function extractFieldTypes(fields) {
 
     return [name, fieldType];
   });
-
-  console.debug('>>> extractFieldTypes', extractedFields);
 
   return fromPairs(extractedFields);
 }

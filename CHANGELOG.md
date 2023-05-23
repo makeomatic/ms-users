@@ -1,3 +1,10 @@
+## [15.11.1](https://github.com/makeomatic/ms-users/compare/v15.11.0...v15.11.1) (2023-05-23)
+
+
+### Bug Fixes
+
+* add 'any' redissearch query ([#588](https://github.com/makeomatic/ms-users/issues/588)) ([efaa2fe](https://github.com/makeomatic/ms-users/commit/efaa2fe307bda191e475b1a5eb57bbc3d737a713))
+
 # [15.11.0](https://github.com/makeomatic/ms-users/compare/v15.10.2...v15.11.0) (2023-04-25)
 
 

@@ -1,12 +1,13 @@
 const { strict: assert } = require('assert');
+const { startService, clearRedis, globalRegisterUser, globalAuthUser } = require('../../config');
 
 describe('#logout', function logoutSuite() {
   const username = 'logout@me.com';
 
-  before(global.startService);
-  before('register user', global.globalRegisterUser(username));
-  before('auth user', global.globalAuthUser(username));
-  after(global.clearRedis);
+  before(startService);
+  before('register user', globalRegisterUser(username));
+  before('auth user', globalAuthUser(username));
+  after(clearRedis);
 
   it('must reject logout on an invalid JWT token', async function test() {
     const { defaultAudience: audience } = this.users.config.jwt;

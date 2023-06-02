@@ -1,14 +1,15 @@
 const { strict: assert } = require('assert');
 const { expect } = require('chai');
+const { startService, clearRedis } = require('../../../../config');
 const { createOrganization, createMembers } = require('../../../../helpers/organization');
 
 describe('#get organization member', function registerSuite() {
   this.timeout(50000);
 
-  beforeEach(global.startService);
+  beforeEach(startService);
   beforeEach(function pretest() { return createMembers.call(this); });
   beforeEach(function pretest() { return createOrganization.call(this); });
-  afterEach(global.clearRedis);
+  afterEach(clearRedis);
 
   it('must reject invalid params and return detailed error', async function test() {
     await assert.rejects(this.users.dispatch('organization.members.get', { params: {} }), {

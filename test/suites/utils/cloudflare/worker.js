@@ -1,14 +1,15 @@
 const { assert } = require('chai');
 const { once } = require('events');
 const sinon = require('sinon');
-const Users = require('../../../../src');
+const prepareUsers = require('../../../../src');
+const { clearRedis } = require('../../../config');
 
 const { nockCfApi, restoreCfApi } = require('../../../helpers/cloudflare/api-stub');
 
 describe('#cloudflare access-list worker', () => {
   const Timeout = (setTimeout(() => {}, 0).unref()).constructor;
-  const createService = (config) => {
-    this.users = new Users(config);
+  const createService = async (config) => {
+    this.users = await prepareUsers(config);
   };
 
   beforeEach('start', () => {
@@ -17,13 +18,13 @@ describe('#cloudflare access-list worker', () => {
 
   afterEach('stop', async () => {
     if (this.users) {
-      await global.clearRedis.call(this, false);
+      await clearRedis.call(this, false);
     }
     restoreCfApi();
   });
 
   it('should set interval job', async () => {
-    createService({
+    await createService({
       cfAccessList: {
         enabled: true,
         worker: {

@@ -1,14 +1,14 @@
 const { throws } = require('assert');
+const { startService } = require('../../../config');
 
-describe('#cloudflare access-list configuration', () => {
+describe('#cloudflare access-list configuration', function cfAccessListSuite() {
   const testSchema = 'test-schema';
   const schema = {
     $ref: 'config#/definitions/cfAccessList',
   };
 
   before(async () => {
-    const service = await global
-      .startService
+    const service = await startService
       .call(this, { cfAccessList: { enabled: false } });
 
     service.validator.$ajv.addSchema(schema, testSchema);

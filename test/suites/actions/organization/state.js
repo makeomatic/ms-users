@@ -1,14 +1,15 @@
 const { strict: assert } = require('assert');
 const { faker } = require('@faker-js/faker');
+const { startService, clearRedis } = require('../../../config');
 const { createOrganization, createMembers } = require('../../../helpers/organization');
 
 describe('#switch state organization', function registerSuite() {
   this.timeout(50000);
 
-  beforeEach(global.startService);
+  beforeEach(startService);
   beforeEach(function pretest() { return createMembers.call(this); });
   beforeEach(function pretest() { return createOrganization.call(this); });
-  afterEach(global.clearRedis);
+  afterEach(clearRedis);
 
   it('must reject invalid organization params and return detailed error', async function test() {
     await assert.rejects(this.users.dispatch('organization.state', { params: {} }), {
@@ -32,7 +33,7 @@ describe('#switch state organization', function registerSuite() {
 
   it('must return organization not found error', async function test() {
     const params = {
-      organizationId: faker.company.companyName(),
+      organizationId: faker.company.name(),
     };
 
     await assert.rejects(this.users.dispatch('organization.state', { params }), {

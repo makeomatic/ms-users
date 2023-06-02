@@ -1,6 +1,6 @@
 {
-  "require": ["./test/config.js"],
-  "timeout": 600000,
+  "require": ["why-is-node-running/include"],
+  "timeout": 30000,
   "bail": true,
   "report": "spec"
 }

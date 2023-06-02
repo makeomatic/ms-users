@@ -1,8 +1,9 @@
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../../config');
 
 describe('#referral', function registerSuite() {
-  before(global.startService);
-  after(global.clearRedis);
+  before(startService);
+  after(clearRedis);
 
   const exampleHash = 'i-know-referrals-dot-com';
   const referralId = '00000001';

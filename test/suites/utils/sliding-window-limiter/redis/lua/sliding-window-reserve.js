@@ -1,7 +1,6 @@
-/* global startService */
-/* global clearRedis */
 const { rejects, strictEqual, deepStrictEqual } = require('assert');
 const Promise = require('bluebird');
+const { startService, clearRedis } = require('../../../../../config');
 
 describe('redis.slidingWindowReserve script', function suite() {
   before(startService);

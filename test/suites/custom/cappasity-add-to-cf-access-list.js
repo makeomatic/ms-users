@@ -1,6 +1,6 @@
 const { strict: assert } = require('assert');
 const sinon = require('sinon');
-
+const { startService, clearRedis } = require('../../config');
 const hook = require('../../../src/custom/cappasity-cf-access-list');
 
 describe('#cappasity-user-login-hook', () => {
@@ -26,7 +26,7 @@ describe('#cappasity-user-login-hook', () => {
     sandbox = sinon.createSandbox();
     sandbox.spy(hook);
 
-    service = await global.startService.call(this, {
+    service = await startService.call(this, {
       cfAccessList: {
         enabled: true,
         worker: { enabled: false },
@@ -49,7 +49,7 @@ describe('#cappasity-user-login-hook', () => {
   });
 
   after('stop', async () => {
-    await global.clearRedis.call(this);
+    await clearRedis.call(this);
   });
 
   it('should not call `cf.add-to-access-list` if `plan` is `free`', async () => {

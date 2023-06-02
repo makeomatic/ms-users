@@ -1,7 +1,7 @@
-/* global startService, clearRedis */
 const Promise = require('bluebird');
 const { times } = require('lodash');
 const { strictEqual } = require('assert');
+const { startService, clearRedis } = require('../../../config');
 
 describe('#login-rate-limiter', function rateLimiterSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };

@@ -5,11 +5,14 @@
   "properties": {
     "schema": {
       "type": "string",
-      "pattern": ".*:.*"
+      "pattern": "^[a-zA-Z0-9\\-_\\.]+:[a-zA-Z0-9\\-_\\.]+$"
     },
     "userKey": {
       "type": "string",
       "minLength": 1
+    },
+    "init": {
+      "type": "boolean"
     }
   }
 }

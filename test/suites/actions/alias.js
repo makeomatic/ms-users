@@ -1,9 +1,9 @@
-/* global globalRegisterUser */
-const { strict: assert } = require('assert');
+const { strict: assert } = require('node:assert');
+const { startService, clearRedis, globalRegisterUser } = require('../../config');
 
 describe('#alias', function activateSuite() {
-  before(global.startService);
-  after(global.clearRedis);
+  before(startService);
+  after(clearRedis);
 
   it('must reject adding alias to a non-existing user', async function test() {
     const params = { username: 'doesntexist', alias: 'marvelous' };

@@ -1,6 +1,10 @@
-const conf = require('ms-conf');
+const { Store } = require('ms-conf');
 const path = require('path');
 
-conf.prependDefaultConfiguration(path.resolve(__dirname, './configs'));
+module.exports = async function prepareConfiguration(defaultOpts = {}) {
+  const store = new Store({ defaultOpts });
+  store.prependDefaultConfiguration(path.resolve(__dirname, './configs'));
+  await store.ready();
 
-module.exports = conf;
+  return store;
+};

@@ -6,6 +6,7 @@ const ld = require('lodash');
 const redisKey = require('../../../src/utils/key');
 const { redisIndexDefinitions } = require('../../configs/redis-indexes');
 const { USERS_INDEX, USERS_METADATA } = require('../../../src/constants');
+const { startService, clearRedis } = require('../../config');
 
 const TEST_CATEGORY = 'test';
 const TEST_CATEGORY_PROPFILTER = 'wpropfilter';
@@ -21,8 +22,8 @@ const createUser = (id, { username, firstName, lastName } = {}) => ({
   id,
   metadata: {
     username: username || faker.internet.email(),
-    firstName: firstName || faker.name.firstName(),
-    lastName: lastName === undefined ? faker.name.lastName() : lastName,
+    firstName: firstName || faker.person.firstName(),
+    lastName: lastName === undefined ? faker.person.lastName() : lastName,
   },
 });
 
@@ -74,10 +75,10 @@ describe('Redis Search: list', function listSuite() {
 
   const totalUsers = 10;
 
-  beforeEach(async function startService() {
-    await global.startService.call(this, ctx);
+  beforeEach(async function init() {
+    await startService.call(this, ctx);
   });
-  afterEach('reset redis', global.clearRedis);
+  afterEach('reset redis', clearRedis);
 
   beforeEach('populate redis', function populateRedis() {
     const audience = this.users.config.jwt.defaultAudience;

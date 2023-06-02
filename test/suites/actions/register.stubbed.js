@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const { strict: assert } = require('assert');
 const is = require('is');
 const sinon = require('sinon').usingPromise(Promise);
+const { startService, clearRedis } = require('../../config');
 
 describe('#register stubbed', function suite() {
   /**
@@ -109,8 +110,8 @@ describe('#register stubbed', function suite() {
   };
 
   describe('#password validator disabled', () => {
-    beforeEach(global.startService.bind(this));
-    afterEach(global.clearRedis.bind(this));
+    beforeEach(startService.bind(this));
+    afterEach(clearRedis.bind(this));
 
     it('must be able to send activation code by sms', mustBeAbleToSendActivationCodeBySms);
     it('must be able to send password by sms', mustBeAbleToSendPasswordBySms);
@@ -119,11 +120,11 @@ describe('#register stubbed', function suite() {
 
   describe('#password validator enabled', () => {
     beforeEach(async () => {
-      await global.startService.call(this, {
+      await startService.call(this, {
         passwordValidator: { enabled: true },
       });
     });
-    afterEach(global.clearRedis.bind(this));
+    afterEach(clearRedis.bind(this));
 
     it('must be able to send activation code by sms', mustBeAbleToSendActivationCodeBySms);
     it('must be able to send password by sms', mustBeAbleToSendPasswordBySms);

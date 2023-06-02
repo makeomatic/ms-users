@@ -17,8 +17,8 @@ global_job_config:
   prologue:
     commands:
       - set -e
-      - sem-version node 16
-      - curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm@6
+      - sem-version node 18
+      - curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm@8
       - checkout
       - cache restore node-$(checksum pnpm-lock.yaml)
       - pnpm i --frozen-lockfile --prefer-offline --ignore-scripts
@@ -41,8 +41,16 @@ blocks:
         - pnpm lint
         - env SKIP_FB=true pnpm test:e2e:${flavour}
 
+  - name: test-docker-build
+    dependencies: []
+    task:
+      jobs:
+      - name: docker build
+        commands:
+        - pnpm mdep docker build
+
   - name: release
-    dependencies: ["tests"]
+    dependencies: ["tests", "test-docker-build"]
     skip:
       when: "branch != 'master'"
     task:

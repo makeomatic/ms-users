@@ -6,18 +6,14 @@ ENV NCONF_NAMESPACE=MS_USERS \
 WORKDIR /src
 
 # pnpm fetch does require only lockfile
-COPY package.json pnpm-lock.yaml ./
+COPY --chown=node:node pnpm-lock.yaml ./
 RUN \
-  apk --update upgrade \
-  && apk add git ca-certificates openssl g++ make python3 linux-headers \
-  && pnpm install --prod \
-  && apk del \
-    g++ \
-    make \
-    git \
-    wget \
-    python3 \
-    linux-headers \
+  apk --update --upgrade \
+    add ca-certificates --virtual .buildDeps git ca-certificates openssl g++ make python3 linux-headers \
+  && update-ca-certificates \
+  && chown node:node /src \
+  && su -l node -c "cd /src && pnpm fetch --prod" \
+  && apk del .buildDeps \
   && rm -rf \
     /tmp/* \
     /root/.node-gyp \
@@ -25,6 +21,8 @@ RUN \
     /etc/apk/cache/* \
     /var/cache/apk/*
 
-COPY . /src
-RUN  chown -R node /src
 USER node
+COPY --chown=node:node . /src
+RUN pnpm install --offline --prod
+
+CMD [ "./node_modules/.bin/mfleet" ]

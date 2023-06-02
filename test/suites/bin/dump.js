@@ -1,14 +1,15 @@
 const { strict: assert } = require('assert');
 const path = require('path');
 const fs = require('fs');
+const { startService, clearRedis, initFakeAccounts } = require('../../config');
 const exec = require('../../helpers/exec');
 
 describe('binary: dump', function suite() {
-  const binaryPath = path.resolve(__dirname, '../../../bin/dump.js');
+  const binaryPath = path.resolve(__dirname, '../../../src/bin/dump.js');
 
-  before('start service', global.startService);
-  before('register fake users', global.initFakeAccounts);
-  after('stop service & clean db', global.clearRedis);
+  before('start service', startService);
+  before('register fake users', initFakeAccounts);
+  after('stop service & clean db', clearRedis);
 
   // 103 is the amount of fake users generated
 

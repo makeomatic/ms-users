@@ -7,10 +7,11 @@ const request = require('request-promise').defaults({
   simple: true,
   strictSSL: false,
 });
+const { startService, clearRedis } = require('../../config');
 
 describe('/_/me', function verifySuite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   it('must reject on missing JWT token', async function test() {
     await assert.rejects(request.get(), {

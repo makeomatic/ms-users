@@ -2,12 +2,13 @@ const { expect } = require('chai');
 const { strict: assert } = require('assert');
 const is = require('is');
 const sinon = require('sinon');
+const { startService, clearRedis } = require('../../config');
 
 describe('#activate', function activateSuite() {
   const email = 'spa@aminev.me';
 
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   beforeEach(async function genToken() {
     const result = await this.users.tokenManager.create({

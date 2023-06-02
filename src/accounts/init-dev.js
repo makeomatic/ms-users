@@ -9,8 +9,8 @@ module.exports = function initFakeAccounts() {
   const accounts = times(103, () => ({
     id: faker.internet.email(),
     metadata: {
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
     },
     activate: true,
   }));

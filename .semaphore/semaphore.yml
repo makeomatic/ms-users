@@ -37,7 +37,6 @@ blocks:
           values: ["cluster", "sentinel"]
         commands:
         - cp ~/.env.ms-users-keys ./.env
-        - pnpm compile
         - pnpm lint
         - env SKIP_FB=true pnpm test:e2e:${flavour}
 

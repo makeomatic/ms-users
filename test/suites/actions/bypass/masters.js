@@ -16,7 +16,11 @@ const mastersSimulation = got.extend({
   },
 });
 
-describe('/bypass/masters', function verifySuite() {
+const t = process.env.SKIP_MASTERS === 'true'
+  ? describe.skip
+  : describe;
+
+t('/bypass/masters', function verifySuite() {
   const pwd = process.env.MASTERS_PROFILE_PASSWORD;
   const username = process.env.MASTERS_PROFILE_USERNAME;
   let msg;
@@ -35,7 +39,7 @@ describe('/bypass/masters', function verifySuite() {
     };
   });
 
-  describe('masters disabled', () => {
+  t('masters disabled', () => {
     before(() => startService());
     after(() => clearRedis());
 
@@ -52,7 +56,7 @@ describe('/bypass/masters', function verifySuite() {
     });
   });
 
-  describe('masters enabled', () => {
+  t('masters enabled', () => {
     before(() => startService({
       bypass: {
         masters: {

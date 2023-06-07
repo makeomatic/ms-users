@@ -38,6 +38,7 @@ exports.extras = {
       VIRTUAL_PORT: 3000,
       CERT_NAME: 'default',
       SKIP_FB: process.env.SKIP_FB,
+      SKIP_MASTERS: process.env.SKIP_MASTERS,
       NODE_V8_COVERAGE: 'coverage/tmp'
     },
   },

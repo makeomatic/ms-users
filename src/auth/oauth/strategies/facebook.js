@@ -1,10 +1,10 @@
 const Crypto = require('crypto');
 const { strict: assert } = require('assert');
 const Boom = require('@hapi/boom');
-const request = require('request-promise');
+const { fetch } = require('undici');
 const differenceWith = require('lodash/differenceWith');
 const defaults = require('lodash/defaults');
-const Hoek = require('@hapi/hoek');
+const { HttpStatusError } = require('@microfleet/validation');
 const Urls = require('../utils/fb-urls');
 const get = require('../../../utils/get-value');
 
@@ -68,13 +68,13 @@ function defaultProfileHandler(ctx, profile) {
   return credentials;
 }
 
-function fetch(resource) {
+function fetchFactory(resource) {
   const endpoint = Urls.instance()[resource];
   return (fetcher, options, bearer) => fetcher(endpoint, options, bearer);
 }
 
-const fetchProfile = fetch('profile');
-const fetchPermissions = fetch('permissions');
+const fetchProfile = fetchFactory('profile');
+const fetchPermissions = fetchFactory('permissions');
 
 function verifyPermissions(ctx, permissions) {
   const { credentials, requiredPermissions } = ctx;
@@ -100,35 +100,41 @@ function verifyPermissions(ctx, permissions) {
 const defaultGetterFactory = (ctx) => async (uri, params = {}, bearer) => {
   assert(bearer, 'bearer token must be supplied');
 
-  const headers = {
+  const reqHeaders = {
     Authorization: `Bearer ${bearer}`,
   };
 
   if (ctx.profileParams) {
-    Hoek.merge(params, ctx.profileParams);
+    Object.assign(params, ctx.profileParams);
   }
 
   if (ctx.provider.headers) {
-    Hoek.merge(headers, ctx.provider.headers);
+    Object.assign(reqHeaders, ctx.provider.headers);
   }
 
   try {
-    return await request[ctx.provider.profileMethod]({
-      uri,
-      qs: params,
-      headers,
-      json: true,
-      gzip: true,
-      timeout: 5000,
+    const url = new URL(uri);
+    url.searchParams = new URLSearchParams(params);
+    const { statusCode, headers, body } = await fetch(url, {
+      method: ctx.provider.profileMethod,
+      headers: reqHeaders,
     });
+
+    if (statusCode !== 200) {
+      const err = new HttpStatusError(statusCode, await body.text());
+      err.headers = headers;
+      throw err;
+    }
+
+    return await body.json();
   } catch (err) {
     throw Boom.internal(`Failed obtaining ${ctx.name} user profile`, {
-      body: err.response && err.response.body,
-      headers: err.response && err.response.headers,
+      body: err.message,
+      headers: err.headers,
       request: {
         uri,
         params,
-        headers,
+        headers: reqHeaders,
       },
       stack: err.stack,
     });

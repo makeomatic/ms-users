@@ -1,13 +1,14 @@
 const { strict: assert } = require('assert');
 const { faker } = require('@faker-js/faker');
+const { startService, clearRedis } = require('../../../../config');
 const { createOrganization } = require('../../../../helpers/organization');
 
 describe('#add member to organization', function registerSuite() {
   this.timeout(50000);
 
-  beforeEach(global.startService);
+  beforeEach(startService);
   beforeEach(function pretest() { return createOrganization.call(this); });
-  afterEach(global.clearRedis);
+  afterEach(clearRedis);
 
   it('must reject invalid organization params and return detailed error', async function test() {
     await assert.rejects(this.users.dispatch('organization.members.add', { params: {} }), {
@@ -23,8 +24,8 @@ describe('#add member to organization', function registerSuite() {
       organizationId: this.organization.id,
       member: {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
       },
     };
 
@@ -33,11 +34,11 @@ describe('#add member to organization', function registerSuite() {
 
   it('must return organization not found error', async function test() {
     const opts = {
-      organizationId: faker.company.companyName(),
+      organizationId: faker.company.name(),
       member: {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
       },
     };
 

@@ -48,7 +48,7 @@ class PumpJackService {
     this.audience = this.service.config.jwt.defaultAudience;
   }
 
-  async authenticate(profileToken, account) {
+  async authenticate(profileToken, { account }) {
     const userProfile = await this.retrieveUser(profileToken, account);
     return this.registerAndLogin(userProfile);
   }

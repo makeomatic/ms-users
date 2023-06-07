@@ -81,11 +81,11 @@
     },
     "userId": {
       "type": "string",
-      "oneOf": [
+      "anyOf": [
         { "format": "email" },
         { "format": "uuid" },
         { "pattern": "^\\d+$" },
-        { "pattern": "^(fb|apl|sso|ma)/[\\d_]+$" }
+        { "pattern": "^(fb|apl|sso|ma|sla)/[\\d_a-z\\-]+$" }
       ]
     },
     "alias": {

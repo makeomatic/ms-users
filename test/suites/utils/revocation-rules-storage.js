@@ -1,5 +1,6 @@
 const { strictEqual, deepStrictEqual, ok, throws } = require('assert');
 const Bluebird = require('bluebird');
+const { startService, clearRedis } = require('../../config');
 const { KEY_PREFIX_REVOCATION_RULES } = require('../../../src/constants');
 const { ListFilter } = require('../../../src/utils/stateless-jwt/list-filter');
 
@@ -14,7 +15,7 @@ const withSyncEnabled = {
 const keyPrefix = KEY_PREFIX_REVOCATION_RULES;
 
 async function startServiceWithSyncEnabled() {
-  await global.startService.bind(this)(withSyncEnabled);
+  await startService.bind(this)(withSyncEnabled);
 }
 
 describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
@@ -25,7 +26,7 @@ describe('#Revocation Rules Sync', function RevocationRulesSyncSuite() {
     const { consul } = this.users;
     await consul.kv.del({ key: keyPrefix, recurse: true });
   });
-  afterEach(global.clearRedis);
+  afterEach(clearRedis);
 
   it('Should throw error when sync has been already started', function test() {
     throws(

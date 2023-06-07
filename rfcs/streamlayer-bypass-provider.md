@@ -27,7 +27,7 @@ extract props
 const { schema, userKey } = params;
 const [schemaName, account] = schema.split(':');
 ```
-3. do `api.authenticate(userKey, account);` within providet JWT userKey
+3. do `api.authenticate(userKey, { account });` within providet JWT userKey
 4. authenticate method does
 - skips base flows skip base flows `registerAndLogin` `retreiveUser` `login`
 - JWT verification and payload decode or throw Auth Error

@@ -3,6 +3,7 @@ const { expect } = require('chai');
 const { strict: assert } = require('assert');
 const sinon = require('sinon').usingPromise(Promise);
 const redisKey = require('../../../src/utils/key');
+const { startService, clearRedis } = require('../../config');
 
 describe('#requestPassword', function requestPasswordSuite() {
   const username = 'v@makeomatic.ru';
@@ -11,8 +12,8 @@ describe('#requestPassword', function requestPasswordSuite() {
 
   let userId;
 
-  beforeEach(global.startService.bind(this));
-  afterEach(global.clearRedis.bind(this));
+  beforeEach(startService.bind(this));
+  afterEach(clearRedis.bind(this));
 
   beforeEach(async () => {
     const { user } = await this.users.dispatch('register', { params: {

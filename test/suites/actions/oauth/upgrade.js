@@ -1,11 +1,11 @@
 /* eslint-disable no-prototype-builtins */
-/* global globalRegisterUser, globalAuthUser */
 
 const { authenticator } = require('otplib');
 const Promise = require('bluebird');
 const assert = require('assert');
 const got = require('got');
 const GraphApi = require('../../../helpers/oauth/facebook/graph-api');
+const { startService, clearRedis, globalRegisterUser, globalAuthUser } = require('../../../config');
 
 const kDefaultAudience = '*.localhost';
 const msUsers = got.extend({
@@ -100,11 +100,11 @@ t('oauth#upgrade', function oauthFacebookSuite() {
 
   /* Restart service before each test to achieve clean database. */
   beforeEach('start', async () => {
-    service = await global.startService(this.testConfig);
+    service = await startService(this.testConfig);
   });
 
   afterEach('stop', async () => {
-    await global.clearRedis();
+    await clearRedis();
   });
 
   /**

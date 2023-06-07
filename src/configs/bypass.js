@@ -27,7 +27,20 @@ exports.bypass = {
     },
   },
   streamlayer: {
-    enabled: true,
+    enabled: false,
     provider: 'streamlayer',
+  },
+  /**
+   * schemaName: `sla`
+   * account: should be equal `organizationId` -- must be set on the gateway
+   * userKey: should be either `jwe` for POST or `kid` for GET
+   */
+  slrAnonymous: {
+    enabled: false,
+    provider: 'slra',
+    audience: 'sec.local', // TOTP & private key must be there
+    totpKey: 'totp',
+    pkKey: 'pk',
+    idField: 'device-id',
   },
 };

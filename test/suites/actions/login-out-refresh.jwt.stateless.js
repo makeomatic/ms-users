@@ -2,6 +2,7 @@ const assert = require('assert');
 const { delay } = require('bluebird');
 const { decodeAndVerify } = require('../../../src/utils/jwt');
 const { USERS_ADMIN_ROLE } = require('../../../src/constants');
+const { startService, clearRedis } = require('../../config');
 
 describe('#stateless-jwt', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
@@ -33,7 +34,7 @@ describe('#stateless-jwt', function loginSuite() {
 
   describe('Smoke On Stateless disabled', () => {
     before('start', async () => {
-      await global.startService.call(this, {
+      await startService.call(this, {
         jwt: {
           stateless: {
             enabled: false,
@@ -44,7 +45,7 @@ describe('#stateless-jwt', function loginSuite() {
     });
 
     after('stop', async () => {
-      await global.clearRedis.call(this, false);
+      await clearRedis.call(this, false);
     });
 
     it('refresh should panic when stateless disabled', async () => {
@@ -66,7 +67,7 @@ describe('#stateless-jwt', function loginSuite() {
 
   describe('Generic', () => {
     before('start', async () => {
-      await global.startService.call(this, {
+      await startService.call(this, {
         jwt: {
           stateless: {
             enabled: true,
@@ -79,7 +80,7 @@ describe('#stateless-jwt', function loginSuite() {
     });
 
     after('stop', async () => {
-      await global.clearRedis.call(this, false);
+      await clearRedis.call(this, false);
     });
 
     it('should return 2 keys on login', async () => {
@@ -222,7 +223,7 @@ describe('#stateless-jwt', function loginSuite() {
   describe('Refresh token rotation', () => {
     describe('`refresh` always', () => {
       before('start', async () => {
-        await global.startService.call(this, {
+        await startService.call(this, {
           jwt: {
             stateless: {
               enabled: true,
@@ -239,7 +240,7 @@ describe('#stateless-jwt', function loginSuite() {
       });
 
       after('stop', async () => {
-        await global.clearRedis.call(this, false);
+        await clearRedis.call(this, false);
       });
 
       it('test', async () => {
@@ -271,7 +272,7 @@ describe('#stateless-jwt', function loginSuite() {
 
     describe('interval refresh', () => {
       before('start', async () => {
-        await global.startService.call(this, {
+        await startService.call(this, {
           jwt: {
             stateless: {
               enabled: true,
@@ -288,7 +289,7 @@ describe('#stateless-jwt', function loginSuite() {
       });
 
       after('stop', async () => {
-        await global.clearRedis.call(this, false);
+        await clearRedis.call(this, false);
       });
 
       it('test before interval', async () => {
@@ -314,7 +315,7 @@ describe('#stateless-jwt', function loginSuite() {
 
   describe('Compat', () => {
     before('start', async () => {
-      await global.startService.call(this, {
+      await startService.call(this, {
         jwt: {
           stateless: {
             enabled: true,
@@ -327,7 +328,7 @@ describe('#stateless-jwt', function loginSuite() {
     });
 
     after('stop', async () => {
-      await global.clearRedis.call(this, false);
+      await clearRedis.call(this, false);
     });
 
     it('should return 1 key on login if isStatefullAuth not passed', async () => {

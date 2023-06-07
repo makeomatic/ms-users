@@ -1,5 +1,6 @@
 const { strict: assert } = require('assert');
 const got = require('got');
+const { startService, clearRedis } = require('../../../config');
 
 const msUsers = got.extend({
   prefixUrl: 'https://ms-users.local/users/auth-bypass',
@@ -15,7 +16,11 @@ const mastersSimulation = got.extend({
   },
 });
 
-describe('/bypass/masters', function verifySuite() {
+const t = process.env.SKIP_MASTERS === 'true'
+  ? describe.skip
+  : describe;
+
+t('/bypass/masters', function verifySuite() {
   const pwd = process.env.MASTERS_PROFILE_PASSWORD;
   const username = process.env.MASTERS_PROFILE_USERNAME;
   let msg;
@@ -34,9 +39,9 @@ describe('/bypass/masters', function verifySuite() {
     };
   });
 
-  describe('masters disabled', () => {
-    before(() => global.startService());
-    after(() => global.clearRedis());
+  t('masters disabled', () => {
+    before(() => startService());
+    after(() => clearRedis());
 
     it('validates its off', async () => {
       await assert.rejects(msUsers.post({ json: msg }), (e) => {
@@ -51,8 +56,8 @@ describe('/bypass/masters', function verifySuite() {
     });
   });
 
-  describe('masters enabled', () => {
-    before(() => global.startService({
+  t('masters enabled', () => {
+    before(() => startService({
       bypass: {
         masters: {
           enabled: true,
@@ -81,7 +86,7 @@ describe('/bypass/masters', function verifySuite() {
         },
       },
     }));
-    after(() => global.clearRedis());
+    after(() => clearRedis());
 
     it('signs in with valid session, non-existent user', async () => {
       const reply = await msUsers.post({ json: msg });

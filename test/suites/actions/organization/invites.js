@@ -1,13 +1,14 @@
 const { strict: assert } = require('assert');
 const { faker } = require('@faker-js/faker');
 const sinon = require('sinon');
+const { startService, clearRedis } = require('../../../config');
 const { createOrganization } = require('../../../helpers/organization');
 const generateEmail = require('../../../../src/utils/challenges/email/generate');
 
 describe('#invite organization', function registerSuite() {
   this.timeout(50000);
 
-  before(global.startService);
+  before(startService);
   before(async function pretest() {
     this.admin = {
       email: faker.internet.email(),
@@ -32,7 +33,7 @@ describe('#invite organization', function registerSuite() {
 
     return org;
   });
-  after(global.clearRedis);
+  after(clearRedis);
 
   it('must be able to send invite to admin', async function test() {
     const opts = {
@@ -120,8 +121,8 @@ describe('#invite organization', function registerSuite() {
       organizationId: this.organization.id,
       member: {
         ...this.member,
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
       },
       inviteToken: this.admin.token.secret,
     };
@@ -135,7 +136,7 @@ describe('#invite organization', function registerSuite() {
       organizationId: this.organization.id,
       member: {
         ...this.member,
-        firstName: faker.name.firstName(),
+        firstName: faker.person.firstName(),
       },
       password: this.memberPassword,
       inviteToken: this.member.token.secret,
@@ -150,8 +151,8 @@ describe('#invite organization', function registerSuite() {
       organizationId: this.organization.id,
       member: {
         ...this.member,
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
       },
       password: this.memberPassword,
       inviteToken: this.member.token.secret,
@@ -210,8 +211,8 @@ describe('#invite organization', function registerSuite() {
       organizationId: this.organization.id,
       member: {
         ...this.admin,
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
       },
       inviteToken: this.admin.token.secret,
     };
@@ -231,8 +232,8 @@ describe('#invite organization', function registerSuite() {
       organizationId: this.organization.id,
       member: {
         ...this.admin,
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
       },
       inviteToken: this.admin.token.secret,
     };
@@ -242,7 +243,7 @@ describe('#invite organization', function registerSuite() {
 
   it('must return organization not found error', async function test() {
     const opts = {
-      organizationId: faker.company.companyName(),
+      organizationId: faker.company.name(),
       senderId: this.rootAdmin.id,
       member: this.member,
     };
@@ -284,8 +285,8 @@ describe('#invite organization', function registerSuite() {
       organizationId: this.organization.id,
       member: {
         ...this.member2,
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
       },
       inviteToken: this.member2.token.secret,
     };

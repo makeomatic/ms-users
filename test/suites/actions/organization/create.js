@@ -1,7 +1,7 @@
-/* eslint-disable no-prototype-builtins */
 const { strict: assert } = require('assert');
 const sinon = require('sinon');
 const { faker } = require('@faker-js/faker');
+const { startService, clearRedis } = require('../../../config');
 const { createMembers, createOrganization } = require('../../../helpers/organization');
 const scrypt = require('../../../../src/utils/scrypt');
 const registerOrganizationMembers = require('../../../../src/utils/organization/register-organization-members');
@@ -9,11 +9,11 @@ const registerOrganizationMembers = require('../../../../src/utils/organization/
 describe('#create organization', function registerSuite() {
   this.timeout(50000);
 
-  beforeEach(global.startService);
+  beforeEach(startService);
   beforeEach(function pretest() {
     return createMembers.call(this, 1);
   });
-  afterEach(global.clearRedis);
+  afterEach(clearRedis);
 
   it('must reject invalid organization params and return detailed error', async function test() {
     await assert.rejects(this.users.dispatch('organization.create', { params: {} }), (err) => {
@@ -29,7 +29,7 @@ describe('#create organization', function registerSuite() {
     const generatePasswordSpy = sinon.spy(scrypt, 'hash');
 
     const params = {
-      name: faker.company.companyName(),
+      name: faker.company.name(),
       metadata: {
         description: 'test organization',
       },

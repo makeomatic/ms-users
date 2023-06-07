@@ -1,10 +1,10 @@
-/* global globalRegisterUser */
 const { strict: assert } = require('assert');
 const { USERS_ADMIN_ROLE } = require('../../../src/constants');
+const { startService, clearRedis, globalRegisterUser } = require('../../config');
 
 describe('#remove', function registerSuite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   // register 3 users
   beforeEach(globalRegisterUser('admin@me.com', { metadata: { roles: [USERS_ADMIN_ROLE] } }));

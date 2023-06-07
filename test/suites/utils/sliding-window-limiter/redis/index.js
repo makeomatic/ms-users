@@ -1,20 +1,15 @@
 const { strict: assert } = require('assert');
 const Bluebird = require('bluebird');
 const sinon = require('sinon');
+const { startService, clearRedis } = require('../../../../config');
 
-describe('#sliding-window-limiter', function suite() {
-  before(async function startService() {
-    await global.startService.call(this);
-  });
+describe('#sliding-window-limiter', function SlidingWindowLimiterTestSuite() {
+  before(() => startService.call(this));
+  afterEach(() => clearRedis.call(this, true));
+  after(() => clearRedis.call(this));
 
-  afterEach(async function clearRedis() {
-    await global.clearRedis.call(this, true);
-  });
-
-  after(global.clearRedis);
-
-  describe('lua cancel param validation', function luaCancelSuite() {
-    it('check token', async function test() {
+  describe('lua cancel param validation', () => {
+    it('check token', async () => {
       const service = this.users;
       const { redis } = service;
       let error;
@@ -30,10 +25,10 @@ describe('#sliding-window-limiter', function suite() {
     });
   });
 
-  describe('lua param validation', function luaSuite() {
+  describe('lua param validation', () => {
     const testScript = (argName) => {
       return (testParam) => {
-        it(`check ${testParam.name}`, async function test() {
+        it(`check ${testParam.name}`, async () => {
           const service = this.users;
           const { redis } = service;
           let error;
@@ -50,7 +45,7 @@ describe('#sliding-window-limiter', function suite() {
       };
     };
 
-    describe('currentTime', function luaParamCurrentTimeSuite() {
+    describe('currentTime', () => {
       const tests = [
         {
           name: 'empty',
@@ -68,7 +63,7 @@ describe('#sliding-window-limiter', function suite() {
       tests.forEach(testScript('currentTime'));
     });
 
-    describe('windowInterval', function luaParamIntervalSuite() {
+    describe('windowInterval', () => {
       const tests = [
         {
           name: 'empty',
@@ -85,7 +80,7 @@ describe('#sliding-window-limiter', function suite() {
       tests.forEach(testScript('windowInterval'));
     });
 
-    describe('windowLimit', function luaParamLimitSuite() {
+    describe('windowLimit', () => {
       const tests = [
         {
           name: 'empty',
@@ -102,7 +97,7 @@ describe('#sliding-window-limiter', function suite() {
       tests.forEach(testScript('windowLimit'));
     });
 
-    describe('blockInterval', function luaParamLimitSuite() {
+    describe('blockInterval', () => {
       const tests = [
         {
           name: 'empty',
@@ -119,7 +114,7 @@ describe('#sliding-window-limiter', function suite() {
       tests.forEach(testScript('blockInterval'));
     });
 
-    describe('reserveToken', function luaParamLimitSuite() {
+    describe('reserveToken', () => {
       const tests = [
         {
           name: 'empty',
@@ -136,7 +131,7 @@ describe('#sliding-window-limiter', function suite() {
       tests.forEach(testScript('reserveToken'));
     });
 
-    describe('token', function luaParamTokenSuite() {
+    describe('token', () => {
       const tests = [
         {
           name: 'empty but reserveToken true',
@@ -148,17 +143,17 @@ describe('#sliding-window-limiter', function suite() {
     });
   });
 
-  describe('utils tests', function utilSuite() {
+  describe('utils tests', () => {
     const SlidingWindowLimiter = require('../../../../../src/utils/sliding-window-limiter/redis');
     const { RateLimitError } = SlidingWindowLimiter;
-    describe('internals', function internalChecks() {
+    describe('internals', () => {
       const rateLimiterConfig = {
         windowInterval: 1000,
         windowLimit: 10,
         blockInterval: 12000,
       };
 
-      it('inserts zset record', async function testInserts() {
+      it('inserts zset record', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
@@ -171,7 +166,7 @@ describe('#sliding-window-limiter', function suite() {
         assert.deepStrictEqual(keyContents, [`${token}`], 'should contain $token');
       });
 
-      it('sets key ttl from blockInterval', async function testKeyTTl() {
+      it('sets key ttl from blockInterval', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
@@ -182,7 +177,7 @@ describe('#sliding-window-limiter', function suite() {
         assert(keyTTL === 12, 'ttl must be set');
       });
 
-      it('sets key ttl from interval', async function testKeyTTl() {
+      it('sets key ttl from interval', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, {
@@ -197,7 +192,7 @@ describe('#sliding-window-limiter', function suite() {
         assert(keyTTL === 1000, 'ttl must be set');
       });
 
-      it('cancel token', async function testCancelToken() {
+      it('cancel token', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
@@ -211,7 +206,7 @@ describe('#sliding-window-limiter', function suite() {
         assert.deepStrictEqual(keyContents, ['extraToken'], 'should not contain $token');
       });
 
-      it('cleanup key', async function testCancelToken() {
+      it('cleanup key', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
@@ -232,7 +227,7 @@ describe('#sliding-window-limiter', function suite() {
         assert.deepStrictEqual(afterClean, [], 'should not contain tokens');
       });
 
-      it('cleanup extra keys', async function testCancelToken() {
+      it('cleanup extra keys', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
@@ -257,7 +252,7 @@ describe('#sliding-window-limiter', function suite() {
       });
     });
 
-    describe('clock tick', function clockTicks() {
+    describe('clock tick', () => {
       let clock;
 
       const rateLimiterConfig = {
@@ -274,7 +269,7 @@ describe('#sliding-window-limiter', function suite() {
         clock.restore();
       });
 
-      it('usage zeroes and reset decreases', async function testUsageDrops() {
+      it('usage zeroes and reset decreases', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
@@ -306,7 +301,7 @@ describe('#sliding-window-limiter', function suite() {
         assert(usageResult.usage === 0, 'should delete some records');
       });
 
-      it('limit reach', async function testLimit() {
+      it('limit reach', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
@@ -327,7 +322,7 @@ describe('#sliding-window-limiter', function suite() {
       });
     });
 
-    describe('clock tick and forever block', function clockTicksForeverBlock() {
+    describe('clock tick and forever block', () => {
       let clock;
 
       const rateLimiterConfig = {
@@ -344,7 +339,7 @@ describe('#sliding-window-limiter', function suite() {
         clock.restore();
       });
 
-      it('reset is always 0 if interval or blockForever === 0', async function testUsageDrops() {
+      it('reset is always 0 if interval or blockForever === 0', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);
@@ -376,7 +371,7 @@ describe('#sliding-window-limiter', function suite() {
         assert(usageResult.usage === 5, 'should not delete some records');
       });
 
-      it('limit reach', async function testLimit() {
+      it('limit reach', async () => {
         const service = this.users;
         const { redis } = service;
         const limiter = new SlidingWindowLimiter(redis, rateLimiterConfig);

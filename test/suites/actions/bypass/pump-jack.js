@@ -1,5 +1,6 @@
 const { strict: assert } = require('assert');
 const got = require('got');
+const { startService, clearRedis } = require('../../../config');
 
 const msUsers = got.extend({
   prefixUrl: 'https://ms-users.local/users/auth-bypass',
@@ -15,8 +16,8 @@ describe.skip('/bypass/pump-jack', function verifySuite() {
   };
 
   describe('pump-jack disabled', () => {
-    before(() => global.startService());
-    after(() => global.clearRedis());
+    before(() => startService());
+    after(() => clearRedis());
 
     it('validates its off', async () => {
       await assert.rejects(msUsers.post({ json: msg }), (e) => {
@@ -32,7 +33,7 @@ describe.skip('/bypass/pump-jack', function verifySuite() {
   });
 
   describe('pump-jack enabled', () => {
-    before(() => global.startService({
+    before(() => startService({
       bypass: {
         pumpJack: {
           enabled: true,
@@ -44,7 +45,7 @@ describe.skip('/bypass/pump-jack', function verifySuite() {
         },
       },
     }));
-    after(() => global.clearRedis());
+    after(() => clearRedis());
 
     it('signs in with valid session, non-existent user', async () => {
       const pristine = await msUsers.post({ json: msg });

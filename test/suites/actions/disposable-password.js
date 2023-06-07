@@ -1,10 +1,11 @@
 const Promise = require('bluebird');
 const { strict: assert } = require('assert');
 const sinon = require('sinon');
+const { startService, clearRedis } = require('../../config');
 
 describe('`disposable-password` action', function regenerateTokenSuite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   describe('with challenge type equals `phone`', function phoneSuite() {
     it('should be able to send disposable password', async function test() {

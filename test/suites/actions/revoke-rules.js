@@ -1,11 +1,12 @@
 const assert = require('assert');
+const { startService, clearRedis } = require('../../config');
 
 const addAction = 'revoke-rule.add';
 const listAction = 'revoke-rule.list';
 
 describe('#revoke-rule.* actions and RevocationRulesManager', () => {
   before('start', async () => {
-    await global.startService.call(this, {
+    await startService.call(this, {
       jwt: {
         stateless: {
           enabled: true,
@@ -13,11 +14,11 @@ describe('#revoke-rule.* actions and RevocationRulesManager', () => {
       },
     });
 
-    await global.clearRedis.call(this, true);
+    await clearRedis.call(this, true);
   });
 
   after('stop', async () => {
-    await global.clearRedis.call(this, false);
+    await clearRedis.call(this, false);
   });
 
   it('schema validation', async () => {

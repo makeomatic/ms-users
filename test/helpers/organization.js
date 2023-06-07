@@ -8,8 +8,8 @@ async function createMembers(totalUsers = 1, register = false) {
   times(totalUsers, () => {
     this.userNames.push({
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       permissions: ['root'],
     });
   });
@@ -28,10 +28,10 @@ exports.createOrganization = async function createOrganization(customOpts = {}, 
   }
 
   const params = {
-    name: faker.company.companyName(),
+    name: faker.company.name(),
     metadata: {
       description: 'Test description',
-      address: faker.address.streetAddress(),
+      address: faker.location.streetAddress(),
     },
     members: this.userNames.slice(0, totalUsers),
     ...customOpts,

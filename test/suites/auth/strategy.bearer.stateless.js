@@ -8,9 +8,11 @@ const request = require('request-promise').defaults({
   strictSSL: false,
 });
 
+const { startService, clearRedis } = require('../../config');
+
 describe('/_/me', function verifySuite() {
   before('start', async function setup() {
-    await global.startService.call(this, {
+    await startService.call(this, {
       jwt: {
         stateless: {
           enabled: true,
@@ -22,7 +24,7 @@ describe('/_/me', function verifySuite() {
   });
 
   after('stop', async function teardown() {
-    await global.clearRedis.call(this, false);
+    await clearRedis.call(this, false);
   });
 
   it('must reject on missing JWT token', async function test() {

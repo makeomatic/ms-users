@@ -35,9 +35,10 @@ function getJWTToken(username, password = '123') {
 
 async function startService(testConfig = {}) {
   try {
-    const Users = require('../src');
+    const prepareUsers = require('../src');
 
-    const service = this.users = new Users(testConfig);
+    const service = this.users = await prepareUsers(testConfig);
+
     this.users.on('plugin:connect:amqp', () => {
       this.users._mailer = { send: () => Promise.resolve() };
     });
@@ -73,8 +74,9 @@ async function clearRedis(doNotClose = false) {
   }
 }
 
-global.initFakeAccounts = initFakeAccounts;
-global.globalAuthUser = getJWTToken;
-global.startService = startService;
-global.clearRedis = clearRedis;
-global.globalRegisterUser = registerUser;
+exports.startService = startService;
+exports.clearRedis = clearRedis;
+
+exports.globalRegisterUser = registerUser;
+exports.initFakeAccounts = initFakeAccounts;
+exports.globalAuthUser = getJWTToken;

@@ -1,8 +1,9 @@
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../../config');
 
 describe('#getMetadata', function getMetadataSuite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   it('must reject to return metadata on a non-existing username', async function test() {
     const { defaultAudience: audience } = this.users.config.jwt;

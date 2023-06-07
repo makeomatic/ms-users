@@ -1,6 +1,7 @@
 const { strict: assert } = require('assert');
 const { default: got } = require('got');
 
+const { startService, clearRedis } = require('../../config');
 const { preRequest } = require('../utils/sign-request');
 
 const req = got.extend({
@@ -40,8 +41,8 @@ const verifyBody = (body) => {
 };
 
 describe('/_/me', function verifySuite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   let bearerToken;
   let keyId;

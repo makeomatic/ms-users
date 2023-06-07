@@ -1,6 +1,6 @@
 const { deepStrictEqual, strictEqual, strict: assert } = require('assert');
 const { expect } = require('chai');
-
+const { startService, clearRedis } = require('../../config');
 const redisKey = require('../../../src/utils/key');
 
 describe('#updatePassword', function updatePasswordSuite() {
@@ -11,8 +11,8 @@ describe('#updatePassword', function updatePasswordSuite() {
   const password = '123';
   const audience = '*.localhost';
 
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   beforeEach(function pretest() {
     return this.users.dispatch('register', { params: { username, password, audience } })

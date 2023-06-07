@@ -25,7 +25,7 @@ class StreamLayerService {
     return this.service.dispatch('getMetadata', { params });
   }
 
-  async authenticate(token, account) {
+  async authenticate(token, { account }) {
     const decodedToken = await decodeAndVerify(this.service, token, this.audience);
 
     if (!decodedToken?.extra) throw USERS_INVALID_TOKEN;

@@ -259,7 +259,12 @@ class MastersService {
     }
   }
 
-  async authenticate(profileToken, account) {
+  // eslint-disable-next-line class-methods-use-this
+  supports(method) {
+    return ['post', 'amqp', 'internal'].includes(method.toLowerCase());
+  }
+
+  async authenticate(profileToken, { account }) {
     const userProfile = await pRetry(() => this.retrieveUser(profileToken, account), retryConfig);
     return this.registerAndLogin(userProfile);
   }

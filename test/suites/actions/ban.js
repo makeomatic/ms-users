@@ -1,12 +1,13 @@
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../../config');
 
 describe('#ban', function banSuite() {
   const username = 'spa@aminev.me';
   const password = '123';
   const audience = '*.localhost';
 
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   it('must reject banning a non-existing user', async function test() {
     await assert.rejects(this.users.dispatch('ban', { params: { username: 'doesntexist', ban: true } }), {

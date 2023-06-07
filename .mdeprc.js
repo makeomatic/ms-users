@@ -11,15 +11,16 @@ try {
   process.env.DOCKER_SOCKET_PATH = socket
 } catch (e) { }
 
-exports.node = "19";
+exports.node = "18";
+exports.in_one = false;
 exports.auto_compose = true;
 exports.with_local_compose = true;
 exports.tester_flavour = "chrome-tester";
-exports.rebuild = ['ms-flakeless', 'ffi-napi'];
+exports.rebuild = ['ms-flakeless'];
 exports.nycCoverage = false;
 exports.nycReport = false;
 exports.docker_compose = './test/docker-compose.yml';
-exports.test_framework = 'c8 /src/node_modules/.bin/mocha';
+exports.test_framework = 'mocha';
 exports.extras = {
   tester: {
     user: `${uid}:${uid}`,
@@ -37,6 +38,7 @@ exports.extras = {
       VIRTUAL_PORT: 3000,
       CERT_NAME: 'default',
       SKIP_FB: process.env.SKIP_FB,
+      NODE_V8_COVERAGE: 'coverage/tmp'
     },
   },
 };

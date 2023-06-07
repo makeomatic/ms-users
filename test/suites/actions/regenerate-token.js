@@ -2,10 +2,11 @@ const Promise = require('bluebird');
 const { strict: assert } = require('assert');
 const is = require('is');
 const sinon = require('sinon').usingPromise(Promise);
+const { startService, clearRedis } = require('../../config');
 
 describe('`regenerate-token` action', function regenerateTokenSuite() {
-  beforeEach(global.startService.bind(this));
-  afterEach(global.clearRedis.bind(this));
+  beforeEach(startService.bind(this));
+  afterEach(clearRedis.bind(this));
 
   describe('with challenge type equals `phone`', () => {
     it('should be able to regenerate activation token from uid', async () => {

@@ -2,14 +2,15 @@ const Promise = require('bluebird');
 const { strict: assert } = require('assert');
 const { expect } = require('chai');
 const times = require('lodash/times');
+const { startService, clearRedis } = require('../../../config');
 const { createOrganization } = require('../../../helpers/organization');
 
 describe('#organizations list', function registerSuite() {
   this.timeout(50000);
 
-  beforeEach(global.startService);
+  beforeEach(startService);
   beforeEach(function pretest() { return createOrganization.call(this); });
-  afterEach(global.clearRedis);
+  afterEach(clearRedis);
 
   it('must be able to return organization lists', async function test() {
     const opts = {

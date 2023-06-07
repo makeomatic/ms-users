@@ -1,5 +1,5 @@
-/* global startService, clearRedis */
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../../../config');
 
 describe('/bypass/streamlayer', function bypassStreamlayer() {
   const userWithValidPassword = { username: 'v@makeomatic.ru', password: 'nicepassword1', audience: '*.localhost' };

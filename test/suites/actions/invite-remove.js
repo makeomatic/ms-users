@@ -1,8 +1,9 @@
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../../config');
 
 describe('#invite-remove', function registerSuite() {
-  before(global.startService);
-  after(global.clearRedis);
+  before(startService);
+  after(clearRedis);
 
   const email = 'v@yandex.ru';
 

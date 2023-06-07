@@ -1,3 +1,15 @@
+# [16.0.0](https://github.com/makeomatic/ms-users/compare/v15.11.1...v16.0.0) (2023-06-07)
+
+
+### Features
+
+* ms-conf@8, slr-anonymous auth bypass ([#589](https://github.com/makeomatic/ms-users/issues/589)) ([a97a10f](https://github.com/makeomatic/ms-users/commit/a97a10fa0771facadbf75d6be83953f30a8f1bc1))
+
+
+### BREAKING CHANGES
+
+* includes ms-conf@8, new anonymous auth with JWE/totp
+
 ## [15.11.1](https://github.com/makeomatic/ms-users/compare/v15.11.0...v15.11.1) (2023-05-23)
 
 

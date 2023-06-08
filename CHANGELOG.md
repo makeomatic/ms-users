@@ -1,3 +1,10 @@
+## [16.0.1](https://github.com/makeomatic/ms-users/compare/v16.0.0...v16.0.1) (2023-06-08)
+
+
+### Bug Fixes
+
+* dockerignore file ([33d6040](https://github.com/makeomatic/ms-users/commit/33d604047eba9e296c18dd3bade0e45aad7839b7))
+
 # [16.0.0](https://github.com/makeomatic/ms-users/compare/v15.11.1...v16.0.0) (2023-06-07)
 
 

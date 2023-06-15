@@ -1,3 +1,10 @@
+## [16.0.2](https://github.com/makeomatic/ms-users/compare/v16.0.1...v16.0.2) (2023-06-15)
+
+
+### Bug Fixes
+
+* use audience when passed during organization.list ([#590](https://github.com/makeomatic/ms-users/issues/590)) ([9310ae9](https://github.com/makeomatic/ms-users/commit/9310ae924867b819131c779d55148464843a32c9))
+
 ## [16.0.1](https://github.com/makeomatic/ms-users/compare/v16.0.0...v16.0.1) (2023-06-08)
 
 

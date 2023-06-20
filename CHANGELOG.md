@@ -1,3 +1,10 @@
+## [16.0.4](https://github.com/makeomatic/ms-users/compare/v16.0.3...v16.0.4) (2023-06-20)
+
+
+### Bug Fixes
+
+* mfa/generate-key http query params ([e51a98b](https://github.com/makeomatic/ms-users/commit/e51a98bb6afb43cf78dd7423762f61e26d5f334f))
+
 ## [16.0.3](https://github.com/makeomatic/ms-users/compare/v16.0.2...v16.0.3) (2023-06-20)
 
 

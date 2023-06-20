@@ -56,6 +56,12 @@ describe('#mfa.*', function activateSuite() {
   let regeneratedCodes;
 
   describe('#mfa.generate-key', function generateKeySuite() {
+    it('rejects invalid time skew key', async function test() {
+      await assert.rejects(
+        this.users.dispatch(generateRoute, { params: { time: 'bubble' } })
+      );
+    });
+
     it('generates key', async function test() {
       const data = await this.users
         .dispatch(generateRoute, { params: { username, time: Date.now() } });

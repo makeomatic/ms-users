@@ -4,6 +4,10 @@
   "properties": {
     "username": {
       "$ref": "common.json#/definitions/userId"
+    },
+    "time": {
+      "type": "integer",
+      "minimum": 0
     }
   }
 }

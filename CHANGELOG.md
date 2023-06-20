@@ -1,3 +1,10 @@
+## [16.0.3](https://github.com/makeomatic/ms-users/compare/v16.0.2...v16.0.3) (2023-06-20)
+
+
+### Bug Fixes
+
+* update plugin signed request for fastify ([29ba0c2](https://github.com/makeomatic/ms-users/commit/29ba0c2a6233b8fb85c120c10aa219193f819c40))
+
 ## [16.0.2](https://github.com/makeomatic/ms-users/compare/v16.0.1...v16.0.2) (2023-06-15)
 
 

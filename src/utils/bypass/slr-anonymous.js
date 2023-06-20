@@ -1,10 +1,8 @@
 const assert = require('node:assert/strict');
-const { StringDecoder } = require('node:string_decoder');
 const { HttpStatusError } = require('common-errors');
 const { customAlphabet } = require('nanoid');
 const { faker: { word } } = require('@faker-js/faker');
 const jose = require('jose');
-const sjson = require('secure-json-parse');
 const { decode } = require('z32');
 const { Authenticator } = require('@otplib/core');
 const { createDigest, createRandomBytes } = require('@otplib/plugin-crypto'); // use your chosen crypto plugin
@@ -12,7 +10,6 @@ const { createDigest, createRandomBytes } = require('@otplib/plugin-crypto'); //
 const AJV_SCHEME_ID = '@bypass.slra.userId';
 
 // Setup an OTP instance which we need
-const stringDecoder = new StringDecoder('utf8');
 const authenticator = new Authenticator({
   createDigest,
   createRandomBytes,
@@ -172,22 +169,32 @@ class StreamlayerAnonymousService {
       this.jwks.set(pk.kid, ecPrivateKey);
     }
 
-    const { plaintext, protectedHeader } = await jose.compactDecrypt(jwe, ecPrivateKey, {
-      issuer: this.config.issuers,
-      audience: organizationId,
-    });
+    let payload;
+    let protectedHeader;
+
+    try {
+      const jwt = await jose.jwtDecrypt(jwe, ecPrivateKey, {
+        issuer: this.config.issuers,
+        audience: organizationId,
+      });
+
+      payload = jwt.payload;
+      protectedHeader = jwt.protectedHeader;
+    } catch (err) {
+      throw new HttpStatusError(403, `${err.name}: ${err.message}`);
+    }
 
     assert.equal(protectedHeader.kid, pk.kid, 'kid did not match');
 
-    const decodedPayload = sjson.parse(stringDecoder.end(plaintext));
-
-    assert(authenticator.verify({ secret: totpSecret, token: decodedPayload[totpKey] }), 'E_TOTP_MISMATCH');
+    if (!authenticator.verify({ secret: totpSecret, token: payload[totpKey] })) {
+      throw new HttpStatusError(403, `E_TOTP_MISMATCH: ${JSON.stringify(payload)}`);
+    }
 
     try {
-      const userId = this.service.validator.ifError(AJV_SCHEME_ID, decodedPayload[this.config.idField]);
+      const userId = this.service.validator.ifError(AJV_SCHEME_ID, payload[this.config.idField]);
       return { userId, userProfile: {} };
     } catch (err) {
-      this.log.error({ err, profile: decodedPayload }, 'anonymous auth profile validation failed');
+      this.log.error({ err, profile: payload }, 'anonymous auth profile validation failed');
       throw err;
     }
   }

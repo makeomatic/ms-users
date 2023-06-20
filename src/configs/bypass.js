@@ -42,5 +42,6 @@ exports.bypass = {
     totpKey: 'totp',
     pkKey: 'pk',
     idField: 'device-id',
+    issuers: undefined, // specify to restrict
   },
 };

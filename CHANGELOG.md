@@ -1,3 +1,10 @@
+## [16.0.6](https://github.com/makeomatic/ms-users/compare/v16.0.5...v16.0.6) (2023-06-21)
+
+
+### Bug Fixes
+
+* missing http transport options plugins ([0871c52](https://github.com/makeomatic/ms-users/commit/0871c52375446f45f636a9d0ce2873ec34e693d1))
+
 ## [16.0.5](https://github.com/makeomatic/ms-users/compare/v16.0.4...v16.0.5) (2023-06-21)
 
 

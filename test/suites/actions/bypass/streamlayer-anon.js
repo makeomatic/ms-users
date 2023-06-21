@@ -36,7 +36,7 @@ describe('/bypass/streamlayer-anonymous', function bypassStreamlayer() {
       .encrypt(await jose.importJWK(pub));
 
     return { deviceId, jwe };
-  };
+  }
 
   before('start', async () => {
     await startService.call(this, {

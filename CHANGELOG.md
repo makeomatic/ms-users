@@ -1,3 +1,10 @@
+## [16.0.5](https://github.com/makeomatic/ms-users/compare/v16.0.4...v16.0.5) (2023-06-21)
+
+
+### Bug Fixes
+
+* slr anon claim validation ([86d3f59](https://github.com/makeomatic/ms-users/commit/86d3f59972d4655fc79211602afb30b9e7bbf94c))
+
 ## [16.0.4](https://github.com/makeomatic/ms-users/compare/v16.0.3...v16.0.4) (2023-06-20)
 
 

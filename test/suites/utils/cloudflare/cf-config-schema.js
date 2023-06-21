@@ -43,7 +43,7 @@ describe('#cloudflare access-list configuration', function cfAccessListSuite() {
       throws(this.validate({
         ...baseConfig,
         auth: {
-          serviceKey: 42,
+          serviceKey: { ahhhaha: true },
         },
       }), /data\/auth\/serviceKey must be string/);
     });
@@ -52,7 +52,7 @@ describe('#cloudflare access-list configuration', function cfAccessListSuite() {
       throws(this.validate({
         ...baseConfig,
         auth: {
-          token: 42,
+          token: { ahhhaha: true },
         },
       }), /data\/auth.token must be string/);
     });
@@ -66,7 +66,7 @@ describe('#cloudflare access-list configuration', function cfAccessListSuite() {
       throws(this.validate({
         ...baseConfig,
         auth: {
-          email: 123,
+          email: { ahhhaha: true },
           key,
         },
       }), /data\/auth\/email must be string/);
@@ -83,7 +83,7 @@ describe('#cloudflare access-list configuration', function cfAccessListSuite() {
         ...baseConfig,
         auth: {
           email: 'valid@mail.com',
-          key: 42,
+          key: { ahhhaha: true },
         },
       }), /data\/auth\/key must be string/);
     });
@@ -114,7 +114,7 @@ describe('#cloudflare access-list configuration', function cfAccessListSuite() {
       throws(this.validate({
         ...baseConfig,
         accessList: {
-          prefix: 42,
+          prefix: { ahhhaha: true },
           accountId: '#valid-account-id',
         },
       }), /data\/accessList\/prefix must be string/);
@@ -124,7 +124,7 @@ describe('#cloudflare access-list configuration', function cfAccessListSuite() {
       throws(this.validate({
         ...baseConfig,
         accessList: {
-          accountId: 42,
+          accountId: { ahhhaha: true },
         },
       }), /data\/accessList\/accountId must be string/);
 
@@ -141,7 +141,7 @@ describe('#cloudflare access-list configuration', function cfAccessListSuite() {
         ...baseConfig,
         accessList: {
           accountId: '#valid-account-id',
-          ttl: null,
+          ttl: { coerce: false },
         },
       }), /data\/accessList\/ttl must be number/);
 
@@ -159,7 +159,7 @@ describe('#cloudflare access-list configuration', function cfAccessListSuite() {
         ...baseConfig,
         accessList: {
           accountId: '#valid-account-id',
-          listCacheTTL: null,
+          listCacheTTL: { coerce: false },
         },
       }), /data\/accessList\/listCacheTTL must be number/);
 

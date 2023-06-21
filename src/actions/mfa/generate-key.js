@@ -51,7 +51,7 @@ generateKey.auth = 'httpBearer';
 generateKey.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
 generateKey.transportOptions = {
   [ActionTransport.http]: {
-    methods: ['get'],
+    methods: ['get', 'post'],
   },
 };
 

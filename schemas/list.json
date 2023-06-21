@@ -29,7 +29,7 @@
       "type": "string"
     },
     "public": {
-      "oneOf": [
+      "anyOf": [
         { "type": "boolean" },
         { "type": "string" }
       ]

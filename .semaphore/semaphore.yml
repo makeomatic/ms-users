@@ -59,8 +59,5 @@ blocks:
       jobs:
       - name: release
         commands:
-          - sudo chmod -R 0777 /etc/docker
-          - echo '{"experimental":true}' > /etc/docker/daemon.json
-          - sudo service docker restart
           - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
           - pnpm run release

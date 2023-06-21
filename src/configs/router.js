@@ -1,5 +1,5 @@
 const path = require('path');
-const { Extensions: { auditLog } } = require('@microfleet/plugin-router');
+const { Extensions: { auditLog, validateTransportOptions, validateQueryStringParser } } = require('@microfleet/plugin-router');
 
 /**
  * Loads existing auth strategies
@@ -25,6 +25,8 @@ exports.router = {
   extensions: {
     register: [
       preResponse,
+      validateTransportOptions,
+      validateQueryStringParser,
       auditLog(),
     ],
   },

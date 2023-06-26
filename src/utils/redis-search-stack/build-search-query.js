@@ -91,7 +91,7 @@ const operator = {
     }
 
     return {
-      query: negative(expression((field), EMPTY_VALUE)),
+      query: negative(expression(field, EMPTY_VALUE)),
     };
   },
   isempty: (prop, field, _expr, _paramPrefix, options) => {
@@ -102,7 +102,7 @@ const operator = {
     }
 
     return {
-      query: expression((field), EMPTY_VALUE),
+      query: expression(field, EMPTY_VALUE),
     };
   },
   eq: (prop, field, expr, paramPrefix) => {

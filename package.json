@@ -2,7 +2,7 @@
   "name": "ms-users",
   "description": "Core of the microservice for handling users",
   "main": "./src/index.js",
-  "version": "16.0.6",
+  "version": "16.0.7",
   "scripts": {
     "test": "npm run lint && npm run test:e2e",
     "test:e2e:cluster": "DB_SRV=redisCluster mdep test run",

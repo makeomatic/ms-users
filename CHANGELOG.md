@@ -1,3 +1,10 @@
+## [16.0.7](https://github.com/makeomatic/ms-users/compare/v16.0.6...v16.0.7) (2023-06-26)
+
+
+### Bug Fixes
+
+* redisearch isempty/exists for numeric ([#591](https://github.com/makeomatic/ms-users/issues/591)) ([8c75a9b](https://github.com/makeomatic/ms-users/commit/8c75a9b827bf30929648cdf39f22a8613a5ce5ba))
+
 ## [16.0.6](https://github.com/makeomatic/ms-users/compare/v16.0.5...v16.0.6) (2023-06-21)
 
 

@@ -548,7 +548,6 @@ describe('Redis Search: list', function listSuite() {
           expect(user).to.have.ownProperty('metadata');
 
           const data = user.metadata[TEST_AUDIENCE];
-          console.debug('=== custom', data);
           expect(data).to.have.ownProperty('email');
           expect(data.email.endsWith('.org'));
 

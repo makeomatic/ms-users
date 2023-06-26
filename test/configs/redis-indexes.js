@@ -32,7 +32,7 @@ exports.redisIndexDefinitions = [
   },
   {
     filterKey: 'wpropfilter',
-    filterByProperty: '@level >= 30',
+    filterByProperty: 'exists(@level) && @level >= 30',
     audience: ['http'],
     fields: [
       ['id', 'TEXT', 'NOSTEM', 'SORTABLE'],

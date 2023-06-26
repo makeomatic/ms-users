@@ -10,7 +10,7 @@ const {
   tokenize,
   quotedString,
 } = require('./expressions');
-const { FT_TYPE_TAG } = require('./extract-field-definitions');
+const { FT_TYPE_TAG, FT_TYPE_NUMERIC } = require('./extract-field-definitions');
 
 const EMPTY_VALUE = typeof null; // NOTE Using "" occures the parser error
 const FIELD_PREFIX = 'f';
@@ -83,12 +83,28 @@ const operator = {
   lte: (_, field, expr) => ({
     query: expression(field, numericRange(expr.gte, expr.lte)),
   }),
-  exists: (_, field) => ({
-    query: negative(expression((field), EMPTY_VALUE)),
-  }),
-  isempty: (_, field) => ({
-    query: expression((field), EMPTY_VALUE),
-  }),
+  exists: (prop, field, _expr, _paramPrefix, options) => {
+    if (options.fieldTypes[prop] === FT_TYPE_NUMERIC) {
+      return {
+        query: expression(field, numericRange()),
+      };
+    }
+
+    return {
+      query: negative(expression(field, EMPTY_VALUE)),
+    };
+  },
+  isempty: (prop, field, _expr, _paramPrefix, options) => {
+    if (options.fieldTypes[prop] === FT_TYPE_NUMERIC) {
+      return {
+        query: negative(expression(field, numericRange())),
+      };
+    }
+
+    return {
+      query: expression(field, EMPTY_VALUE),
+    };
+  },
   eq: (prop, field, expr, paramPrefix) => {
     const name = buildParamName(FIELD_PREFIX, paramPrefix, prop, ParamSuffix.eq);
 

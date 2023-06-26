@@ -32,7 +32,7 @@ const createUserApi = (id, { email, level } = {}) => ({
   test: {
     id,
     email: email || faker.internet.email(),
-    level: level || 1,
+    ...typeof level === 'undefined' ? {} : { level: level || 1 },
   },
   [TEST_CATEGORY_PROPFILTER]: {
     id,
@@ -108,7 +108,7 @@ describe('Redis Search: list', function listSuite() {
 
       const { username } = item;
 
-      const api = createUserApi(userId, { email: username, level: (i + 1) * 10 });
+      const api = createUserApi(userId, { email: username, level: i > 1 ? (i + 1) * 10 : undefined });
       const data = saveUser(this.users.redis, TEST_CATEGORY, TEST_AUDIENCE, api);
       promises.push(data);
       promises.push(
@@ -354,12 +354,50 @@ describe('Redis Search: list', function listSuite() {
       });
   });
 
+  // -@level:[-inf +inf]
+  it('list: IS_EMPTY for NUMERIC action', function test() {
+    return this
+      .users
+      .dispatch('list', {
+        params: {
+          audience: TEST_AUDIENCE,
+          filter: { level: { isempty: true } },
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(2);
+        result.users.forEach((user) => {
+          expect(user.metadata[TEST_AUDIENCE]).to.not.have.ownProperty('level');
+        });
+      });
+  });
+
   it('list: EXISTS action', function test() {
     return this
       .filteredListRequest({ lastName: { exists: true } })
       .then((result) => {
         assert(result);
         expect(result.users).to.have.length.gte(1);
+      });
+  });
+
+  // @level:[-inf +inf]
+  it('list: EXISTS for NUMERIC action', function test() {
+    return this
+      .users
+      .dispatch('list', {
+        params: {
+          audience: TEST_AUDIENCE,
+          filter: { level: { exists: true } },
+        },
+      })
+      .then((result) => {
+        assert(result);
+        expect(result.users).to.have.length(3);
+        result.users.forEach((user) => {
+          expect(user.metadata[TEST_AUDIENCE]).to.have.ownProperty('level');
+        });
       });
   });
 
@@ -478,7 +516,7 @@ describe('Redis Search: list', function listSuite() {
       })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(4);
+        expect(result.users).to.have.length(2);
 
         result.users.forEach((user) => {
           expect(user).to.have.ownProperty('id');
@@ -502,7 +540,7 @@ describe('Redis Search: list', function listSuite() {
         },
       })
       .then((result) => {
-        expect(result.users).to.have.length(3);
+        expect(result.users).to.have.length(1);
         expect(result.users.length);
 
         result.users.forEach((user) => {

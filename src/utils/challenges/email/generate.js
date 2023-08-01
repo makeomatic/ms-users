@@ -95,7 +95,7 @@ function generate(email, type, ctx = {}, opts = {}, nodemailer = {}) {
 
   // in case we need to setup a new password
   if (type === USERS_ACTION_PASSWORD) {
-    actions.updatePassword = updatePassword.call(this, email, context.password);
+    actions.updatePassword = updatePassword(this, email, context.password);
   }
 
   this.log.info('Generated mail %s', templateName);

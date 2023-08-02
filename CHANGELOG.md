@@ -1,3 +1,10 @@
+## [16.0.8](https://github.com/makeomatic/ms-users/compare/v16.0.7...v16.0.8) (2023-08-02)
+
+
+### Bug Fixes
+
+* password generation on password reset ([#593](https://github.com/makeomatic/ms-users/issues/593)) ([40ddabc](https://github.com/makeomatic/ms-users/commit/40ddabcef58f9829a05aa3f6cc2d8b0e51886fe9))
+
 ## [16.0.7](https://github.com/makeomatic/ms-users/compare/v16.0.6...v16.0.7) (2023-06-26)
 
 

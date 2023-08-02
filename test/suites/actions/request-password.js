@@ -113,5 +113,10 @@ describe('#requestPassword', function requestPasswordSuite() {
           && e.reason.email === 'mailto@example.com';
       });
     });
+
+    it('must generate password on request', async () => {
+      const response = await this.users.dispatch('requestPassword', { params: { username, generateNewPassword: true } });
+      assert.deepStrictEqual(response, { success: true });
+    });
   });
 });

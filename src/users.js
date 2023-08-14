@@ -1,12 +1,18 @@
 const { Microfleet, ConnectorsTypes } = require('@microfleet/core');
 const Mailer = require('ms-mailer-client');
-const merge = require('lodash/merge');
 const { strict: assert } = require('assert');
 const fsort = require('redis-filtered-sort');
 const { TokenManager } = require('ms-token');
 const Flakeless = require('ms-flakeless');
-
-const conf = require('./config');
+const deepmerge = require('@fastify/deepmerge')({
+  mergeArray(options) {
+    const { clone } = options;
+    return function replaceByClonedSource(_, source) {
+      return clone(source);
+    };
+  },
+});
+const getStore = require('./config');
 const get = require('./utils/get-value');
 const attachPasswordKeyword = require('./utils/password-validator');
 const { CloudflareWorker } = require('./utils/cloudflare/worker');
@@ -16,7 +22,7 @@ const { JoseWrapper } = require('./utils/stateless-jwt/jwe');
 const { CredentialsStore } = require('./utils/credentials-store');
 
 /**
- * @namespace Users
+ * @class Users
  */
 class Users extends Microfleet {
   /**
@@ -24,8 +30,8 @@ class Users extends Microfleet {
    * @param  {Object} opts
    * @return {Users}
    */
-  constructor(opts = {}) {
-    super(merge({}, Users.defaultOpts, opts));
+  constructor(opts) {
+    super(opts);
 
     /**
      * Initializes Admin accounts
@@ -77,8 +83,8 @@ class Users extends Microfleet {
       fsort.attach(redis, 'fsort');
 
       // init token manager
-      const tokenManagerOpts = { backend: { connection: redis } };
-      const tmOpts = merge({}, config.tokenManager, tokenManagerOpts);
+      const tmOpts = deepmerge({}, config.tokenManager);
+      tmOpts.backend.connection = redis;
 
       this.tokenManager = new TokenManager(tmOpts);
     });
@@ -130,6 +136,21 @@ class Users extends Microfleet {
         const PumpJackService = require('./utils/bypass/pump-jack');
         this.bypass.pumpJack = new PumpJackService(this);
       }, 'bypass.pumpJack');
+    }
+
+    if (this.config.bypass.streamlayer.enabled) {
+      this.addConnector(ConnectorsTypes.essential, () => {
+        const StreamLayerService = require('./utils/bypass/streamlayer');
+        this.bypass.streamlayer = new StreamLayerService(this);
+      }, 'bypass.streamlayer');
+    }
+
+    const { slrAnonymous } = this.config.bypass;
+    if (slrAnonymous.enabled) {
+      this.addConnector(ConnectorsTypes.essential, () => {
+        const StreamLayerAnonymousService = require('./utils/bypass/slr-anonymous');
+        this.bypass[slrAnonymous.provider] = new StreamLayerAnonymousService(this, slrAnonymous);
+      }, 'bypass.slrAnonymous');
     }
 
     const allowBypasses = Object.entries(this.config.bypass).filter(([, schemeConfig]) => schemeConfig.enabled);
@@ -215,10 +236,12 @@ class Users extends Microfleet {
   }
 }
 
-/**
- * Configuration options for the service
- * @type {Object}
- */
-Users.defaultOpts = conf.get('/', { env: process.env.NODE_ENV });
+async function initUsers(override = {}) {
+  const store = await getStore({ env: process.env.NODE_ENV });
+  const users = new Users(deepmerge(store.get('/'), override));
+  return users;
+}
 
-module.exports = Users;
+exports = module.exports = initUsers;
+exports.Users = Users;
+exports.default = initUsers;

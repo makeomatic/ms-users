@@ -1,4 +1,3 @@
-/* global globalRegisterUser, globalAuthUser */
 const { strict: assert } = require('assert');
 const { authenticator } = require('otplib');
 const request = require('request-promise').defaults({
@@ -9,6 +8,7 @@ const request = require('request-promise').defaults({
   strictSSL: false,
 });
 const { USERS_MFA_FLAG } = require('../../../../src/constants');
+const { globalAuthUser, globalRegisterUser, startService, clearRedis } = require('../../../config');
 
 describe('#mfa.*', function activateSuite() {
   // actions supported by this
@@ -44,8 +44,8 @@ describe('#mfa.*', function activateSuite() {
     assert.ok(/TOTP required/.test(error.message), error.message);
   }
 
-  before(global.startService);
-  after(global.clearRedis);
+  before(startService);
+  after(clearRedis);
 
   // registers user and pushes JWT to this.jwt
   before('register user', globalRegisterUser(username));
@@ -56,6 +56,12 @@ describe('#mfa.*', function activateSuite() {
   let regeneratedCodes;
 
   describe('#mfa.generate-key', function generateKeySuite() {
+    it('rejects invalid time skew key', async function test() {
+      await assert.rejects(
+        this.users.dispatch(generateRoute, { params: { time: 'bubble' } })
+      );
+    });
+
     it('generates key', async function test() {
       const data = await this.users
         .dispatch(generateRoute, { params: { username, time: Date.now() } });

@@ -28,30 +28,47 @@
         }
       },
       "additionalProperties": {
-        "oneOf": [
+        "anyOf": [
           {
             "type": "string",
             "minLength": 1
           },
           {
-            "type": "object",
-            "minProperties": 1,
-            "maxProperties": 2,
-            "patternProperties": {
-              "^(ne|eq|match)$": {
+            "$ref": "#/definitions/filterOps"
+          }
+        ]
+      }
+    },
+    "filterOps": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 2,
+      "patternProperties": {
+        "^(ne|eq|match)$": {
+          "type": "string",
+          "minLength": 1
+        },
+        "^(gte|lte)$": {
+          "type": "number"
+        },
+        "^(exists|isempty)$": {
+          "type": "boolean",
+          "const": true
+        },
+        "^any$": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
                 "type": "string",
                 "minLength": 1
               },
-              "^(gte|lte)$": {
-                "type": "number"
-              },
-              "^(exists|isempty)$": {
-                "type": "boolean",
-                "const": true
+              {
+                "$ref": "#/definitions/filterOps"
               }
-            }
+            ]
           }
-        ]
+        }
       }
     },
     "challengeType": {
@@ -64,11 +81,11 @@
     },
     "userId": {
       "type": "string",
-      "oneOf": [
+      "anyOf": [
         { "format": "email" },
         { "format": "uuid" },
         { "pattern": "^\\d+$" },
-        { "pattern": "^(fb|apl|sso|ma)/[\\d_]+$" }
+        { "pattern": "^(fb|apl|sso|ma|sla)/[\\d_a-z\\-]+$" }
       ]
     },
     "alias": {
@@ -94,7 +111,7 @@
           "type": "object",
           "minProperties": 1,
           "additionalProperties": {
-            "oneOf": [
+            "anyOf": [
               {
                 "type": "string",
                 "minLength": 1

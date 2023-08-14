@@ -2,10 +2,11 @@ const Promise = require('bluebird');
 const { strict: assert } = require('assert');
 const times = require('lodash/times');
 const { faker } = require('@faker-js/faker');
+const { startService, clearRedis } = require('../../config');
 
 describe('#invite', function registerSuite() {
-  before(global.startService);
-  after(global.clearRedis);
+  before(startService);
+  after(clearRedis);
 
   const {
     TOKEN_METADATA_FIELD_METADATA,
@@ -17,12 +18,12 @@ describe('#invite', function registerSuite() {
     return Promise.all(times(100, (n) => this.users.dispatch('invite', { params: {
       email: `${n}@yandex.ru`,
       ctx: {
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
       },
       metadata: {
         '*.localhost': {
-          company: faker.company.companyName(),
+          company: faker.company.name(),
         },
       },
     } })));

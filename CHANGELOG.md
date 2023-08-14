@@ -1,3 +1,85 @@
+## [16.0.8](https://github.com/makeomatic/ms-users/compare/v16.0.7...v16.0.8) (2023-08-02)
+
+
+### Bug Fixes
+
+* password generation on password reset ([#593](https://github.com/makeomatic/ms-users/issues/593)) ([40ddabc](https://github.com/makeomatic/ms-users/commit/40ddabcef58f9829a05aa3f6cc2d8b0e51886fe9))
+
+## [16.0.7](https://github.com/makeomatic/ms-users/compare/v16.0.6...v16.0.7) (2023-06-26)
+
+
+### Bug Fixes
+
+* redisearch isempty/exists for numeric ([#591](https://github.com/makeomatic/ms-users/issues/591)) ([8c75a9b](https://github.com/makeomatic/ms-users/commit/8c75a9b827bf30929648cdf39f22a8613a5ce5ba))
+
+## [16.0.6](https://github.com/makeomatic/ms-users/compare/v16.0.5...v16.0.6) (2023-06-21)
+
+
+### Bug Fixes
+
+* missing http transport options plugins ([0871c52](https://github.com/makeomatic/ms-users/commit/0871c52375446f45f636a9d0ce2873ec34e693d1))
+
+## [16.0.5](https://github.com/makeomatic/ms-users/compare/v16.0.4...v16.0.5) (2023-06-21)
+
+
+### Bug Fixes
+
+* slr anon claim validation ([86d3f59](https://github.com/makeomatic/ms-users/commit/86d3f59972d4655fc79211602afb30b9e7bbf94c))
+
+## [16.0.4](https://github.com/makeomatic/ms-users/compare/v16.0.3...v16.0.4) (2023-06-20)
+
+
+### Bug Fixes
+
+* mfa/generate-key http query params ([e51a98b](https://github.com/makeomatic/ms-users/commit/e51a98bb6afb43cf78dd7423762f61e26d5f334f))
+
+## [16.0.3](https://github.com/makeomatic/ms-users/compare/v16.0.2...v16.0.3) (2023-06-20)
+
+
+### Bug Fixes
+
+* update plugin signed request for fastify ([29ba0c2](https://github.com/makeomatic/ms-users/commit/29ba0c2a6233b8fb85c120c10aa219193f819c40))
+
+## [16.0.2](https://github.com/makeomatic/ms-users/compare/v16.0.1...v16.0.2) (2023-06-15)
+
+
+### Bug Fixes
+
+* use audience when passed during organization.list ([#590](https://github.com/makeomatic/ms-users/issues/590)) ([9310ae9](https://github.com/makeomatic/ms-users/commit/9310ae924867b819131c779d55148464843a32c9))
+
+## [16.0.1](https://github.com/makeomatic/ms-users/compare/v16.0.0...v16.0.1) (2023-06-08)
+
+
+### Bug Fixes
+
+* dockerignore file ([33d6040](https://github.com/makeomatic/ms-users/commit/33d604047eba9e296c18dd3bade0e45aad7839b7))
+
+# [16.0.0](https://github.com/makeomatic/ms-users/compare/v15.11.1...v16.0.0) (2023-06-07)
+
+
+### Features
+
+* ms-conf@8, slr-anonymous auth bypass ([#589](https://github.com/makeomatic/ms-users/issues/589)) ([a97a10f](https://github.com/makeomatic/ms-users/commit/a97a10fa0771facadbf75d6be83953f30a8f1bc1))
+
+
+### BREAKING CHANGES
+
+* includes ms-conf@8, new anonymous auth with JWE/totp
+
+## [15.11.1](https://github.com/makeomatic/ms-users/compare/v15.11.0...v15.11.1) (2023-05-23)
+
+
+### Bug Fixes
+
+* add 'any' redissearch query ([#588](https://github.com/makeomatic/ms-users/issues/588)) ([efaa2fe](https://github.com/makeomatic/ms-users/commit/efaa2fe307bda191e475b1a5eb57bbc3d737a713))
+
+# [15.11.0](https://github.com/makeomatic/ms-users/compare/v15.10.2...v15.11.0) (2023-04-25)
+
+
+### Features
+
+* **internal:** bypass streamlayer ([#587](https://github.com/makeomatic/ms-users/issues/587)) ([ea08783](https://github.com/makeomatic/ms-users/commit/ea0878310fcf94cf2eeeea9ce7f5d9f673f926d7))
+
 ## [15.10.2](https://github.com/makeomatic/ms-users/compare/v15.10.1...v15.10.2) (2023-03-09)
 
 

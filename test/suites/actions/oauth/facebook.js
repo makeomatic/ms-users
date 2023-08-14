@@ -1,5 +1,4 @@
 /* eslint-disable no-prototype-builtins */
-/* global globalRegisterUser, globalAuthUser */
 
 const { authenticator } = require('otplib');
 const Promise = require('bluebird');
@@ -8,6 +7,7 @@ const Bell = require('@hapi/bell');
 const Boom = require('@hapi/boom');
 const got = require('got');
 const clone = require('rfdc')();
+const { startService, clearRedis, globalRegisterUser, globalAuthUser } = require('../../../config');
 
 const msUsers = got.extend({
   prefixUrl: 'https://ms-users.local/users/oauth/facebook',
@@ -118,11 +118,11 @@ t('#facebook', function oauthFacebookSuite() {
       throw Boom.badRequest();
     });
 
-    service = await global.startService(this.testConfig);
+    service = await startService(this.testConfig);
   });
 
   afterEach('stop', async () => {
-    await global.clearRedis();
+    await clearRedis();
     Bell.simulate(false);
     simulateReq = false;
   });

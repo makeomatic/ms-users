@@ -15,7 +15,7 @@
       "type": "string"
     },
     "audience": {
-      "oneOf": [
+      "anyOf": [
         {
           "type": "string",
           "minLength": 1

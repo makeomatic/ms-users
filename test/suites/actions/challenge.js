@@ -1,9 +1,10 @@
 const { strict: assert } = require('assert');
 const Promise = require('bluebird');
+const { startService, clearRedis } = require('../../config');
 
 describe('#challenge', function challengeSuite() {
-  beforeEach(global.startService.bind(this));
-  afterEach(global.clearRedis.bind(this));
+  beforeEach(startService.bind(this));
+  afterEach(clearRedis.bind(this));
 
   it('must fail to send a challenge for a non-existing user', async () => {
     const request = this.users.dispatch('challenge', { params: { username: 'oops@gmail.com', type: 'email' } });

@@ -1,8 +1,8 @@
-/* global startService, clearRedis */
 const Promise = require('bluebird');
 const { strict: assert } = require('assert');
 const { omit } = require('lodash');
 const sinon = require('sinon').usingPromise(Promise);
+const { startService, clearRedis } = require('../../config');
 
 describe('#login', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };

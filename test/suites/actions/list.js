@@ -3,6 +3,7 @@ const ld = require('lodash');
 const { faker } = require('@faker-js/faker');
 const redisKey = require('../../../src/utils/key');
 const { redisIndexDefinitions } = require('../../configs/redis-indexes');
+const { startService, clearRedis } = require('../../config');
 
 for (const redisSearchEnabled of [false, true]) { // testing in two mode
   describe(`#list [FT:${redisSearchEnabled}]`, function listSuite() {
@@ -17,10 +18,10 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
 
     const totalUsers = 105;
 
-    beforeEach(async function startService() {
-      await global.startService.call(this, ctx);
+    beforeEach(async function init() {
+      await startService.call(this, ctx);
     });
-    afterEach('reset redis', global.clearRedis);
+    afterEach('reset redis', clearRedis);
 
     beforeEach('populate redis', function populateRedis() {
       const audience = this.users.config.jwt.defaultAudience;
@@ -32,8 +33,8 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
           id: this.users.flake.next(),
           metadata: {
             username: faker.internet.email(),
-            firstName: faker.name.firstName(),
-            lastName: faker.name.lastName(),
+            firstName: faker.person.firstName(),
+            lastName: faker.person.lastName(),
           },
         };
 

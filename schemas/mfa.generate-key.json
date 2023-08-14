@@ -4,6 +4,16 @@
   "properties": {
     "username": {
       "$ref": "common.json#/definitions/userId"
+    },
+    "time": {
+      "anyOf": [{
+        "type": "integer",
+        "minimum": 0
+      }, {
+        "type": "string",
+        "pattern": "^[1-9][0-9]{0,}$"
+      }]
+
     }
   }
 }

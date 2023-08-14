@@ -270,7 +270,7 @@
           "type": "string"
         },
         "port": {
-          "oneOf": [{
+          "anyOf": [{
               "type": "string"
             },
             {

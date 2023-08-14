@@ -1,6 +1,6 @@
-/* global startService, clearRedis */
 const { expect } = require('chai');
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../../config');
 
 describe('#verify', function verifySuite() {
   const ctx = {};

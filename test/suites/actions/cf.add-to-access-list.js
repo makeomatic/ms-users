@@ -1,5 +1,6 @@
 const { strict: assert } = require('assert');
 const os = require('os');
+const { startService, clearRedis } = require('../../config');
 
 const randomIp = `127.0.0.${Math.floor(Math.random() * 250) + 1}`;
 const jobId = `${os.hostname()}_test_${randomIp}`;
@@ -14,7 +15,7 @@ describe('#cloudflare.add-to-list action', () => {
 
   /* Restart service before each test to achieve clean database. */
   before('start', async () => {
-    await global.startService.call(this, {
+    await startService.call(this, {
       cfAccessList: {
         enabled: true,
         worker: { enabled: false },
@@ -27,7 +28,7 @@ describe('#cloudflare.add-to-list action', () => {
     if (toDelete.length > 0) {
       await this.users.cfAccessList.cfApi.deleteListItems(usedList, toDelete);
     }
-    await global.clearRedis.call(this, false);
+    await clearRedis.call(this, false);
   });
 
   it('should add ip', async () => {

@@ -1,6 +1,5 @@
-/* global startService */
-
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../../config');
 
 describe('#admins', function verifySuite() {
   const constants = require('../../../src/constants');
@@ -46,7 +45,7 @@ describe('#admins', function verifySuite() {
     });
   });
 
-  after(global.clearRedis.bind(ctx));
+  after(clearRedis.bind(ctx));
 
   it('should be able to login an admin', async () => {
     const admin0 = await service.dispatch('login', { params: {

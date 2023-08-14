@@ -1,12 +1,13 @@
 const { strict: assert } = require('assert');
 const path = require('path');
 const exec = require('../../helpers/exec');
+const { startService, clearRedis } = require('../../config');
 
 describe('binary: batch-register', function suite() {
-  const binaryPath = path.resolve(__dirname, '../../../bin/batch-register.js');
+  const binaryPath = path.resolve(__dirname, '../../../src/bin/batch-register.js');
 
-  before(global.startService);
-  after(global.clearRedis);
+  before(startService);
+  after(clearRedis);
 
   it('allows to register batch users from stdin', async () => {
     const input = {

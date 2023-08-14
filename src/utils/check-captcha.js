@@ -1,6 +1,5 @@
 const Errors = require('common-errors');
-const request = require('request-promise');
-const defaults = require('lodash/defaults');
+const { fetch } = require('undici');
 const fmt = require('util').format;
 const handlePipeline = require('./pipeline-error');
 
@@ -16,23 +15,36 @@ module.exports = async function checkCaptcha(redis, username, captcha, captchaCo
   const { secret, ttl, uri } = captchaConfig;
   const { response: captchaCacheKey } = captcha;
 
-  await redis
-    .pipeline()
-    .set(captchaCacheKey, username, 'EX', ttl, 'NX')
-    .get(captchaCacheKey)
-    .exec()
-    .then(handlePipeline)
-    .spread(function captchaCacheResponse(setResponse, getResponse) {
-      if (getResponse !== username) {
-        const msg = 'Captcha challenge you\'ve solved can not be used, please complete it again';
-        throw new Errors.HttpStatusError(412, msg);
-      }
-    });
+  const [, getResponse] = handlePipeline(
+    await redis
+      .pipeline()
+      .set(captchaCacheKey, username, 'EX', ttl, 'NX')
+      .get(captchaCacheKey)
+      .exec()
+  );
+
+  if (getResponse !== username) {
+    const msg = 'Captcha challenge you\'ve solved can not be used, please complete it again';
+    throw new Errors.HttpStatusError(412, msg);
+  }
 
   try {
-    const body = await request.post({ uri, qs: defaults(captcha, { secret }), json: true });
+    const url = new URL(uri);
+    url.searchParams = new URLSearchParams({
+      ...captcha,
+      secret,
+    });
+    const { statusCode, body } = await fetch(url, {
+      method: 'POST',
+      qs: { ...captcha, secret },
+    });
 
-    if (!body.success) {
+    if (statusCode !== 200) {
+      throw new Errors.HttpStatusError(statusCode, await body.text());
+    }
+
+    const data = await body.json();
+    if (!data.success) {
       throw new Errors.HttpStatusError(200, body);
     }
   } catch (err) {

@@ -7,7 +7,7 @@ const redisKey = require('../../utils/key');
 const { getOrganizationMetadata, getInternalData, getOrganizationMemberDetails } = require('../../utils/organization');
 const getMetadata = require('../../utils/get-metadata');
 const { getUserId } = require('../../utils/userData');
-const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA } = require('../../constants');
+const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA, ORGANIZATIONS_METADATA } = require('../../constants');
 
 async function findUserOrganization(userId) {
   const { audience: orgAudience } = this.config.organizations;
@@ -37,10 +37,11 @@ async function findOrganization({
   offset,
   limit,
   expiration,
+  audience,
 }) {
   const organizationsIds = await this.redis.fsort(
     ORGANIZATIONS_INDEX,
-    redisKey('*', ORGANIZATIONS_DATA),
+    redisKey('*', ...(audience ? [ORGANIZATIONS_METADATA, audience] : [ORGANIZATIONS_DATA])),
     criteria,
     order,
     strFilter,
@@ -110,6 +111,7 @@ async function getOrganizationsList({ params }) {
       offset,
       limit,
       expiration,
+      audience,
     });
 
   const organizations = await Promise.map(organizationsIds, async (organizationId) => {

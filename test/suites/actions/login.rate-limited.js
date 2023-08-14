@@ -1,8 +1,8 @@
-/* global startService, clearRedis */
 const { strictEqual, strict: assert } = require('assert');
 const Promise = require('bluebird');
 const { expect } = require('chai');
 const { times, noop } = require('lodash');
+const { startService, clearRedis } = require('../../config');
 
 describe('#login-rate-limits', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
@@ -27,8 +27,8 @@ describe('#login-rate-limits', function loginSuite() {
     }));
 
     after(clearRedis.bind(this));
+    beforeEach(() => clearRedis.call(this, true));
     beforeEach(() => this.users.dispatch('register', { params: userWithValidPassword }));
-    afterEach(() => clearRedis.call(this, true));
 
     it('must lock ip for login completely after 15 attempts', async () => {
       const userWithRemoteIP = { remoteip: '10.0.0.1', ...user, username: 'doesnt_exist' };

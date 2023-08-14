@@ -1,6 +1,7 @@
 const { strict: assert } = require('assert');
 const Promise = require('bluebird');
 const sinon = require('sinon');
+const { startService, clearRedis } = require('../../../config');
 
 const { createCfList, nockCfApi, restoreCfApi } = require('../../../helpers/cloudflare/api-stub');
 
@@ -17,7 +18,7 @@ describe('#cloudflare access-list stubbed', () => {
   let service;
 
   before(async () => {
-    service = await global.startService.call(this, {
+    service = await startService.call(this, {
       cfAccessList: {
         enabled: false,
         worker: {
@@ -29,7 +30,7 @@ describe('#cloudflare access-list stubbed', () => {
 
   after(async () => {
     if (this.users) {
-      await global.clearRedis.call(this, false);
+      await clearRedis.call(this, false);
     }
   });
 
@@ -40,7 +41,7 @@ describe('#cloudflare access-list stubbed', () => {
   });
 
   afterEach(async () => {
-    await global.clearRedis.call(this, true);
+    await clearRedis.call(this, true);
     sandbox.restore();
     restoreCfApi();
   });

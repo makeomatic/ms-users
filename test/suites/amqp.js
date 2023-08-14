@@ -1,8 +1,9 @@
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../config');
 
 describe('#AMQP', function AMQPSuite() {
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   it('should be able to make requests using AMQP transport', async function test() {
     const { defaultAudience: audience } = this.users.config.jwt;

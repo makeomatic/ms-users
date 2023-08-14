@@ -13,13 +13,13 @@ async function redisSearchQuery(indexMeta, context) {
   } = context;
 
   const { keyPrefix } = service.config.redis.options;
-  const { indexName, multiWords } = indexMeta;
+  const { indexName, multiWords, fieldTypes } = indexMeta;
 
   const [criteria, order = 'ASC'] = sort;
 
   const args = ['FT.SEARCH', indexName];
 
-  const [query, params] = buildFilterQuery(filter, multiWords);
+  const [query, params] = buildFilterQuery(filter, multiWords, fieldTypes);
 
   if (query.length > 0) {
     args.push(query.join(' '));

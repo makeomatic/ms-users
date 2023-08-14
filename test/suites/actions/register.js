@@ -2,11 +2,12 @@
 const Promise = require('bluebird');
 const times = require('lodash/times');
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../../config');
 
 describe('#register', function registerSuite() {
   describe('password validator disabled', function testSuite() {
-    beforeEach(global.startService);
-    afterEach(global.clearRedis);
+    beforeEach(startService);
+    afterEach(clearRedis);
 
     it('must reject invalid registration params and return detailed error', async function test() {
       await assert.rejects(this.users.dispatch('register', { params: {} }), (err) => {
@@ -249,12 +250,12 @@ describe('#register', function registerSuite() {
 
   describe('password validator enabled', function testSuite() {
     beforeEach(async function start() {
-      await global.startService.call(this, {
+      await startService.call(this, {
         passwordValidator: { enabled: true },
       });
     });
 
-    afterEach(global.clearRedis);
+    afterEach(clearRedis);
 
     it('must be able to create user without password validations and return user object and jwt token', function test() {
       const opts = {
@@ -308,7 +309,7 @@ describe('#register', function registerSuite() {
   describe('validator skip/force check & config schema', function suite() {
     describe('skip check', function skipCheckSuite() {
       beforeEach(async function start() {
-        await global.startService.call(this, {
+        await startService.call(this, {
           passwordValidator: {
             enabled: true,
             skipCheckFieldNames: ['skipPassword'],
@@ -328,12 +329,12 @@ describe('#register', function registerSuite() {
         assert(result.hasOwnProperty('jwt'));
       });
 
-      afterEach(global.clearRedis);
+      afterEach(clearRedis);
     });
 
     describe('config forceCheckFieldNames/skipCheckFieldNames check', function skipForceSuite() {
       it('forceCheckFieldNames', async function test() {
-        await assert.rejects(global.startService.call(this, {
+        await assert.rejects(startService.call(this, {
           passwordValidator: {
             enabled: true,
             forceCheckFieldNames: null,
@@ -347,7 +348,7 @@ describe('#register', function registerSuite() {
       });
 
       it('skipCheckFieldNames', async function test() {
-        await assert.rejects(global.startService.call(this, {
+        await assert.rejects(startService.call(this, {
           passwordValidator: {
             enabled: true,
             skipCheckFieldNames: null,
@@ -363,14 +364,14 @@ describe('#register', function registerSuite() {
 
     describe('force check', function forceCheckTest() {
       beforeEach(async function start() {
-        await global.startService.call(this, {
+        await startService.call(this, {
           passwordValidator: {
             enabled: false,
             forceCheckFieldNames: ['forceCheck', 'fieldIsMissing'],
           },
         });
       });
-      afterEach(global.clearRedis);
+      afterEach(clearRedis);
 
       it('forces validation if field exists', async function test() {
         const opts = {
@@ -395,11 +396,11 @@ describe('#register', function registerSuite() {
 
   describe('must check password strength', function suite() {
     beforeEach(async function start() {
-      await global.startService.call(this, {
+      await startService.call(this, {
         passwordValidator: { enabled: true },
       });
     });
-    afterEach(global.clearRedis);
+    afterEach(clearRedis);
 
     const weakPasswords = [
       'hello',

@@ -16,7 +16,7 @@ const { USERS_ALIAS_FIELD, USERS_USERNAME_FIELD } = require('../../constants');
  *     "Authorization: JWT my.reallyniceandvalid.jsonwebtoken"
  *
  */
-function generateKey({ auth, params }) {
+function generateKey({ auth, params, query, transport }) {
   const { credentials } = auth;
   const audience = this.config.jwt.defaultAudience;
   const secret = authenticator.generateSecret(this.config.mfa.length);
@@ -36,8 +36,12 @@ function generateKey({ auth, params }) {
     );
   }
 
-  if (params.time) {
-    response.skew = Date.now() - params.time;
+  const data = transport === ActionTransport.http
+    ? query
+    : params;
+
+  if (data.time) {
+    response.skew = Date.now() - data.time;
   }
 
   return response;
@@ -47,7 +51,7 @@ generateKey.auth = 'httpBearer';
 generateKey.transports = [ActionTransport.http, ActionTransport.amqp, ActionTransport.internal];
 generateKey.transportOptions = {
   [ActionTransport.http]: {
-    methods: ['get'],
+    methods: ['get', 'post'],
   },
 };
 

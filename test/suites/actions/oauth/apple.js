@@ -3,7 +3,7 @@ const { decodeJwt } = require('jose');
 const request = require('request-promise');
 const Bell = require('@hapi/bell');
 
-const Users = require('../../../../src');
+const prepareUsers = require('../../../../src');
 
 describe('sign in with apple', function suite() {
   let service;
@@ -13,7 +13,7 @@ describe('sign in with apple', function suite() {
 
   it('should be able to redirect to sign in (init sign in and redirect to apple.com)', async () => {
     // it's here because of Bell.simulate
-    service = new Users({ oauth: { providers: { apple: { enabled: true } } } });
+    service = await prepareUsers({ oauth: { providers: { apple: { enabled: true } } } });
     await service.connect();
 
     const { headers } = await request.get('https://ms-users.local/users/oauth/apple', {
@@ -71,7 +71,7 @@ describe('sign in with apple', function suite() {
       };
     });
 
-    service = new Users({ oauth: { providers: { apple: { enabled: true } } } });
+    service = await prepareUsers({ oauth: { providers: { apple: { enabled: true } } } });
     await service.connect();
 
     const response = await request.post('https://ms-users.local/users/oauth/apple', {

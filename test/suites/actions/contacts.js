@@ -3,15 +3,16 @@ const { strict: assert } = require('assert');
 const { faker } = require('@faker-js/faker');
 const sinon = require('sinon');
 const { createMembers } = require('../../helpers/organization');
+const { startService, clearRedis } = require('../../config');
 
 describe('#user contacts', function registerSuite() {
-  before(global.startService);
+  before(startService);
   before(async function pretest() {
     this.testUser = {
       username: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
-      phone: faker.phone.phoneNumber('#########'),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      phone: faker.phone.number('#########'),
     };
 
     const params = {
@@ -24,7 +25,7 @@ describe('#user contacts', function registerSuite() {
 
     return createMembers.call(this, 1);
   });
-  after(global.clearRedis);
+  after(clearRedis);
 
   it('must be able to add user contact', async function test() {
     const params = {
@@ -135,7 +136,7 @@ describe('#user contacts', function registerSuite() {
       username: this.testUser.username,
       token: this.testUser.code2,
       contact: {
-        value: faker.phone.phoneNumber('#########'),
+        value: faker.phone.number('#########'),
         type: 'phone',
       },
     };

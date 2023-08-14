@@ -1,13 +1,14 @@
 const { expect } = require('chai');
 const { strict: assert } = require('assert');
+const { startService, clearRedis } = require('../../config');
 
 describe('#updateMetadata', function getMetadataSuite() {
   const username = 'v@makeomatic.ru';
   const audience = '*.localhost';
   const extra = 'extra.localhost';
 
-  beforeEach(global.startService);
-  afterEach(global.clearRedis);
+  beforeEach(startService);
+  afterEach(clearRedis);
 
   beforeEach(async function pretest() {
     const { user } = await this.users.dispatch('register', { params: { username, password: '123', audience } });

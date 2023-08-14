@@ -1,4 +1,3 @@
-/* global globalRegisterUser, globalAuthUser */
 const Promise = require('bluebird');
 const { strict: assert } = require('assert');
 const uuidv4 = require('uuid').v4;
@@ -6,6 +5,7 @@ const md5 = require('md5');
 const { sign } = require('../../../../src/utils/signatures');
 const { USERS_API_TOKENS } = require('../../../../src/constants');
 const redisKey = require('../../../../src/utils/key');
+const { startService, clearRedis, globalRegisterUser, globalAuthUser } = require('../../../config');
 
 describe('#token.*', function activateSuite() {
   // actions supported by this
@@ -18,8 +18,8 @@ describe('#token.*', function activateSuite() {
 
   const verifyRoute = 'verify';
 
-  before(global.startService);
-  after(global.clearRedis);
+  before(startService);
+  after(clearRedis);
 
   // registers user and pushes JWT to this.jwt
   before(globalRegisterUser(username));
@@ -257,10 +257,10 @@ describe('#token.*', function activateSuite() {
 describe('legacy API tokens', function suit() {
   const username = 'test@ms-users.com';
 
-  after('clean up redis', global.clearRedis);
+  after('clean up redis', clearRedis);
 
-  before('start service', function startService() {
-    return global.startService.call(this, { registrationLimits: { checkMX: false } });
+  before('start service', function init() {
+    return startService.call(this, { registrationLimits: { checkMX: false } });
   });
 
   before('register user', globalRegisterUser(username));

@@ -7,7 +7,7 @@ const msUsers = got.extend({
   https: { rejectUnauthorized: false },
 });
 
-describe.skip('/bypass/pump-jack', function verifySuite() {
+describe('/bypass/pump-jack', function verifySuite() {
   const profileToken = process.env.PUMP_JACK_PROFILE_TOKEN;
   const msg = {
     schema: 'pumpJack:imcf',

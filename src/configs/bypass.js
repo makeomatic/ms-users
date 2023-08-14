@@ -26,8 +26,4 @@ exports.bypass = {
       local: {},
     },
   },
-  streamlayer: {
-    enabled: true,
-    provider: 'streamlayer',
-  },
 };

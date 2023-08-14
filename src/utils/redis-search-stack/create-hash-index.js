@@ -8,21 +8,16 @@ const { containsKeyExpr } = require('./expressions');
  * @returns {Promise}
  */
 
-async function createHashIndex({ redis, log }, indexName, prefix, keyFilter, filterByProperty, fields) {
-  log.debug({ keyFilter, fields }, `create search index: ${indexName}`);
+async function createHashIndex({ redis, log }, indexName, prefix, filter, fields) {
+  log.debug({ filter, fields }, `create search index: ${indexName}`);
 
   const filterExpr = [];
 
-  if (keyFilter) {
-    const key = redisKey('', keyFilter); // leading separator
+  if (filter) {
+    const key = redisKey('', filter); // leading separator
+    filterExpr.push('FILTER');
     filterExpr.push(containsKeyExpr(key));
   }
-
-  if (filterByProperty) {
-    filterExpr.push(filterByProperty);
-  }
-
-  const filterParam = (filterExpr.length > 0 ? ['FILTER', `(${filterExpr.join(' && ')})`] : []);
 
   try {
     return await redis.call(
@@ -33,7 +28,7 @@ async function createHashIndex({ redis, log }, indexName, prefix, keyFilter, fil
       'PREFIX',
       '1',
       prefix,
-      ...filterParam,
+      ...filterExpr,
       'SCHEMA',
       ...fields.flatMap((x) => x)
     );

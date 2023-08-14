@@ -8,9 +8,7 @@ const { redisIndexDefinitions } = require('../../configs/redis-indexes');
 const { USERS_INDEX, USERS_METADATA } = require('../../../src/constants');
 
 const TEST_CATEGORY = 'test';
-const TEST_CATEGORY_PROPFILTER = 'wpropfilter';
 const TEST_AUDIENCE = 'api';
-const TEST_AUDIENCE_HTTP = 'http';
 
 const getUserName = (audience) => (data) => data.metadata[audience].username;
 
@@ -32,12 +30,6 @@ const createUserApi = (id, { email, level } = {}) => ({
     id,
     email: email || faker.internet.email(),
     level: level || 1,
-  },
-  [TEST_CATEGORY_PROPFILTER]: {
-    id,
-    email: email || faker.internet.email(),
-    level: level || 1,
-    xMeta: 1,
   },
 });
 
@@ -110,9 +102,6 @@ describe('Redis Search: list', function listSuite() {
       const api = createUserApi(userId, { email: username, level: (i + 1) * 10 });
       const data = saveUser(this.users.redis, TEST_CATEGORY, TEST_AUDIENCE, api);
       promises.push(data);
-      promises.push(
-        saveUser(this.users.redis, TEST_CATEGORY_PROPFILTER, TEST_AUDIENCE_HTTP, api)
-      );
     }
 
     this.audience = audience;
@@ -135,27 +124,6 @@ describe('Redis Search: list', function listSuite() {
       this.users.dispatch('list', query),
       /Search index does not registered for/
     );
-  });
-
-  it('adds only specific users to index', function test() {
-    return this.users
-      .dispatch('list', {
-        params: {
-          offset: 0,
-          limit: 100,
-          audience: TEST_AUDIENCE_HTTP,
-          filter: {},
-        },
-      })
-      .then((result) => {
-        expect(result.users.length).to.be.greaterThan(0);
-
-        result.users.forEach((user) => {
-          console.debug(user.metadata);
-          expect(user).to.have.ownProperty('id');
-          expect(user.metadata[TEST_AUDIENCE_HTTP].level).to.be.greaterThanOrEqual(30);
-        });
-      });
   });
 
   it('list by username', function test() {
@@ -383,106 +351,6 @@ describe('Redis Search: list', function listSuite() {
 
         result.users.forEach((user) => {
           expect(user).to.have.ownProperty('id');
-        });
-      });
-  });
-
-  it('list: TAG ANY action', function test() {
-    // More readable query is:
-    //   @email_tag: {$f_any_0_email_tag, $f_any_1_email_tag }
-    // This one in a bit more complex:
-    //   ( (@email_tag:{$f_any_0_email_tag}) | (@email_tag:{$f_any_1_email_tag}) )
-    //   PARAMS 4 f_any_0_email_tag \\\"joe@yahoo.org\\\" f_any_1_email_tag \\\"ann@yahoo.org\\\"
-    return this
-      .users
-      .dispatch('list', {
-        params: {
-          audience: TEST_AUDIENCE,
-          filter: {
-            email_tag: {
-              any: [
-                'joe@yahoo.org',
-                'ann@yahoo.org',
-              ],
-            },
-          },
-        },
-      })
-      .then((result) => {
-        assert(result);
-        expect(result.users).to.have.length(2);
-
-        result.users.forEach((user) => {
-          expect(user).to.have.ownProperty('id');
-        });
-      });
-  });
-
-  it('list: ANY action', function test() {
-    // (
-    //  (@email:($f_email_any_0_1 $f_email_any_0_2 $f_email_any_0_3))
-    //  |
-    //  (@email:($f_email_any_1_1 $f_email_any_1_2 $f_email_any_1_3))
-    // ) PARAMS 12
-    //     f_email_any_0_1 joe f_email_any_0_2 yahoo f_email_any_0_3 org f_email_any_1_1 ann f_email_any_1_2 yahoo f_email_any_1_3 org
-    const emails = [
-      'joe@yahoo.org',
-      'ann@yahoo.org',
-    ];
-
-    return this
-      .users
-      .dispatch('list', {
-        params: {
-          audience: TEST_AUDIENCE,
-          filter: {
-            email: {
-              any: emails,
-            },
-          },
-        },
-      })
-      .then((result) => {
-        assert(result);
-        expect(result.users).to.have.length(2);
-
-        result.users.forEach((user) => {
-          expect(user).to.have.ownProperty('id');
-          // one of the emails
-          expect(emails).to.contain(user.metadata.api.email);
-        });
-      });
-  });
-
-  it('list: ANY action gte/lte fn', function test() {
-    // ( (@level:[10 20]) | (@level:[35 +inf]) )
-    const levels = [
-      {
-        gte: 10, lte: 20,
-      },
-      { gte: 35 },
-    ];
-
-    return this
-      .users
-      .dispatch('list', {
-        params: {
-          audience: TEST_AUDIENCE,
-          filter: {
-            level: {
-              any: levels,
-            },
-          },
-        },
-      })
-      .then((result) => {
-        assert(result);
-        expect(result.users).to.have.length(4);
-
-        result.users.forEach((user) => {
-          expect(user).to.have.ownProperty('id');
-          expect(user.metadata[TEST_AUDIENCE].level)
-            .to.satisfy((value) => (value >= 10 && value <= 20) || value >= 35);
         });
       });
   });

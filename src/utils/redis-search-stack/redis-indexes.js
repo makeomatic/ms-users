@@ -1,7 +1,6 @@
 const createHashIndex = require('./create-hash-index');
 const redisKey = require('../key');
 const { ErrorSearchIndexNotFound } = require('../../constants');
-const { extractFieldTypes } = require('./extract-field-definitions');
 
 const normalizeIndexName = (key) => `${key.replaceAll('!', '-')}-idx`;
 
@@ -16,8 +15,8 @@ class RedisSearchIndexes {
     this.indexMetadata = new Map();
   }
 
-  setIndexMetadata(audience, indexName, filterKey, multiWords, fieldTypes) {
-    const metadata = { indexName, filterKey, multiWords, fieldTypes };
+  setIndexMetadata(audience, indexName, filterKey, multiWords) {
+    const metadata = { indexName, filterKey, multiWords };
     this.indexMetadata.set(audience, metadata);
   }
 
@@ -43,7 +42,7 @@ class RedisSearchIndexes {
   ensureSearchIndexes() {
     const { keyPrefix } = this.redisConfig.options;
 
-    const createIndexes = this.definitions.map(({ version = '1', filterKey, filterByProperty, audience, fields, multiWords }) => {
+    const createIndexes = this.definitions.map(({ version = '1', filterKey, audience, fields, multiWords }) => {
       const result = [];
 
       // create indexes matrix depends on all audience
@@ -51,12 +50,11 @@ class RedisSearchIndexes {
         const filter = redisKey(filterKey, audienceKey);
         const indexName = this.buildIndexName(filter, version);
 
-        result.push(createHashIndex(this.service, indexName, keyPrefix, filter, filterByProperty, fields));
-        const fieldTypes = extractFieldTypes(fields);
+        result.push(createHashIndex(this.service, indexName, keyPrefix, filter, fields));
 
-        this.log.debug('registering FT index for %s audience - %s', audience, indexName, fieldTypes);
+        this.log.debug('registering FT index for %s audience - %s', audience, indexName);
 
-        this.setIndexMetadata(audienceKey, indexName, filterKey, multiWords, fieldTypes);
+        this.setIndexMetadata(audienceKey, indexName, filterKey, multiWords);
       }
 
       return result;

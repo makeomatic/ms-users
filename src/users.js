@@ -145,6 +145,16 @@ class Users extends Microfleet {
       }, 'bypass.streamlayer');
     }
 
+   
+    if (this.config.bypass.kaizen.enabled) {
+      const { kaizen } = this.config.bypass
+
+      this.addConnector(ConnectorsTypes.essential, () => {
+        const KaizenService = require('./utils/bypass/kaizen');
+        this.bypass[kaizen.provider] = new KaizenService(this, kaizen);
+      }, 'bypass.kaizen');
+    }
+
     const { slrAnonymous } = this.config.bypass;
     if (slrAnonymous.enabled) {
       this.addConnector(ConnectorsTypes.essential, () => {

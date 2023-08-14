@@ -26,6 +26,10 @@ exports.bypass = {
       local: {},
     },
   },
+  kaizen: {
+    enabled: false,
+    provider: 'kaizen',
+  },
   streamlayer: {
     enabled: false,
     provider: 'streamlayer',

@@ -145,7 +145,6 @@ class Users extends Microfleet {
       }, 'bypass.streamlayer');
     }
 
-   
     if (this.config.bypass.kaizen.enabled) {
       const { kaizen } = this.config.bypass
 

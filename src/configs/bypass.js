@@ -26,9 +26,9 @@ exports.bypass = {
       local: {},
     },
   },
-  kaizen: {
+  generic: {
     enabled: false,
-    provider: 'kaizen',
+    provider: '', // generic bypass provider name
   },
   streamlayer: {
     enabled: false,

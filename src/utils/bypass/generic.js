@@ -11,7 +11,7 @@ class GenericBypassService {
   }
 
   addBypassPrefix(userId) {
-    return `generic/${this.bypassProvider}-${userId}`;
+    return `g/${this.bypassProvider}-${userId}`;
   }
 
   async login(userId) {

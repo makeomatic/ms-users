@@ -146,26 +146,19 @@ class Users extends Microfleet {
     }
 
     if (this.config.bypassGeneric) {
-
+      this.bypass.generic = {}
       const providers = Object.keys(this.config.bypassGeneric)
 
-      for(const provider of providers) {
-
-        
-        this.bypass.generic = {}
+      for(const provider of providers) {      
         const providerConfig = this.config.bypassGeneric[provider]
 
-        this.addConnector(ConnectorsTypes.essential, () => {
-          const GenericBypassService = require('./utils/bypass/generic');
-          this.bypass.generic[provider] = new GenericBypassService(this, providerConfig);
-        }, `bypass.generic`);
+        if(providerConfig.enabled) {
+          this.addConnector(ConnectorsTypes.essential, () => {
+            const GenericBypassService = require('./utils/bypass/generic');
+            this.bypass.generic[provider] = new GenericBypassService(this, providerConfig);
+          }, 'bypass.generic');
+        }
       }
-      // const { generic } = this.config.bypass
-
-      // this.addConnector(ConnectorsTypes.essential, () => {
-      //   const GenericBypassService = require('./utils/bypass/generic');
-      //   this.bypass.generic = new GenericBypassService(this, generic);
-      // }, 'bypass.generic');
     }
 
     const { slrAnonymous } = this.config.bypass;

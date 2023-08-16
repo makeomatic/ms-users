@@ -12,7 +12,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
  * @apiParam (Payload) {String} data.userKey - user id, token or orther identificator required 3rd party auth api
  */
 async function authBypass({ params, log }) {
-  const { schema, userKey, init } = params;
+  const { schema, userKey, init, organizationId } = params;
   const [schemaName, account] = schema.split(':');
 
   const api = schemaName.startsWith('generic')
@@ -23,7 +23,7 @@ async function authBypass({ params, log }) {
     throw new HttpStatusError(412, `${schemaName} auth disabled`);
   }
 
-  const response = await api.authenticate(userKey, { account, init });
+  const response = await api.authenticate(userKey, { account, init, organizationId });
   log.debug({ response }, 'verified session & signed in');
   return response;
 }

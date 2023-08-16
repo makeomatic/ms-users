@@ -1,4 +1,4 @@
-const { ErrorUserNotFound } = require('../../constants');
+const { ErrorUserNotFound, ErrorOrganizationNotFound } = require('../../constants');
 
 class GenericBypassService {
   constructor(service, config) {
@@ -24,7 +24,7 @@ class GenericBypassService {
     return this.service.dispatch('login', { params });
   }
 
-  async registerUser(userId, userName) {
+  async registerUser(userId, userName, organizationId) {
     const params = {
       activate: true,
       skipPassword: true,
@@ -32,6 +32,7 @@ class GenericBypassService {
       audience: this.audience,
       metadata: {
         name: userName,
+        organizationId
       },
     };
 
@@ -46,7 +47,7 @@ class GenericBypassService {
     }
   }
 
-  async signIn(userId, userName) {
+  async signIn(userId, userName, organizationId) {
     this.log.debug({ userId, userName, bypassProvider: this.bypassProvider }, 'trying to sign in');
 
     try {
@@ -63,7 +64,7 @@ class GenericBypassService {
 
     this.log.debug({ userId, userName, bypassProvider: this.bypassProvider }, 'user not exists. Registring user');
 
-    return this.registerUser(userId, userName);
+    return this.registerUser(userId, userName, organizationId);
   }
 
   /**
@@ -75,8 +76,13 @@ class GenericBypassService {
    * @param {*} { account } userName
    * @returns
    */
-  async authenticate(userId, { account }) {
-    const user = await this.signIn(userId, account);
+  async authenticate(userId, { account, organizationId }) {
+
+    if(!organizationId) {
+      throw ErrorOrganizationNotFound
+    }
+    
+    const user = await this.signIn(userId, account, organizationId);
 
     return user;
   }

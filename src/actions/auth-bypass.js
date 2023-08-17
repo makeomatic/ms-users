@@ -14,10 +14,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 async function authBypass({ params, log }) {
   const { schema, userKey, init, organizationId } = params;
   const [schemaName, account] = schema.split(':');
-
-  const api = schemaName.startsWith('generic')
-    ? this.bypass.generic[schemaName.split('/')[1]]  // schemaName => `generic/<provider>`
-    : this.bypass[schemaName];
+  const api = this.bypass[schemaName];
 
   if (!api) {
     throw new HttpStatusError(412, `${schemaName} auth disabled`);

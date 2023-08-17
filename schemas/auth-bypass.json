@@ -5,7 +5,7 @@
   "properties": {
     "schema": {
       "type": "string",
-      "pattern": "^generic\/[a-zA-Z0-9\\-_\\.]|[a-zA-Z0-9\\-_\\.]+:[a-zA-Z0-9\\-_\\.]+$"
+      "pattern": "^[a-zA-Z0-9\\-_\\.]+:[a-zA-Z0-9\\-_\\.]+$"
     },
     "userKey": {
       "type": "string",

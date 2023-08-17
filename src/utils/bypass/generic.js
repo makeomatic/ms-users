@@ -10,13 +10,13 @@ class GenericBypassService {
     this.log = this.service.log.child({ bypass: this.bypassProvider });
   }
 
-  addBypassPrefix(userId) {
-    return `g/${this.bypassProvider}-${userId}`;
+  static userPrefix(organizationId, userId) {
+    return `g/${organizationId}-${userId}`;
   }
 
-  async login(userId) {
+  async login(organizationId, userId) {
     const params = {
-      username: this.addBypassPrefix(userId),
+      username: GenericBypassService.userPrefix(organizationId, userId),
       audience: this.audience,
       isSSO: true,
     };
@@ -28,11 +28,11 @@ class GenericBypassService {
     const params = {
       activate: true,
       skipPassword: true,
-      username: this.addBypassPrefix(userId),
+      username: GenericBypassService.userPrefix(organizationId, userId),
       audience: this.audience,
       metadata: {
         name: userName,
-        organizationId
+        organizationId,
       },
     };
 
@@ -51,7 +51,7 @@ class GenericBypassService {
     this.log.debug({ userId, userName, bypassProvider: this.bypassProvider }, 'trying to sign in');
 
     try {
-      const login = await this.login(userId);
+      const login = await this.login(organizationId, userId);
 
       return login;
     } catch (err) {
@@ -68,20 +68,19 @@ class GenericBypassService {
   }
 
   /**
-   * Generic bypass 
+   * Generic bypass
    *  - sign User by userId and userName (account) and return JWT
    *  - register User if not exists OR login
    *  userId should be authenticated outside of ms-users
    * @param {*} userId
-   * @param {*} { account } userName
+   * @param {*} { account: userName, organizationId }
    * @returns
    */
   async authenticate(userId, { account, organizationId }) {
-
-    if(!organizationId) {
-      throw ErrorOrganizationNotFound
+    if (!organizationId) {
+      throw ErrorOrganizationNotFound;
     }
-    
+
     const user = await this.signIn(userId, account, organizationId);
 
     return user;

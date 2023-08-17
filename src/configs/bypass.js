@@ -26,15 +26,9 @@ exports.bypass = {
       local: {},
     },
   },
-  bypassGeneric: {
-    k: {
-      enabled: false,
-      provider: 'k',
-    },
-    // someGenericProvider: {
-    //   enabled: false,
-    //   provider: 'someGenericProvider',
-    // }
+  generic: {
+    enabled: false,
+    provider: 'generic',
   },
   streamlayer: {
     enabled: false,

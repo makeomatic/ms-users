@@ -1,6 +1,6 @@
 const { strict: assert } = require('assert');
 const { startService, clearRedis } = require('../../../config');
-const { ErrorOrganizationNotFound } = require('../../../../src/constants');
+const { ErrorOrganizationNotFound, USERS_INVALID_TOKEN } = require('../../../../src/constants');
 const { decodeAndVerify } = require('../../../../src/utils/jwt');
 
 describe('/bypass/generic', function bypassGeneric() {
@@ -12,6 +12,7 @@ describe('/bypass/generic', function bypassGeneric() {
 
   let userId;
   let username;
+  let jwt;
 
   before('start', async () => {
     await startService.call(this, {
@@ -32,7 +33,7 @@ describe('/bypass/generic', function bypassGeneric() {
 
   after(clearRedis.bind(this));
 
-  it('register generic provider user', async () => {
+  it('[init] register generic provider user', async () => {
     const repsonse = await this.users.dispatch(action, {
       params: {
         schema: `${schema}:${account}`,
@@ -70,13 +71,31 @@ describe('/bypass/generic', function bypassGeneric() {
 
     userId = metadata[genericUser.audience].id;
     username = metadata[genericUser.audience].username;
+    jwt = repsonse.jwt;
   });
 
-  it('should login already registred generic provider user', async () => {
+  it('[init] should login already registred generic provider user', async () => {
     const repsonse = await this.users.dispatch(action, {
       params: {
         schema: `${schema}:${account}`,
         userKey: genericUser.userId,
+        organizationId,
+        init: true,
+      },
+    });
+
+    assert(repsonse.jwt);
+    assert(repsonse.user.metadata[genericUser.audience]);
+    assert(repsonse.user.metadata[genericUser.audience].id);
+    assert.equal(repsonse.user.metadata[genericUser.audience].id, userId);
+    assert.equal(repsonse.user.metadata[genericUser.audience].username, username);
+  });
+
+  it('should login with JWT', async () => {
+    const repsonse = await this.users.dispatch(action, {
+      params: {
+        schema: `${schema}:${account}`,
+        userKey: jwt,
         organizationId,
       },
     });
@@ -86,6 +105,18 @@ describe('/bypass/generic', function bypassGeneric() {
     assert(repsonse.user.metadata[genericUser.audience].id);
     assert.equal(repsonse.user.metadata[genericUser.audience].id, userId);
     assert.equal(repsonse.user.metadata[genericUser.audience].username, username);
+  });
+
+  it('should not login with JWT', async () => {
+    const login = this.users.dispatch(action, {
+      params: {
+        schema: `${schema}:${account}`,
+        userKey: 'bad_jwt',
+        organizationId,
+      },
+    });
+
+    await assert.rejects(login, USERS_INVALID_TOKEN);
   });
 
   it('should not register user if organizationId not provided', async () => {

@@ -1,4 +1,5 @@
-const { ErrorOrganizationNotFound } = require('../../constants');
+const { decodeAndVerify } = require('../jwt');
+const { ErrorUserNotFound, ErrorOrganizationNotFound } = require('../../constants');
 
 class GenericBypassService {
   constructor(service, config) {
@@ -15,23 +16,13 @@ class GenericBypassService {
   }
 
   async login(organizationId, userId) {
-    this.log.debug({ userId, bypassProvider: this.bypassProvider }, 'trying to sign in');
-
     const params = {
       username: GenericBypassService.userPrefix(organizationId, userId),
       audience: this.audience,
       isSSO: true,
     };
 
-    const login = await this.service.dispatch('login', { params });
-
-    const userMeta = login.user.metadata[this.audience];
-
-    if (userMeta?.organizationId !== organizationId) {
-      throw ErrorOrganizationNotFound;
-    }
-
-    return login;
+    return this.service.dispatch('login', { params });
   }
 
   async registerUser(userId, userName, organizationId) {
@@ -59,23 +50,60 @@ class GenericBypassService {
     }
   }
 
+  async signIn(userId, userName, organizationId) {
+    this.log.debug({ userId, userName, bypassProvider: this.bypassProvider }, 'trying to sign in');
+
+    try {
+      const login = await this.login(organizationId, userId);
+
+      return login;
+    } catch (err) {
+      if (err !== ErrorUserNotFound) {
+        this.log.error({ err, bypassProvider: this.bypassProvider }, 'failed to login');
+
+        throw err;
+      }
+    }
+
+    return this.registerUser(userId, userName, organizationId);
+  }
+
+  async verify(token, organizationId) {
+    const { extra, username } = await decodeAndVerify(this.service, token, this.audience);
+
+    if (extra?.organizationId !== organizationId) {
+      throw ErrorOrganizationNotFound;
+    }
+
+    const params = { username, audience: this.audience };
+    const metadata = await this.service.dispatch('getMetadata', { params });
+
+    return {
+      jwt: token,
+      user: {
+        id: username,
+        metadata,
+      },
+    };
+  }
+
   /**
    * Generic bypass
-   *  - register User if init:true OR login
-   *  - return JWT
-   *  userId should be authenticated outside of ms-users
-   * @param {*} userId
+   *  - signIn User and return JWT
+   *  - verify JWT
+   *  userKey: userId or JWT
+   * @param {*} userKey
    * @param {*} { account: userName, organizationId, init }
    * @returns
    */
-  async authenticate(userId, { account, organizationId, init }) {
+  async authenticate(userKey, { account, organizationId, init }) {
     if (!organizationId) {
       throw ErrorOrganizationNotFound;
     }
 
     return init
-      ? this.registerUser(userId, account, organizationId)
-      : this.login(organizationId, userId);
+      ? this.signIn(userKey, account, organizationId)
+      : this.verify(userKey, organizationId);
   }
 }
 

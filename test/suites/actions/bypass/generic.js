@@ -1,6 +1,7 @@
 const { strict: assert } = require('assert');
 const { startService, clearRedis } = require('../../../config');
 const { ErrorOrganizationNotFound } = require('../../../../src/constants');
+const { decodeAndVerify } = require('../../../../src/utils/jwt');
 
 describe('/bypass/generic', function bypassGeneric() {
   const genericUser = { username: 'FooBar', audience: '*.localhost', userId: '12341234' };
@@ -40,9 +41,7 @@ describe('/bypass/generic', function bypassGeneric() {
       },
     });
 
-    assert(repsonse.jwt);
     assert(repsonse.user.metadata);
-
     const { metadata } = repsonse.user;
 
     assert(metadata[genericUser.audience]);
@@ -50,8 +49,23 @@ describe('/bypass/generic', function bypassGeneric() {
     assert.equal(metadata[genericUser.audience].name, genericUser.username);
     assert(metadata[genericUser.audience]);
     assert(metadata[genericUser.audience].organizationId);
+
     const orgId = metadata[genericUser.audience].organizationId;
-    assert.equal(metadata[genericUser.audience].username, `g/${orgId}-${genericUser.userId}`);
+    const expectedUserName = `g/${orgId}-${genericUser.userId}`;
+
+    assert.equal(metadata[genericUser.audience].username, expectedUserName);
+
+    assert(repsonse.jwt);
+    const decodedToken = await decodeAndVerify(this.users, repsonse.jwt, genericUser.audience);
+    assert(decodedToken.username);
+    assert(decodedToken.aud);
+    assert(decodedToken.extra);
+    assert(decodedToken.extra.username);
+    assert(decodedToken.extra.organizationId);
+
+    assert.equal(decodedToken.aud, genericUser.audience);
+    assert.equal(decodedToken.extra.username, expectedUserName);
+    assert.equal(decodedToken.extra.organizationId, orgId);
 
     userId = metadata[genericUser.audience].id;
     username = metadata[genericUser.audience].username;

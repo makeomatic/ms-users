@@ -23,7 +23,15 @@ class GenericBypassService {
       isSSO: true,
     };
 
-    return this.service.dispatch('login', { params });
+    const login = await this.service.dispatch('login', { params });
+
+    const userMeta = login.user.metadata[this.audience];
+
+    if (userMeta?.organizationId !== organizationId) {
+      throw ErrorOrganizationNotFound;
+    }
+
+    return login;
   }
 
   async registerUser(userId, userName, organizationId) {

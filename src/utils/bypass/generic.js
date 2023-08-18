@@ -1,4 +1,4 @@
-const { ErrorUserNotFound, ErrorOrganizationNotFound } = require('../../constants');
+const { ErrorOrganizationNotFound } = require('../../constants');
 
 class GenericBypassService {
   constructor(service, config) {
@@ -15,6 +15,8 @@ class GenericBypassService {
   }
 
   async login(organizationId, userId) {
+    this.log.debug({ userId, bypassProvider: this.bypassProvider }, 'trying to sign in');
+
     const params = {
       username: GenericBypassService.userPrefix(organizationId, userId),
       audience: this.audience,
@@ -25,6 +27,8 @@ class GenericBypassService {
   }
 
   async registerUser(userId, userName, organizationId) {
+    this.log.debug({ userId, userName, bypassProvider: this.bypassProvider }, 'registring user');
+
     const params = {
       activate: true,
       skipPassword: true,
@@ -47,43 +51,23 @@ class GenericBypassService {
     }
   }
 
-  async signIn(userId, userName, organizationId) {
-    this.log.debug({ userId, userName, bypassProvider: this.bypassProvider }, 'trying to sign in');
-
-    try {
-      const login = await this.login(organizationId, userId);
-
-      return login;
-    } catch (err) {
-      if (err !== ErrorUserNotFound) {
-        this.log.error({ err, bypassProvider: this.bypassProvider }, 'failed to login');
-
-        throw err;
-      }
-    }
-
-    this.log.debug({ userId, userName, bypassProvider: this.bypassProvider }, 'user not exists. Registring user');
-
-    return this.registerUser(userId, userName, organizationId);
-  }
-
   /**
    * Generic bypass
-   *  - sign User by userId and userName (account) and return JWT
-   *  - register User if not exists OR login
+   *  - register User if init:true OR login
+   *  - return JWT
    *  userId should be authenticated outside of ms-users
    * @param {*} userId
-   * @param {*} { account: userName, organizationId }
+   * @param {*} { account: userName, organizationId, init }
    * @returns
    */
-  async authenticate(userId, { account, organizationId }) {
+  async authenticate(userId, { account, organizationId, init }) {
     if (!organizationId) {
       throw ErrorOrganizationNotFound;
     }
 
-    const user = await this.signIn(userId, account, organizationId);
-
-    return user;
+    return init
+      ? this.registerUser(userId, account, organizationId)
+      : this.login(organizationId, userId);
   }
 }
 

@@ -38,6 +38,7 @@ describe('/bypass/generic', function bypassGeneric() {
         schema: `${schema}:${account}`,
         userKey: genericUser.userId,
         organizationId,
+        init: true,
       },
     });
 
@@ -92,6 +93,7 @@ describe('/bypass/generic', function bypassGeneric() {
       params: {
         schema: `${schema}:${account}`,
         userKey: genericUser.userId,
+        init: true,
       },
     });
 

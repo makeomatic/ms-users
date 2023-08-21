@@ -1,22 +1,26 @@
 const fs = require('fs')
+const os = require('os')
 const uid = process.getuid()
 const { execSync } = require('child_process')
 
-try {
-  const dockerHost = execSync(
-    "docker context inspect -f '{{ .Endpoints.docker.Host }}'",
-    { encoding: 'utf-8' })
+if (os.platform() !== 'darwin') {
+  try {
+    const dockerHost = execSync(
+      "docker context inspect -f '{{ .Endpoints.docker.Host }}'",
+      { encoding: 'utf-8' })
 
-  const socket = dockerHost.replace(/^unix:\/+/, '/').replace(/\n/, '')
-  process.env.DOCKER_SOCKET_PATH = socket
-} catch (e) { }
+    const socket = dockerHost.replace(/^unix:\/+/, '/').replace(/\n/, '')
+    console.info('settings socket path to: %s', socket)
+    process.env.DOCKER_SOCKET_PATH = socket
+  } catch (e) { }
+}
 
 exports.node = "18";
 exports.in_one = false;
 exports.auto_compose = true;
 exports.with_local_compose = true;
 exports.tester_flavour = "chrome-tester";
-exports.rebuild = ['ms-flakeless', 'synchronous-worker'];
+exports.rebuild = ['ms-flakeless'];
 exports.nycCoverage = false;
 exports.nycReport = false;
 exports.docker_compose = './test/docker-compose.yml';

@@ -145,6 +145,15 @@ class Users extends Microfleet {
       }, 'bypass.streamlayer');
     }
 
+    if (this.config.bypass.generic.enabled) {
+      const { generic } = this.config.bypass;
+
+      this.addConnector(ConnectorsTypes.essential, () => {
+        const GenericBypassService = require('./utils/bypass/generic');
+        this.bypass.generic = new GenericBypassService(this, generic);
+      }, 'bypass.generic');
+    }
+
     const { slrAnonymous } = this.config.bypass;
     if (slrAnonymous.enabled) {
       this.addConnector(ConnectorsTypes.essential, () => {

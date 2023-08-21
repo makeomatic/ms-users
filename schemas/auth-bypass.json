@@ -13,6 +13,15 @@
     },
     "init": {
       "type": "boolean"
+    },
+    "organizationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": true
     }
   }
 }

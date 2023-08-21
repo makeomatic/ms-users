@@ -28,7 +28,7 @@ exports.bypass = {
   },
   generic: {
     enabled: false,
-    provider: 'generic',
+    subaccounts: [],
   },
   streamlayer: {
     enabled: false,

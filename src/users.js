@@ -146,7 +146,7 @@ class Users extends Microfleet {
     }
 
     if (this.config.bypass.generic.enabled) {
-      const { generic } = this.config.bypass
+      const { generic } = this.config.bypass;
 
       this.addConnector(ConnectorsTypes.essential, () => {
         const GenericBypassService = require('./utils/bypass/generic');

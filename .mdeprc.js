@@ -10,7 +10,6 @@ if (os.platform() !== 'darwin') {
       { encoding: 'utf-8' })
 
     const socket = dockerHost.replace(/^unix:\/+/, '/').replace(/\n/, '')
-    console.info('settings socket path to: %s', socket)
     process.env.DOCKER_SOCKET_PATH = socket
   } catch (e) { }
 }

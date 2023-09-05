@@ -61,6 +61,16 @@ class GenericBypassService {
     }
   }
 
+  async #updateUserMeta(userId, userMeta, profile = {}) {
+    const params = {
+      username: userId,
+      audience: this.audience,
+      metadata: { $set: { ...userMeta, ...profile } },
+    };
+
+    await this.service.dispatch('updateMetadata', { params });
+  }
+
   /**
    *
    * @param {string} userId - external user id
@@ -72,7 +82,11 @@ class GenericBypassService {
     this.log.debug({ userId, profile }, 'trying to login');
 
     try {
-      return await this.#login(organizationId, userId);
+      const { user: { id, metadata } } = await this.#login(organizationId, userId);
+
+      await this.#updateUserMeta(id, metadata[this.audience], profile);
+
+      return this.#login(organizationId, userId);
     } catch (err) {
       if (err !== ErrorUserNotFound) {
         this.log.error({ err }, 'failed to login');

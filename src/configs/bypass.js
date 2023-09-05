@@ -26,6 +26,10 @@ exports.bypass = {
       local: {},
     },
   },
+  generic: {
+    enabled: false,
+    subaccounts: [],
+  },
   streamlayer: {
     enabled: false,
     provider: 'streamlayer',

@@ -6,13 +6,9 @@ const { USERS_MFA_FLAG } = require('../constants');
 
 /**
  * Verifies decoded token
- * @returns {Promise<{
- *  id: String,
- *  metadata: {},
- *  mfa: boolean,
- * }>}
+ * @returns {Promise<{ id: string, metadata: Record<string, Record<string, any>>, mfa?: boolean, extra: Record<string, any>}>}
  */
-async function fromTokenData(service, { username, userId, scopes }, params) {
+async function fromTokenData(service, { username, userId, scopes, extra = {} }, params) {
   if (!userId && !username) {
     throw new HttpStatusError(403, 'forged or expired token');
   }
@@ -37,6 +33,7 @@ async function fromTokenData(service, { username, userId, scopes }, params) {
     id: resolveduserId,
     metadata,
     scopes,
+    extra,
   };
 
   if (hasMFA !== undefined) {

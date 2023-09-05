@@ -1,3 +1,10 @@
+# [16.1.0](https://github.com/makeomatic/ms-users/compare/v16.0.8...v16.1.0) (2023-08-21)
+
+
+### Features
+
+* generic auth bypass ([#596](https://github.com/makeomatic/ms-users/issues/596)) ([e27f9c4](https://github.com/makeomatic/ms-users/commit/e27f9c48078581c9d8e32a489f6a0b1514c5d27f))
+
 ## [16.0.8](https://github.com/makeomatic/ms-users/compare/v16.0.7...v16.0.8) (2023-08-02)
 
 

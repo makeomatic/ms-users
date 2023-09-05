@@ -61,6 +61,16 @@ class GenericBypassService {
     }
   }
 
+  async #updateUserMeta(userId, userMeta, profile = {}) {
+    const params = {
+      username: userId,
+      audience: this.audience,
+      metadata: { $set: { ...userMeta, ...profile } },
+    };
+
+    return this.service.dispatch('updateMetadata', { params });
+  }
+
   /**
    *
    * @param {string} userId - external user id
@@ -68,11 +78,33 @@ class GenericBypassService {
    * @param {string} organizationId - organization id user is associated with
    * @returns
    */
-  async #loginOrRegister(userId, profile, organizationId) {
+  async #loginOrRegister(userId, organizationId, profile = {}) {
     this.log.debug({ userId, profile }, 'trying to login');
 
+    let loginResponse;
+
     try {
-      return await this.#login(organizationId, userId);
+      loginResponse = await this.#login(organizationId, userId);
+      const userMeta = loginResponse.user.metadata[this.audience];
+
+      const propsToUpdate = [];
+      const newProps = Object.keys(profile);
+
+      for (const prop of newProps) {
+        if (!userMeta[prop] || userMeta[prop] !== profile[prop]) {
+          propsToUpdate.push(prop);
+        }
+      }
+
+      if (propsToUpdate.length === 0) {
+        return loginResponse;
+      }
+
+      await this.#updateUserMeta(loginResponse.user.id, userMeta, profile);
+
+      loginResponse.user.metadata[this.audience] = { ...userMeta, ...profile };
+
+      return loginResponse;
     } catch (err) {
       if (err !== ErrorUserNotFound) {
         this.log.error({ err }, 'failed to login');
@@ -130,7 +162,7 @@ class GenericBypassService {
     }
 
     return init
-      ? this.#loginOrRegister(tokenOrUsedId, profile, organizationId)
+      ? this.#loginOrRegister(tokenOrUsedId, organizationId, profile)
       : this.#verify(tokenOrUsedId, organizationId);
   }
 }

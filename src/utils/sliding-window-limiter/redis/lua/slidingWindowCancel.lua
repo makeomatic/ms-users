@@ -10,4 +10,4 @@ if isStringNotEmpty(token) == false then
   return redis.error_reply('invalid `token` argument')
 end
 
-redis.call("ZREM", tokenDbKey, token)
+return redis.call("ZREM", tokenDbKey, token)

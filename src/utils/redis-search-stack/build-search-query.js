@@ -83,6 +83,12 @@ const operator = {
   lte: (_, field, expr) => ({
     query: expression(field, numericRange(expr.gte, expr.lte)),
   }),
+  gt: (_, field, expr) => ({
+    query: expression(field, numericRange(`(${expr.gt}`, expr.lt)),
+  }),
+  lt: (_, field, expr) => ({
+    query: expression(field, numericRange(expr.gt, `(${expr.lt}`)),
+  }),
   exists: (prop, field, _expr, _paramPrefix, options) => {
     if (options.fieldTypes[prop] === FT_TYPE_NUMERIC) {
       return {

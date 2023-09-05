@@ -53,6 +53,13 @@ const { argv } = require('yargs')
     describe: 'date transform format',
     default: 'L',
   })
+  .option('chunk', {
+    describe: 'which field to take for chunking',
+  })
+  .option('chunk-op', {
+    describe: 'which operation to use for chunking',
+    choices: ['gt', 'lt'],
+  })
   .coerce({
     filter: JSON.parse,
   })
@@ -64,8 +71,10 @@ const fs = require('fs');
 const { connect } = require('@microfleet/transport-amqp');
 const csvWriter = require('csv-write-stream');
 const omit = require('lodash/omit');
-const pick = require('lodash/pick');
 const moment = require('moment');
+const assert = require('node:assert');
+const { once } = require('node:events');
+const SonicBoom = require('sonic-boom');
 const getStore = require('../config');
 const { USERS_USERNAME_FIELD } = require('../constants');
 
@@ -78,7 +87,7 @@ const { USERS_USERNAME_FIELD } = require('../constants');
   const route = `${prefix}.list`;
   const iterator = {
     offset: 0,
-    limit: 24,
+    limit: 100,
     audience,
     filter: argv.filter,
     public: argv.public,
@@ -87,6 +96,9 @@ const { USERS_USERNAME_FIELD } = require('../constants');
 
   // add sorting by this
   if (argv.criteria) iterator.criteria = argv.criteria;
+  if (argv.chunk) {
+    assert.equal(iterator.criteria, argv.chunk, 'must sort results on the same field as argv.chunk');
+  }
 
   /**
    * Get transport
@@ -103,7 +115,7 @@ const { USERS_USERNAME_FIELD } = require('../constants');
     case 'console':
       // so it's somewhat easier to read
       output = csvWriter({ headers, separator: argv.separator });
-      output.pipe(process.stdout);
+      output.pipe(new SonicBoom({ fd: process.stdout.fd }));
       break;
 
     case 'csv': {
@@ -119,44 +131,78 @@ const { USERS_USERNAME_FIELD } = require('../constants');
       throw new Error('unknown output');
   }
 
+  const extractUsername = argv.username
+    ? (attributes) => attributes[argv.username] || attributes[USERS_USERNAME_FIELD]
+    : (attributes) => attributes[USERS_USERNAME_FIELD];
+
+  const transformDate = argv.toDate && argv.dateFormat
+    ? (attributes) => {
+      for (const fieldName of argv.toDate) {
+        const value = attributes[fieldName];
+        if (value) {
+          attributes[fieldName] = moment(value).format(argv.dateFormat);
+        }
+      }
+    }
+    : () => { };
+
+  const prepareWriteObject = (id, username, attributes) => {
+    const writeObj = {
+      id,
+      username,
+    };
+
+    for (const field of argv.field) {
+      writeObj[field] = attributes[field];
+    }
+
+    return writeObj;
+  };
+
   /**
    * Writing user to output
    */
   const writeUserToOutput = (user) => {
     const attributes = user.metadata[audience];
     const { id } = user;
-    const username = (argv.username && attributes[argv.username]) || attributes[USERS_USERNAME_FIELD];
+    const username = extractUsername(attributes);
 
-    if (argv.toDate) {
-      argv.toDate.forEach((fieldName) => {
-        const value = attributes[fieldName];
-        if (value) {
-          attributes[fieldName] = moment(value).format(argv.dateFormat);
-        }
-      });
-    }
+    transformDate(attributes);
 
-    output.write(Object.assign(pick(attributes, argv.field), { id, username }));
+    return output.write(prepareWriteObject(id, username, attributes));
   };
 
   /**
    * List users
    */
-  const listUsers = (amqp) => (
-    amqp
-      .publishAndWait(route, iterator, { timeout: 30000 })
-      .then((data) => {
-        data.users.forEach(writeUserToOutput);
+  const listUsers = async (amqp) => {
+    const data = await amqp.publishAndWait(route, iterator, { timeout: 30000 });
+    const { users, page, pages, cursor: baseCursor } = data;
 
-        // prepare for next iteration
-        if (data.page < data.pages) {
-          iterator.offset = data.cursor;
-          return listUsers(amqp);
-        }
+    output.cork();
+    for (const user of users) {
+      if (!writeUserToOutput(user)) {
+        output.uncork();
+        // eslint-disable-next-line no-await-in-loop
+        await once(output, 'drain');
+        output.cork();
+      }
+    }
+    output.uncork();
 
-        return output.end();
-      })
-  );
+    // prepare for next iteration
+    if (page < pages) {
+      if (argv.chunk) {
+        const cursor = users.at(-1).metadata[audience][argv.chunk];
+        iterator.filter[argv.chunk] = { [argv['chunk-op']]: cursor };
+      } else {
+        iterator.offset = baseCursor;
+      }
+      return listUsers(amqp);
+    }
+
+    return output.end();
+  };
 
   const amqp = await getTransport();
   try {

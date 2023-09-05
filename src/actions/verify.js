@@ -27,10 +27,9 @@ async function Verify({ params }) {
   const audience = toArray(params.audience);
   const { token, peek, accessToken } = params;
 
-  const decodedToken = await (accessToken
-    ? jwt.internal(this, token, audience, peek)
-    : jwt.verify(this, token, audience, peek)
-  );
+  const decodedToken = accessToken
+    ? await jwt.internal(this, token, audience, peek)
+    : await jwt.verify(this, token, audience, peek);
 
   return fromTokenData(this, decodedToken, {
     defaultAudience: this.config.jwt.defaultAudience,

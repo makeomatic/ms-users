@@ -1,7 +1,7 @@
 {
   "extends": "makeomatic",
   "parserOptions": {
-    "ecmaVersion": 2021
+    "ecmaVersion": 2022
   },
   "rules": {
     "prefer-destructuring": ["error", {

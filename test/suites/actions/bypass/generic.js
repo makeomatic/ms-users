@@ -8,7 +8,7 @@ describe('/bypass/generic', function bypassGeneric() {
   const genericUserWithProfile = {
     userId: '1234123422',
     profile: { name: 'FooBar' },
-    newProfile: { name: 'FooBaz', email: 'foo@baz.com' } };
+    newProfile: { name: 'FooBaz2', firstName: 'boo' } };
   const account = 'kz';
   const schema = 'generic';
   const action = 'auth-bypass';
@@ -152,7 +152,7 @@ describe('/bypass/generic', function bypassGeneric() {
     assert.equal(repsonse.user.metadata[audience].id, userId);
     assert.equal(repsonse.user.metadata[audience].username, username);
     assert.equal(repsonse.user.metadata[audience].name, genericUserWithProfile.newProfile.name);
-    assert.equal(repsonse.user.metadata[audience].email, genericUserWithProfile.newProfile.email);
+    assert.equal(repsonse.user.metadata[audience].firstName, genericUserWithProfile.newProfile.firstName);
   });
 
   it('should login with JWT', async () => {

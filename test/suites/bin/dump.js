@@ -3,11 +3,21 @@ const path = require('path');
 const fs = require('fs');
 const { startService, clearRedis, initFakeAccounts } = require('../../config');
 const exec = require('../../helpers/exec');
+const { redisIndexDefinitions } = require('../../configs/redis-indexes');
 
 describe('binary: dump', function suite() {
   const binaryPath = path.resolve(__dirname, '../../../src/bin/dump.js');
 
-  before('start service', startService);
+  const ctx = {
+    redisSearch: {
+      enabled: true,
+    },
+    redisIndexDefinitions,
+  };
+
+  before(async function init() {
+    await startService.call(this, ctx);
+  });
   before('register fake users', initFakeAccounts);
   after('stop service & clean db', clearRedis);
 
@@ -72,6 +82,19 @@ describe('binary: dump', function suite() {
     const data = stdoutLines.slice(1, -1);
 
     assert.equal(headers, 'id\tusername\tfirstName\tcreated');
+    data.forEach((line) => {
+      const created = line.split(/\t/)[3];
+      assert.ok(/^\d{2}\/\d{2}\/\d{4}$/.test(created));
+    });
+  });
+
+  it('is able to use chunking', async () => {
+    const stdout = await exec(`${binaryPath} -f firstName -f created -f aa --toDate created --criteria aa --chunk aa --chunk-op gt`);
+    const stdoutLines = stdout.split('\n');
+    const headers = stdoutLines[0];
+    const data = stdoutLines.slice(1, -1);
+
+    assert.equal(headers, 'id\tusername\tfirstName\tcreated\taa');
     data.forEach((line) => {
       const created = line.split(/\t/)[3];
       assert.ok(/^\d{2}\/\d{2}\/\d{4}$/.test(created));

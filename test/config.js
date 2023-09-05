@@ -64,7 +64,7 @@ async function clearRedis(doNotClose = false) {
         node.flushdb()
       ));
     } else {
-      await service.redis.flushdb();
+      // await service.redis.flushdb();
     }
   } finally {
     if (doNotClose === false) {

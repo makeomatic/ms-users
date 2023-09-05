@@ -14,6 +14,7 @@ exports.redisIndexDefinitions = [
       ['username', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['firstName', 'TEXT', 'NOSTEM', 'SORTABLE'],
       ['lastName', 'TEXT', 'NOSTEM', 'SORTABLE'],
+      ['aa', 'NUMERIC', 'SORTABLE'],
     ],
     multiWords: ['username', 'firstName', 'lastName'],
   },

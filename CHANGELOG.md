@@ -1,3 +1,10 @@
+# [16.2.0](https://github.com/makeomatic/ms-users/compare/v16.1.0...v16.2.0) (2023-09-05)
+
+
+### Features
+
+* dump search ([#599](https://github.com/makeomatic/ms-users/issues/599)) ([bb88bb9](https://github.com/makeomatic/ms-users/commit/bb88bb927ee0e14f4c2d309fea83969761891d5d))
+
 # [16.1.0](https://github.com/makeomatic/ms-users/compare/v16.0.8...v16.1.0) (2023-08-21)
 
 

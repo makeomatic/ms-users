@@ -91,7 +91,7 @@ class GenericBypassService {
       const newProps = Object.keys(profile);
 
       for (const prop of newProps) {
-        if (!userMeta[prop]) {
+        if (!userMeta[prop] || userMeta[prop] !== profile[prop]) {
           propsToUpdate.push(prop);
         }
       }

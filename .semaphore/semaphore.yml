@@ -18,7 +18,7 @@ global_job_config:
     commands:
       - set -e
       - sem-version node 18
-      - curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm@8
+      - npm install -g pnpm@8
       - checkout
       - cache restore node-$(checksum pnpm-lock.yaml)
       - pnpm i --frozen-lockfile --prefer-offline --ignore-scripts

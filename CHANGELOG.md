@@ -1,3 +1,10 @@
+## [16.2.1](https://github.com/makeomatic/ms-users/compare/v16.2.0...v16.2.1) (2023-10-05)
+
+
+### Bug Fixes
+
+* increase user alias to 30 chars ([#600](https://github.com/makeomatic/ms-users/issues/600)) ([eff6089](https://github.com/makeomatic/ms-users/commit/eff60896aaeb40d17edf0d48ad372cdf51b7f8c6))
+
 # [16.2.0](https://github.com/makeomatic/ms-users/compare/v16.1.0...v16.2.0) (2023-09-05)
 
 

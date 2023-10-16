@@ -1,9 +1,14 @@
-const { HttpStatusError } = require('common-errors');
 const reduce = require('lodash/reduce');
 const Promise = require('bluebird');
 const zipObject = require('lodash/zipObject');
+
 const resolveUserId = require('./resolve-user-id');
-const { USERS_PASSWORD_FIELD, USERS_ID_FIELD, FIELDS_TO_STRINGIFY } = require('../../constants');
+const {
+  USERS_PASSWORD_FIELD,
+  USERS_ID_FIELD,
+  FIELDS_TO_STRINGIFY,
+  ErrorUserIdNotFound,
+} = require('../../constants');
 const safeParse = require('../safe-parse');
 
 const { hasOwnProperty } = Object.prototype;
@@ -38,13 +43,13 @@ function hasAnyData(data) {
 
 function verifyIdOnly(data) {
   if (data === null) {
-    throw new HttpStatusError(404, `"${this.userKey}" does not exist`);
+    throw ErrorUserIdNotFound(this.userKey);
   }
 }
 
 function handleNotFound(data) {
   if (data === null || hasAnyData(data) === false) {
-    throw new HttpStatusError(404, `"${this.userKey}" does not exist`);
+    throw ErrorUserIdNotFound(this.userKey);
   }
 }
 

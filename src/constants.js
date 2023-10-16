@@ -1,5 +1,7 @@
 const { HttpStatusError, NotFoundError } = require('common-errors');
 
+const E_USER_ID_NOT_FOUND = 'E_USER_ID_NOT_FOUND';
+
 module.exports = exports = {
   // indices
   USERS_INDEX: 'user-iterator-set',
@@ -88,6 +90,11 @@ module.exports = exports = {
   ErrorUserNotFound: new HttpStatusError(404, 'username not found'),
   ErrorUserNotMember: new HttpStatusError(404, 'username not member of organization'),
   ErrorInvitationExpiredOrUsed: new HttpStatusError(400, 'Invitation has expired or already been used'),
+  ErrorUserIdNotFound: (userId) => {
+    const error = new HttpStatusError(404, `"${userId}" does not exist`);
+    error.code = E_USER_ID_NOT_FOUND;
+    return error;
+  },
 
   // Internal errors
   ErrorSearchIndexNotFound: (audience) => new NotFoundError(
@@ -147,6 +154,8 @@ exports.USERS_AUDIENCE_MISMATCH.code = 'E_TKN_AUDIENCE_MISMATCH';
 exports.USERS_JWT_ACCESS_REQUIRED.code = 'E_TKN_ACCESS_TOKEN_REQUIRED';
 exports.USERS_JWT_REFRESH_REQUIRED.code = 'E_TKN_REFRESH_TOKEN_REQUIRED';
 exports.USERS_JWT_STATELESS_REQUIRED.code = 'E_STATELESS_NOT_ENABLED';
+
+exports.E_USER_ID_NOT_FOUND = E_USER_ID_NOT_FOUND;
 
 exports.SSO_PROVIDERS = [
   exports.USERS_SSO_FACEBOOK_FIELD,

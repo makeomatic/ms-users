@@ -32,6 +32,7 @@ describe('#requestPassword', function requestPasswordSuite() {
     await assert.rejects(this.users.dispatch('requestPassword', { params: { username: 'noob' } }), {
       name: 'HttpStatusError',
       statusCode: 404,
+      code: 'E_USER_ID_NOT_FOUND',
     });
   });
 

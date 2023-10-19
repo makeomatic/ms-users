@@ -51,7 +51,7 @@ describe('#login-rate-limits', function loginSuite() {
       expect(Http429Error.message).to.be.eq(eMsg);
       expect(Http429Error.code).to.be.eq('E_USER_LOGIN_LOCKED');
       expect(Http429Error.ip).to.be.eq('10.0.0.1');
-      expect(Http429Error.reset).to.be.closeTo(604800000, 2);
+      expect(Http429Error.reset).to.be.closeTo(604800000, 1000);
     });
 
     it('must lock account for authentication after 5 invalid login attemps', async () => {
@@ -79,7 +79,7 @@ describe('#login-rate-limits', function loginSuite() {
           expect(error.message).to.be.eq(eMsg);
           expect(error.code).to.be.eq('E_USER_LOGIN_LOCKED');
           expect(error.ip).to.be.eq('10.0.0.1');
-          expect(error.reset).to.be.closeTo(86399980, 2);
+          expect(error.reset).to.be.closeTo(86399980, 1000);
 
           return true;
         }

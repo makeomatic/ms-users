@@ -50,8 +50,8 @@ describe('#login-rate-limits', function loginSuite() {
       const Http429Error = Http429[0];
       expect(Http429Error.message).to.be.eq(eMsg);
       expect(Http429Error.code).to.be.eq('E_USER_LOGIN_LOCKED');
-      expect(Http429Error.ip).to.be.eq('10.0.0.1');
-      expect(Http429Error.reset).to.be.closeTo(604800000, 1000);
+      expect(Http429Error.detail.ip).to.be.eq('10.0.0.1');
+      expect(Http429Error.detail.reset).to.be.closeTo(604800000, 1000);
     });
 
     it('must lock account for authentication after 5 invalid login attemps', async () => {
@@ -78,8 +78,8 @@ describe('#login-rate-limits', function loginSuite() {
           expect(error.statusCode).to.be.eq(429);
           expect(error.message).to.be.eq(eMsg);
           expect(error.code).to.be.eq('E_USER_LOGIN_LOCKED');
-          expect(error.ip).to.be.eq('10.0.0.1');
-          expect(error.reset).to.be.closeTo(86399980, 1000);
+          expect(error.detail.ip).to.be.eq('10.0.0.1');
+          expect(error.detail.reset).to.be.closeTo(86399980, 1000);
 
           return true;
         }
@@ -155,7 +155,7 @@ describe('#login-rate-limits', function loginSuite() {
       const Http429Error = Http429[0];
       expect(Http429Error.message).to.be.eq(eMsg);
       expect(Http429Error.code).to.be.eq('E_USER_LOGIN_LOCKED_FOREVER');
-      expect(Http429Error.ip).to.be.eq('10.0.0.1');
+      expect(Http429Error.detail.ip).to.be.eq('10.0.0.1');
     });
 
     it('must lock account for authentication after 5 invalid login attemps', async () => {
@@ -175,14 +175,16 @@ describe('#login-rate-limits', function loginSuite() {
 
       await Promise.all(promises);
 
-      await assert.rejects(this.users
-        .dispatch('login', { params: { ...userWithRemoteIP } }), {
-        name: 'HttpStatusError',
-        statusCode: 429,
-        message: eMsg,
-        code: 'E_USER_LOGIN_LOCKED_FOREVER',
-        ip: '10.0.0.1',
-      });
+      await assert.rejects(
+        this.users.dispatch('login', { params: { ...userWithRemoteIP } }),
+        {
+          name: 'HttpStatusError',
+          statusCode: 429,
+          message: eMsg,
+          code: 'E_USER_LOGIN_LOCKED_FOREVER',
+          detail: { ip: '10.0.0.1' },
+        }
+      );
 
       return Promise.all(promises);
     });

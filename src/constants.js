@@ -104,8 +104,7 @@ module.exports = exports = {
     const error = new HttpStatusError(429, `You are locked from making login attempts for ${duration} from ipaddress '${ip}'`);
 
     error.code = E_USER_LOGIN_LOCKED;
-    error.ip = ip;
-    error.reset = reset;
+    error.detail = { ip, reset };
 
     return error;
   },
@@ -113,7 +112,7 @@ module.exports = exports = {
     const error = new HttpStatusError(429, `You are locked from making login attempts forever from ipaddress '${ip}'`);
 
     error.code = E_USER_LOGIN_LOCKED_FOREVER;
-    error.ip = ip;
+    error.detail = { ip };
 
     return error;
   },

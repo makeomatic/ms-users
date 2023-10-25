@@ -1,4 +1,9 @@
 const { HttpStatusError, NotFoundError } = require('common-errors');
+const moment = require('moment');
+
+const E_USER_ID_NOT_FOUND = 'E_USER_ID_NOT_FOUND';
+const E_USER_LOGIN_LOCKED = 'E_USER_LOGIN_LOCKED';
+const E_USER_LOGIN_LOCKED_FOREVER = 'E_USER_LOGIN_LOCKED_FOREVER';
 
 module.exports = exports = {
   // indices
@@ -89,6 +94,29 @@ module.exports = exports = {
   ErrorUserNotMember: new HttpStatusError(404, 'username not member of organization'),
   ErrorInvitationExpiredOrUsed: new HttpStatusError(400, 'Invitation has expired or already been used'),
 
+  ErrorUserIdNotFound: (userId) => {
+    const error = new HttpStatusError(404, `"${userId}" does not exist`);
+    error.code = E_USER_ID_NOT_FOUND;
+    return error;
+  },
+  ErrorUserLoginLocked: (ip, reset) => {
+    const duration = moment().add(reset, 'milliseconds').toNow(true);
+    const error = new HttpStatusError(429, `You are locked from making login attempts for ${duration} from ipaddress '${ip}'`);
+
+    error.code = E_USER_LOGIN_LOCKED;
+    error.detail = { ip, reset };
+
+    return error;
+  },
+  ErrorUserLoginLockedForever: (ip) => {
+    const error = new HttpStatusError(429, `You are locked from making login attempts forever from ipaddress '${ip}'`);
+
+    error.code = E_USER_LOGIN_LOCKED_FOREVER;
+    error.detail = { ip };
+
+    return error;
+  },
+
   // Internal errors
   ErrorSearchIndexNotFound: (audience) => new NotFoundError(
     `Search index does not registered for '${audience}'. You need to create it in the config file`
@@ -147,6 +175,10 @@ exports.USERS_AUDIENCE_MISMATCH.code = 'E_TKN_AUDIENCE_MISMATCH';
 exports.USERS_JWT_ACCESS_REQUIRED.code = 'E_TKN_ACCESS_TOKEN_REQUIRED';
 exports.USERS_JWT_REFRESH_REQUIRED.code = 'E_TKN_REFRESH_TOKEN_REQUIRED';
 exports.USERS_JWT_STATELESS_REQUIRED.code = 'E_STATELESS_NOT_ENABLED';
+
+exports.E_USER_ID_NOT_FOUND = E_USER_ID_NOT_FOUND;
+exports.E_USER_LOGIN_LOCKED = E_USER_LOGIN_LOCKED;
+exports.E_USER_LOGIN_LOCKED_FOREVER = E_USER_LOGIN_LOCKED_FOREVER;
 
 exports.SSO_PROVIDERS = [
   exports.USERS_SSO_FACEBOOK_FIELD,

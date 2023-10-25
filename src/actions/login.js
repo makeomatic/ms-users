@@ -1,6 +1,5 @@
 const Promise = require('bluebird');
 const { HttpStatusError } = require('common-errors');
-const moment = require('moment');
 const is = require('is');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
@@ -24,6 +23,8 @@ const {
   MFA_TYPE_OPTIONAL,
   USERS_INVALID_TOKEN,
   ErrorUserNotFound,
+  ErrorUserLoginLocked,
+  ErrorUserLoginLockedForever,
 } = require('../constants');
 
 /**
@@ -32,15 +33,12 @@ const {
 const is404 = (e) => parseInt(e.message, 10) === 404;
 
 const handleRateLimitError = (error) => {
-  let message;
   if (error instanceof UserLoginRateLimiter.RateLimitError) {
     if (error.reset === STATUS_FOREVER) {
-      message = `You are locked from making login attempts forever from ipaddress '${error.ip}'`;
+      throw ErrorUserLoginLockedForever(error.ip);
     } else {
-      const duration = moment().add(error.reset, 'milliseconds').toNow(true);
-      message = `You are locked from making login attempts for ${duration} from ipaddress '${error.ip}'`;
+      throw ErrorUserLoginLocked(error.ip, error.reset);
     }
-    throw new HttpStatusError(429, message);
   }
 
   throw error;

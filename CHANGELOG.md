@@ -1,3 +1,10 @@
+# [16.3.0](https://github.com/makeomatic/ms-users/compare/v16.2.1...v16.3.0) (2023-10-25)
+
+
+### Features
+
+* add E_USER_ID_NOT_FOUND code for error if user id was not found ([#601](https://github.com/makeomatic/ms-users/issues/601)) ([9742fc9](https://github.com/makeomatic/ms-users/commit/9742fc9d9ccd975724cf9961a60d736b1f765da6))
+
 ## [16.2.1](https://github.com/makeomatic/ms-users/compare/v16.2.0...v16.2.1) (2023-10-05)
 
 

@@ -1,3 +1,10 @@
+## [16.3.1](https://github.com/makeomatic/ms-users/compare/v16.3.0...v16.3.1) (2023-11-16)
+
+
+### Bug Fixes
+
+* upgrade deps ([#603](https://github.com/makeomatic/ms-users/issues/603)) ([4828334](https://github.com/makeomatic/ms-users/commit/4828334bd93653b654dfba2f4ec865da5654f179))
+
 # [16.3.0](https://github.com/makeomatic/ms-users/compare/v16.2.1...v16.3.0) (2023-10-25)
 
 

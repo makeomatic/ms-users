@@ -19,7 +19,7 @@ const retryConfig = {
 const schema = {
   $id: AJV_SCHEME_ID,
   type: 'object',
-  required: ['userId', 'firstName', 'lastName', 'email'],
+  required: ['userId', 'firstName', 'lastName'],
   properties: {
     userId: {
       anyOf: [{

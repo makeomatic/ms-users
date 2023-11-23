@@ -47,7 +47,7 @@ const userIdGenerator = customAlphabet('123456789', 6);
 
 class MastersService {
   static get sharedFields() {
-    return ['firstName', 'lastName', 'email'];
+    return ['firstName', 'lastName'];
   }
 
   constructor(service, config) {
@@ -162,13 +162,14 @@ class MastersService {
         userProfile
       );
 
-      if (status) {
-        await contacts.add.call(this.service, {
-          contact: { type: 'email', value: userProfile.email },
-          userId: data.user.id,
-        });
-        return data;
-      }
+      // do not store emails 
+      // if (status) {
+      //   await contacts.add.call(this.service, {
+      //     contact: { type: 'email', value: userProfile.email },
+      //     userId: data.user.id,
+      //   });
+      //   return data;
+      // }
 
       return await this.login(userProfile);
     } catch (e) {

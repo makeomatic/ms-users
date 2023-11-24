@@ -163,13 +163,13 @@ class MastersService {
       );
 
       // do not store emails 
-      // if (status) {
+      if (status) {
       //   await contacts.add.call(this.service, {
       //     contact: { type: 'email', value: userProfile.email },
       //     userId: data.user.id,
       //   });
-      //   return data;
-      // }
+        return data;
+      }
 
       return await this.login(userProfile);
     } catch (e) {

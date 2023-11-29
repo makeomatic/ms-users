@@ -27,7 +27,7 @@ t('/bypass/masters', function verifySuite() {
   let profile;
 
   before(async () => {
-    profile = await mastersSimulation.post({ json: {
+    profile = await mastersSimulation.post('authenticate',{ json: {
       provider: 'masters',
       username,
       password: pwd,

@@ -1,3 +1,10 @@
+## [16.3.2](https://github.com/makeomatic/ms-users/compare/v16.3.1...v16.3.2) (2023-11-29)
+
+
+### Bug Fixes
+
+* deps upgrade, node 20.10 container ([a8cafe8](https://github.com/makeomatic/ms-users/commit/a8cafe806afe83fa5ed0ab082a8c33dbc7ddf9aa))
+
 ## [16.3.1](https://github.com/makeomatic/ms-users/compare/v16.3.0...v16.3.1) (2023-11-16)
 
 

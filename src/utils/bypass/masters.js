@@ -5,7 +5,6 @@ const pRetry = require('p-retry');
 const { customAlphabet } = require('nanoid');
 
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists, ErrorUserNotFound } = require('../../constants');
-const contacts = require('../contacts');
 
 const AJV_SCHEME_ID = 'masters.profile';
 
@@ -19,7 +18,7 @@ const retryConfig = {
 const schema = {
   $id: AJV_SCHEME_ID,
   type: 'object',
-  required: ['userId', 'firstName', 'lastName', 'email'],
+  required: ['userId', 'firstName', 'lastName'],
   properties: {
     userId: {
       anyOf: [{
@@ -47,7 +46,7 @@ const userIdGenerator = customAlphabet('123456789', 6);
 
 class MastersService {
   static get sharedFields() {
-    return ['firstName', 'lastName', 'email'];
+    return ['firstName', 'lastName'];
   }
 
   constructor(service, config) {
@@ -162,11 +161,12 @@ class MastersService {
         userProfile
       );
 
+      // do not store emails
       if (status) {
-        await contacts.add.call(this.service, {
-          contact: { type: 'email', value: userProfile.email },
-          userId: data.user.id,
-        });
+      //   await contacts.add.call(this.service, {
+      //     contact: { type: 'email', value: userProfile.email },
+      //     userId: data.user.id,
+      //   });
         return data;
       }
 

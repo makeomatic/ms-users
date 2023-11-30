@@ -1,20 +1,25 @@
 const { strict: assert } = require('assert');
-const got = require('got');
+const { Agent, setGlobalDispatcher, fetch } = require('undici');
 const { startService, clearRedis } = require('../../../config');
 
-const msUsers = got.extend({
-  prefixUrl: 'https://ms-users.local/users/auth-bypass',
-  responseType: 'json',
-  https: { rejectUnauthorized: false },
-});
-
-const mastersSimulation = got.extend({
-  prefixUrl: process.env.MASTERS_SIMULATION_API,
-  responseType: 'json',
-  headers: {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0',
+const agent = new Agent({
+  connect: {
+    rejectUnauthorized: false,
   },
 });
+
+setGlobalDispatcher(agent);
+
+const headers = {
+  'Content-Type': 'application/json',
+};
+const options = {
+  // agent: httpsAgent,
+  method: 'POST',
+  headers,
+};
+const bypassUrl = 'https://ms-users.local/users/auth-bypass';
+const audience = '*.localhost';
 
 const t = process.env.SKIP_MASTERS === 'true'
   ? describe.skip
@@ -27,11 +32,18 @@ t('/bypass/masters', function verifySuite() {
   let profile;
 
   before(async () => {
-    profile = await mastersSimulation.post('authenticate',{ json: {
-      provider: 'masters',
-      username,
-      password: pwd,
-    } }).json();
+    const res = await fetch(process.env.MASTERS_SIMULATION_API, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        provider: 'masters',
+        username,
+        password: pwd,
+      }),
+    });
+
+    assert(res.status === 200, `failed to login to masters simulation: ${res.statusText}`);
+    profile = await res.json();
 
     msg = {
       schema: 'masters:local',
@@ -44,14 +56,14 @@ t('/bypass/masters', function verifySuite() {
     after(() => clearRedis());
 
     it('validates its off', async () => {
-      await assert.rejects(msUsers.post({ json: msg }), (e) => {
-        assert.deepStrictEqual(e.response.body, {
-          statusCode: 412,
-          error: 'Precondition Failed',
-          message: 'masters auth disabled',
-          name: 'HttpStatusError',
-        });
-        return true;
+      const res = await fetch(bypassUrl, { ...options, body: JSON.stringify(msg) });
+      const body = await res.json();
+
+      assert.deepStrictEqual(body, {
+        statusCode: 412,
+        error: 'Precondition Failed',
+        message: 'masters auth disabled',
+        name: 'HttpStatusError',
       });
     });
   });
@@ -89,24 +101,30 @@ t('/bypass/masters', function verifySuite() {
     after(() => clearRedis());
 
     it('signs in with valid session, non-existent user', async () => {
-      const reply = await msUsers.post({ json: msg });
-      assert(reply.body.jwt);
+      const reply = await fetch(bypassUrl, { ...options, body: JSON.stringify(msg) });
+      assert(reply.ok);
+      const body = await reply.json();
+      assert(body.jwt);
+      assert.ifError(body.user.metadata[audience].email);
     });
 
     it('signs in with valid session, existing user', async () => {
-      const reply = await msUsers.post({ json: msg });
-      assert(reply.body.jwt);
+      const reply = await fetch(bypassUrl, { ...options, body: JSON.stringify(msg) });
+      assert(reply.ok);
+      const body = await reply.json();
+      assert(body.jwt);
+      assert.ifError(body.user.metadata[audience].email);
     });
 
     it('rejects on invalid session uid', async () => {
-      await assert.rejects(msUsers.post({ json: { ...msg, userKey: 'invalid' } }), (e) => {
-        assert.deepStrictEqual(e.response.body, {
-          statusCode: 403,
-          error: 'Forbidden',
-          message: 'invalid token',
-          name: 'HttpStatusError',
-        });
-        return true;
+      const res = await fetch(bypassUrl, { ...options, body: JSON.stringify({ ...msg, userKey: 'invalid' }) });
+      const body = await res.json();
+
+      assert.deepStrictEqual(body, {
+        statusCode: 403,
+        error: 'Forbidden',
+        message: 'invalid token',
+        name: 'HttpStatusError',
       });
     });
   });

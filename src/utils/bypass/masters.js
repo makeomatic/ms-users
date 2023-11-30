@@ -5,7 +5,6 @@ const pRetry = require('p-retry');
 const { customAlphabet } = require('nanoid');
 
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists, ErrorUserNotFound } = require('../../constants');
-const contacts = require('../contacts');
 
 const AJV_SCHEME_ID = 'masters.profile';
 
@@ -162,7 +161,7 @@ class MastersService {
         userProfile
       );
 
-      // do not store emails 
+      // do not store emails
       if (status) {
       //   await contacts.add.call(this.service, {
       //     contact: { type: 'email', value: userProfile.email },

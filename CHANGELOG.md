@@ -1,3 +1,10 @@
+## [16.3.3](https://github.com/makeomatic/ms-users/compare/v16.3.2...v16.3.3) (2023-12-07)
+
+
+### Bug Fixes
+
+* do not store emails for masters bypass ([#604](https://github.com/makeomatic/ms-users/issues/604)) ([6039849](https://github.com/makeomatic/ms-users/commit/6039849ddf65fc6e8cc0d30499f199728fa9f952))
+
 ## [16.3.2](https://github.com/makeomatic/ms-users/compare/v16.3.1...v16.3.2) (2023-11-29)
 
 

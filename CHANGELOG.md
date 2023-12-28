@@ -1,3 +1,10 @@
+## [16.3.4](https://github.com/makeomatic/ms-users/compare/v16.3.3...v16.3.4) (2023-12-28)
+
+
+### Bug Fixes
+
+* upgrade @microfleet/amqp-coffee with new libffi ([77ad034](https://github.com/makeomatic/ms-users/commit/77ad034f3d8e8af3869b4c662ddb69fce94a1956))
+
 ## [16.3.3](https://github.com/makeomatic/ms-users/compare/v16.3.2...v16.3.3) (2023-12-07)
 
 

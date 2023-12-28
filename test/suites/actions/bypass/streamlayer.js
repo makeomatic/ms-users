@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { startService, clearRedis } = require('../../../config');
 
 describe('/bypass/streamlayer', function bypassStreamlayer() {

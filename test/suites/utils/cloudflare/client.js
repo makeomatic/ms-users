@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const nock = require('nock');
 
 const { CloudflareClient } = require('../../../../src/utils/cloudflare/client');

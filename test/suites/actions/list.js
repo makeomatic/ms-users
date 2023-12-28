@@ -1,5 +1,6 @@
-const { expect } = require('chai');
+/* eslint-disable no-prototype-builtins */
 const ld = require('lodash');
+const assert = require('node:assert/strict');
 const { faker } = require('@faker-js/faker');
 const redisKey = require('../../../src/utils/key');
 const { redisIndexDefinitions } = require('../../configs/redis-indexes');
@@ -68,23 +69,23 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
           },
         })
         .then((result) => {
-          expect(result.page).to.be.eq(6);
-          expect(result.pages).to.be.eq(11);
-          expect(result.cursor).to.be.eq(61);
-          expect(result.total).to.be.eq(totalUsers);
-          expect(result.users).to.have.lengthOf(10);
+          assert.equal(result.page, 6);
+          assert.equal(result.pages, 11);
+          assert.equal(result.cursor, 61);
+          assert.equal(result.total, totalUsers);
+          assert.equal(result.users.length, 10);
 
           result.users.forEach((user) => {
-            expect(user).to.have.ownProperty('id');
-            expect(user).to.have.ownProperty('metadata');
-            expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-            expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+            assert(user.hasOwnProperty('id'));
+            assert(user.hasOwnProperty('metadata'));
+            assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+            assert(user.metadata[this.audience].hasOwnProperty('lastName'));
           });
 
           const copy = [].concat(result.users);
           copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
 
-          expect(copy).to.be.deep.eq(result.users);
+          assert.deepEqual(copy, result.users);
         });
     });
 
@@ -98,23 +99,23 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
         },
       });
 
-      expect(result.page).to.be.eq(1);
-      expect(result.pages).to.be.eq(11);
-      expect(result.cursor).to.be.eq(10);
-      expect(result.total).to.be.eq(totalUsers);
-      expect(result.users).to.have.lengthOf(10);
+      assert.equal(result.page, 1);
+      assert.equal(result.pages, 11);
+      assert.equal(result.cursor, 10);
+      assert.equal(result.total, totalUsers);
+      assert.equal(result.users.length, 10);
 
       result.users.forEach((user) => {
-        expect(user).to.have.ownProperty('id');
-        expect(user).to.have.ownProperty('metadata');
-        expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-        expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+        assert(user.hasOwnProperty('id'));
+        assert(user.hasOwnProperty('metadata'));
+        assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+        assert(user.metadata[this.audience].hasOwnProperty('lastName'));
       });
 
       const copy = [].concat(result.users);
       copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
 
-      expect(copy).to.be.deep.eq(result.users);
+      assert.deepEqual(copy, result.users);
     });
 
     it('able to list users without any filters: DESC', function test() {
@@ -130,19 +131,19 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
           },
         })
         .then((result) => {
-          expect(result.users).to.have.lengthOf(10);
+          assert.equal(result.users.length, 10);
 
           result.users.forEach((user) => {
-            expect(user).to.have.ownProperty('id');
-            expect(user).to.have.ownProperty('metadata');
-            expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-            expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+            assert(user.hasOwnProperty('id'));
+            assert(user.hasOwnProperty('metadata'));
+            assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+            assert(user.metadata[this.audience].hasOwnProperty('lastName'));
           });
 
           const copy = [].concat(result.users);
           copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
 
-          expect(copy).to.be.deep.eq(result.users);
+          assert.deepEqual(copy, result.users);
         });
     });
 
@@ -161,20 +162,20 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
           },
         })
         .then((result) => {
-          expect(result.users).to.have.length.lte(10);
+          assert(result.users.length <= 10);
 
           result.users.forEach((user) => {
-            expect(user).to.have.ownProperty('id');
-            expect(user).to.have.ownProperty('metadata');
-            expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-            expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+            assert(user.hasOwnProperty('id'));
+            assert(user.hasOwnProperty('metadata'));
+            assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+            assert(user.metadata[this.audience].hasOwnProperty('lastName'));
           });
 
           const copy = [].concat(result.users);
           copy.sort((a, b) => a.id.toLowerCase() > b.id.toLowerCase());
 
           copy.forEach((data) => {
-            expect(data.metadata[this.audience].username).to.match(/an/i);
+            assert(/an/i.test(data.metadata[this.audience].username));
           });
         });
     });
@@ -194,20 +195,20 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
           },
         })
         .then((result) => {
-          expect(result.users).to.have.length.lte(10);
+          assert(result.users.length <= 10);
 
           result.users.forEach((user) => {
-            expect(user).to.have.ownProperty('id');
-            expect(user).to.have.ownProperty('metadata');
-            expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-            expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+            assert(user.hasOwnProperty('id'));
+            assert(user.hasOwnProperty('metadata'));
+            assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+            assert(user.metadata[this.audience].hasOwnProperty('lastName'));
           });
 
           const copy = [].concat(result.users);
           copy.sort((a, b) => a.id.toLowerCase() < b.id.toLowerCase());
 
           copy.forEach((data) => {
-            expect(data.metadata[this.audience].username).to.match(/an/i);
+            assert(/an/i.test(data.metadata[this.audience].username));
           });
         });
     });
@@ -226,19 +227,19 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
           },
         })
         .then((result) => {
-          expect(result.users).to.have.length.lte(10);
+          assert(result.users.length <= 10);
 
           result.users.forEach((user) => {
-            expect(user).to.have.ownProperty('id');
-            expect(user).to.have.ownProperty('metadata');
-            expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-            expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+            assert(user.hasOwnProperty('id'));
+            assert(user.hasOwnProperty('metadata'));
+            assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+            assert(user.metadata[this.audience].hasOwnProperty('lastName'));
           });
 
           const copy = [].concat(result.users);
           copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() > b.metadata[this.audience].firstName.toLowerCase());
 
-          expect(copy).to.be.deep.eq(result.users);
+          assert.deepEqual(copy, result.users);
         });
     });
 
@@ -256,19 +257,19 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
           },
         })
         .then((result) => {
-          expect(result.users).to.have.length.lte(10);
+          assert(result.users.length <= 10);
 
           result.users.forEach((user) => {
-            expect(user).to.have.ownProperty('id');
-            expect(user).to.have.ownProperty('metadata');
-            expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-            expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+            assert(user.hasOwnProperty('id'));
+            assert(user.hasOwnProperty('metadata'));
+            assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+            assert(user.metadata[this.audience].hasOwnProperty('lastName'));
           });
 
           const copy = [].concat(result.users);
           copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
 
-          expect(copy).to.be.deep.eq(result.users);
+          assert.deepEqual(copy, result.users);
         });
     });
 
@@ -289,24 +290,24 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
           },
         })
         .then((result) => {
-          expect(result.users).to.have.length.lte(10);
+          assert(result.users.length <= 10);
 
           result.users.forEach((user) => {
-            expect(user).to.have.ownProperty('id');
-            expect(user).to.have.ownProperty('metadata');
-            expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-            expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+            assert(user.hasOwnProperty('id'));
+            assert(user.hasOwnProperty('metadata'));
+            assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+            assert(user.metadata[this.audience].hasOwnProperty('lastName'));
           });
 
           const copy = [].concat(result.users);
           copy.sort((a, b) => a.metadata[this.audience].firstName.toLowerCase() < b.metadata[this.audience].firstName.toLowerCase());
 
           copy.forEach((data) => {
-            expect(data.id).to.match(/an/i);
-            expect(data.metadata[this.audience].lastName).to.match(/b/i);
+            assert(/an/i.test(data.id));
+            assert(/b/i.test(data.metadata[this.audience].lastName));
           });
 
-          expect(copy).to.be.deep.eq(result.users);
+          assert.deepEqual(copy, result.users);
         });
     });
 
@@ -327,24 +328,24 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
           },
         })
         .then((result) => {
-          expect(result.users).to.have.length.lte(10);
+          assert(result.users.length <= 10);
 
           result.users.forEach((user) => {
-            expect(user).to.have.ownProperty('id');
-            expect(user).to.have.ownProperty('metadata');
-            expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-            expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+            assert(user.hasOwnProperty('id'));
+            assert(user.hasOwnProperty('metadata'));
+            assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+            assert(user.metadata[this.audience].hasOwnProperty('lastName'));
           });
 
           const copy = [].concat(result.users);
           copy.sort((a, b) => a.metadata[this.audience].lastName.toLowerCase() > b.metadata[this.audience].lastName.toLowerCase());
 
           copy.forEach((data) => {
-            expect(data.id).to.match(/an/i);
-            expect(data.metadata[this.audience].lastName).to.match(/b/i);
+            assert(/an/i.test(data.id));
+            assert(/b/i.test(data.metadata[this.audience].lastName));
           });
 
-          expect(copy).to.be.deep.eq(result.users);
+          assert.deepEqual(copy, result.users);
         });
     });
 
@@ -359,17 +360,17 @@ for (const redisSearchEnabled of [false, true]) { // testing in two mode
             },
           })
           .then((result) => {
-            expect(result.page).to.be.eq(1);
-            expect(result.pages).to.be.eq(11);
-            expect(result.cursor).to.be.eq(10);
-            expect(result.total).to.be.eq(totalUsers);
+            assert.equal(result.page, 1);
+            assert.equal(result.pages, 11);
+            assert.equal(result.cursor, 10);
+            assert.equal(result.total, totalUsers);
 
-            expect(result.users).to.have.lengthOf(10);
-            expect(Array.isArray(result.users)).to.be.eq(true);
+            assert.equal(result.users.length, 10);
+            assert.equal(Array.isArray(result.users), true);
 
             // ensure that raw ids are returned
             result.users.forEach((id) => {
-              expect(typeof id).to.be.eq('string');
+              assert.equal(typeof id, 'string');
             });
           });
       });

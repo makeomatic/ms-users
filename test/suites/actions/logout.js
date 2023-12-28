@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { startService, clearRedis, globalRegisterUser, globalAuthUser } = require('../../config');
 
 describe('#logout', function logoutSuite() {

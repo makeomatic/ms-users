@@ -1,7 +1,5 @@
-const Promise = require('bluebird');
-const { expect } = require('chai');
-const { strict: assert } = require('assert');
-const sinon = require('sinon').usingPromise(Promise);
+const assert = require('node:assert/strict');
+const sinon = require('sinon');
 const redisKey = require('../../../src/utils/key');
 const { startService, clearRedis } = require('../../config');
 
@@ -65,7 +63,7 @@ describe('#requestPassword', function requestPasswordSuite() {
   describe('account: active', () => {
     it('must send challenge email for an existing user with an active account', async () => {
       const requestPassword = await this.users.dispatch('requestPassword', { params: { username } });
-      expect(requestPassword).to.be.deep.eq({ success: true });
+      assert.deepEqual(requestPassword, { success: true });
     });
 
     it('must send challenge sms for an existing user with an active account', async () => {

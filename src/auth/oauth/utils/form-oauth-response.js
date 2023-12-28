@@ -2,7 +2,7 @@
  * @typedef { import('@microfleet/core-types').Microfleet } Microfleet
  */
 
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { HttpStatusError } = require('common-errors');
 const attach = require('./attach');
 const providers = require('../providers');

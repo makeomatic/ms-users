@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const path = require('path');
 const fs = require('fs');
 const { startService, clearRedis, initFakeAccounts } = require('../../config');

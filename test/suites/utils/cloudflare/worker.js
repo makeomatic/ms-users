@@ -1,5 +1,5 @@
-const { assert } = require('chai');
 const { once } = require('events');
+const assert = require('node:assert/strict');
 const sinon = require('sinon');
 const prepareUsers = require('../../../../src');
 const { clearRedis } = require('../../../config');

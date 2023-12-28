@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const uuidv4 = require('uuid').v4;
 const md5 = require('md5');
 const { sign } = require('../../../../src/utils/signatures');

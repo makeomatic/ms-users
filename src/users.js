@@ -1,6 +1,6 @@
 const { Microfleet, ConnectorsTypes } = require('@microfleet/core');
 const Mailer = require('ms-mailer-client');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const fsort = require('redis-filtered-sort');
 const { TokenManager } = require('ms-token');
 const Flakeless = require('ms-flakeless');

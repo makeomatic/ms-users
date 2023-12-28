@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { faker } = require('@faker-js/faker');
 const sinon = require('sinon');
 const { startService, clearRedis } = require('../../../config');

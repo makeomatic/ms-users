@@ -1,7 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 const Promise = require('bluebird');
 const times = require('lodash/times');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { startService, clearRedis } = require('../../config');
 
 describe('#register', function registerSuite() {

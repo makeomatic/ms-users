@@ -2,7 +2,7 @@
 
 /* eslint-disable no-console */
 const Redis = require('ioredis');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { updatePassword } = require('../actions/updatePassword');
 const getStore = require('../config');
 

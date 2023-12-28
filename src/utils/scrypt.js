@@ -1,6 +1,6 @@
 const { HttpStatusError } = require('common-errors');
 const Scrypt = require('scrypt-kdf');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const bytes = require('bytes');
 const { USERS_INCORRECT_PASSWORD } = require('../constants');
 

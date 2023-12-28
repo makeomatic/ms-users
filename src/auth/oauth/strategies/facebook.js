@@ -1,5 +1,5 @@
 const Crypto = require('crypto');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const Boom = require('@hapi/boom');
 const { fetch } = require('undici');
 const differenceWith = require('lodash/differenceWith');

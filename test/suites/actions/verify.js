@@ -1,5 +1,4 @@
-const { expect } = require('chai');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { startService, clearRedis } = require('../../config');
 
 describe('#verify', function verifySuite() {
@@ -87,8 +86,8 @@ describe('#verify', function verifySuite() {
         .dispatch('verify', { params: { token: this.token, audience: 'test' } })
         .then((verify) => {
           assert.ok(verify.id);
-          expect(verify.metadata['*.localhost'].username).to.be.eq('v@makeomatic.ru');
-          expect(verify.metadata.test).to.be.deep.eq({
+          assert.equal(verify.metadata['*.localhost'].username, 'v@makeomatic.ru');
+          assert.deepEqual(verify.metadata.test, {
             fine: true,
             bogus: '12938109381092',
           });

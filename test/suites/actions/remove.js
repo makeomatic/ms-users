@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { USERS_ADMIN_ROLE } = require('../../../src/constants');
 const { startService, clearRedis, globalRegisterUser } = require('../../config');
 

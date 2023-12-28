@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { startService, clearRedis } = require('../../../config');
 const { ErrorOrganizationNotFound, USERS_INVALID_TOKEN } = require('../../../../src/constants');
 const { decodeAndVerify } = require('../../../../src/utils/jwt');

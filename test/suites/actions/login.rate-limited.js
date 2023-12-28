@@ -1,12 +1,13 @@
-const { strictEqual, strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const Promise = require('bluebird');
-const { expect } = require('chai');
 const { times, noop } = require('lodash');
 const { startService, clearRedis } = require('../../config');
 
 describe('#login-rate-limits', function loginSuite() {
   const user = { username: 'v@makeomatic.ru', password: 'nicepassword', audience: '*.localhost' };
   const userWithValidPassword = { ...user, password: 'nicepassword1' };
+
+  const isCloseTo = (input, value, diff) => input >= value - diff && input <= value + diff;
 
   describe('positive interval', () => {
     before(() => startService.call(this, {
@@ -44,14 +45,14 @@ describe('#login-rate-limits', function loginSuite() {
       const errors = await Promise.all(promises);
       const Http404 = errors.filter((x) => x.statusCode === 404 && x.name === 'HttpStatusError');
       const Http429 = errors.filter((x) => x.statusCode === 429 && x.name === 'HttpStatusError');
-      expect(Http404.length).to.be.eq(15);
-      expect(Http429.length).to.be.eq(1);
+      assert.equal(Http404.length, 15);
+      assert.equal(Http429.length, 1);
 
       const Http429Error = Http429[0];
-      expect(Http429Error.message).to.be.eq(eMsg);
-      expect(Http429Error.code).to.be.eq('E_USER_LOGIN_LOCKED');
-      expect(Http429Error.detail.ip).to.be.eq('10.0.0.1');
-      expect(Http429Error.detail.reset).to.be.closeTo(604800000, 1000);
+      assert.equal(Http429Error.message, eMsg);
+      assert.equal(Http429Error.code, 'E_USER_LOGIN_LOCKED');
+      assert.equal(Http429Error.detail.ip, '10.0.0.1');
+      assert(isCloseTo(Http429Error.detail.reset, 604800000, 1000));
     });
 
     it('must lock account for authentication after 5 invalid login attemps', async () => {
@@ -74,12 +75,12 @@ describe('#login-rate-limits', function loginSuite() {
       await assert.rejects(
         this.users.dispatch('login', { params: { ...userWithRemoteIP } }),
         (error) => {
-          expect(error.name).to.be.eq('HttpStatusError');
-          expect(error.statusCode).to.be.eq(429);
-          expect(error.message).to.be.eq(eMsg);
-          expect(error.code).to.be.eq('E_USER_LOGIN_LOCKED');
-          expect(error.detail.ip).to.be.eq('10.0.0.1');
-          expect(error.detail.reset).to.be.closeTo(86399980, 1000);
+          assert.equal(error.name, 'HttpStatusError');
+          assert.equal(error.statusCode, 429);
+          assert.equal(error.message, eMsg);
+          assert.equal(error.code, 'E_USER_LOGIN_LOCKED');
+          assert.equal(error.detail.ip, '10.0.0.1');
+          assert(isCloseTo(error.detail.reset, 86399980, 1000));
 
           return true;
         }
@@ -107,7 +108,7 @@ describe('#login-rate-limits', function loginSuite() {
       await Promise.all(promises);
       await this.users.dispatch('login', { params: userWithIPAndValidPassword });
 
-      strictEqual(await this.users.redis.zrange('gl!ip!ctr!10.0.0.1', 0, -1).get('length'), 2);
+      assert.equal(await this.users.redis.zrange('gl!ip!ctr!10.0.0.1', 0, -1).then((x) => x.length), 2);
     });
   });
 
@@ -149,13 +150,13 @@ describe('#login-rate-limits', function loginSuite() {
       const Http404 = errors.filter((x) => x.statusCode === 404 && x.name === 'HttpStatusError');
       const Http429 = errors.filter((x) => x.statusCode === 429 && x.name === 'HttpStatusError');
 
-      expect(Http404.length).to.be.eq(15);
-      expect(Http429.length).to.be.eq(1);
+      assert.equal(Http404.length, 15);
+      assert.equal(Http429.length, 1);
 
       const Http429Error = Http429[0];
-      expect(Http429Error.message).to.be.eq(eMsg);
-      expect(Http429Error.code).to.be.eq('E_USER_LOGIN_LOCKED_FOREVER');
-      expect(Http429Error.detail.ip).to.be.eq('10.0.0.1');
+      assert.equal(Http429Error.message, eMsg);
+      assert.equal(Http429Error.code, 'E_USER_LOGIN_LOCKED_FOREVER');
+      assert.equal(Http429Error.detail.ip, '10.0.0.1');
     });
 
     it('must lock account for authentication after 5 invalid login attemps', async () => {

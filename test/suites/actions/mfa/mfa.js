@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { authenticator } = require('otplib');
 const request = require('request-promise').defaults({
   uri: 'https://ms-users.local/users/_/me',

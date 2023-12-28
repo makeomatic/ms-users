@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { defaultsDeep } = require('lodash');
 const nock = require('nock');
 const url = require('url');

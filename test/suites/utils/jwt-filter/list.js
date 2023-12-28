@@ -1,4 +1,4 @@
-const { assert } = require('chai');
+const assert = require('node:assert/strict');
 
 const { ListFilter } = require('../../../../src/utils/stateless-jwt/list-filter');
 const { Rule } = require('../../../../src/utils/stateless-jwt/rule');
@@ -18,7 +18,7 @@ describe('#jwt-list filter', () => {
   it('should be able to load data', () => {
     const rule = new Rule('foo', 'eq', 'dd');
     list.add(new RuleGroup(rule));
-    assert.strictEqual(list.ruleGroups.length, 1);
+    assert.equal(list.ruleGroups.length, 1);
   });
 
   it('should be able to load batch rules', () => {

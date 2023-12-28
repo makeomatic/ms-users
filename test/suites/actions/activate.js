@@ -1,5 +1,4 @@
-const { expect } = require('chai');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const is = require('is');
 const sinon = require('sinon');
 const { startService, clearRedis } = require('../../config');
@@ -22,9 +21,9 @@ describe('#activate', function activateSuite() {
   it('must reject activation when challenge token is invalid', async function test() {
     const params = { token: 'useless-token' };
     await assert.rejects(this.users.dispatch('activate', { params }), (activation) => {
-      expect(activation.message).to.match(/invalid token/);
-      expect(activation.name).to.be.eq('HttpStatusError');
-      expect(activation.statusCode).to.be.eq(403);
+      assert(/invalid token/.test(activation.message));
+      assert.equal(activation.name, 'HttpStatusError');
+      assert.equal(activation.statusCode, 403);
       return true;
     });
   });
@@ -47,17 +46,17 @@ describe('#activate', function activateSuite() {
     it('must reject activation when account is already activated', async function test() {
       const params = { token: this.token };
       await assert.rejects(this.users.dispatch('activate', { params }), (activation) => {
-        expect(activation.name).to.be.eq('HttpStatusError');
-        expect(activation.message).to.match(new RegExp(`Account ${this.userId} was already activated`));
-        expect(activation.statusCode).to.be.eq(417);
+        assert.equal(activation.name, 'HttpStatusError');
+        assert(new RegExp(`Account ${this.userId} was already activated`).test(activation.message));
+        assert.equal(activation.statusCode, 417);
         return true;
       });
     });
 
     it('must fail to activate already active user with both token and username provided', async function test() {
       await assert.rejects(this.users.dispatch('activate', { params: { token: this.token, username: email } }), (activation) => {
-        expect(activation.name).to.be.eq('HttpStatusError');
-        expect(activation.statusCode).to.be.eq(409);
+        assert.equal(activation.name, 'HttpStatusError');
+        assert.equal(activation.statusCode, 409);
         return true;
       });
     });
@@ -97,8 +96,8 @@ describe('#activate', function activateSuite() {
 
   it('must fail to activate account when only username is specified as a service action and the user does not exist', async function test() {
     await assert.rejects(this.users.dispatch('activate', { params: { username: 'v@makeomatic.ru' } }), (activation) => {
-      expect(activation.name).to.be.eq('HttpStatusError');
-      expect(activation.statusCode).to.be.eq(404);
+      assert.equal(activation.name, 'HttpStatusError');
+      assert.equal(activation.statusCode, 404);
       return true;
     });
   });

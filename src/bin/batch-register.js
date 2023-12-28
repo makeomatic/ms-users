@@ -5,7 +5,7 @@
 
 const is = require('is');
 const Promise = require('bluebird');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { connect } = require('@microfleet/transport-amqp');
 const getStdin = require('get-stdin');
 const omit = require('lodash/omit');

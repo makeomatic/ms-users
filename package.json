@@ -112,7 +112,6 @@
     "apidoc": "^1.2.0",
     "apidoc-plugin-schema": "^0.1.8",
     "c8": "^8.0.1",
-    "chai": "^5.0.0",
     "cheerio": "1.0.0-rc.12",
     "cross-env": "^7.0.3",
     "eslint": "^8.56.0",

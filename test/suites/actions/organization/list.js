@@ -1,6 +1,6 @@
+/* eslint-disable no-prototype-builtins */
 const Promise = require('bluebird');
-const { strict: assert } = require('assert');
-const { expect } = require('chai');
+const assert = require('node:assert/strict');
 const times = require('lodash/times');
 const { startService, clearRedis } = require('../../../config');
 const { createOrganization } = require('../../../helpers/organization');
@@ -33,12 +33,12 @@ describe('#organizations list', function registerSuite() {
         assert.equal(meta.page, 1);
         assert.equal(meta.pages, organizationsLength / opts.limit);
         data.forEach((organization) => {
-          expect(organization).to.have.ownProperty('id');
-          expect(organization).to.have.ownProperty('type');
-          expect(organization.attributes).to.have.ownProperty('id');
-          expect(organization.attributes).to.have.ownProperty('name');
-          expect(organization.attributes).to.have.ownProperty('active');
-          expect(organization.attributes).to.have.ownProperty('metadata');
+          assert(organization.hasOwnProperty('id'));
+          assert(organization.hasOwnProperty('type'));
+          assert(organization.attributes.hasOwnProperty('id'));
+          assert(organization.attributes.hasOwnProperty('name'));
+          assert(organization.attributes.hasOwnProperty('active'));
+          assert(organization.attributes.hasOwnProperty('metadata'));
         });
       });
   });

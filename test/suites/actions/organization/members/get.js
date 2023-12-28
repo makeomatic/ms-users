@@ -1,5 +1,5 @@
-const { strict: assert } = require('assert');
-const { expect } = require('chai');
+/* eslint-disable no-prototype-builtins */
+const assert = require('node:assert/strict');
 const { startService, clearRedis } = require('../../../../config');
 const { createOrganization, createMembers } = require('../../../../helpers/organization');
 
@@ -28,8 +28,8 @@ describe('#get organization member', function registerSuite() {
 
     await this.users.dispatch('organization.members.get', { params: opts })
       .then((response) => {
-        expect(response.data).to.have.ownProperty('id');
-        expect(response.data).to.have.ownProperty('type');
+        assert(response.data.hasOwnProperty('id'));
+        assert(response.data.hasOwnProperty('type'));
         assert.deepEqual(response.data.attributes.username, opts.username);
       });
   });

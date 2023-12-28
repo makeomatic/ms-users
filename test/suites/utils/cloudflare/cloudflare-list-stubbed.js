@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const Promise = require('bluebird');
 const sinon = require('sinon');
 const { startService, clearRedis } = require('../../../config');

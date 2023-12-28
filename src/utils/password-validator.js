@@ -1,5 +1,5 @@
 const zxcvbn = require('zxcvbn');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { NotFoundError } = require('common-errors');
 
 const regKeyword = 'password';

@@ -37,7 +37,7 @@ class CredentialsStore {
      */
     this.config = config;
 
-    const { timeouts, publishOptions } = config;
+    const { timeouts = {}, publishOptions = {} } = config;
 
     /**
      * @type {CredentialsStoreConfig['publishOptions']}

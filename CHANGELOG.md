@@ -1,3 +1,16 @@
+# [16.4.0](https://github.com/makeomatic/ms-users/compare/v16.3.4...v16.4.0) (2023-12-29)
+
+
+### Bug Fixes
+
+* credentials store cachedOptions access ([027c93c](https://github.com/makeomatic/ms-users/commit/027c93ceef033735ba1ae8724701b8536d3c9d2f))
+* put default params for credentialsStore publishOptions ([05766b1](https://github.com/makeomatic/ms-users/commit/05766b1f6538c29a188b2736fd3a461961a4eb1a))
+
+
+### Features
+
+* support publish options for credentials store ([808de77](https://github.com/makeomatic/ms-users/commit/808de77988b73db41d64db9e4a55bb2a159c4ab9))
+
 ## [16.3.4](https://github.com/makeomatic/ms-users/compare/v16.3.3...v16.3.4) (2023-12-28)
 
 

@@ -50,7 +50,8 @@ class CredentialsStore {
   }
 
   async getKey(keyId) {
-    const { tokenGet, cachedOptions: { tokenGet: publishOptions } } = this.config;
+    const publishOptions = this.cachedOptions.tokenGet;
+    const { tokenGet } = this.config;
     const [username, uuid] = keyId.split('.');
     try {
       const { raw } = await this.amqp
@@ -63,7 +64,8 @@ class CredentialsStore {
   }
 
   getCredentials(keyId, audience) {
-    const { apiTokenVerify, cachedOptions: { apiTokenVerify: publishOptions } } = this.config;
+    const publishOptions = this.cachedOptions.apiTokenVerify;
+    const { apiTokenVerify } = this.config;
     const [username, uuid] = keyId.split('.');
 
     return this.amqp.publishAndWait(apiTokenVerify, { username, uuid, audience }, publishOptions);

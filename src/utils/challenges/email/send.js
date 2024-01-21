@@ -21,7 +21,8 @@ module.exports = async function definedSubjectAndSend(props, wait = false) {
 
   const mailSent = mailer
     .sendTemplate(mailingAccount, templateName, ctx)
-    .then(() => ({ sent: true, context }), (err) => ({
+    .then(() => ({ sent: true, context }))
+    .catch((err) => ({
       context,
       err,
       sent: false,

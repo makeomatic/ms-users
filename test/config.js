@@ -39,6 +39,8 @@ async function startService(testConfig = {}) {
 
     const service = this.users = await prepareUsers(testConfig);
 
+    await this.users.register();
+
     this.users.on('plugin:connect:amqp', () => {
       this.users._mailer = { send: () => Promise.resolve() };
     });

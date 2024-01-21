@@ -25,25 +25,8 @@ const { CredentialsStore } = require('./utils/credentials-store');
  * @class Users
  */
 class Users extends Microfleet {
-  /**
-   * @namespace Users
-   * @param  {Object} opts
-   * @return {Users}
-   */
   constructor(opts) {
     super(opts);
-
-    /**
-     * Initializes Admin accounts
-     * @returns {Promise}
-     */
-    this.initAdminAccounts = require('./accounts/init-admin');
-
-    /**
-     * Initializes fake account for dev purposes
-     * @returns {Promise}
-     */
-    this.initFakeAccounts = require('./accounts/init-dev');
 
     // cached ref
     const { config } = this;
@@ -69,6 +52,27 @@ class Users extends Microfleet {
 
     // id generator
     this.flake = new Flakeless(config.flake);
+
+    /**
+     * Initializes Admin accounts
+     * @returns {Promise}
+     */
+    this.initAdminAccounts = require('./accounts/init-admin');
+
+    /**
+     * Initializes fake account for dev purposes
+     * @returns {Promise}
+     */
+    this.initFakeAccounts = require('./accounts/init-dev');
+
+    // bypass holder
+    this.bypass = {};
+  }
+
+  async register() {
+    await super.register();
+
+    const { config } = this;
 
     this.on('plugin:connect:amqp', (amqp) => {
       this.mailer = new Mailer(amqp, config.mailer);
@@ -129,8 +133,6 @@ class Users extends Microfleet {
       attachPasswordKeyword(this);
     });
 
-    this.bypass = {};
-
     if (this.config.bypass.pumpJack.enabled) {
       this.addConnector(ConnectorsTypes.essential, () => {
         const PumpJackService = require('./utils/bypass/pump-jack');
@@ -178,7 +180,7 @@ class Users extends Microfleet {
     }
 
     if (this.config.cfAccessList.enabled) {
-      this.initConsul();
+      await this.initConsul();
 
       this.addConnector(ConnectorsTypes.application, () => {
         this.cfWorker = new CloudflareWorker(this, this.config.cfAccessList);
@@ -193,7 +195,7 @@ class Users extends Microfleet {
 
     const { jwt: { stateless } } = this.config;
     if (stateless.enabled) {
-      this.initJwtRevocationRules();
+      await this.initJwtRevocationRules();
     }
 
     // init account seed
@@ -209,15 +211,15 @@ class Users extends Microfleet {
     }
   }
 
-  initConsul() {
+  async initConsul() {
     if (!this.hasPlugin('consul') && !this.consul) {
       const consul = require('@microfleet/plugin-consul');
-      this.initPlugin(consul, this.config.consul);
+      await this.initPlugin(consul, this.config.consul);
     }
   }
 
-  initJwtRevocationRules() {
-    this.initConsul();
+  async initJwtRevocationRules() {
+    await this.initConsul();
 
     const pluginName = 'JwtRevocationRules';
     const { jwt: { stateless: { storage, jwe } } } = this.config;

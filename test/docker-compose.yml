@@ -38,7 +38,7 @@ services:
       - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock:ro
 
   redis:
-    image: redis/redis-stack-server:6.2.6-v7
+    image: redis/redis-stack-server:6.2.6-v10
 
   consul:
     image: consul:1.6

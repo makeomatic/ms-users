@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fsort = require('redis-filtered-sort');
 const { TokenManager } = require('ms-token');
 const Flakeless = require('ms-flakeless');
+const { glob } = require('glob');
 const deepmerge = require('@fastify/deepmerge')({
   mergeArray(options) {
     const { clone } = options;
@@ -114,9 +115,22 @@ class Users extends Microfleet {
 
     // add migration connector
     if (config.migrations.enabled === true) {
-      this.addConnector(ConnectorsTypes.migration, () => (
-        this.migrate('redis', `${__dirname}/migrations`)
-      ), 'redis-migration');
+      this.addConnector(ConnectorsTypes.migration, async () => {
+        const files = await glob('*/*.{js,ts}', {
+          cwd: `${__dirname}/migrations`,
+          absolute: true,
+          ignore: ['*.d.ts', '**/*.d.ts', '*.d.mts', '**/*.d.mts', '*.d.cts', '**/*.d.cts'],
+        })
+          .then((migrationScripts) => Promise.all(migrationScripts.map(async (script) => {
+            const mod = await import(script);
+
+            this.log.info({ mod }, 'loaded %s', script);
+
+            return mod.default || mod;
+          })));
+
+        await this.migrate('redis', files);
+      }, 'redis-migration');
     }
 
     if (this.config.redisSearch.enabled) {

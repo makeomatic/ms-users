@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const { startService, clearRedis } = require('../../config');
 const redisKey = require('../../../src/utils/key');
+const { setTimeout } = require('node:timers/promises');
 
 describe('#updatePassword', function updatePasswordSuite() {
   const challenge = require('../../../src/utils/challenges/challenge');
@@ -74,15 +75,15 @@ describe('#updatePassword', function updatePasswordSuite() {
     });
 
     describe('token', function tokenSuite() {
-      beforeEach(function pretest() {
-        return challenge
-          .call(this.users, 'email', {
-            id: username,
-            action: 'reset',
-          })
-          .then((data) => {
-            this.token = data.context.token.secret;
-          });
+      beforeEach(async function pretest() {
+        const data = await challenge.call(this.users, 'email', {
+          id: username,
+          action: 'reset',
+        });
+
+        this.token = data.context.token.secret;
+        // cause of issues with amqp
+        await setTimeout(100);
       });
 
       it('must reject updating password for an invalid challenge token', async function test() {

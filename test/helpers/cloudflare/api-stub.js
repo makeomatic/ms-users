@@ -29,6 +29,7 @@ function createCfList(service, config = {}) {
 }
 
 function restoreCfApi() {
+  nock.abortPendingRequests();
   nock.cleanAll();
   nock.restore();
 }

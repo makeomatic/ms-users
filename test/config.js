@@ -68,11 +68,13 @@ async function clearRedis(doNotClose = false) {
     } else {
       await service.redis.flushdb();
     }
-  } finally {
-    if (doNotClose === false) {
-      await service.close();
-      this.users = null;
-    }
+  } catch (err) {
+    console.error('could not cleanup redis')
+  }
+
+  if (doNotClose !== true) {
+    await service.close();
+    this.users = null;
   }
 }
 

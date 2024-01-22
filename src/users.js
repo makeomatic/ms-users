@@ -182,15 +182,15 @@ class Users extends Microfleet {
 
     const bypassesMasters = allowBypasses.filter(([, schemeConfig]) => schemeConfig.provider === 'masters');
 
-    for (const [schemeName, schemeConfig] of bypassesMasters) {
+    for (const [schemaName, schemaConfig] of bypassesMasters) {
       this.addConnector(ConnectorsTypes.essential, () => {
         const MastersService = require('./utils/bypass/masters');
-        this.bypass[schemeName] = new MastersService(this, schemeConfig);
-      }, schemeName);
+        this.bypass[schemaName] = new MastersService(this, schemaConfig);
+      }, schemaName);
 
       this.addDestructor(ConnectorsTypes.database, async () => {
-        await this.bypass[schemeName].close();
-      }, schemeName);
+        await this.bypass[schemaName].close();
+      }, schemaName);
     }
 
     if (this.config.cfAccessList.enabled) {

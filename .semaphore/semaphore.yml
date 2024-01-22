@@ -17,12 +17,12 @@ global_job_config:
   prologue:
     commands:
       - set -e
-      - sem-version node 18
+      - sem-version node --lts
       - npm install -g pnpm@8
       - checkout
       - cache restore node-$(checksum pnpm-lock.yaml)
       - pnpm i --frozen-lockfile --prefer-offline --ignore-scripts
-      - cache store node-$(checksum pnpm-lock.yaml) ~/.pnpm-store
+      - cache store node-$(checksum pnpm-lock.yaml) $(pnpm store path)
 
 blocks:
   - name: tests

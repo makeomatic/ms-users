@@ -14,8 +14,8 @@ if (os.platform() !== 'darwin') {
   } catch (e) { }
 }
 
-exports.node = "20";
-exports.in_one = false;
+exports.node = "20.11";
+exports.in_one = true;
 exports.auto_compose = true;
 exports.with_local_compose = true;
 exports.tester_flavour = "chrome-tester";

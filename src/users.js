@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fsort = require('redis-filtered-sort');
 const { TokenManager } = require('ms-token');
 const Flakeless = require('ms-flakeless');
+const { glob } = require('glob');
 const deepmerge = require('@fastify/deepmerge')({
   mergeArray(options) {
     const { clone } = options;
@@ -25,25 +26,8 @@ const { CredentialsStore } = require('./utils/credentials-store');
  * @class Users
  */
 class Users extends Microfleet {
-  /**
-   * @namespace Users
-   * @param  {Object} opts
-   * @return {Users}
-   */
   constructor(opts) {
     super(opts);
-
-    /**
-     * Initializes Admin accounts
-     * @returns {Promise}
-     */
-    this.initAdminAccounts = require('./accounts/init-admin');
-
-    /**
-     * Initializes fake account for dev purposes
-     * @returns {Promise}
-     */
-    this.initFakeAccounts = require('./accounts/init-dev');
 
     // cached ref
     const { config } = this;
@@ -69,6 +53,27 @@ class Users extends Microfleet {
 
     // id generator
     this.flake = new Flakeless(config.flake);
+
+    /**
+     * Initializes Admin accounts
+     * @returns {Promise}
+     */
+    this.initAdminAccounts = require('./accounts/init-admin');
+
+    /**
+     * Initializes fake account for dev purposes
+     * @returns {Promise}
+     */
+    this.initFakeAccounts = require('./accounts/init-dev');
+
+    // bypass holder
+    this.bypass = {};
+  }
+
+  async register() {
+    await super.register();
+
+    const { config } = this;
 
     this.on('plugin:connect:amqp', (amqp) => {
       this.mailer = new Mailer(amqp, config.mailer);
@@ -110,9 +115,22 @@ class Users extends Microfleet {
 
     // add migration connector
     if (config.migrations.enabled === true) {
-      this.addConnector(ConnectorsTypes.migration, () => (
-        this.migrate('redis', `${__dirname}/migrations`)
-      ), 'redis-migration');
+      this.addConnector(ConnectorsTypes.migration, async () => {
+        const files = await glob('*/*.{js,ts}', {
+          cwd: `${__dirname}/migrations`,
+          absolute: true,
+          ignore: ['*.d.ts', '**/*.d.ts', '*.d.mts', '**/*.d.mts', '*.d.cts', '**/*.d.cts'],
+        })
+          .then((migrationScripts) => Promise.all(migrationScripts.map(async (script) => {
+            const mod = await import(script);
+
+            this.log.info({ mod }, 'loaded %s', script);
+
+            return mod.default || mod;
+          })));
+
+        await this.migrate('redis', files);
+      }, 'redis-migration');
     }
 
     if (this.config.redisSearch.enabled) {
@@ -128,8 +146,6 @@ class Users extends Microfleet {
     this.addConnector(ConnectorsTypes.essential, () => {
       attachPasswordKeyword(this);
     });
-
-    this.bypass = {};
 
     if (this.config.bypass.pumpJack.enabled) {
       this.addConnector(ConnectorsTypes.essential, () => {
@@ -166,19 +182,19 @@ class Users extends Microfleet {
 
     const bypassesMasters = allowBypasses.filter(([, schemeConfig]) => schemeConfig.provider === 'masters');
 
-    for (const [schemeName, schemeConfig] of bypassesMasters) {
+    for (const [schemaName, schemaConfig] of bypassesMasters) {
       this.addConnector(ConnectorsTypes.essential, () => {
         const MastersService = require('./utils/bypass/masters');
-        this.bypass[schemeName] = new MastersService(this, schemeConfig);
-      }, schemeName);
+        this.bypass[schemaName] = new MastersService(this, schemaConfig);
+      }, schemaName);
 
       this.addDestructor(ConnectorsTypes.database, async () => {
-        await this.bypass[schemeName].close();
-      }, schemeName);
+        await this.bypass[schemaName].close();
+      }, schemaName);
     }
 
     if (this.config.cfAccessList.enabled) {
-      this.initConsul();
+      await this.initConsul();
 
       this.addConnector(ConnectorsTypes.application, () => {
         this.cfWorker = new CloudflareWorker(this, this.config.cfAccessList);
@@ -193,7 +209,7 @@ class Users extends Microfleet {
 
     const { jwt: { stateless } } = this.config;
     if (stateless.enabled) {
-      this.initJwtRevocationRules();
+      await this.initJwtRevocationRules();
     }
 
     // init account seed
@@ -209,15 +225,15 @@ class Users extends Microfleet {
     }
   }
 
-  initConsul() {
+  async initConsul() {
     if (!this.hasPlugin('consul') && !this.consul) {
       const consul = require('@microfleet/plugin-consul');
-      this.initPlugin(consul, this.config.consul);
+      await this.initPlugin(consul, this.config.consul);
     }
   }
 
-  initJwtRevocationRules() {
-    this.initConsul();
+  async initJwtRevocationRules() {
+    await this.initConsul();
 
     const pluginName = 'JwtRevocationRules';
     const { jwt: { stateless: { storage, jwe } } } = this.config;

@@ -1,5 +1,5 @@
-/* eslint-disable no-prototype-builtins */
 const assert = require('node:assert/strict');
+const { setTimeout } = require('node:timers/promises');
 const { faker } = require('@faker-js/faker');
 const sinon = require('sinon');
 const { createMembers } = require('../../helpers/organization');
@@ -254,7 +254,9 @@ describe('#user contacts', function registerSuite() {
       .resolves({ queued: true });
 
     await this.users.dispatch('contacts.challenge', { params });
-    const { args: [[path, { ctx: { template: { token: { secret } } } }]] } = amqpStub;
+    await setTimeout(100);
+
+    const [[path, { ctx: { template: { token: { secret } } } }]] = amqpStub.args;
     assert.equal(path, sendMailPath);
 
     const { data: { attributes: { contact: { value, verified }, metadata: { name } } } } = await this.users

@@ -39,6 +39,8 @@ async function startService(testConfig = {}) {
 
     const service = this.users = await prepareUsers(testConfig);
 
+    await this.users.register();
+
     this.users.on('plugin:connect:amqp', () => {
       this.users._mailer = { send: () => Promise.resolve() };
     });
@@ -66,11 +68,13 @@ async function clearRedis(doNotClose = false) {
     } else {
       await service.redis.flushdb();
     }
-  } finally {
-    if (doNotClose === false) {
-      await service.close();
-      this.users = null;
-    }
+  } catch (err) {
+    console.error('could not cleanup redis');
+  }
+
+  if (doNotClose !== true) {
+    await service.close();
+    this.users = null;
   }
 }
 

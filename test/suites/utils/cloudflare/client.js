@@ -17,6 +17,9 @@ describe('Cloudflare client', () => {
 
   after(() => {
     scope.done();
+    scope.persist(false);
+    nock.abortPendingRequests();
+    nock.cleanAll();
     nock.restore();
   });
 

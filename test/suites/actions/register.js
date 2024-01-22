@@ -2,6 +2,7 @@
 const Promise = require('bluebird');
 const times = require('lodash/times');
 const assert = require('node:assert/strict');
+const { setTimeout } = require('node:timers/promises');
 const { startService, clearRedis } = require('../../config');
 
 describe('#register', function registerSuite() {
@@ -140,6 +141,8 @@ describe('#register', function registerSuite() {
 
       assert.ok(id);
       assert.equal(requiresActivation, true);
+
+      await setTimeout(50);
     });
 
     describe('consequent registrations', function suite() {
@@ -474,6 +477,8 @@ describe('#register', function registerSuite() {
 
       assert.ok(id);
       assert.equal(requiresActivation, true);
+
+      await setTimeout(50);
     });
   });
 

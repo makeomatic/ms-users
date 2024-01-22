@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
+const { setTimeout } = require('node:timers/promises');
 const { startService, clearRedis } = require('../../config');
 const redisKey = require('../../../src/utils/key');
-const { setTimeout } = require('node:timers/promises');
 
 describe('#updatePassword', function updatePasswordSuite() {
   const challenge = require('../../../src/utils/challenges/challenge');

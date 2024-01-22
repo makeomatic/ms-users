@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const sinon = require('sinon');
 
 function registerUser(username, opts = {}) {
   return async function register() {
@@ -42,7 +43,7 @@ async function startService(testConfig = {}) {
     await this.users.register();
 
     this.users.on('plugin:connect:amqp', () => {
-      this.users._mailer = { send: () => Promise.resolve() };
+      sinon.stub(this.users.mailer, 'send').resolves();
     });
 
     await this.users.connect();

@@ -80,6 +80,7 @@
     "jwa": "^2.0.0",
     "jwks-rsa": "^3.1.0",
     "lodash": "^4.17.21",
+    "make-promises-safe": "^5.1.0",
     "moment": "^2.30.1",
     "ms-conf": "^8.2.1",
     "ms-flakeless": "^4.7.2",

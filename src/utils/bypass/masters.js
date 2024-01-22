@@ -59,7 +59,7 @@ class MastersService {
 
     this.pools = baseUrls.map((baseUrl) => {
       return [new undici.Pool(baseUrl, {
-        connections: 1,
+        connections: 10,
         pipelining: 1,
         ...this.config.httpPoolOptions,
       }), baseUrl];
@@ -223,12 +223,14 @@ class MastersService {
     let response;
 
     try {
+      const ac = new AbortController();
       const params = {
         headersTimeout: 5000,
         bodyTimeout: 5000,
         ...this.config.httpClientOptions,
         path: `${this.config.authPath}?token=${profileToken}`,
         method: 'GET',
+        signal: ac.signal,
       };
 
       response = await Promise.any(this.pools.map(async ([pool, baseUrl]) => {
@@ -245,6 +247,9 @@ class MastersService {
 
         return output;
       }));
+
+      // cleans up ongoing requests
+      ac.abort();
     } catch (e) {
       this.service.log.warn({ err: e, profileToken }, 'failed to get user from masters');
       throw USERS_INVALID_TOKEN;
@@ -270,7 +275,7 @@ class MastersService {
   }
 
   async close() {
-    await this.pools.map(([pool]) => pool.close());
+    await Promise.all(this.pools.map(([pool]) => pool.destroy()));
   }
 }
 

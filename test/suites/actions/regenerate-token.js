@@ -1,7 +1,6 @@
-const Promise = require('bluebird');
 const assert = require('node:assert/strict');
 const is = require('is');
-const sinon = require('sinon').usingPromise(Promise);
+const sinon = require('sinon');
 const { startService, clearRedis } = require('../../config');
 
 describe('`regenerate-token` action', function regenerateTokenSuite() {

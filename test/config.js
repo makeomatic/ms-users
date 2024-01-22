@@ -69,7 +69,7 @@ async function clearRedis(doNotClose = false) {
       await service.redis.flushdb();
     }
   } catch (err) {
-    console.error('could not cleanup redis')
+    console.error('could not cleanup redis');
   }
 
   if (doNotClose !== true) {

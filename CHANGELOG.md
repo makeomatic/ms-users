@@ -1,3 +1,15 @@
+# [17.0.0](https://github.com/makeomatic/ms-users/compare/v16.4.0...v17.0.0) (2024-01-22)
+
+
+### Features
+
+* upgrade to core@20 ([#606](https://github.com/makeomatic/ms-users/issues/606)) ([22b98bb](https://github.com/makeomatic/ms-users/commit/22b98bbdcf234ed26cdd00ed136c34b35e328238))
+
+
+### BREAKING CHANGES
+
+* microfleet/core@20, min node.js version
+
 # [16.4.0](https://github.com/makeomatic/ms-users/compare/v16.3.4...v16.4.0) (2023-12-29)
 
 

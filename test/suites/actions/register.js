@@ -142,7 +142,7 @@ describe('#register', function registerSuite() {
       assert.ok(id);
       assert.equal(requiresActivation, true);
 
-      await setTimeout(10);
+      await setTimeout(50);
     });
 
     describe('consequent registrations', function suite() {
@@ -478,7 +478,7 @@ describe('#register', function registerSuite() {
       assert.ok(id);
       assert.equal(requiresActivation, true);
 
-      await setTimeout(10);
+      await setTimeout(50);
     });
   });
 

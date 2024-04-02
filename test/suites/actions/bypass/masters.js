@@ -107,7 +107,7 @@ t('/bypass/masters', function verifySuite() {
       const body = await reply.json();
       assert(body.jwt);
       assert.ifError(body.user.metadata[audience].email);
-      assert.ifError(body.user.metadata[extraAudience]); // must not be present - because it wasn't set yet
+      assert.ifError(body.user.metadata[extraAudience].tinodeUserId); // must not be present - because it wasn't set yet
 
       const internalUsername = body.user.id;
 

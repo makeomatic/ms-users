@@ -20,6 +20,7 @@ const options = {
 };
 const bypassUrl = 'https://ms-users.local/users/auth-bypass';
 const audience = '*.localhost';
+const extraAudience = 'secret-meta';
 
 const t = process.env.SKIP_MASTERS === 'true'
   ? describe.skip
@@ -90,6 +91,9 @@ t('/bypass/masters', function verifySuite() {
           credentials: {
             local: {},
           },
+          additionalMeta: {
+            [extraAudience]: ['tinodeUserId']
+          }
         },
       },
       validation: {
@@ -106,6 +110,7 @@ t('/bypass/masters', function verifySuite() {
       const body = await reply.json();
       assert(body.jwt);
       assert.ifError(body.user.metadata[audience].email);
+      assert.ifError(body.user.metadata[extraAudience]); // must not be present - because it's a register call
     });
 
     it('signs in with valid session, existing user', async () => {
@@ -114,6 +119,32 @@ t('/bypass/masters', function verifySuite() {
       const body = await reply.json();
       assert(body.jwt);
       assert.ifError(body.user.metadata[audience].email);
+      assert.ifError(body.user.metadata[extraAudience]); // must not be present - because it wasn't set yet
+
+      const username = body.user.id;
+
+      // assign metadata now
+      await this.users.dispatch('updateMetadata', {
+        params: {
+          username,
+          audience: extraAudience,
+          metadata: {
+            $set: {
+              tinodeUserId: 'super',
+              tinodeUserIdExtraField: 'must not be returned',
+            }
+          }
+        }
+      });
+
+      const replyTwo = await fetch(bypassUrl, { ...options, body: JSON.stringify(msg) });
+      assert(replyTwo.ok);
+      const bodyTwo = await reply.json();
+      assert(bodyTwo.jwt);
+      assert.ifError(bodyTwo.user.metadata[audience].email);
+      assert(bodyTwo.user.metadata[extraAudience]); // it was set earlier, must be present
+      assert.equal(bodyTwo.user.metadata[extraAudience].tinodeUserId, 'super');
+      assert.ifError(bodyTwo.user.metadata[extraAudience].tinodeUserIdExtraField);
     });
 
     it('rejects on invalid session uid', async () => {

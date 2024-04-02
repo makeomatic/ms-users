@@ -25,6 +25,7 @@ exports.bypass = {
     credentials: {
       local: {},
     },
+    additionalMeta: null,
   },
   generic: {
     enabled: false,

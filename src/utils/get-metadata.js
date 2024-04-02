@@ -22,6 +22,13 @@ async function fullMeta(redis, key, resp) {
   }
 }
 
+/**
+ * @param {Microfleet} ctx - microfleet instance
+ * @param {string} userId - retrieve data about this user
+ * @param {string | string[]} _audiences - audiences to return
+ * @param {Record<string, string[]>} fields - fields to return per audience
+ * @returns {Promise<Record<string, Record<string, any>>>} metadata for audience / fields that were requested
+ */
 async function getMetadata(ctx, userId, _audiences, fields = {}) {
   const { redis } = ctx;
   const audiences = isArray(_audiences) ? _audiences : [_audiences];
@@ -49,3 +56,4 @@ async function getMetadata(ctx, userId, _audiences, fields = {}) {
 }
 
 module.exports = getMetadata;
+module.exports.getMetadata = getMetadata;

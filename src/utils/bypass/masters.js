@@ -3,6 +3,7 @@ const { pick } = require('lodash');
 const undici = require('undici');
 const pRetry = require('p-retry');
 const { customAlphabet } = require('nanoid');
+const { getMetadata } = require('../get-metadata');
 
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists, ErrorUserNotFound } = require('../../constants');
 
@@ -49,7 +50,15 @@ class MastersService {
     return ['firstName', 'lastName'];
   }
 
+  /**
+   *
+   * @param {Microfleet} service
+   * @param {any} config
+   */
   constructor(service, config) {
+    /**
+     * @type { import('@microfleet/core').Microfleet }
+     */
     this.service = service;
     this.config = config;
 
@@ -70,6 +79,12 @@ class MastersService {
       this.service.validator.ajv.addSchema(schema);
     }
     this.audience = this.service.config.jwt.defaultAudience;
+
+    /**
+     * @type {{ [audience: string]: string[] } | null}
+     */
+    this.additionalMeta = config.additionalMeta;
+    this.additionalMetaAudiences = this.additionalMeta ? Object.keys(this.additionalMeta) : [];
   }
 
   static userId({ userId }) {
@@ -83,7 +98,18 @@ class MastersService {
       isSSO: true,
     };
 
-    return this.service.dispatch('login', { params });
+    /**
+     * @type {Awaited<ReturnType<import('../../actions/login')>>}
+     */
+    const response = await this.service.dispatch('login', { params });
+
+    // optionally retrieve additional metadata that we are interested in
+    if (this.additionalMeta) {
+      const extraMeta = await getMetadata(this.service, response.user.id, this.additionalMetaAudiences, this.additionalMeta)
+      response.user.metadata = { ...extraMeta, ...response.user.metadata }
+    }
+
+    return response;
   }
 
   static generateStubNames(profile) {

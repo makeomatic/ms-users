@@ -14,7 +14,7 @@ const statelessJWT = require('./stateless-jwt/jwt');
 const { fromTokenData } = require('./verify');
 
 /**
- * @typedef { import("@microfleet/core-types").Microfleet } Microfleet
+ * @typedef { import("@microfleet/core").Microfleet } Microfleet
  * */
 
 const {
@@ -80,6 +80,14 @@ const getAudience = (defaultAudience, audience) => {
 
 const nopFn = () => {};
 
+/**
+ * Signs JWT token for a given user and embeds metadata information in the response
+ *
+ * @param {string} userId
+ * @param {string} [_audience]
+ * @param {boolean} [stateless]
+ * @returns {Promise<{ jwt: string, jwtRefresh: string, user: { id: string, metadata: { [audience: string]: Record<string, any> } } }>}
+ */
 exports.login = async function login(userId, _audience, stateless = false) {
   const { defaultAudience, stateless: { force, enabled } } = this.config.jwt;
 

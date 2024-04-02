@@ -70,38 +70,43 @@ t('/bypass/masters', function verifySuite() {
   });
 
   t('masters enabled', () => {
-    before(() => startService({
-      bypass: {
-        masters: {
-          enabled: true,
+    let service;
+
+    before(async () => {
+      service = await startService({
+        bypass: {
+          masters: {
+            enabled: true,
+          },
+          'masters-dev': {
+            enabled: true,
+            provider: 'masters',
+            baseUrl: 'https://simulation.masters.com',
+            authPath: '/auth/services/id/validateToken',
+            httpPoolOptions: {
+              connections: 1,
+              pipelining: 1,
+            },
+            httpClientOptions: {
+              headersTimeout: 5000,
+              bodyTimeout: 5000,
+            },
+            credentials: {
+              local: {},
+            },
+            additionalMeta: {
+              [extraAudience]: ['tinodeUserId'],
+            },
+          },
         },
-        'masters-dev': {
-          enabled: true,
-          provider: 'masters',
-          baseUrl: 'https://simulation.masters.com',
-          authPath: '/auth/services/id/validateToken',
-          httpPoolOptions: {
-            connections: 1,
-            pipelining: 1,
-          },
-          httpClientOptions: {
-            headersTimeout: 5000,
-            bodyTimeout: 5000,
-          },
-          credentials: {
-            local: {},
-          },
-          additionalMeta: {
-            [extraAudience]: ['tinodeUserId'],
+        validation: {
+          templates: {
+            register: 'UNKNOWN',
           },
         },
-      },
-      validation: {
-        templates: {
-          register: 'UNKNOWN',
-        },
-      },
-    }));
+      });
+    });
+
     after(() => clearRedis());
 
     it('signs in with valid session, non-existent user', async () => {
@@ -124,7 +129,7 @@ t('/bypass/masters', function verifySuite() {
       const internalUsername = body.user.id;
 
       // assign metadata now
-      await this.users.dispatch('updateMetadata', {
+      await service.dispatch('updateMetadata', {
         params: {
           username: internalUsername,
           audience: extraAudience,

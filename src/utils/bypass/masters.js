@@ -105,8 +105,8 @@ class MastersService {
 
     // optionally retrieve additional metadata that we are interested in
     if (this.additionalMeta) {
-      const extraMeta = await getMetadata(this.service, response.user.id, this.additionalMetaAudiences, this.additionalMeta)
-      response.user.metadata = { ...extraMeta, ...response.user.metadata }
+      const extraMeta = await getMetadata(this.service, response.user.id, this.additionalMetaAudiences, this.additionalMeta);
+      response.user.metadata = { ...extraMeta, ...response.user.metadata };
     }
 
     return response;

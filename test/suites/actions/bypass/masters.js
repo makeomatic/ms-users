@@ -92,8 +92,8 @@ t('/bypass/masters', function verifySuite() {
             local: {},
           },
           additionalMeta: {
-            [extraAudience]: ['tinodeUserId']
-          }
+            [extraAudience]: ['tinodeUserId'],
+          },
         },
       },
       validation: {
@@ -121,20 +121,20 @@ t('/bypass/masters', function verifySuite() {
       assert.ifError(body.user.metadata[audience].email);
       assert.ifError(body.user.metadata[extraAudience]); // must not be present - because it wasn't set yet
 
-      const username = body.user.id;
+      const internalUsername = body.user.id;
 
       // assign metadata now
       await this.users.dispatch('updateMetadata', {
         params: {
-          username,
+          username: internalUsername,
           audience: extraAudience,
           metadata: {
             $set: {
               tinodeUserId: 'super',
               tinodeUserIdExtraField: 'must not be returned',
-            }
-          }
-        }
+            },
+          },
+        },
       });
 
       const replyTwo = await fetch(bypassUrl, { ...options, body: JSON.stringify(msg) });

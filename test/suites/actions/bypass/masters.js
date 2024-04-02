@@ -144,7 +144,7 @@ t('/bypass/masters', function verifySuite() {
 
       const replyTwo = await fetch(bypassUrl, { ...options, body: JSON.stringify(msg) });
       assert(replyTwo.ok);
-      const bodyTwo = await reply.json();
+      const bodyTwo = await replyTwo.json();
       assert(bodyTwo.jwt);
       assert.ifError(bodyTwo.user.metadata[audience].email);
       assert(bodyTwo.user.metadata[extraAudience]); // it was set earlier, must be present

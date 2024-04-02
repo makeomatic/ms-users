@@ -77,23 +77,6 @@ t('/bypass/masters', function verifySuite() {
         bypass: {
           masters: {
             enabled: true,
-          },
-          'masters-dev': {
-            enabled: true,
-            provider: 'masters',
-            baseUrl: 'https://simulation.masters.com',
-            authPath: '/auth/services/id/validateToken',
-            httpPoolOptions: {
-              connections: 1,
-              pipelining: 1,
-            },
-            httpClientOptions: {
-              headersTimeout: 5000,
-              bodyTimeout: 5000,
-            },
-            credentials: {
-              local: {},
-            },
             additionalMeta: {
               [extraAudience]: ['tinodeUserId'],
             },

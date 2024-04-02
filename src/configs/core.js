@@ -73,6 +73,7 @@ exports.logger = {
         'params.password',
         'params.token',
         'params.jwt',
+        'response.jwt',
       ],
     },
   },

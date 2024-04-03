@@ -1,3 +1,10 @@
+# [17.1.0](https://github.com/makeomatic/ms-users/compare/v17.0.0...v17.1.0) (2024-04-03)
+
+
+### Features
+
+* return extra meta in bypass auth ([#608](https://github.com/makeomatic/ms-users/issues/608)) ([7d864ba](https://github.com/makeomatic/ms-users/commit/7d864bac8a2204b8f1170fd309eb09c089cbee91))
+
 # [17.0.0](https://github.com/makeomatic/ms-users/compare/v16.4.0...v17.0.0) (2024-01-22)
 
 

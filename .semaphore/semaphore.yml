@@ -1,5 +1,5 @@
 version: v1.0
-name: makeomatic/files
+name: makeomatic/users
 agent:
   machine:
     type: e1-standard-2

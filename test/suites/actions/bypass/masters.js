@@ -20,6 +20,7 @@ const options = {
 };
 const bypassUrl = 'https://ms-users.local/users/auth-bypass';
 const audience = '*.localhost';
+const extraAudience = 'secret-meta';
 
 const t = process.env.SKIP_MASTERS === 'true'
   ? describe.skip
@@ -69,35 +70,26 @@ t('/bypass/masters', function verifySuite() {
   });
 
   t('masters enabled', () => {
-    before(() => startService({
-      bypass: {
-        masters: {
-          enabled: true,
-        },
-        'masters-dev': {
-          enabled: true,
-          provider: 'masters',
-          baseUrl: 'https://simulation.masters.com',
-          authPath: '/auth/services/id/validateToken',
-          httpPoolOptions: {
-            connections: 1,
-            pipelining: 1,
-          },
-          httpClientOptions: {
-            headersTimeout: 5000,
-            bodyTimeout: 5000,
-          },
-          credentials: {
-            local: {},
+    let service;
+
+    before(async () => {
+      service = await startService({
+        bypass: {
+          masters: {
+            enabled: true,
+            additionalMeta: {
+              [extraAudience]: ['tinodeUserId'],
+            },
           },
         },
-      },
-      validation: {
-        templates: {
-          register: 'UNKNOWN',
+        validation: {
+          templates: {
+            register: 'UNKNOWN',
+          },
         },
-      },
-    }));
+      });
+    });
+
     after(() => clearRedis());
 
     it('signs in with valid session, non-existent user', async () => {
@@ -106,6 +98,7 @@ t('/bypass/masters', function verifySuite() {
       const body = await reply.json();
       assert(body.jwt);
       assert.ifError(body.user.metadata[audience].email);
+      assert.ifError(body.user.metadata[extraAudience]); // must not be present - because it's a register call
     });
 
     it('signs in with valid session, existing user', async () => {
@@ -114,6 +107,32 @@ t('/bypass/masters', function verifySuite() {
       const body = await reply.json();
       assert(body.jwt);
       assert.ifError(body.user.metadata[audience].email);
+      assert.ifError(body.user.metadata[extraAudience].tinodeUserId); // must not be present - because it wasn't set yet
+
+      const internalUsername = body.user.id;
+
+      // assign metadata now
+      await service.dispatch('updateMetadata', {
+        params: {
+          username: internalUsername,
+          audience: extraAudience,
+          metadata: {
+            $set: {
+              tinodeUserId: 'super',
+              tinodeUserIdExtraField: 'must not be returned',
+            },
+          },
+        },
+      });
+
+      const replyTwo = await fetch(bypassUrl, { ...options, body: JSON.stringify(msg) });
+      assert(replyTwo.ok);
+      const bodyTwo = await replyTwo.json();
+      assert(bodyTwo.jwt);
+      assert.ifError(bodyTwo.user.metadata[audience].email);
+      assert(bodyTwo.user.metadata[extraAudience]); // it was set earlier, must be present
+      assert.equal(bodyTwo.user.metadata[extraAudience].tinodeUserId, 'super');
+      assert.ifError(bodyTwo.user.metadata[extraAudience].tinodeUserIdExtraField);
     });
 
     it('rejects on invalid session uid', async () => {

@@ -71,5 +71,5 @@ function copyUsernameToContact({
 module.exports = {
   script: copyUsernameToContact,
   min: 8,
-  final: 9,
+  final: 10,
 };

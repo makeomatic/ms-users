@@ -1,3 +1,10 @@
+## [17.1.1](https://github.com/makeomatic/ms-users/compare/v17.1.0...v17.1.1) (2024-07-24)
+
+
+### Bug Fixes
+
+* email to contacts migration ([#609](https://github.com/makeomatic/ms-users/issues/609)) ([cb92622](https://github.com/makeomatic/ms-users/commit/cb926221a7845e6538354914938588425476967f))
+
 # [17.1.0](https://github.com/makeomatic/ms-users/compare/v17.0.0...v17.1.0) (2024-04-03)
 
 

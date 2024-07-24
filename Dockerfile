@@ -24,7 +24,6 @@ RUN \
 
 USER node
 COPY --chown=node:node . /src
-RUN pnpm config set store-dir ~/.pnpm-store
 RUN pnpm install --offline --prod
 
 CMD [ "./node_modules/.bin/mfleet" ]

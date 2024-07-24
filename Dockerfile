@@ -12,8 +12,8 @@ RUN \
     add ca-certificates --virtual .buildDeps git ca-certificates openssl g++ make python3 linux-headers \
   && update-ca-certificates \
   && chown node:node /src \
-  && su -l node -c "cd /src && pnpm fetch --prod" \
-  && su -l node -c "rm -rf ~/.cache && pnpm store prune" \
+  && su node sh -c "cd /src && pnpm fetch --prod" \
+  && su node sh -c "rm -rf ~/.cache && pnpm store prune" \
   && apk del .buildDeps \
   && rm -rf \
     /tmp/* \

@@ -1,3 +1,10 @@
+## [17.1.2](https://github.com/makeomatic/ms-users/compare/v17.1.1...v17.1.2) (2024-08-21)
+
+
+### Bug Fixes
+
+* remove opentracing from bundle ([#610](https://github.com/makeomatic/ms-users/issues/610)) ([2694e09](https://github.com/makeomatic/ms-users/commit/2694e09926287e622533d134b3774ed1042845e2))
+
 ## [17.1.1](https://github.com/makeomatic/ms-users/compare/v17.1.0...v17.1.1) (2024-07-24)
 
 

@@ -141,6 +141,7 @@ t('/bypass/masters', function verifySuite() {
 
       assert.deepStrictEqual(body, {
         statusCode: 403,
+        code: 'E_TKN_INVALID',
         error: 'Forbidden',
         message: 'invalid token',
         name: 'HttpStatusError',

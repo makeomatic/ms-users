@@ -50,6 +50,7 @@ describe('/_/me', function verifySuite() {
       error: {
         name: 'HttpStatusError',
         message: 'invalid token',
+        code: 'E_TKN_INVALID',
         error: 'Forbidden',
         statusCode: 403,
       },
@@ -127,6 +128,7 @@ describe('/_/me', function verifySuite() {
           error: {
             name: 'HttpStatusError',
             message: 'audience mismatch',
+            code: 'E_TKN_AUDIENCE_MISMATCH',
             error: 'Forbidden',
             statusCode: 403,
           },

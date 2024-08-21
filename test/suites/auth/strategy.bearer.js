@@ -32,6 +32,7 @@ describe('/_/me', function verifySuite() {
       },
     }), {
       error: {
+        code: 'E_TKN_INVALID',
         name: 'HttpStatusError',
         message: 'invalid token',
         error: 'Forbidden',

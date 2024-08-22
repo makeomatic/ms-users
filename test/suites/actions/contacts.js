@@ -6,6 +6,7 @@ const { createMembers } = require('../../helpers/organization');
 const { startService, clearRedis } = require('../../config');
 
 describe('#user contacts', function registerSuite() {
+  const audience = '*.localhost';
   before(startService);
   before(async function pretest() {
     this.testUser = {
@@ -18,7 +19,7 @@ describe('#user contacts', function registerSuite() {
     const params = {
       username: this.testUser.username,
       password: '123',
-      audience: '*.localhost',
+      audience,
     };
 
     await this.users.dispatch('register', { params });
@@ -233,7 +234,7 @@ describe('#user contacts', function registerSuite() {
     assert.equal(data[0].value, params2.contact.value);
   });
 
-  it('should validate email', async function test() {
+  it('should validate email and replace username', async function test() {
     const sendMailPath = 'mailer.predefined';
     const params = {
       username: this.testUser.username,
@@ -246,12 +247,16 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
+    const { [audience]: { username } } = await this.users
+      .dispatch('getMetadata', { params: { username: this.testUser.username, audience } });
+
+    assert.equal(username, this.testUser.username);
+
     await this.users.dispatch('contacts.add', { params });
 
     const amqpStub = sinon.stub(this.users.amqp, 'publish');
 
-    amqpStub.withArgs(sendMailPath)
-      .resolves({ queued: true });
+    amqpStub.withArgs(sendMailPath).resolves({ queued: true });
 
     await this.users.dispatch('contacts.challenge', { params });
     await setTimeout(100);
@@ -262,6 +267,11 @@ describe('#user contacts', function registerSuite() {
     const { data: { attributes: { contact: { value, verified }, metadata: { name } } } } = await this.users
       .dispatch('contacts.verify-email', { params: { secret } });
 
+    // get meta of user by updated email
+    const { [audience]: { username: updatedUserName } } = await this.users
+      .dispatch('getMetadata', { params: { username: params.contact.value, audience } });
+
+    assert.equal(updatedUserName, params.contact.value);
     assert.equal(value, params.contact.value);
     assert.strictEqual(verified, true);
     assert.equal(name, params.metadata.name);

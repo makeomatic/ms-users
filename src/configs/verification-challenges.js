@@ -77,4 +77,5 @@ exports.contacts = {
   max: 5,
   onlyOneVerifiedEmail: true,
   allowRemoveFirstContact: true,
+  updateUsername: true,
 };

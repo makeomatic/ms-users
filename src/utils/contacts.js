@@ -3,7 +3,17 @@ const { HttpStatusError } = require('@microfleet/validation');
 const challengeAct = require('./challenges/challenge');
 const redisKey = require('./key');
 const handlePipeline = require('./pipeline-error');
-const { USERS_CONTACTS, USERS_DEFAULT_CONTACT, USERS_ACTION_VERIFY_CONTACT, lockContact } = require('../constants');
+const { getInternalData } = require('./userData');
+const {
+  USERS_CONTACTS,
+  USERS_DEFAULT_CONTACT,
+  USERS_ACTION_VERIFY_CONTACT,
+  USERS_USERNAME_TO_ID,
+  USERS_DATA,
+  USERS_USERNAME_FIELD,
+  USERS_METADATA,
+  lockContact,
+} = require('../constants');
 
 const stringifyObj = (obj) => {
   const newObj = Object.create(null);
@@ -53,6 +63,18 @@ async function removeAllEmailContactsOfUser(redis, userId, exceptEmail) {
     });
     await pipe.exec().then(handlePipeline);
   }
+}
+
+async function replaceUserName(userId, verifiedEmail) {
+  const { config: { jwt: { defaultAudience } } } = this;
+  const internalData = await getInternalData.call(this, userId);
+  const username = internalData[USERS_USERNAME_FIELD];
+  const pipe = this.redis.pipeline();
+  pipe.hdel(USERS_USERNAME_TO_ID, username);
+  pipe.hset(USERS_USERNAME_TO_ID, verifiedEmail, userId);
+  pipe.hset(redisKey(userId, USERS_DATA), USERS_USERNAME_FIELD, verifiedEmail);
+  pipe.hset(redisKey(userId, USERS_METADATA, defaultAudience), USERS_USERNAME_FIELD, JSON.stringify(verifiedEmail));
+  await pipe.exec().then(handlePipeline);
 }
 
 async function add({ userId, contact, skipChallenge = false }) {
@@ -138,6 +160,10 @@ async function verifyEmail({ secret }) {
 
   if (this.config.contacts.onlyOneVerifiedEmail) {
     await removeAllEmailContactsOfUser(redis, userId, contact.value);
+  }
+
+  if (this.config.contacts.updateUsername) {
+    await replaceUserName.call(this, userId, contact.value);
   }
 
   await redis.hset(key, 'verified', 'true');

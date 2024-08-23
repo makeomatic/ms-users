@@ -165,7 +165,7 @@ async function verifyEmail({ secret }) {
       await replaceUserName.call(this, pipe, userId, contact.value);
     }
 
-    await redis.hset(key, 'verified', 'true');
+    pipe.hset(key, 'verified', 'true');
     metadata.contact.verified = true;
     await pipe.exec().then(handlePipeline);
 

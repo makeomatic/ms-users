@@ -111,7 +111,6 @@ async function add({ userId, contact, skipChallenge = false }) {
     if (!contactsCount) {
       pipe.set(redisKey(userId, USERS_DEFAULT_CONTACT), contact.value);
     }
-
     await pipe.exec().then(handlePipeline);
 
     return contactData;

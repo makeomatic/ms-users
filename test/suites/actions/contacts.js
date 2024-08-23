@@ -201,6 +201,17 @@ describe('#user contacts', function registerSuite() {
     assert.equal(list.data.length, 0);
   });
 
+  it('should throw error on add contact with existing email', async function test() {
+    const params = {
+      username: this.testUser.username,
+      contact: {
+        value: 'this.testUser.username',
+        type: 'email',
+      },
+    };
+    await assert.rejects(this.users.dispatch('contacts.add', { params }));
+  });
+
   it('must be able to add user contact with skipChallenge, onlyOneVerifiedEmail', async function test() {
     const params = {
       username: this.testUser.username,

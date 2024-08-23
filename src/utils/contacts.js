@@ -3,7 +3,7 @@ const { HttpStatusError } = require('@microfleet/validation');
 const challengeAct = require('./challenges/challenge');
 const redisKey = require('./key');
 const handlePipeline = require('./pipeline-error');
-const { getInternalData } = require('./userData');
+const { getInternalData, getUserId } = require('./userData');
 const {
   USERS_CONTACTS,
   USERS_DEFAULT_CONTACT,
@@ -13,6 +13,7 @@ const {
   USERS_USERNAME_FIELD,
   USERS_METADATA,
   lockContact,
+  ConflictEMailExists,
 } = require('../constants');
 
 const stringifyObj = (obj) => {
@@ -75,6 +76,19 @@ async function replaceUserName(redisPipe, userId, verifiedEmail) {
 
 async function add({ userId, contact, skipChallenge = false }) {
   this.log.debug({ userId, contact }, 'add contact key params');
+
+  if (this.config.contacts.onlyOneVerifiedEmail) {
+    let userExists = false;
+    try {
+      await getUserId.call(this, contact.value);
+      userExists = true;
+    } catch (e) {
+      this.log.debug('user not exist continue');
+    }
+    if (userExists) {
+      throw ConflictEMailExists;
+    }
+  }
 
   const { redis } = this;
   const contactsCount = await checkLimit.call(this, { userId });

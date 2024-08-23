@@ -156,20 +156,25 @@ async function verifyEmail({ secret }) {
   const { redis, tokenManager } = this;
   const { metadata } = await tokenManager.verify(secret);
   const { userId, contact } = metadata;
+  const lock = await this.dlock.manager.once(lockContact(contact.value));
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
-  if (this.config.contacts.onlyOneVerifiedEmail) {
-    await removeAllEmailContactsOfUser(redis, userId, contact.value);
+  try {
+    if (this.config.contacts.onlyOneVerifiedEmail) {
+      await removeAllEmailContactsOfUser(redis, userId, contact.value);
+    }
+
+    if (this.config.contacts.updateUsername) {
+      await replaceUserName.call(this, userId, contact.value);
+    }
+
+    await redis.hset(key, 'verified', 'true');
+    metadata.contact.verified = true;
+
+    return metadata;
+  } finally {
+    await lock.release();
   }
-
-  if (this.config.contacts.updateUsername) {
-    await replaceUserName.call(this, userId, contact.value);
-  }
-
-  await redis.hset(key, 'verified', 'true');
-  metadata.contact.verified = true;
-
-  return metadata;
 }
 
 async function verify({ userId, contact, token }) {

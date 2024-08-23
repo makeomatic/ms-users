@@ -160,11 +160,9 @@ async function verifyEmail({ secret }) {
     if (this.config.contacts.onlyOneVerifiedEmail) {
       await removeAllEmailContactsOfUser.call(this, pipe, userId, contact.value);
     }
-
     if (this.config.contacts.updateUsername) {
       await replaceUserName.call(this, pipe, userId, contact.value);
     }
-
     pipe.hset(key, 'verified', 'true');
     metadata.contact.verified = true;
     await pipe.exec().then(handlePipeline);

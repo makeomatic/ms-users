@@ -116,9 +116,10 @@ async function add({ userId, contact, skipChallenge = false }) {
 
     return contactData;
   } finally {
-    if (lock !== undefined) {
-      await lock.release();
-    }
+    await lock.release()
+      .catch((e) => {
+        this.log.debug(e, 'failed to release lock');
+      });
   }
 }
 

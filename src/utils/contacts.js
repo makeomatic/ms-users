@@ -77,7 +77,7 @@ async function replaceUserName(redisPipe, userId, verifiedEmail) {
 async function add({ userId, contact, skipChallenge = false }) {
   this.log.debug({ userId, contact }, 'add contact key params');
 
-  if (this.config.contacts.onlyOneVerifiedEmail) {
+  if (!skipChallenge && this.config.contacts.onlyOneVerifiedEmail) {
     let userExists = false;
     try {
       await getUserId.call(this, contact.value);
@@ -111,6 +111,7 @@ async function add({ userId, contact, skipChallenge = false }) {
     if (!contactsCount) {
       pipe.set(redisKey(userId, USERS_DEFAULT_CONTACT), contact.value);
     }
+
     await pipe.exec().then(handlePipeline);
 
     return contactData;

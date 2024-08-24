@@ -133,10 +133,11 @@ describe('#activate', function activateSuite() {
     const user = {
       username: 'v1@makeomatic.ru', password: '123', audience: 'ok', metadata: { wolf: true }, activate: false,
     };
-    await this.users.dispatch('register', { params: user });
+    const resp = await this.users.dispatch('register', { params: user });
 
     const params = {
       username: user.username,
+      skipChallenge: resp.requiresActivation,
       contact: {
         value: user.username,
         type: 'email',

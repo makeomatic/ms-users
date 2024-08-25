@@ -81,6 +81,7 @@ module.exports = exports = {
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorAccountLocked: new HttpStatusError(423, 'Account has been locked'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
+  ConflictEMailExists: new HttpStatusError(409, 'email already exists'),
   ErrorConflictOrganizationExists: new HttpStatusError(409, 'organization already exists'),
   ErrorOrganizationNotFound: new HttpStatusError(404, 'organization not found'),
   ErrorTotpRequired: Object.defineProperty(

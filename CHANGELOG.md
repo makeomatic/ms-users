@@ -1,3 +1,10 @@
+## [17.1.3](https://github.com/makeomatic/ms-users/compare/v17.1.2...v17.1.3) (2024-08-25)
+
+
+### Bug Fixes
+
+* replace username on contact email verify ([#611](https://github.com/makeomatic/ms-users/issues/611)) ([5a17de1](https://github.com/makeomatic/ms-users/commit/5a17de1c2186caec927d583601ca1f18c9d55d00))
+
 ## [17.1.2](https://github.com/makeomatic/ms-users/compare/v17.1.1...v17.1.2) (2024-08-21)
 
 

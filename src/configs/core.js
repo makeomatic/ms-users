@@ -138,3 +138,8 @@ exports.mfa = {
 exports.redisSearch = {
   enabled: false,
 };
+/**
+ * Specifies check empty password on metadata request
+ * @type {boolean}
+ */
+exports.noPasswordCheck = false;

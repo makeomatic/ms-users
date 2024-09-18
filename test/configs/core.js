@@ -71,4 +71,5 @@ module.exports = {
       promisify: true,
     },
   },
+  noPasswordCheck: true,
 };

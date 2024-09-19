@@ -7,7 +7,6 @@ const jwt = require('../utils/jwt');
 const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
-const hasPassword = require('../utils/has-password');
 const { getUserId } = require('../utils/userData');
 const {
   USERS_DATA,
@@ -24,16 +23,17 @@ const Forbidden = new HttpStatusError(403, 'invalid token');
  * Verify that username and password match
  * @param {Object} service
  * @param {String} username
- * @param {String} password
+ * @param {String} currentPassword
  */
-async function usernamePasswordReset(service, username, password) {
+async function usernamePasswordReset(service, username, currentPassword) {
   const internalData = await getInternalData.call(service, username);
 
   await isActive(internalData);
   await isBanned(internalData);
-  await hasPassword(internalData);
 
-  await scrypt.verify(internalData.password, password);
+  if (internalData.password) {
+    await scrypt.verify(internalData.password, currentPassword);
+  }
 
   return internalData[USERS_ID_FIELD];
 }

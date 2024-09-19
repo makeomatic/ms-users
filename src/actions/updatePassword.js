@@ -30,7 +30,6 @@ async function usernamePasswordReset(service, username, currentPassword) {
 
   await isActive(internalData);
   await isBanned(internalData);
-
   if (internalData.password) {
     await scrypt.verify(internalData.password, currentPassword);
   }

@@ -1,4 +1,3 @@
-const is = require('is');
 const getInternalData = require('./get-internal-data');
 const isBanned = require('../is-banned');
 const { USERS_PASSWORD_FIELD } = require('../../constants');
@@ -14,7 +13,7 @@ async function getUserInfo(username, verifyBanned = false, noPasswordCheck = fal
   return {
     userId: internalData.id,
     ...(
-      noPasswordCheck && is.undefined(internalData[USERS_PASSWORD_FIELD]) === true
+      noPasswordCheck && typeof internalData[USERS_PASSWORD_FIELD] === 'undefined'
         ? { noPassword: true }
         : {}
     ),

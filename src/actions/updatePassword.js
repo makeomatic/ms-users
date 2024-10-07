@@ -30,15 +30,14 @@ async function usernamePasswordReset(service, username, currentPassword) {
   const internalData = await getInternalData.call(service, username);
   const { config: { noPasswordCheck } } = service;
 
-  await isActive(internalData);
-  await isBanned(internalData);
+  await Promise.all([
+    isActive(internalData),
+    isBanned(internalData),
+    noPasswordCheck || hasPassword(internalData)
+  ]);
 
-  if (noPasswordCheck) {
-    if (internalData.password) {
-      await scrypt.verify(internalData.password, currentPassword);
-    }
-  } else {
-    await hasPassword(internalData);
+  // if no password is not allowed - it will throw on hasPassword above
+  if (internalData.password) {
     await scrypt.verify(internalData.password, currentPassword);
   }
 

@@ -33,7 +33,7 @@ async function usernamePasswordReset(service, username, currentPassword) {
   await Promise.all([
     isActive(internalData),
     isBanned(internalData),
-    noPasswordCheck || hasPassword(internalData)
+    noPasswordCheck || hasPassword(internalData),
   ]);
 
   // if no password is not allowed - it will throw on hasPassword above
@@ -75,6 +75,9 @@ async function setPassword(service, userId, password) {
  */
 async function updatePassword(request) {
   const { config, redis, tokenManager } = this;
+  if (!config.noPasswordCheck && !request.params.currentPassword) {
+    throw new HttpStatusError(400, 'must have required property currentPassword');
+  }
   const { newPassword: password, remoteip = false } = request.params;
   const invalidateTokens = !!request.params.invalidateTokens;
   const loginRateLimiter = new UserLoginRateLimiter(redis, config.rateLimiters.userLogin);

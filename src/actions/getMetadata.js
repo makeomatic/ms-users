@@ -6,7 +6,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 
 const get = require('../utils/get-value');
 const getMetadata = require('../utils/get-metadata');
-const { getUserId } = require('../utils/userData');
+const { getUserInfo } = require('../utils/userData');
 const { USERS_ALIAS_FIELD } = require('../constants');
 
 const { isArray } = Array;
@@ -37,14 +37,23 @@ function isPublic(audiences) {
  */
 async function retrieveMetadata(username) {
   const { service, audiences, fields, verifyBanned, skipUsernameResolution } = this;
+  const { config: { noPasswordCheck } } = service;
+  let userId;
+  let noPassword;
 
-  const userId = skipUsernameResolution
-    ? username
-    : await getUserId.call(service, username, verifyBanned);
+  if (skipUsernameResolution) {
+    userId = username;
+  } else {
+    ({ userId, noPassword } = await getUserInfo.call(service, username, verifyBanned, noPasswordCheck));
+  }
 
   const metadata = await getMetadata(service, userId, audiences, fields);
 
   this.filter(metadata, username);
+
+  if (noPassword) {
+    metadata.noPassword = true;
+  }
 
   return metadata;
 }

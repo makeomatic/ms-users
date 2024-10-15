@@ -34,7 +34,7 @@ describe('#getMetadata', function getMetadataSuite() {
       return this
         .users
         .dispatch('register', { params: {
-          username: usernameB, password: '123', audience, metadata: { name: 'boredom' },
+          username: usernameB, skipPassword: true, audience, metadata: { name: 'boredom' },
         } })
         .then(({ user }) => {
           this.secondUserId = user.id;
@@ -112,6 +112,7 @@ describe('#getMetadata', function getMetadataSuite() {
         [audience]: {
           username: usernameB,
         },
+        noPassword: true,
       }]);
     });
   });

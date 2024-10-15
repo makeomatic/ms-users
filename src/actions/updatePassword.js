@@ -24,16 +24,22 @@ const Forbidden = new HttpStatusError(403, 'invalid token');
  * Verify that username and password match
  * @param {Object} service
  * @param {String} username
- * @param {String} password
+ * @param {String} currentPassword
  */
-async function usernamePasswordReset(service, username, password) {
+async function usernamePasswordReset(service, username, currentPassword) {
   const internalData = await getInternalData.call(service, username);
+  const { config: { noPasswordCheck } } = service;
 
-  await isActive(internalData);
-  await isBanned(internalData);
-  await hasPassword(internalData);
+  await Promise.all([
+    isActive(internalData),
+    isBanned(internalData),
+    noPasswordCheck || hasPassword(internalData),
+  ]);
 
-  await scrypt.verify(internalData.password, password);
+  // if no password is not allowed - it will throw on hasPassword above
+  if (internalData.password) {
+    await scrypt.verify(internalData.password, currentPassword);
+  }
 
   return internalData[USERS_ID_FIELD];
 }
@@ -69,6 +75,9 @@ async function setPassword(service, userId, password) {
  */
 async function updatePassword(request) {
   const { config, redis, tokenManager } = this;
+  if (!config.noPasswordCheck && !request.params.currentPassword) {
+    throw new HttpStatusError(400, 'must have required property currentPassword');
+  }
   const { newPassword: password, remoteip = false } = request.params;
   const invalidateTokens = !!request.params.invalidateTokens;
   const loginRateLimiter = new UserLoginRateLimiter(redis, config.rateLimiters.userLogin);

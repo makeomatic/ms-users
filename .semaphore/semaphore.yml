@@ -18,7 +18,7 @@ global_job_config:
     commands:
       - set -e
       - sem-version node --lts
-      - npm install -g pnpm@8
+      - npm install -g pnpm@9
       - checkout
       - cache restore node-$(checksum pnpm-lock.yaml)
       - pnpm i --frozen-lockfile --prefer-offline --ignore-scripts

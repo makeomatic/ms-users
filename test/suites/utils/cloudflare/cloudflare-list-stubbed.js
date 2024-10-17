@@ -167,7 +167,7 @@ describe('#cloudflare access-list stubbed', () => {
 
   it('should cleanup all outdated ips', async () => {
     const list = createCfList(service);
-    sandbox.useFakeTimers(Date.now());
+    sandbox.useFakeTimers({ now: Date.now(), toFake: ['setTimeout', 'setInterval'] });
 
     const { id: ipList } = await list.cfApi.createList('test-list-cleanup-outdated');
 
@@ -195,7 +195,7 @@ describe('#cloudflare access-list stubbed', () => {
 
   it('should resync lists', async () => {
     const list = createCfList(service);
-    sandbox.useFakeTimers(Date.now());
+    sandbox.useFakeTimers({ now: Date.now(), toFake: ['setTimeout', 'setInterval'] });
 
     const { id: ipList } = await list.cfApi.createList('test-list-cleanup-outdated');
 

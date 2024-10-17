@@ -13,7 +13,7 @@ describe('#user contacts', function registerSuite() {
       username: faker.internet.email(),
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
-      phone: faker.phone.number('#########'),
+      phone: faker.phone.number({ style: 'international' }).replace(/[^\d]/g, ''),
     };
 
     const params = {
@@ -137,7 +137,7 @@ describe('#user contacts', function registerSuite() {
       username: this.testUser.username,
       token: this.testUser.code2,
       contact: {
-        value: faker.phone.number('#########'),
+        value: faker.phone.number({ style: 'international' }).replace(/[^\d]/g, ''),
         type: 'phone',
       },
     };

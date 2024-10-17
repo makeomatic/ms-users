@@ -57,7 +57,10 @@ t('/bypass/masters', function verifySuite() {
     after(() => clearRedis());
 
     it('validates its off', async () => {
-      const res = await fetch(bypassUrl, { ...options, body: JSON.stringify(msg) });
+      const res = await fetch(bypassUrl, {
+        ...options,
+        body: JSON.stringify(msg),
+      });
       const body = await res.json();
 
       assert.deepStrictEqual(body, {

@@ -262,7 +262,7 @@ describe('#sliding-window-limiter', function SlidingWindowLimiterTestSuite() {
       };
 
       beforeEach(function replaceClock() {
-        clock = sinon.useFakeTimers(200000);
+        clock = sinon.useFakeTimers({ now: 200000, toFake: ['setTimeout', 'setInterval'] });
       });
 
       afterEach(function restoreClock() {
@@ -332,7 +332,7 @@ describe('#sliding-window-limiter', function SlidingWindowLimiterTestSuite() {
       };
 
       beforeEach(function replaceClock() {
-        clock = sinon.useFakeTimers(200000);
+        clock = sinon.useFakeTimers({ now: 200000, toFake: ['setTimeout', 'setInterval'] });
       });
 
       afterEach(function restoreClock() {

@@ -14,7 +14,7 @@ if (os.platform() !== 'darwin') {
   } catch (e) { }
 }
 
-exports.node = "20.15.1";
+exports.node = "20";
 exports.in_one = true;
 exports.auto_compose = true;
 exports.with_local_compose = true;
@@ -36,7 +36,7 @@ exports.extras = {
       NCONF_NAMESPACE: 'MS_USERS',
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1,
       VIRTUAL_HOST: 'ms-users.local',
-      VIRTUAL_PORT: 3000,
+      VIRTUAL_PORT: '3000',
       CERT_NAME: 'default',
       SKIP_FB: process.env.SKIP_FB,
       SKIP_MASTERS: process.env.SKIP_MASTERS,

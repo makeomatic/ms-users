@@ -1,3 +1,15 @@
+# [17.2.0](https://github.com/makeomatic/ms-users/compare/v17.1.3...v17.2.0) (2024-10-27)
+
+
+### Bug Fixes
+
+* update dependencies, run on newer node ([#613](https://github.com/makeomatic/ms-users/issues/613)) ([cbcfc47](https://github.com/makeomatic/ms-users/commit/cbcfc4742fc54b7f6f8d982233ef8f07fc3202d2))
+
+
+### Features
+
+* with empty password check ([#612](https://github.com/makeomatic/ms-users/issues/612)) ([79254ca](https://github.com/makeomatic/ms-users/commit/79254ca82cf5a784d0ce1659f05470726fe3eba5))
+
 ## [17.1.3](https://github.com/makeomatic/ms-users/compare/v17.1.2...v17.1.3) (2024-08-25)
 
 

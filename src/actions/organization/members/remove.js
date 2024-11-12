@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const redisKey = require('../../../utils/key');
-const getUserId = require('../../../utils/userData/get-user-id');
+const getUserId = require('../../../utils/user-data/get-user-id');
 const handlePipeline = require('../../../utils/pipeline-error');
 const { checkOrganizationExists } = require('../../../utils/organization');
 const {

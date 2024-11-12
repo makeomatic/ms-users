@@ -5,7 +5,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 const { sign } = require('../../utils/signatures');
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');
-const { getUserId } = require('../../utils/userData');
+const { getUserId } = require('../../utils/user-data');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET, BEARER_USERNAME_FIELD } = require('../../constants');
 const { serializeTokenData, API_TOKEN_TYPE_SIGN } = require('../../utils/api-token');
 

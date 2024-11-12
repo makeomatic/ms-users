@@ -5,7 +5,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 
 const get = require('../utils/get-value');
 const key = require('../utils/key');
-const { getInternalData } = require('../utils/userData');
+const { getInternalData } = require('../utils/user-data');
 const getMetadata = require('../utils/get-metadata');
 const handlePipeline = require('../utils/pipeline-error');
 const {

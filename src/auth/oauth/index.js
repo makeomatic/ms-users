@@ -6,7 +6,7 @@ const get = require('../../utils/get-value');
 const getUid = require('./utils/uid');
 const refresh = require('./utils/refresh');
 const extractJWT = require('./utils/extract-jwt');
-const { getInternalData } = require('../../utils/userData');
+const { getInternalData } = require('../../utils/user-data');
 
 const { verifyToken, loginAttempt } = require('../../utils/amqp');
 const { Redirect, OAuthError } = require('./utils/errors');

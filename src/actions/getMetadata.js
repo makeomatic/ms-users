@@ -5,9 +5,10 @@ const identity = require('lodash/identity');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const get = require('../utils/get-value');
-const getMetadata = require('../utils/get-metadata');
-const { getUserInfo } = require('../utils/userData');
-const { USERS_ALIAS_FIELD } = require('../constants');
+const { getExtendedMetadata } = require('../utils/get-metadata');
+const { getInternalData } = require('../utils/user-data');
+const isBanned = require('../utils/is-banned');
+const { USERS_ALIAS_FIELD, USERS_ID_FIELD } = require('../constants');
 
 const { isArray } = Array;
 
@@ -37,23 +38,27 @@ function isPublic(audiences) {
  */
 async function retrieveMetadata(username) {
   const { service, audiences, fields, verifyBanned, skipUsernameResolution } = this;
-  const { config: { noPasswordCheck } } = service;
+  let internalData;
   let userId;
-  let noPassword;
 
   if (skipUsernameResolution) {
     userId = username;
   } else {
-    ({ userId, noPassword } = await getUserInfo.call(service, username, verifyBanned, noPasswordCheck));
+    internalData = await getInternalData.call(service, username, verifyBanned);
+
+    if (verifyBanned) {
+      isBanned(internalData);
+    }
+
+    userId = internalData[USERS_ID_FIELD];
   }
 
-  const metadata = await getMetadata(service, userId, audiences, fields);
+  const metadata = await getExtendedMetadata(service, userId, audiences, {
+    fields,
+    internalData,
+  });
 
   this.filter(metadata, username);
-
-  if (noPassword) {
-    metadata.noPassword = true;
-  }
 
   return metadata;
 }

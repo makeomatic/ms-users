@@ -6,7 +6,7 @@ const {
   USERS_ID_FIELD,
   USERS_USERNAME_FIELD,
 } = require('../constants');
-const getMetadata = require('./get-metadata');
+const { getExtendedMetadata } = require('./get-metadata');
 
 const legacyJWT = require('./jwt-legacy');
 const { JoseWrapper } = require('./stateless-jwt/jwe');
@@ -102,7 +102,7 @@ exports.login = async function login(userId, _audience, stateless = false) {
     ? (metadata) => statelessJWT.login(this, userId, audience, metadata)
     : (metadata) => legacyJWT.login(this, userId, audience, metadata);
 
-  const metadata = await getMetadata(this, userId, metadataAudience);
+  const metadata = await getExtendedMetadata(this, userId, metadataAudience);
   const flowResult = await tokenFlow(metadata);
 
   return mapJWT(userId, flowResult, metadata);

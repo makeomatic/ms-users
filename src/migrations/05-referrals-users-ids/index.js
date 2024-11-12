@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const calcSlot = require('cluster-key-slot');
 const { REDIS_TYPE_CLUSTER } = require('@microfleet/plugin-redis-core');
 const { USERS_REFERRAL_INDEX } = require('../../constants');
-const { getUserId } = require('../../utils/userData');
+const { getUserId } = require('../../utils/user-data');
 
 /**
  * Return master node in case of redisCluster to be able to use

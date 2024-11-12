@@ -3,7 +3,7 @@ const mapValues = require('lodash/mapValues');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const redisKey = require('../utils/key');
-const { getInternalData } = require('../utils/userData');
+const { getInternalData } = require('../utils/user-data');
 const handlePipeline = require('../utils/pipeline-error');
 const {
   USERS_DATA, USERS_METADATA,

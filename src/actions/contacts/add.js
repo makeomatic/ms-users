@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 const contacts = require('../../utils/contacts');
-const { getUserId } = require('../../utils/userData');
+const { getUserId } = require('../../utils/user-data');
 
 /**
  * @api {amqp} <prefix>.contacts.add Add User Contact

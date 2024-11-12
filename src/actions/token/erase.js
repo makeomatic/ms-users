@@ -4,7 +4,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 const redisKey = require('../../utils/key');
 const handlePipelineError = require('../../utils/pipeline-error');
 const { USERS_API_TOKENS, USERS_API_TOKENS_ZSET } = require('../../constants');
-const { getUserId } = require('../../utils/userData');
+const { getUserId } = require('../../utils/user-data');
 
 function eraseData(userId) {
   const { redis, token } = this;

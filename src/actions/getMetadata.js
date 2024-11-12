@@ -55,7 +55,7 @@ async function retrieveMetadata(username) {
 
   const metadata = await getExtendedMetadata(service, userId, audiences, {
     fields,
-    internalData,
+    internalData: verifyBanned ? internalData : undefined,
   });
 
   this.filter(metadata, username);

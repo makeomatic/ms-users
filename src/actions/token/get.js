@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 
-const { getUserId } = require('../../utils/user-data');
+const { getUserId } = require('../../utils/userData');
 const { getToken: getApiToken } = require('../../utils/api-token');
 
 /**

@@ -2,7 +2,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 
 const redisKey = require('../../utils/key');
 
-const { getUserId } = require('../../utils/user-data');
+const { getUserId } = require('../../utils/userData');
 const { USERS_API_TOKENS } = require('../../constants');
 const { checkTokenData } = require('../../utils/api-token');
 

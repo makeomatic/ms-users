@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const challenge = require('../utils/challenges/challenge');
-const { getInternalData } = require('../utils/user-data');
+const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
 const hasNotPassword = require('../utils/has-no-password');

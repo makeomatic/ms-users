@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 const contacts = require('../../utils/contacts');
-const { getUserId } = require('../../utils/user-data');
+const { getUserId } = require('../../utils/userData');
 
 /**
  * @api {amqp} <prefix>.contacts.challenge Request the "challenge" for the verification

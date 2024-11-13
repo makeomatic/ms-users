@@ -1,7 +1,7 @@
 const { HttpStatusError } = require('common-errors');
 
 const { getExtendedMetadata } = require('./get-metadata');
-const { getInternalData } = require('./user-data');
+const { getInternalData } = require('./userData');
 const { USERS_MFA_FLAG } = require('../constants');
 
 /**

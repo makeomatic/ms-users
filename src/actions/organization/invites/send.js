@@ -11,7 +11,7 @@ const {
   ORGANIZATIONS_ID_FIELD,
   USERS_ACTION_ORGANIZATION_INVITE,
 } = require('../../../constants');
-const getUserId = require('../../../utils/user-data/get-user-id');
+const getUserId = require('../../../utils/userData/get-user-id');
 
 /**
  * @api {amqp} <prefix>.invites.send Send invitation

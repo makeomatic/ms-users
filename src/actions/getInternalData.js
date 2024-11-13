@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 const pick = require('lodash/pick');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
-const { getInternalData } = require('../utils/user-data');
+const { getInternalData } = require('../utils/userData');
 
 /**
  * @api {amqp} <prefix>.getInternalData Retrieve Internal Data

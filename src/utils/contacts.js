@@ -3,7 +3,7 @@ const { HttpStatusError } = require('@microfleet/validation');
 const challengeAct = require('./challenges/challenge');
 const redisKey = require('./key');
 const handlePipeline = require('./pipeline-error');
-const { getInternalData, getUserId } = require('./user-data');
+const { getInternalData, getUserId } = require('./userData');
 const {
   USERS_CONTACTS,
   USERS_DEFAULT_CONTACT,

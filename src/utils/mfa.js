@@ -4,7 +4,7 @@ const { authenticator } = require('otplib');
 const { HttpStatusError } = require('common-errors');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
-const { getInternalData } = require('./user-data');
+const { getInternalData } = require('./userData');
 
 const redisKey = require('./key');
 const {

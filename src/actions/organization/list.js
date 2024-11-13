@@ -6,7 +6,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 const redisKey = require('../../utils/key');
 const { getOrganizationMetadata, getInternalData, getOrganizationMemberDetails } = require('../../utils/organization');
 const getMetadata = require('../../utils/get-metadata');
-const { getUserId } = require('../../utils/user-data');
+const { getUserId } = require('../../utils/userData');
 const { ORGANIZATIONS_INDEX, ORGANIZATIONS_DATA, ORGANIZATIONS_METADATA } = require('../../constants');
 
 async function findUserOrganization(userId) {

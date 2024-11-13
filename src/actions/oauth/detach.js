@@ -1,7 +1,7 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const detach = require('../../auth/oauth/utils/detach');
-const { getInternalData } = require('../../utils/user-data');
+const { getInternalData } = require('../../utils/userData');
 
 /**
  * @api {amqp} <prefix>.oauth.detach Detach SSO provider from profile

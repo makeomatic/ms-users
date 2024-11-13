@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 
 const redisKey = require('./key');
 const { USERS_METADATA, USERS_PASSWORD_FIELD } = require('../constants');
-const { getInternalData } = require('./user-data');
+const { getInternalData } = require('./userData');
 
 const { isArray } = Array;
 const JSONParse = (data) => JSON.parse(data);

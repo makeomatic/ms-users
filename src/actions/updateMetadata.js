@@ -3,7 +3,7 @@ const Promise = require('bluebird');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const updateMetadata = require('../utils/update-metadata');
-const { getUserId } = require('../utils/user-data');
+const { getUserId } = require('../utils/userData');
 
 /**
  * @api {amqp} <prefix>.updateMetadata Update Metadata

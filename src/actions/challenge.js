@@ -1,6 +1,6 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 
-const { getInternalData } = require('../utils/user-data');
+const { getInternalData } = require('../utils/userData');
 const getMetadata = require('../utils/get-metadata');
 const isActive = require('../utils/is-active');
 const challenge = require('../utils/challenges/challenge');

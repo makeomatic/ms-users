@@ -6,7 +6,7 @@ const { ActionTransport } = require('@microfleet/plugin-router');
 
 const get = require('../utils/get-value');
 const { getExtendedMetadata } = require('../utils/get-metadata');
-const { getInternalData } = require('../utils/user-data');
+const { getInternalData } = require('../utils/userData');
 const isBanned = require('../utils/is-banned');
 const { USERS_ALIAS_FIELD, USERS_ID_FIELD } = require('../constants');
 

@@ -125,15 +125,16 @@ module.exports = exports = {
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
-  USERS_ACTION_VERIFY_CONTACT: 'verify-contact',
   USERS_ACTION_DISPOSABLE_PASSWORD: 'disposable-password',
-  USERS_ACTION_PASSWORD: 'password',
-  USERS_ACTION_RESET: 'reset',
-  USERS_ACTION_REGISTER: 'register',
   USERS_ACTION_INVITE: 'invite',
+  USERS_ACTION_ORGANIZATION_ADD: 'organizationUserAdd',
   USERS_ACTION_ORGANIZATION_INVITE: 'organizationUserInvite',
   USERS_ACTION_ORGANIZATION_REGISTER: 'organizationUserRegister',
-  USERS_ACTION_ORGANIZATION_ADD: 'organizationUserAdd',
+  USERS_ACTION_PASSWORD: 'password',
+  USERS_ACTION_REGISTER: 'register',
+  USERS_ACTION_RESET: 'reset',
+  USERS_ACTION_UPDATE_USERNAME: 'user-update-username',
+  USERS_ACTION_VERIFY_CONTACT: 'verify-contact',
 
   // invitations constants
   INVITATIONS_INDEX: 'user-invitations',
@@ -170,6 +171,7 @@ exports.ErrorConflictUserExists.code = 'E_USERNAME_CONFLICT';
 exports.ErrorTotpRequired.code = 'E_TOTP_REQUIRED';
 exports.ErrorTotpInvalid.code = 'E_TOTP_INVALID';
 exports.ErrorSecretRequired.code = 'E_TOTP_NOSECRET';
+exports.ErrorUserNotFound.code = E_USER_ID_NOT_FOUND;
 
 exports.USERS_INVALID_TOKEN.code = 'E_TKN_INVALID';
 exports.USERS_AUDIENCE_MISMATCH.code = 'E_TKN_AUDIENCE_MISMATCH';

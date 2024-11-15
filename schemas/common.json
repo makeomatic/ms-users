@@ -176,7 +176,7 @@
           "type": "string",
           "oneOf": [
             { "format": "email" },
-            { "pattern": "^\\d+$" }
+            { "$ref": "#/definitions/phone" }
           ]
         },
         "type": {
@@ -184,6 +184,11 @@
           "enum": ["email", "phone"]
         }
       }
+    },
+    "phone": {
+      "description": "E-164. Only digits",
+      "type": "string",
+      "pattern": "^[0-9]{7,15}$"
     }
   }
 }

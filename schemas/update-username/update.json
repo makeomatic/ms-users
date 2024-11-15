@@ -1,0 +1,25 @@
+{
+  "$id": "update-username.update",
+  "type": "object",
+  "required": [
+    "token",
+    "username"
+  ],
+  "properties": {
+    "token": {
+      "description": "The code that was sent to the user using `update-username.request` action",
+      "maxLength": 1000,
+      "minLength": 3,
+      "type": "string"
+    },
+    "username": {
+      "description": "New username. Must match the username used in the username update request",
+      "type": "string",
+      "oneOf": [
+        {
+          "$ref": "../common.json#/definitions/phone"
+        }
+      ]
+    }
+  }
+}

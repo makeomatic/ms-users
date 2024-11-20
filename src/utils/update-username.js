@@ -6,7 +6,7 @@ const {
   ErrorUserNotFound,
   USERS_ACTION_UPDATE_USERNAME,
   USERS_DATA,
-  USERS_INVALID_TOKEN,
+  USERS_DISPOSABLE_PASSWORD_MIA,
   USERS_METADATA,
   USERS_USERNAME_FIELD,
   USERS_USERNAME_TO_ID,
@@ -71,7 +71,7 @@ const updateUsernameWithToken = async (service, token, username) => {
       token,
     })
     .catch(() => {
-      throw USERS_INVALID_TOKEN;
+      throw USERS_DISPOSABLE_PASSWORD_MIA;
     });
 
   await updateUsername(service, userId, username);

@@ -38,8 +38,8 @@ describe('update-username.update', function suite() {
         },
       }),
       {
-        code: 'E_TKN_INVALID',
-        message: 'invalid token',
+        code: 'E_PASSWORD_INVALID',
+        message: 'Invalid or Expired Password',
       }
     );
   });
@@ -68,8 +68,8 @@ describe('update-username.update', function suite() {
         },
       }),
       {
-        code: 'E_TKN_INVALID',
-        message: 'invalid token',
+        code: 'E_PASSWORD_INVALID',
+        message: 'Invalid or Expired Password',
       }
     );
   });

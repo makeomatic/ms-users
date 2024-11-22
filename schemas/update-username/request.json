@@ -1,0 +1,59 @@
+{
+  "$id": "update-username.request",
+  "type": "object",
+  "required": [
+    "challengeType",
+    "username",
+    "value"
+  ],
+  "properties": {
+    "challengeType": {
+      "description": "Where to send the secret code. Currently only the `phone` is supported",
+      "type": "string",
+      "oneOf": [
+        {
+          "const": "phone"
+        }
+      ]
+    },
+    "i18nLocale": {
+      "description": "User locale",
+      "maxLength": 10,
+      "minLength": 1,
+      "type": "string"
+    },
+    "username": {
+      "description": "User alias, ID or username",
+      "maxLength": 50,
+      "minLength": 3,
+      "type": "string"
+    },
+    "value": {
+      "description": "New username",
+      "type": "string",
+      "oneOf": [
+        {
+          "$ref": "../common.json#/definitions/phone"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "challengeType": {
+            "const": "phone"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "value": {
+            "$ref": "../common.json#/definitions/phone"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -109,19 +109,51 @@ describe('#register stubbed', function suite() {
     assert.equal(is.undefined(lastResponse.password), true);
   };
 
+  const shouldBeAbleToRequestActivationCode = async () => {
+    const amqpStub = sinon.stub(this.users.amqp, 'publishAndWait');
+    const opts = {
+      activate: false,
+      audience: '*.localhost',
+      challengeType: 'phone',
+      skipPassword: true,
+      username: '79215555555',
+    };
+
+    amqpStub
+      .withArgs('phone.message.predefined')
+      .resolves({ queued: true });
+
+    await this.users.dispatch('register', { params: opts });
+    await Promise.delay(1000);
+    const { context } = await this.users.dispatch('challenge', {
+      params: {
+        username: '79215555555',
+        type: 'phone',
+      },
+    });
+
+    assert.equal(context.username, '79215555555');
+
+    const args0 = amqpStub.args[0][1];
+    const args1 = amqpStub.args[1][1];
+
+    assert.ok(args0.message.match(/^[0-9]{4}/));
+    assert.equal(args0.to, '+79215555555');
+
+    assert.ok(args1.message.match(/^[0-9]{4}/));
+    assert.equal(args1.to, '+79215555555');
+
+    amqpStub.restore();
+  };
+
   describe('#password validator disabled', () => {
-    beforeEach(startService.bind(this));
-    afterEach(clearRedis.bind(this));
-
-    it('must be able to send activation code by sms', mustBeAbleToSendActivationCodeBySms);
-    it('must be able to send password by sms', mustBeAbleToSendPasswordBySms);
-    it('should be able to register without password', shouldBeAbleToRegisterWithoutPassword);
-  });
-
-  describe('#password validator enabled', () => {
     beforeEach(async () => {
       await startService.call(this, {
-        passwordValidator: { enabled: true },
+        token: {
+          phone: {
+            throttle: 1, // seconds
+          },
+        },
       });
     });
     afterEach(clearRedis.bind(this));
@@ -129,5 +161,25 @@ describe('#register stubbed', function suite() {
     it('must be able to send activation code by sms', mustBeAbleToSendActivationCodeBySms);
     it('must be able to send password by sms', mustBeAbleToSendPasswordBySms);
     it('should be able to register without password', shouldBeAbleToRegisterWithoutPassword);
+    it('should be able to request activation code', shouldBeAbleToRequestActivationCode);
+  });
+
+  describe('#password validator enabled', () => {
+    beforeEach(async () => {
+      await startService.call(this, {
+        passwordValidator: { enabled: true },
+        token: {
+          phone: {
+            throttle: 1, // seconds
+          },
+        },
+      });
+    });
+    afterEach(clearRedis.bind(this));
+
+    it('must be able to send activation code by sms', mustBeAbleToSendActivationCodeBySms);
+    it('must be able to send password by sms', mustBeAbleToSendPasswordBySms);
+    it('should be able to register without password', shouldBeAbleToRegisterWithoutPassword);
+    it('should be able to request activation code', shouldBeAbleToRequestActivationCode);
   });
 });

@@ -12,16 +12,16 @@ const {
 } = require('../constants');
 
 /**
- * @api {amqp} <prefix>.challenge Creates user challenges
+ * @api {amqp} <prefix>.challenge Request account activation
  * @apiVersion 1.0.0
  * @apiName ChallengeUser
  * @apiGroup Users
  *
- * @apiDescription Must be used internally to create user challenges. Currently only email challenge is supported. Contains
- * password reset challenge & account activation challenge. The latter is called from the `registration` action automatically,
- * when the account must complete the challenge
+ * @apiDescription Requests account activation. Phone and email challenges are supported.
+ * This challenge also is called from the `registration` action automatically, when
+ * the account must complete the challenge
  *
- * @apiParam (Payload) {String="email"} type - type of challenge, only "email" is supported now
+ * @apiParam (Payload) {String} type - type of challenge, `phone` and `email` challenge are supported
  * @apiParam (Payload) {String} username - user's username
  * @apiParam (Payload) {String} [remoteip] - used for security log
  * @apiParam (Payload) {String} [metadata] - not used, but in the future this would be associated with user when challenge is required
@@ -34,7 +34,6 @@ module.exports = async function sendChallenge({ params }) {
   const service = this;
   const { config } = service;
   const { defaultAudience } = config.jwt;
-  const { throttle, ttl } = config.token[params.type];
   const { username, type } = params;
 
   const internalData = await getInternalData.call(service, username);
@@ -47,8 +46,7 @@ module.exports = async function sendChallenge({ params }) {
   const { [defaultAudience]: metadata } = await getMetadata(service, userId, defaultAudience);
 
   const challengeOpts = {
-    ttl,
-    throttle,
+    ...config.token[params.type],
     action: USERS_ACTION_ACTIVATE,
     id: resolvedUsername,
   };

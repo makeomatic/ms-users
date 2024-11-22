@@ -1,3 +1,15 @@
+# [17.3.0](https://github.com/makeomatic/ms-users/compare/v17.2.0...v17.3.0) (2024-11-22)
+
+
+### Bug Fixes
+
+* phone config for challenge action ([#614](https://github.com/makeomatic/ms-users/issues/614)) ([6a23442](https://github.com/makeomatic/ms-users/commit/6a234421ade3412b3dff78b802ea2ea7f190436a))
+
+
+### Features
+
+* action to update the username ([#616](https://github.com/makeomatic/ms-users/issues/616)) ([8edc2cf](https://github.com/makeomatic/ms-users/commit/8edc2cf485439581979e074d7e14560c57041d51))
+
 # [17.2.0](https://github.com/makeomatic/ms-users/compare/v17.1.3...v17.2.0) (2024-10-27)
 
 

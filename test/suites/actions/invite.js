@@ -78,7 +78,7 @@ describe('#invite', function registerSuite() {
         audience: '*.localhost',
       } }), {
       name: 'AssertionError',
-      message: `Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "${email}"`,
+      message: `Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "${email}"\n`,
     });
   });
 

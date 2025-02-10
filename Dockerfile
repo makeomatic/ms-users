@@ -12,7 +12,6 @@ RUN \
   apk --update --upgrade \
     add ca-certificates --virtual .buildDeps git ca-certificates openssl g++ make python3 linux-headers \
   && update-ca-certificates \
-  && npm i -g corepack@latest \
   && corepack install -g pnpm@9 \
   && chown node:node /src \
   && su node sh -c "cd /src && pnpm fetch --prod" \

@@ -12,7 +12,6 @@
 `npm i ms-users -S`
 
 ## Overview
-
 Starts horizontally scalable nodejs worker communicating over amqp layer with redis cluster backend.
 Supports a broad range of operations for working with users. Please refer to the configuration options for now,
 that contains description of routes and their capabilities. Aims to provide a complete extendable solution to user's management.

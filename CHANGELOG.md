@@ -1,3 +1,10 @@
+## [17.3.1](https://github.com/makeomatic/ms-users/compare/v17.3.0...v17.3.1) (2025-02-11)
+
+
+### Bug Fixes
+
+* remove contact email from username ([#618](https://github.com/makeomatic/ms-users/issues/618)) ([9bcce33](https://github.com/makeomatic/ms-users/commit/9bcce335468cd2640d6cc14b4266b20ced12cc8d))
+
 # [17.3.0](https://github.com/makeomatic/ms-users/compare/v17.2.0...v17.3.0) (2024-11-22)
 
 

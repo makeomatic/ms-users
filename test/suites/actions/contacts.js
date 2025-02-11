@@ -4,6 +4,7 @@ const { faker } = require('@faker-js/faker');
 const sinon = require('sinon');
 const { createMembers } = require('../../helpers/organization');
 const { startService, clearRedis } = require('../../config');
+const { USERS_USERNAME_TO_ID } = require('../../../src/constants');
 
 describe('#user contacts', function registerSuite() {
   const audience = '*.localhost';
@@ -287,5 +288,26 @@ describe('#user contacts', function registerSuite() {
     assert.strictEqual(verified, true);
     assert.equal(name, params.metadata.name);
     amqpStub.restore();
+  });
+
+  it('should remove username to userid mapping on contact removal', async function test() {
+    const params = {
+      username: this.testUser.username,
+      contact: {
+        value: 'email@mail.org',
+        type: 'email',
+      },
+    };
+    await this.users.dispatch('contacts.add', { params });
+    const amqpStub = sinon.stub(this.users.amqp, 'publish');
+    amqpStub.withArgs('mailer.predefined').resolves({ queued: true });
+    await this.users.dispatch('contacts.challenge', { params });
+    const { ctx: { template: { token: { secret } } } } = amqpStub.args[0][1];
+    await this.users.dispatch('contacts.verify-email', { params: { secret } });
+    const userid = await this.users.redis.hget(USERS_USERNAME_TO_ID, params.contact.value);
+    assert.notEqual(userid, null);
+    await this.users.dispatch('contacts.remove', { params });
+    const useridRemoved = await this.users.redis.hget(USERS_USERNAME_TO_ID, params.contact.value);
+    assert.equal(useridRemoved, null);
   });
 });

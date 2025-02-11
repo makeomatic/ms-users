@@ -76,9 +76,10 @@ describe('#invite', function registerSuite() {
         password: '123',
         inviteToken: this.invitationToken,
         audience: '*.localhost',
-      } }), {
-      name: 'AssertionError',
-      message: `Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "${email}"`,
+      } }), (err) => {
+      assert.strictEqual(err.name, 'AssertionError');
+      assert.match(err.message, /Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "v@yandex.ru"/);
+      return true;
     });
   });
 

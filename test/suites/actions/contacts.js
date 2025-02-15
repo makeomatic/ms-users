@@ -280,9 +280,9 @@ describe('#user contacts', function registerSuite() {
       .dispatch('contacts.verify-email', { params: { secret } });
 
     // get meta of user by updated email
-    const { [audience]: { username: updatedUserName } } = await this.users
+    const { [audience]: { username: updatedUserName, id } } = await this.users
       .dispatch('getMetadata', { params: { username: params.contact.value, audience } });
-
+    this.testUser.id = id;
     assert.equal(updatedUserName, params.contact.value);
     assert.equal(value, params.contact.value);
     assert.strictEqual(verified, true);
@@ -292,7 +292,7 @@ describe('#user contacts', function registerSuite() {
 
   it('should remove username to userid mapping on contact removal', async function test() {
     const params = {
-      username: this.testUser.username,
+      username: this.testUser.id,
       contact: {
         value: 'email@mail.org',
         type: 'email',

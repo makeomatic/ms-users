@@ -282,7 +282,7 @@ describe('#user contacts', function registerSuite() {
     // get meta of user by updated email
     const { [audience]: { username: updatedUserName } } = await this.users
       .dispatch('getMetadata', { params: { username: params.contact.value, audience } });
-
+    this.testUser.username = updatedUserName;
     assert.equal(updatedUserName, params.contact.value);
     assert.equal(value, params.contact.value);
     assert.strictEqual(verified, true);

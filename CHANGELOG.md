@@ -1,3 +1,10 @@
+## [17.3.2](https://github.com/makeomatic/ms-users/compare/v17.3.1...v17.3.2) (2025-02-15)
+
+
+### Bug Fixes
+
+* remove old email on validation of new one ([#619](https://github.com/makeomatic/ms-users/issues/619)) ([9945c3f](https://github.com/makeomatic/ms-users/commit/9945c3f30d2b71f12b6d7a8a49ffb37847fe038a))
+
 ## [17.3.1](https://github.com/makeomatic/ms-users/compare/v17.3.0...v17.3.1) (2025-02-11)
 
 

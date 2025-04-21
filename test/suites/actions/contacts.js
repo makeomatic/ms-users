@@ -256,6 +256,7 @@ describe('#user contacts', function registerSuite() {
       },
       metadata: {
         name: 'Test',
+        updateUsername: true,
       },
     };
 
@@ -291,23 +292,44 @@ describe('#user contacts', function registerSuite() {
   });
 
   it('should remove username to userid mapping on contact removal', async function test() {
-    const params = {
-      username: this.testUser.id,
-      contact: {
-        value: 'email@mail.org',
-        type: 'email',
+    await this.users.dispatch('contacts.add', {
+      params: {
+        contact: {
+          value: 'email@mail.org',
+          type: 'email',
+        },
+        username: this.testUser.id,
       },
-    };
-    await this.users.dispatch('contacts.add', { params });
+    });
     const amqpStub = sinon.stub(this.users.amqp, 'publish');
     amqpStub.withArgs('mailer.predefined').resolves({ queued: true });
-    await this.users.dispatch('contacts.challenge', { params });
+    await this.users.dispatch('contacts.challenge', {
+      params: {
+        contact: {
+          value: 'email@mail.org',
+          type: 'email',
+        },
+        metadata: {
+          updateUsername: true,
+        },
+        username: this.testUser.id,
+      },
+    });
     const { ctx: { template: { token: { secret } } } } = amqpStub.args[0][1];
     await this.users.dispatch('contacts.verify-email', { params: { secret } });
-    const userid = await this.users.redis.hget(USERS_USERNAME_TO_ID, params.contact.value);
+    const userid = await this.users.redis.hget(USERS_USERNAME_TO_ID, 'email@mail.org');
     assert.notEqual(userid, null);
-    await this.users.dispatch('contacts.remove', { params });
-    const useridRemoved = await this.users.redis.hget(USERS_USERNAME_TO_ID, params.contact.value);
+    await this.users.dispatch('contacts.remove', {
+      params: {
+        contact: {
+          value: 'email@mail.org',
+          type: 'email',
+        },
+        updateUsername: true,
+        username: this.testUser.id,
+      },
+    });
+    const useridRemoved = await this.users.redis.hget(USERS_USERNAME_TO_ID, 'email@mail.org');
     assert.equal(useridRemoved, null);
   });
 });

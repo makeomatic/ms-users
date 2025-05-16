@@ -7,6 +7,9 @@
     "value"
   ],
   "properties": {
+    "captcha": {
+      "$ref": "common.json#/definitions/captcha"
+    },
     "challengeType": {
       "description": "Where to send the secret code. Currently only the `phone` is supported",
       "type": "string",
@@ -21,6 +24,9 @@
       "maxLength": 10,
       "minLength": 1,
       "type": "string"
+    },
+    "remoteip": {
+      "$ref": "common.json#/definitions/remoteip"
     },
     "username": {
       "description": "User alias, ID or username",

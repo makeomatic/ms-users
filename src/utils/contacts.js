@@ -176,7 +176,7 @@ async function verifyEmail({ secret }) {
     if (this.config.contacts.onlyOneVerifiedEmail) {
       await removeAllEmailContactsOfUser.call(this, pipe, userId, contact.value);
     }
-    if (updateUsername) {
+    if (updateUsername ?? this.config.contacts.updateUsername) {
       await replaceUserName.call(this, pipe, userId, contact.value);
     }
     pipe.hset(key, 'verified', 'true');
@@ -242,7 +242,7 @@ async function remove({ contact, updateUsername, userId }) {
   pipe.del(key);
   pipe.srem(redisKey(userId, USERS_CONTACTS), contact.value);
 
-  if (updateUsername) {
+  if (updateUsername ?? this.config.contacts.updateUsername) {
     pipe.hdel(USERS_USERNAME_TO_ID, contact.value);
   }
 

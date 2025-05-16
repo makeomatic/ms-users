@@ -189,6 +189,59 @@
       "description": "E-164. Only digits",
       "type": "string",
       "pattern": "^[0-9]{7,15}$"
+    },
+    "remoteip": {
+      "type": "string",
+      "oneOf": [
+        { "format": "ipv4" },
+        { "format": "ipv6" }
+      ]
+    },
+    "captcha": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "response",
+            "remoteip"
+          ],
+          "properties": {
+            "response": {
+              "type": "string",
+              "minLength": 1
+            },
+            "remoteip": {
+              "type": "string",
+              "oneOf": [{
+                  "format": "ipv4"
+                },
+                {
+                  "format": "ipv6"
+                }
+              ]
+            },
+            "secret": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "token"
+          ],
+          "properties": {
+            "type": {
+              "const": "recaptcha"
+            },
+            "token": {
+              "type": "string"
+            }
+          }
+        }
+      ]
     }
   }
 }

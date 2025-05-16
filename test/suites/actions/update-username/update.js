@@ -1,5 +1,6 @@
 const { rejects, strictEqual } = require('node:assert');
 const { stub } = require('sinon');
+const { authenticator } = require('otplib');
 
 const { startService, clearRedis } = require('../../../config');
 
@@ -17,6 +18,8 @@ const stubSendCode = (service) => {
 const getCodeFromStubArgs = (args) => args[1].message.replace(/\D+/g, '');
 
 describe('update-username.update', function suite() {
+  let mfaSecret;
+
   before(startService.bind(this));
   before(() => this.users.dispatch('register', {
     params: {
@@ -165,5 +168,37 @@ describe('update-username.update', function suite() {
     });
 
     strictEqual(newMetadata['*.localhost'].username, '19990000003');
+  });
+
+  it('should be able to return error if invalid mfa', async () => {
+    const { users } = this;
+
+    const mfaData = await users.dispatch('mfa.generate-key', {
+      params: {
+        username: '19990000003',
+        time: Date.now(),
+      },
+    });
+
+    mfaSecret = mfaData.secret;
+
+    await users.dispatch('mfa.attach', {
+      params: {
+        username: '19990000003',
+        secret: mfaSecret,
+        totp: authenticator.generate(mfaSecret),
+      },
+    });
+
+    await rejects(
+      this.users.amqp.publishAndWait('users.update-username.update', {
+        token: '12345',
+        username: '19990000003',
+      }),
+      {
+        code: 'E_TOTP_REQUIRED',
+        message: 'TOTP required',
+      }
+    );
   });
 });

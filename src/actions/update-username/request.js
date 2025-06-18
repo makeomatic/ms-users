@@ -1,14 +1,11 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const { requestUsernameUpdate } = require('../../utils/update-username');
-const { resolveUserId } = require('../../utils/userData');
-const { checkMFA } = require('../../utils/mfa');
+const { getInternalData, resolveUserId } = require('../../utils/userData');
 const isActive = require('../../utils/is-active');
 const isBanned = require('../../utils/is-banned');
 const {
   ErrorConflictUserExists,
-  ErrorUserNotFound,
-  MFA_TYPE_OPTIONAL,
   USERS_ID_FIELD,
 } = require('../../constants');
 
@@ -26,12 +23,8 @@ const {
  * @apiSuccess (Response) {Object} uid Token UID
  */
 module.exports = async function requestUpdateUsernameAction(request) {
-  const { challengeType, i18nLocale, value } = request.params;
-  const { internalData } = request.locals;
-
-  if (!internalData) {
-    throw ErrorUserNotFound;
-  }
+  const { challengeType, i18nLocale, username, value } = request.params;
+  const internalData = await getInternalData.call(this, username);
 
   await isActive(internalData);
   isBanned(internalData);
@@ -49,6 +42,4 @@ module.exports = async function requestUpdateUsernameAction(request) {
   );
 };
 
-module.exports.mfa = MFA_TYPE_OPTIONAL;
-module.exports.allowed = checkMFA;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

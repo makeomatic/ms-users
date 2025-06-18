@@ -14,8 +14,14 @@ const { getUserId } = require('../../utils/userData');
  * @apiParam (Payload) {String} username -
  */
 module.exports = async function remove({ params }) {
-  const userId = await getUserId.call(this, params.username);
-  return contacts.remove.call(this, { contact: params.contact, userId });
+  const { contact, updateUsername, username } = params;
+  const userId = await getUserId.call(this, username);
+
+  return contacts.remove.call(this, {
+    contact,
+    updateUsername,
+    userId,
+  });
 };
 
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

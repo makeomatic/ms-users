@@ -37,7 +37,8 @@ async function usernamePasswordReset(service, username, currentPassword) {
   ]);
 
   // if no password is not allowed - it will throw on hasPassword above
-  if (internalData.password) {
+  // @TODO tests
+  if (internalData.password && currentPassword !== false) {
     await scrypt.verify(internalData.password, currentPassword);
   }
 
@@ -71,6 +72,7 @@ async function setPassword(service, userId, password) {
  * @apiParam (Payload) {String} [resetToken] - must be present if `username` or `currentPassword` is not
  * @apiParam (Payload) {String} newPassword - password will be changed to this
  * @apiParam (Payload) {Boolean} [invalidateTokens=false] - if set to `true` will invalidate issued tokens
+ * @apiParam (Payload) {Boolean} [noCurrentPasswordCheck=false] - disable checking of current password
  * @apiParam (Payload) {String} [remoteip] - will be used for rate limiting if supplied
  */
 async function updatePassword(request) {
@@ -78,7 +80,7 @@ async function updatePassword(request) {
   if (!config.noPasswordCheck && !request.params.currentPassword) {
     throw new HttpStatusError(400, 'must have required property currentPassword');
   }
-  const { newPassword: password, remoteip = false } = request.params;
+  const { newPassword: password, noCurrentPasswordCheck, remoteip = false } = request.params;
   const invalidateTokens = !!request.params.invalidateTokens;
   const loginRateLimiter = new UserLoginRateLimiter(redis, config.rateLimiters.userLogin);
 
@@ -98,7 +100,7 @@ async function updatePassword(request) {
       throw Forbidden;
     }
   } else {
-    userId = await usernamePasswordReset(this, request.params.username, request.params.currentPassword);
+    userId = await usernamePasswordReset(this, request.params.username, noCurrentPasswordCheck ? false : request.params.currentPassword);
   }
 
   // update password

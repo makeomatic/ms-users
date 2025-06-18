@@ -10,16 +10,29 @@ const ErrorCaptchaConfigInvalid = new HttpStatusError(500, 'Invalid reCAPTCHA co
 const ErrorCaptchaInvalid = new HttpStatusError(400, 'Captcha invalid');
 const ErrorCaptchaRequired = new HttpStatusError(412, 'Captcha required');
 const ErrorIpRequired = new HttpStatusError(400, 'IP address required');
-const ErrorLockLimit = new HttpStatusError(403, 'Lock limit');
-const ErrorTotalLimit = new HttpStatusError(403, 'Total limit');
+
+const ErrorLockLimit = (reset) => {
+  const error = new HttpStatusError(403, 'Lock limit');
+
+  error.code = 'E_LOCK_LIMIT';
+  error.detail = { reset };
+
+  return error;
+};
+const ErrorTotalLimit = (reset) => {
+  const error = new HttpStatusError(403, 'Total limit');
+
+  error.code = 'E_TOTAL_LIMIT';
+  error.detail = { reset };
+
+  return error;
+};
 
 const ErrorCaptchaError = (error) => new HttpStatusError(500, `Captcha error: ${error.message}`);
 
 ErrorCaptchaInvalid.code = 'E_CAPTCHA_INVALID';
 ErrorCaptchaRequired.code = 'E_CAPTCHA_REQUIRED';
 ErrorIpRequired.code = 'E_IP_REQUIRED';
-ErrorLockLimit.code = 'E_LOCK_LIMIT';
-ErrorTotalLimit.code = 'E_TOTAL_LIMIT';
 
 const actionUsernameParamNameMap = {
   'disposable-password': ['id', 'challengeType', 'remoteip'],
@@ -92,7 +105,7 @@ const checkTotalLimit = async (service) => {
     await createTotalLimiter(service).check(totalRateLimiterKey);
   } catch (error) {
     if (error instanceof KeyIpRateLimiter.RateLimitError) {
-      throw ErrorTotalLimit;
+      throw ErrorTotalLimit(error.reset);
     }
 
     throw error;
@@ -104,7 +117,7 @@ const checkLockLimit = async (service, username, remoteIp) => {
     await createLockLimiter(service).check(username, remoteIp);
   } catch (error) {
     if (error instanceof KeyIpRateLimiter.RateLimitError) {
-      throw ErrorLockLimit;
+      throw ErrorLockLimit(error.reset);
     }
 
     throw error;

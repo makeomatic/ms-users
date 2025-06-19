@@ -35,9 +35,14 @@ async function getMember({ params }) {
     throw ErrorUserNotMember;
   }
 
-  const member = await getMemberData.call(this, memberKey);
+  const userDataCalls = [getMemberData.call(this, memberKey)];
   if (showMfa) {
-    member.mfaEnabled = await isMFAEnabled(userId);
+    userDataCalls.push(isMFAEnabled(userId));
+  }
+
+  const [member, mfaEnabled] = await Promise.all(userDataCalls);
+  if (showMfa) {
+    member.mfaEnabled = mfaEnabled;
   }
 
   return {

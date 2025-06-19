@@ -4,6 +4,7 @@ const redisKey = require('../../../utils/key');
 const getUserId = require('../../../utils/userData/get-user-id');
 const { getMemberData } = require('../../../utils/organization/get-organization-members');
 const { checkOrganizationExists } = require('../../../utils/organization');
+const isMFAEnabled = require('../../../utils/mfa');
 const {
   ORGANIZATIONS_MEMBERS,
   USERS_METADATA,
@@ -24,7 +25,7 @@ const {
 async function getMember({ params }) {
   const { redis, config } = this;
   const { organizationId, username } = params;
-  const { audience } = config.organizations;
+  const { audience, showMfa } = config.organizations;
 
   const userId = await getUserId.call(this, username);
   const memberKey = redisKey(organizationId, ORGANIZATIONS_MEMBERS, userId);
@@ -35,6 +36,9 @@ async function getMember({ params }) {
   }
 
   const member = await getMemberData.call(this, memberKey);
+  if (showMfa) {
+    member.mfaEnabled = await isMFAEnabled(userId);
+  }
 
   return {
     data: {

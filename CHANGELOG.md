@@ -1,3 +1,10 @@
+# [17.4.0](https://github.com/makeomatic/ms-users/compare/v17.3.2...v17.4.0) (2025-07-01)
+
+
+### Features
+
+* **organization:** member mfa flag ([#620](https://github.com/makeomatic/ms-users/issues/620)) ([b49448f](https://github.com/makeomatic/ms-users/commit/b49448ff71829dabcee0409a90224881d1981bcb))
+
 ## [17.3.2](https://github.com/makeomatic/ms-users/compare/v17.3.1...v17.3.2) (2025-02-15)
 
 

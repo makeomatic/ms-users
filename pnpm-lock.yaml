@@ -1291,7 +1291,7 @@ packages:
     resolution: {integrity: sha512-6npJTkZcO+y2/kr+z0hc4HwNfrrP4kNYh57ek7yCNlrBjWQ1Y0OS7jiZTkgumrvkX5HkEKXFZkkdFNkaW2wmUQ==}
     engines: {node: ^16.0.0 || >=18.0.0}
     peerDependencies:
-      typescript: '*'
+      typescript: "*"
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -1369,7 +1369,7 @@ packages:
     resolution: {integrity: sha512-oxnCNGj88fL+xzV+dacXs44HcDwf1ovs3AuEzvP7mqXw7fQntqIhQ1BRmynh4qEKQSSSRSWVyXRjmTbZIX9V2Q==}
     peerDependencies:
       webpack-cli: 4.x.x
-      webpack-dev-server: '*'
+      webpack-dev-server: "*"
     peerDependenciesMeta:
       webpack-dev-server:
         optional: true
@@ -2039,7 +2039,7 @@ packages:
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
     peerDependencies:
-      supports-color: '*'
+      supports-color: "*"
     peerDependenciesMeta:
       supports-color:
         optional: true
@@ -2047,7 +2047,7 @@ packages:
   debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
     peerDependencies:
-      supports-color: '*'
+      supports-color: "*"
     peerDependenciesMeta:
       supports-color:
         optional: true
@@ -2056,7 +2056,7 @@ packages:
     resolution: {integrity: sha512-pt0bNEmneDIvdL1Xsd9oDQ/wrQRkXDT4AUWlNZNPKvW5x/jyO9VFXkJUP07vQ2upmw5PlaITaPKc31jK13V+jg==}
     engines: {node: '>=6.0'}
     peerDependencies:
-      supports-color: '*'
+      supports-color: "*"
     peerDependenciesMeta:
       supports-color:
         optional: true
@@ -2330,13 +2330,13 @@ packages:
     resolution: {integrity: sha512-wALZ0HFoytlyh/1+4wuZ9FJCD/leWHQzzrxJ8+rebyReSLk7LApMyd3WJaLVoN+D5+WIdJyDK1c6JnE65V4Zyg==}
     engines: {node: '>=4'}
     peerDependencies:
-      '@typescript-eslint/parser': '*'
-      eslint: '*'
-      eslint-import-resolver-node: '*'
-      eslint-import-resolver-typescript: '*'
-      eslint-import-resolver-webpack: '*'
+      "@typescript-eslint/parser": "*"
+      eslint: "*"
+      eslint-import-resolver-node: "*"
+      eslint-import-resolver-typescript: "*"
+      eslint-import-resolver-webpack: "*"
     peerDependenciesMeta:
-      '@typescript-eslint/parser':
+      "@typescript-eslint/parser":
         optional: true
       eslint:
         optional: true
@@ -2351,13 +2351,13 @@ packages:
     resolution: {integrity: sha512-rXDXR3h7cs7dy9RNpUlQf80nX31XWJEyGq1tRMo+6GsO5VmTe4UTwtmonAD4ZkAsrfMVDA2wlGJ3790Ys+D49Q==}
     engines: {node: '>=4'}
     peerDependencies:
-      '@typescript-eslint/parser': '*'
-      eslint: '*'
-      eslint-import-resolver-node: '*'
-      eslint-import-resolver-typescript: '*'
-      eslint-import-resolver-webpack: '*'
+      "@typescript-eslint/parser": "*"
+      eslint: "*"
+      eslint-import-resolver-node: "*"
+      eslint-import-resolver-typescript: "*"
+      eslint-import-resolver-webpack: "*"
     peerDependenciesMeta:
-      '@typescript-eslint/parser':
+      "@typescript-eslint/parser":
         optional: true
       eslint:
         optional: true
@@ -2372,10 +2372,10 @@ packages:
     resolution: {integrity: sha512-QPOO5NO6Odv5lpoTkddtutccQjysJuFxoPS7fAHO+9m9udNHvTCPSAMW9zGAYj8lAIdr40I8yPCdUYrncXtrwg==}
     engines: {node: '>=4'}
     peerDependencies:
-      '@typescript-eslint/parser': '*'
+      "@typescript-eslint/parser": "*"
       eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
     peerDependenciesMeta:
-      '@typescript-eslint/parser':
+      "@typescript-eslint/parser":
         optional: true
 
   eslint-plugin-import@2.31.0:
@@ -2385,7 +2385,7 @@ packages:
       '@typescript-eslint/parser': '*'
       eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8 || ^9
     peerDependenciesMeta:
-      '@typescript-eslint/parser':
+      "@typescript-eslint/parser":
         optional: true
 
   eslint-plugin-mocha@10.5.0:
@@ -3701,8 +3701,8 @@ packages:
   ms-socket.io-adapter-amqp@9.0.1:
     resolution: {integrity: sha512-sGaFwgPpnOZY4O5WhWLD4SKMPKSYTKF6AAFbw8Nf5mLRq1CBm837O6XKPWCR8dcO8wJvHqqamOfL7oGfrfRBlQ==}
     peerDependencies:
-      '@microfleet/amqp-coffee': '>= 2'
-      '@microfleet/transport-amqp': '>= 17'
+      "@microfleet/amqp-coffee": ">= 2"
+      "@microfleet/transport-amqp": ">= 17"
       common-errors: ~1.x.x
 
   ms-token@5.0.1:
@@ -4799,12 +4799,12 @@ packages:
     resolution: {integrity: sha512-BKFPWlPDndPs+NGGCr1U59t0XScL5317Y0UReNrHaw9/FwhPENlq6bfgs+4yPfyP51vqC1bQ4rp1EfXW5ZSH9w==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
-      '@swc/core': '*'
-      esbuild: '*'
-      uglify-js: '*'
+      "@swc/core": "*"
+      esbuild: "*"
+      uglify-js: "*"
       webpack: ^5.1.0
     peerDependenciesMeta:
-      '@swc/core':
+      "@swc/core":
         optional: true
       esbuild:
         optional: true
@@ -5087,15 +5087,15 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
     peerDependencies:
-      '@webpack-cli/generators': '*'
-      '@webpack-cli/migrate': '*'
+      "@webpack-cli/generators": "*"
+      "@webpack-cli/migrate": "*"
       webpack: 4.x.x || 5.x.x
-      webpack-bundle-analyzer: '*'
-      webpack-dev-server: '*'
+      webpack-bundle-analyzer: "*"
+      webpack-dev-server: "*"
     peerDependenciesMeta:
-      '@webpack-cli/generators':
+      "@webpack-cli/generators":
         optional: true
-      '@webpack-cli/migrate':
+      "@webpack-cli/migrate":
         optional: true
       webpack-bundle-analyzer:
         optional: true
@@ -5118,7 +5118,7 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
     peerDependencies:
-      webpack-cli: '*'
+      webpack-cli: "*"
     peerDependenciesMeta:
       webpack-cli:
         optional: true
@@ -10872,7 +10872,7 @@ snapshots:
       webpack-cli: 4.10.0(webpack@5.93.0)
       webpack-sources: 3.2.3
     transitivePeerDependencies:
-      - '@swc/core'
+      - "@swc/core"
       - esbuild
       - uglify-js
 

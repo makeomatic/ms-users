@@ -1,8 +1,9 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const Promise = require('bluebird');
 const sinon = require('sinon');
-const { startService, clearRedis } = require('../../../config');
+const { setTimeout } = require('node:timers/promises');
 
+const { startService, clearRedis } = require('../../../config');
 const { createCfList, nockCfApi, restoreCfApi } = require('../../../helpers/cloudflare/api-stub');
 
 const asArray = async (generator) => {
@@ -167,15 +168,13 @@ describe('#cloudflare access-list stubbed', () => {
 
   it('should cleanup all outdated ips', async () => {
     const list = createCfList(service);
-    sandbox.useFakeTimers(Date.now());
-
     const { id: ipList } = await list.cfApi.createList('test-list-cleanup-outdated');
 
     const ips = ['4.7.7.7', '4.7.7.8', '4.7.7.9', '4.7.7.10'];
     const afterIps = ['4.7.7.9', '4.7.7.10'];
 
     await Promise.mapSeries(ips, async (ip) => {
-      sandbox.clock.tick(1000);
+      await setTimeout(1000);
       await list.addIP({ ip });
     });
 
@@ -195,14 +194,12 @@ describe('#cloudflare access-list stubbed', () => {
 
   it('should resync lists', async () => {
     const list = createCfList(service);
-    sandbox.useFakeTimers(Date.now());
-
     const { id: ipList } = await list.cfApi.createList('test-list-cleanup-outdated');
 
     const ips = ['3.7.7.7', '3.7.7.8', '3.7.7.9', '3.7.7.10'];
 
     await Promise.mapSeries(ips, async (ip) => {
-      sandbox.clock.tick(1000);
+      await setTimeout(1000);
       await list.addIP({ ip });
     });
 

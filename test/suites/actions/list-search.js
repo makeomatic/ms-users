@@ -1,6 +1,6 @@
+/* eslint-disable no-prototype-builtins */
 const Promise = require('bluebird');
-const { strict: assert } = require('assert');
-const { expect } = require('chai');
+const assert = require('node:assert/strict');
 const { faker } = require('@faker-js/faker');
 const ld = require('lodash');
 const redisKey = require('../../../src/utils/key');
@@ -149,12 +149,12 @@ describe('Redis Search: list', function listSuite() {
         },
       })
       .then((result) => {
-        expect(result.users.length).to.be.greaterThan(0);
+        assert(result.users.length > 0);
 
         result.users.forEach((user) => {
           console.debug(user.metadata);
-          expect(user).to.have.ownProperty('id');
-          expect(user.metadata[TEST_AUDIENCE_HTTP].level).to.be.greaterThanOrEqual(30);
+          assert(user.hasOwnProperty('id'));
+          assert(user.metadata[TEST_AUDIENCE_HTTP].level >= 30);
         });
       });
   });
@@ -174,24 +174,24 @@ describe('Redis Search: list', function listSuite() {
         },
       })
       .then((result) => {
-        expect(result.users).to.have.length.lte(10);
-        expect(result.users.length);
+        assert(result.users.length <= 10);
+        assert(result.users.length > 0);
 
         result.users.forEach((user) => {
-          expect(user).to.have.ownProperty('id');
-          expect(user).to.have.ownProperty('metadata');
-          expect(user.metadata[this.audience]).to.have.ownProperty('firstName');
-          expect(user.metadata[this.audience]).to.have.ownProperty('lastName');
+          assert(user.hasOwnProperty('id'));
+          assert(user.hasOwnProperty('metadata'));
+          assert(user.metadata[this.audience].hasOwnProperty('firstName'));
+          assert(user.metadata[this.audience].hasOwnProperty('lastName'));
         });
 
         const copy = [].concat(result.users);
         sortByCaseInsensitive(this.extractUserName)(copy);
 
         copy.forEach((data) => {
-          expect(data.metadata[this.audience].username).to.match(/yahoo/i);
+          assert(/yahoo/i.test(data.metadata[this.audience].username));
         });
 
-        expect(copy).to.be.deep.eq(result.users);
+        assert.deepEqual(copy, result.users);
       });
   });
 
@@ -200,12 +200,12 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ firstName: 'Johhny' }, 'firstName')
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(1);
+        assert.equal(result.users.length, 1);
         const [u1] = result.users;
 
         assert(u1);
         const uname = this.extractUserName(u1);
-        expect(uname).to.be.equal('johnny@gmail.org');
+        assert.equal(uname, 'johnny@gmail.org');
       });
   });
 
@@ -214,10 +214,9 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ username: 'ann@gmail.org' })
       .then((result) => {
         assert(result);
-        assert(result.users.length);
-        expect(result.users).to.have.length(1);
+        assert.equal(result.users.length, 1);
 
-        expect(this.extractUserName(result.users[0])).to.be.equal('ann@gmail.org');
+        assert.equal(this.extractUserName(result.users[0]), 'ann@gmail.org');
       });
     // @username:($f_username_1 $f_username_2 $f_username_3)
     // PARAMS 6 f_username_1 ann f_username_2 gmail f_username_3
@@ -237,7 +236,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ username: 'org' })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length.gte(4);
+        assert(result.users.length >= 4);
       });
   });
 
@@ -254,14 +253,14 @@ describe('Redis Search: list', function listSuite() {
       })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length.gte(2);
+        assert(result.users.length >= 2);
 
         const copy = [].concat(result.users);
         sortByCaseInsensitive(this.extractUserName)(copy);
 
         const [u1, u2] = copy;
-        expect(this.extractUserName(u1)).to.be.equal('johnny@gmail.org');
-        expect(this.extractUserName(u2)).to.be.equal('kim@yahoo.org');
+        assert.equal(this.extractUserName(u1), 'johnny@gmail.org');
+        assert.equal(this.extractUserName(u2), 'kim@yahoo.org');
       });
   });
 
@@ -280,14 +279,14 @@ describe('Redis Search: list', function listSuite() {
       }, 'username', 'DESC')
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length.gte(2);
+        assert(result.users.length >= 2);
 
         const copy = [].concat(result.users);
         sortByCaseInsensitive(this.extractUserName)(copy);
 
         const [u1, u2] = copy;
-        expect(this.extractUserName(u1)).to.be.equal('kim@yahoo.org');
-        expect(this.extractUserName(u2)).to.be.equal('johnny@gmail.org');
+        assert.equal(this.extractUserName(u1), 'kim@yahoo.org');
+        assert.equal(this.extractUserName(u2), 'johnny@gmail.org');
       });
   });
 
@@ -296,7 +295,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ username: { eq: 'kim@yahoo.org' } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(0);
+        assert.equal(result.users.length, 0);
       });
   });
 
@@ -306,7 +305,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ firstName: { match: 'Johhny' } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length.gte(1);
+        assert(result.users.length >= 1);
       });
   });
 
@@ -316,7 +315,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ username: { match: 'johnny@gmail.org' } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(1);
+        assert.equal(result.users.length, 1);
       });
   });
 
@@ -326,7 +325,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ username: { match: 'johnny@gma' } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(1);
+        assert.equal(result.users.length, 1);
       });
   });
   it('list: NE action', function test() {
@@ -334,12 +333,12 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ username: { ne: 'gmail' } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length.gte(2);
+        assert(result.users.length >= 2);
 
         result.users.forEach((user) => {
           const username = this.extractUserName(user);
           const domain = username.split('@')[1];
-          expect(domain).to.have.length.gte(1);
+          assert(domain.length >= 1);
           // TODO expect(domain.includes('gmail')).to.equal(false)
         });
       });
@@ -350,7 +349,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ lastName: { isempty: true } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(0);
+        assert.equal(result.users.length, 0);
       });
   });
 
@@ -366,9 +365,9 @@ describe('Redis Search: list', function listSuite() {
       })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(2);
+        assert.equal(result.users.length, 2);
         result.users.forEach((user) => {
-          expect(user.metadata[TEST_AUDIENCE]).to.not.have.ownProperty('level');
+          assert(!user.metadata[TEST_AUDIENCE].hasOwnProperty('level'));
         });
       });
   });
@@ -378,7 +377,7 @@ describe('Redis Search: list', function listSuite() {
       .filteredListRequest({ lastName: { exists: true } })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length.gte(1);
+        assert(result.users.length >= 1);
       });
   });
 
@@ -394,9 +393,9 @@ describe('Redis Search: list', function listSuite() {
       })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(3);
+        assert.equal(result.users.length, 3);
         result.users.forEach((user) => {
-          expect(user.metadata[TEST_AUDIENCE]).to.have.ownProperty('level');
+          assert(user.metadata[TEST_AUDIENCE].hasOwnProperty('level'));
         });
       });
   });
@@ -418,10 +417,10 @@ describe('Redis Search: list', function listSuite() {
       })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(3);
+        assert.equal(result.users.length, 3);
 
         result.users.forEach((user) => {
-          expect(user).to.have.ownProperty('id');
+          assert(user.hasOwnProperty('id'));
         });
       });
   });
@@ -449,10 +448,10 @@ describe('Redis Search: list', function listSuite() {
       })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(2);
+        assert.equal(result.users.length, 2);
 
         result.users.forEach((user) => {
-          expect(user).to.have.ownProperty('id');
+          assert(user.hasOwnProperty('id'));
         });
       });
   });
@@ -483,12 +482,12 @@ describe('Redis Search: list', function listSuite() {
       })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(2);
+        assert.equal(result.users.length, 2);
 
         result.users.forEach((user) => {
-          expect(user).to.have.ownProperty('id');
+          assert(user.hasOwnProperty('id'));
           // one of the emails
-          expect(emails).to.contain(user.metadata.api.email);
+          assert(emails.includes(user.metadata.api.email));
         });
       });
   });
@@ -516,12 +515,13 @@ describe('Redis Search: list', function listSuite() {
       })
       .then((result) => {
         assert(result);
-        expect(result.users).to.have.length(2);
+        assert.equal(result.users.length, 2);
+
+        const validate = (value) => (value >= 10 && value <= 20) || value >= 35;
 
         result.users.forEach((user) => {
-          expect(user).to.have.ownProperty('id');
-          expect(user.metadata[TEST_AUDIENCE].level)
-            .to.satisfy((value) => (value >= 10 && value <= 20) || value >= 35);
+          assert(user.hasOwnProperty('id'));
+          assert(validate(user.metadata[TEST_AUDIENCE].level));
         });
       });
   });
@@ -540,19 +540,18 @@ describe('Redis Search: list', function listSuite() {
         },
       })
       .then((result) => {
-        expect(result.users).to.have.length(1);
-        expect(result.users.length);
+        assert.equal(result.users.length, 1);
 
         result.users.forEach((user) => {
-          expect(user).to.have.ownProperty('id');
-          expect(user).to.have.ownProperty('metadata');
+          assert(user.hasOwnProperty('id'));
+          assert(user.hasOwnProperty('metadata'));
 
           const data = user.metadata[TEST_AUDIENCE];
-          expect(data).to.have.ownProperty('email');
-          expect(data.email.endsWith('.org'));
+          assert(data.hasOwnProperty('email'));
+          assert(data.email.endsWith('.org'));
 
-          expect(data).to.have.ownProperty('level');
-          expect(data.level).to.be.lte(30); // 10 20 30
+          assert(data.hasOwnProperty('level'));
+          assert(data.level <= 30); // 10 20 30
         });
       });
   });

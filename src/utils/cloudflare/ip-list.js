@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { Microfleet } = require('@microfleet/core');
 const { helpers: { generateClass } } = require('common-errors');
 const ld = require('lodash');

@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const request = require('request-promise').defaults({
   uri: 'https://ms-users.local/users/_/me',
   json: true,
@@ -32,6 +32,7 @@ describe('/_/me', function verifySuite() {
       },
     }), {
       error: {
+        code: 'E_TKN_INVALID',
         name: 'HttpStatusError',
         message: 'invalid token',
         error: 'Forbidden',

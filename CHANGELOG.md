@@ -1,3 +1,150 @@
+# [17.4.0](https://github.com/makeomatic/ms-users/compare/v17.3.2...v17.4.0) (2025-07-01)
+
+
+### Features
+
+* **organization:** member mfa flag ([#620](https://github.com/makeomatic/ms-users/issues/620)) ([b49448f](https://github.com/makeomatic/ms-users/commit/b49448ff71829dabcee0409a90224881d1981bcb))
+
+## [17.3.2](https://github.com/makeomatic/ms-users/compare/v17.3.1...v17.3.2) (2025-02-15)
+
+
+### Bug Fixes
+
+* remove old email on validation of new one ([#619](https://github.com/makeomatic/ms-users/issues/619)) ([9945c3f](https://github.com/makeomatic/ms-users/commit/9945c3f30d2b71f12b6d7a8a49ffb37847fe038a))
+
+## [17.3.1](https://github.com/makeomatic/ms-users/compare/v17.3.0...v17.3.1) (2025-02-11)
+
+
+### Bug Fixes
+
+* remove contact email from username ([#618](https://github.com/makeomatic/ms-users/issues/618)) ([9bcce33](https://github.com/makeomatic/ms-users/commit/9bcce335468cd2640d6cc14b4266b20ced12cc8d))
+
+# [17.3.0](https://github.com/makeomatic/ms-users/compare/v17.2.0...v17.3.0) (2024-11-22)
+
+
+### Bug Fixes
+
+* phone config for challenge action ([#614](https://github.com/makeomatic/ms-users/issues/614)) ([6a23442](https://github.com/makeomatic/ms-users/commit/6a234421ade3412b3dff78b802ea2ea7f190436a))
+
+
+### Features
+
+* action to update the username ([#616](https://github.com/makeomatic/ms-users/issues/616)) ([8edc2cf](https://github.com/makeomatic/ms-users/commit/8edc2cf485439581979e074d7e14560c57041d51))
+
+# [17.2.0](https://github.com/makeomatic/ms-users/compare/v17.1.3...v17.2.0) (2024-10-27)
+
+
+### Bug Fixes
+
+* update dependencies, run on newer node ([#613](https://github.com/makeomatic/ms-users/issues/613)) ([cbcfc47](https://github.com/makeomatic/ms-users/commit/cbcfc4742fc54b7f6f8d982233ef8f07fc3202d2))
+
+
+### Features
+
+* with empty password check ([#612](https://github.com/makeomatic/ms-users/issues/612)) ([79254ca](https://github.com/makeomatic/ms-users/commit/79254ca82cf5a784d0ce1659f05470726fe3eba5))
+
+## [17.1.3](https://github.com/makeomatic/ms-users/compare/v17.1.2...v17.1.3) (2024-08-25)
+
+
+### Bug Fixes
+
+* replace username on contact email verify ([#611](https://github.com/makeomatic/ms-users/issues/611)) ([5a17de1](https://github.com/makeomatic/ms-users/commit/5a17de1c2186caec927d583601ca1f18c9d55d00))
+
+## [17.1.2](https://github.com/makeomatic/ms-users/compare/v17.1.1...v17.1.2) (2024-08-21)
+
+
+### Bug Fixes
+
+* remove opentracing from bundle ([#610](https://github.com/makeomatic/ms-users/issues/610)) ([2694e09](https://github.com/makeomatic/ms-users/commit/2694e09926287e622533d134b3774ed1042845e2))
+
+## [17.1.1](https://github.com/makeomatic/ms-users/compare/v17.1.0...v17.1.1) (2024-07-24)
+
+
+### Bug Fixes
+
+* email to contacts migration ([#609](https://github.com/makeomatic/ms-users/issues/609)) ([cb92622](https://github.com/makeomatic/ms-users/commit/cb926221a7845e6538354914938588425476967f))
+
+# [17.1.0](https://github.com/makeomatic/ms-users/compare/v17.0.0...v17.1.0) (2024-04-03)
+
+
+### Features
+
+* return extra meta in bypass auth ([#608](https://github.com/makeomatic/ms-users/issues/608)) ([7d864ba](https://github.com/makeomatic/ms-users/commit/7d864bac8a2204b8f1170fd309eb09c089cbee91))
+
+# [17.0.0](https://github.com/makeomatic/ms-users/compare/v16.4.0...v17.0.0) (2024-01-22)
+
+
+### Features
+
+* upgrade to core@20 ([#606](https://github.com/makeomatic/ms-users/issues/606)) ([22b98bb](https://github.com/makeomatic/ms-users/commit/22b98bbdcf234ed26cdd00ed136c34b35e328238))
+
+
+### BREAKING CHANGES
+
+* microfleet/core@20, min node.js version
+
+# [16.4.0](https://github.com/makeomatic/ms-users/compare/v16.3.4...v16.4.0) (2023-12-29)
+
+
+### Bug Fixes
+
+* credentials store cachedOptions access ([027c93c](https://github.com/makeomatic/ms-users/commit/027c93ceef033735ba1ae8724701b8536d3c9d2f))
+* put default params for credentialsStore publishOptions ([05766b1](https://github.com/makeomatic/ms-users/commit/05766b1f6538c29a188b2736fd3a461961a4eb1a))
+
+
+### Features
+
+* support publish options for credentials store ([808de77](https://github.com/makeomatic/ms-users/commit/808de77988b73db41d64db9e4a55bb2a159c4ab9))
+
+## [16.3.4](https://github.com/makeomatic/ms-users/compare/v16.3.3...v16.3.4) (2023-12-28)
+
+
+### Bug Fixes
+
+* upgrade @microfleet/amqp-coffee with new libffi ([77ad034](https://github.com/makeomatic/ms-users/commit/77ad034f3d8e8af3869b4c662ddb69fce94a1956))
+
+## [16.3.3](https://github.com/makeomatic/ms-users/compare/v16.3.2...v16.3.3) (2023-12-07)
+
+
+### Bug Fixes
+
+* do not store emails for masters bypass ([#604](https://github.com/makeomatic/ms-users/issues/604)) ([6039849](https://github.com/makeomatic/ms-users/commit/6039849ddf65fc6e8cc0d30499f199728fa9f952))
+
+## [16.3.2](https://github.com/makeomatic/ms-users/compare/v16.3.1...v16.3.2) (2023-11-29)
+
+
+### Bug Fixes
+
+* deps upgrade, node 20.10 container ([a8cafe8](https://github.com/makeomatic/ms-users/commit/a8cafe806afe83fa5ed0ab082a8c33dbc7ddf9aa))
+
+## [16.3.1](https://github.com/makeomatic/ms-users/compare/v16.3.0...v16.3.1) (2023-11-16)
+
+
+### Bug Fixes
+
+* upgrade deps ([#603](https://github.com/makeomatic/ms-users/issues/603)) ([4828334](https://github.com/makeomatic/ms-users/commit/4828334bd93653b654dfba2f4ec865da5654f179))
+
+# [16.3.0](https://github.com/makeomatic/ms-users/compare/v16.2.1...v16.3.0) (2023-10-25)
+
+
+### Features
+
+* add E_USER_ID_NOT_FOUND code for error if user id was not found ([#601](https://github.com/makeomatic/ms-users/issues/601)) ([9742fc9](https://github.com/makeomatic/ms-users/commit/9742fc9d9ccd975724cf9961a60d736b1f765da6))
+
+## [16.2.1](https://github.com/makeomatic/ms-users/compare/v16.2.0...v16.2.1) (2023-10-05)
+
+
+### Bug Fixes
+
+* increase user alias to 30 chars ([#600](https://github.com/makeomatic/ms-users/issues/600)) ([eff6089](https://github.com/makeomatic/ms-users/commit/eff60896aaeb40d17edf0d48ad372cdf51b7f8c6))
+
+# [16.2.0](https://github.com/makeomatic/ms-users/compare/v16.1.0...v16.2.0) (2023-09-05)
+
+
+### Features
+
+* dump search ([#599](https://github.com/makeomatic/ms-users/issues/599)) ([bb88bb9](https://github.com/makeomatic/ms-users/commit/bb88bb927ee0e14f4c2d309fea83969761891d5d))
+
 # [16.1.0](https://github.com/makeomatic/ms-users/compare/v16.0.8...v16.1.0) (2023-08-21)
 
 

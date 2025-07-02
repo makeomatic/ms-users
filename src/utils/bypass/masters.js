@@ -3,9 +3,9 @@ const { pick } = require('lodash');
 const undici = require('undici');
 const pRetry = require('p-retry');
 const { customAlphabet } = require('nanoid');
+const { getMetadata } = require('../get-metadata');
 
 const { USERS_INVALID_TOKEN, lockBypass, ErrorConflictUserExists, ErrorUserNotFound } = require('../../constants');
-const contacts = require('../contacts');
 
 const AJV_SCHEME_ID = 'masters.profile';
 
@@ -19,7 +19,7 @@ const retryConfig = {
 const schema = {
   $id: AJV_SCHEME_ID,
   type: 'object',
-  required: ['userId', 'firstName', 'lastName', 'email'],
+  required: ['userId', 'firstName', 'lastName'],
   properties: {
     userId: {
       anyOf: [{
@@ -47,10 +47,18 @@ const userIdGenerator = customAlphabet('123456789', 6);
 
 class MastersService {
   static get sharedFields() {
-    return ['firstName', 'lastName', 'email'];
+    return ['firstName', 'lastName'];
   }
 
+  /**
+   *
+   * @param {Microfleet} service
+   * @param {any} config
+   */
   constructor(service, config) {
+    /**
+     * @type { import('@microfleet/core').Microfleet }
+     */
     this.service = service;
     this.config = config;
 
@@ -60,7 +68,7 @@ class MastersService {
 
     this.pools = baseUrls.map((baseUrl) => {
       return [new undici.Pool(baseUrl, {
-        connections: 1,
+        connections: 10,
         pipelining: 1,
         ...this.config.httpPoolOptions,
       }), baseUrl];
@@ -71,6 +79,12 @@ class MastersService {
       this.service.validator.ajv.addSchema(schema);
     }
     this.audience = this.service.config.jwt.defaultAudience;
+
+    /**
+     * @type {{ [audience: string]: string[] } | null}
+     */
+    this.additionalMeta = config.additionalMeta;
+    this.additionalMetaAudiences = this.additionalMeta ? Object.keys(this.additionalMeta) : [];
   }
 
   static userId({ userId }) {
@@ -84,7 +98,18 @@ class MastersService {
       isSSO: true,
     };
 
-    return this.service.dispatch('login', { params });
+    /**
+     * @type {Awaited<ReturnType<import('../../actions/login')>>}
+     */
+    const response = await this.service.dispatch('login', { params });
+
+    // optionally retrieve additional metadata that we are interested in
+    if (this.additionalMeta) {
+      const extraMeta = await getMetadata(this.service, response.user.id, this.additionalMetaAudiences, this.additionalMeta);
+      response.user.metadata = { ...extraMeta, ...response.user.metadata };
+    }
+
+    return response;
   }
 
   static generateStubNames(profile) {
@@ -162,11 +187,12 @@ class MastersService {
         userProfile
       );
 
+      // do not store emails
       if (status) {
-        await contacts.add.call(this.service, {
-          contact: { type: 'email', value: userProfile.email },
-          userId: data.user.id,
-        });
+      //   await contacts.add.call(this.service, {
+      //     contact: { type: 'email', value: userProfile.email },
+      //     userId: data.user.id,
+      //   });
         return data;
       }
 
@@ -223,12 +249,14 @@ class MastersService {
     let response;
 
     try {
+      const ac = new AbortController();
       const params = {
         headersTimeout: 5000,
         bodyTimeout: 5000,
         ...this.config.httpClientOptions,
         path: `${this.config.authPath}?token=${profileToken}`,
         method: 'GET',
+        signal: ac.signal,
       };
 
       response = await Promise.any(this.pools.map(async ([pool, baseUrl]) => {
@@ -245,6 +273,9 @@ class MastersService {
 
         return output;
       }));
+
+      // cleans up ongoing requests
+      ac.abort();
     } catch (e) {
       this.service.log.warn({ err: e, profileToken }, 'failed to get user from masters');
       throw USERS_INVALID_TOKEN;
@@ -270,7 +301,7 @@ class MastersService {
   }
 
   async close() {
-    await this.pools.map(([pool]) => pool.close());
+    await Promise.all(this.pools.map(([pool]) => pool.destroy()));
   }
 }
 

@@ -1,7 +1,7 @@
 FROM makeomatic/node:$NODE_VERSION
 
 ENV NCONF_NAMESPACE=MS_USERS \
-    NODE_ENV=$NODE_ENV
+  NODE_ENV=$NODE_ENV
 
 WORKDIR /src
 
@@ -12,7 +12,8 @@ RUN \
     add ca-certificates --virtual .buildDeps git ca-certificates openssl g++ make python3 linux-headers \
   && update-ca-certificates \
   && chown node:node /src \
-  && su -l node -c "cd /src && pnpm fetch --prod" \
+  && su node sh -c "cd /src && pnpm fetch --prod" \
+  && su node sh -c "rm -rf ~/.cache && pnpm store prune" \
   && apk del .buildDeps \
   && rm -rf \
     /tmp/* \

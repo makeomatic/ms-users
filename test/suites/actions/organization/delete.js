@@ -1,5 +1,5 @@
 /* eslint-disable promise/always-return, no-prototype-builtins */
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { faker } = require('@faker-js/faker');
 const { createOrganization } = require('../../../helpers/organization');
 const { startService, clearRedis } = require('../../../config');

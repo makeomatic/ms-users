@@ -4,7 +4,7 @@
 /* eslint-disable no-console */
 
 const { connect } = require('@microfleet/transport-amqp');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const prepareConfig = require('../config');
 
 const username = process.argv[2];

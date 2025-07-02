@@ -1,8 +1,9 @@
 const { HttpStatusError } = require('common-errors');
+const is = require('is');
 
 const getMetadata = require('./get-metadata');
 const { getInternalData } = require('./userData');
-const { USERS_MFA_FLAG } = require('../constants');
+const { USERS_MFA_FLAG, USERS_PASSWORD_FIELD } = require('../constants');
 
 /**
  * Verifies decoded token
@@ -22,10 +23,13 @@ async function fromTokenData(service, { username, userId, scopes, extra = {} }, 
 
   let resolveduserId = userId;
   let hasMFA;
+  let noPassword;
   if (resolveduserId == null) {
     const internalData = await getInternalData.call(service, username);
     resolveduserId = internalData.id;
     hasMFA = !!internalData[USERS_MFA_FLAG];
+    const { config: { noPasswordCheck } } = service;
+    noPassword = noPasswordCheck && is.undefined(internalData[USERS_PASSWORD_FIELD]) === true;
   }
 
   const metadata = await getMetadata(service, resolveduserId, audience);
@@ -35,6 +39,10 @@ async function fromTokenData(service, { username, userId, scopes, extra = {} }, 
     scopes,
     extra,
   };
+
+  if (noPassword) {
+    result.metadata.noPassword = true;
+  }
 
   if (hasMFA !== undefined) {
     result.mfa = hasMFA;

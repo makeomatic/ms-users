@@ -43,6 +43,6 @@ module.exports = exports = {
   tags: (items = []) => `{${items.join(PIPE_SEPARATOR)}}`,
 
   // Utils
-  tokenize: (value) => value.replace(PUNCTUATION_REGEX, ' ').split(/\s/),
+  tokenize: (value) => value.replace(PUNCTUATION_REGEX, ' ').split(/\s/).filter((x) => x.trim().length > 0),
   containsKeyExpr: (value) => `contains(@__key, "${value}")`,
 };

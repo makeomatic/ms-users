@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { startService, clearRedis } = require('../../config');
 
 describe('#invite', function registerSuite() {
@@ -76,9 +76,10 @@ describe('#invite', function registerSuite() {
         password: '123',
         inviteToken: this.invitationToken,
         audience: '*.localhost',
-      } }), {
-      name: 'AssertionError',
-      message: `Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "${email}"`,
+      } }), (err) => {
+      assert.strictEqual(err.name, 'AssertionError');
+      assert.match(err.message, /Sanity check failed for "id" failed: "abnormal@yandex.ru" vs "v@yandex.ru"/);
+      return true;
     });
   });
 

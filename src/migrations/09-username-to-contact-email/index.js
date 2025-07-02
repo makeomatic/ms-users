@@ -47,6 +47,7 @@ function copyUsernameToContact({
             type: 'email',
             verified: true,
           }));
+          pipeline.sadd(redisKey(userId, USERS_CONTACTS), username);
         }
       }
 
@@ -70,5 +71,5 @@ function copyUsernameToContact({
 module.exports = {
   script: copyUsernameToContact,
   min: 8,
-  final: 9,
+  final: 10,
 };

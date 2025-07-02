@@ -14,16 +14,14 @@ if (os.platform() !== 'darwin') {
   } catch (e) { }
 }
 
-exports.node = "18";
-exports.in_one = false;
+exports.node = "22.13.1";
+exports.in_one = true;
 exports.auto_compose = true;
 exports.with_local_compose = true;
 exports.tester_flavour = "chrome-tester";
 exports.rebuild = ['ms-flakeless'];
-exports.nycCoverage = false;
-exports.nycReport = false;
 exports.docker_compose = './test/docker-compose.yml';
-exports.test_framework = 'mocha';
+exports.test_framework = 'c8 ./node_modules/.bin/mocha';
 exports.extras = {
   tester: {
     user: `${uid}:${uid}`,
@@ -38,17 +36,16 @@ exports.extras = {
       NCONF_NAMESPACE: 'MS_USERS',
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1,
       VIRTUAL_HOST: 'ms-users.local',
-      VIRTUAL_PORT: 3000,
+      VIRTUAL_PORT: '3000',
       CERT_NAME: 'default',
       SKIP_FB: process.env.SKIP_FB,
       SKIP_MASTERS: process.env.SKIP_MASTERS,
-      NODE_V8_COVERAGE: 'coverage/tmp'
     },
   },
 };
 
 exports.pre = 'rimraf ./coverage/tmp';
-exports.post_exec = 'pnpm exec -- c8 report -r text -r lcov';
+// exports.post_exec = 'pnpm c8 report -r text -r lcov';
 
 switch (process.env.DB_SRV) {
   case 'redisCluster':

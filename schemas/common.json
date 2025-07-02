@@ -48,8 +48,11 @@
           "type": "string",
           "minLength": 1
         },
-        "^(gte|lte)$": {
-          "type": "number"
+        "^(gte?|lte?)$": {
+          "anyOf": [
+            { "type": "number" },
+            { "type": "string", "pattern": "^[1-9]\\d*$" }
+          ]
         },
         "^(exists|isempty)$": {
           "type": "boolean",
@@ -90,7 +93,7 @@
     },
     "alias": {
       "type": "string",
-      "pattern": "^[a-zA-Z0-9\\-._]{3,20}$"
+      "pattern": "^[a-zA-Z0-9\\-._]{3,30}$"
     },
     "totp": {
       "type": "string",
@@ -173,7 +176,7 @@
           "type": "string",
           "oneOf": [
             { "format": "email" },
-            { "pattern": "^\\d+$" }
+            { "$ref": "#/definitions/phone" }
           ]
         },
         "type": {
@@ -181,6 +184,11 @@
           "enum": ["email", "phone"]
         }
       }
+    },
+    "phone": {
+      "description": "E-164. Only digits",
+      "type": "string",
+      "pattern": "^[0-9]{7,15}$"
     }
   }
 }

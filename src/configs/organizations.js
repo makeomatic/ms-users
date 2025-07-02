@@ -4,4 +4,5 @@
  */
 exports.organizations = {
   audience: 'organizations',
+  showMfa: false,
 };

@@ -28,7 +28,7 @@ const {
  *
  * @apiSchema {jsonschema=../../schemas/requestPassword.json} apiParam
  */
-module.exports = function requestPassword(request) {
+async function requestPassword(request) {
   const { challengeType, username: usernameOrAlias, generateNewPassword } = request.params;
   const { [challengeType]: tokenOptions } = this.config.token;
   const { defaultAudience } = this.config.jwt;
@@ -37,25 +37,27 @@ module.exports = function requestPassword(request) {
   // TODO: make use of remoteip in security logs?
   // var remoteip = request.params.remoteip;
 
-  return Promise
-    .bind(this, usernameOrAlias)
-    .then(getInternalData)
-    .tap(isActive)
-    .tap(isBanned)
-    .tap(hasPassword)
-    .then((data) => getMetadata(this, data[USERS_ID_FIELD], defaultAudience))
-    .get(defaultAudience)
-    .then((meta) => [
-      challengeType,
-      {
-        id: meta[USERS_USERNAME_FIELD],
-        action,
-        ...tokenOptions,
-      },
-      meta,
-    ])
-    .spread(challenge)
-    .return({ success: true });
-};
+  const internalData = await getInternalData.call(this, usernameOrAlias);
 
-module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];
+  await Promise.all([
+    isActive(internalData),
+    isBanned(internalData),
+    hasPassword(internalData),
+  ]);
+
+  const metadata = await getMetadata(this, internalData[USERS_ID_FIELD], defaultAudience);
+  const meta = metadata[defaultAudience];
+
+  const opts = {
+    id: meta[USERS_USERNAME_FIELD],
+    action,
+    ...tokenOptions,
+  };
+  await challenge.call(this, challengeType, opts, meta);
+
+  return { success: true };
+}
+
+requestPassword.transports = [ActionTransport.amqp, ActionTransport.internal];
+
+module.exports = requestPassword;

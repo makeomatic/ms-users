@@ -1,5 +1,5 @@
-const { deepStrictEqual, strictEqual, strict: assert } = require('assert');
-const { expect } = require('chai');
+const assert = require('node:assert/strict');
+const { setTimeout } = require('node:timers/promises');
 const { startService, clearRedis } = require('../../config');
 const redisKey = require('../../../src/utils/key');
 
@@ -70,20 +70,20 @@ describe('#updatePassword', function updatePasswordSuite() {
 
       return this.users.dispatch('updatePassword', { params })
         .then((updatePassword) => {
-          expect(updatePassword).to.be.deep.eq({ success: true });
+          assert.deepEqual(updatePassword, { success: true });
         });
     });
 
     describe('token', function tokenSuite() {
-      beforeEach(function pretest() {
-        return challenge
-          .call(this.users, 'email', {
-            id: username,
-            action: 'reset',
-          })
-          .then((data) => {
-            this.token = data.context.token.secret;
-          });
+      beforeEach(async function pretest() {
+        const data = await challenge.call(this.users, 'email', {
+          id: username,
+          action: 'reset',
+        });
+
+        this.token = data.context.token.secret;
+        // cause of issues with amqp
+        await setTimeout(100);
       });
 
       it('must reject updating password for an invalid challenge token', async function test() {
@@ -103,9 +103,9 @@ describe('#updatePassword', function updatePasswordSuite() {
         );
         const hashedPassword = await redis.hget(`${this.userId}!data`, 'password');
 
-        deepStrictEqual(result, { success: true });
-        strictEqual(hashedPassword.startsWith('scrypt'), true);
-        strictEqual(hashedPassword.length > 50, true);
+        assert.deepEqual(result, { success: true });
+        assert.equal(hashedPassword.startsWith('scrypt'), true);
+        assert.equal(hashedPassword.length > 50, true);
       });
 
       it('must delete lock for ip after success update', async function test() {
@@ -116,18 +116,18 @@ describe('#updatePassword', function updatePasswordSuite() {
         await redis.zadd('gl!ip!ctr!10.0.0.1', 1576335000001, 'token1');
         await redis.zadd('gl!ip!ctr!10.0.0.1', 1576335000002, 'token2');
 
-        strictEqual(await redis.zrange(`${this.userId}!ip!10.0.0.1`, 0, -1).get('length'), 2);
-        strictEqual(await redis.zrange('gl!ip!ctr!10.0.0.1', 0, -1).get('length'), 2);
+        assert.equal(await redis.zrange(`${this.userId}!ip!10.0.0.1`, 0, -1).then((x) => x.length), 2);
+        assert.equal(await redis.zrange('gl!ip!ctr!10.0.0.1', 0, -1).then((x) => x.length), 2);
 
         const result = await amqp.publishAndWait(
           'users.updatePassword',
           { resetToken: this.token, newPassword: 'vvv', remoteip: '10.0.0.1' }
         );
 
-        deepStrictEqual(result, { success: true });
+        assert.deepEqual(result, { success: true });
 
-        strictEqual(await redis.zrange(`${this.userId}!ip!10.0.0.1`, 0, -1).get('length'), 0);
-        strictEqual(await redis.zrange('gl!ip!ctr!10.0.0.1', 0, -1).get('length'), 0);
+        assert.equal(await redis.zrange(`${this.userId}!ip!10.0.0.1`, 0, -1).then((x) => x.length), 0);
+        assert.equal(await redis.zrange('gl!ip!ctr!10.0.0.1', 0, -1).then((x) => x.length), 0);
       });
     });
   });

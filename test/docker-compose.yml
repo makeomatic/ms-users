@@ -7,7 +7,7 @@ volumes:
 
 services:
   nginx-proxy:
-    image: jwilder/nginx-proxy:alpine
+    image: jwilder/nginx-proxy:1.5-alpine
     expose:
       - "80"
       - "443"
@@ -17,16 +17,18 @@ services:
       - html:/usr/share/nginx/html
       - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/tmp/docker.sock:ro
     labels:
-      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
+      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=''
     environment:
       DHPARAM_GENERATION: "false"
+      DHPARAM_SKIP: "true"
+      ENABLE_IPV6: "true"
     networks:
       default:
         aliases:
         - ms-users.local
 
   proxy-companion:
-    image: jrcs/letsencrypt-nginx-proxy-companion
+    image: jrcs/letsencrypt-nginx-proxy-companion:2.4.0
     depends_on:
       - nginx-proxy
     environment:
@@ -38,7 +40,7 @@ services:
       - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock:ro
 
   redis:
-    image: redis/redis-stack-server:6.2.6-v7
+    image: redis/redis-stack-server:6.2.6-v10
 
   consul:
     image: consul:1.6

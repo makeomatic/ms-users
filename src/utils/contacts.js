@@ -3,7 +3,18 @@ const { HttpStatusError } = require('@microfleet/validation');
 const challengeAct = require('./challenges/challenge');
 const redisKey = require('./key');
 const handlePipeline = require('./pipeline-error');
-const { USERS_CONTACTS, USERS_DEFAULT_CONTACT, USERS_ACTION_VERIFY_CONTACT, lockContact } = require('../constants');
+const { getInternalData, getUserId } = require('./userData');
+const {
+  USERS_CONTACTS,
+  USERS_DEFAULT_CONTACT,
+  USERS_ACTION_VERIFY_CONTACT,
+  USERS_USERNAME_TO_ID,
+  USERS_DATA,
+  USERS_USERNAME_FIELD,
+  USERS_METADATA,
+  lockContact,
+  ConflictEMailExists,
+} = require('../constants');
 
 const stringifyObj = (obj) => {
   const newObj = Object.create(null);
@@ -40,23 +51,44 @@ async function setVerifiedIfExist({ redis, userId, value }) {
   return key;
 }
 
-async function removeAllEmailContactsOfUser(redis, userId, exceptEmail) {
+async function removeAllEmailContactsOfUser(redisPipe, userId, exceptEmail) {
   const key = redisKey(userId, USERS_CONTACTS);
-  const contacts = await redis.smembers(key);
+  const contacts = await this.redis.smembers(key);
   if (contacts.length) {
-    const pipe = redis.pipeline();
     contacts.forEach((value) => {
       if (/@/.test(value) && value !== exceptEmail) {
-        pipe.del(redisKey(userId, USERS_CONTACTS, value));
-        pipe.srem(redisKey(userId, USERS_CONTACTS), value);
+        redisPipe.del(redisKey(userId, USERS_CONTACTS, value));
+        redisPipe.srem(redisKey(userId, USERS_CONTACTS), value);
       }
     });
-    await pipe.exec().then(handlePipeline);
   }
+}
+
+async function replaceUserName(redisPipe, userId, verifiedEmail) {
+  const { config: { jwt: { defaultAudience } } } = this;
+  const internalData = await getInternalData.call(this, userId);
+  const username = internalData[USERS_USERNAME_FIELD];
+  redisPipe.hdel(USERS_USERNAME_TO_ID, username);
+  redisPipe.hset(USERS_USERNAME_TO_ID, verifiedEmail, userId);
+  redisPipe.hset(redisKey(userId, USERS_DATA), USERS_USERNAME_FIELD, verifiedEmail);
+  redisPipe.hset(redisKey(userId, USERS_METADATA, defaultAudience), USERS_USERNAME_FIELD, JSON.stringify(verifiedEmail));
 }
 
 async function add({ userId, contact, skipChallenge = false }) {
   this.log.debug({ userId, contact }, 'add contact key params');
+
+  if (!skipChallenge && this.config.contacts.onlyOneVerifiedEmail) {
+    let userExists = false;
+    try {
+      await getUserId.call(this, contact.value);
+      userExists = true;
+    } catch (e) {
+      this.log.debug('user not exist continue');
+    }
+    if (userExists) {
+      throw ConflictEMailExists;
+    }
+  }
 
   const { redis } = this;
   const contactsCount = await checkLimit.call(this, { userId });
@@ -64,17 +96,15 @@ async function add({ userId, contact, skipChallenge = false }) {
 
   try {
     const key = redisKey(userId, USERS_CONTACTS, contact.value);
-
+    const pipe = redis.pipeline();
     if (skipChallenge && this.config.contacts.onlyOneVerifiedEmail) {
-      await removeAllEmailContactsOfUser(redis, userId);
+      await removeAllEmailContactsOfUser.call(this, pipe, userId);
     }
-
     const contactData = {
       ...contact,
       verified: skipChallenge,
     };
 
-    const pipe = redis.pipeline();
     pipe.hmset(key, stringifyObj(contactData));
     pipe.sadd(redisKey(userId, USERS_CONTACTS), contact.value);
 
@@ -86,7 +116,10 @@ async function add({ userId, contact, skipChallenge = false }) {
 
     return contactData;
   } finally {
-    await lock.release();
+    await lock.release()
+      .catch((e) => {
+        this.log.debug(e, 'failed to release lock');
+      });
   }
 }
 
@@ -134,16 +167,27 @@ async function verifyEmail({ secret }) {
   const { redis, tokenManager } = this;
   const { metadata } = await tokenManager.verify(secret);
   const { userId, contact } = metadata;
+  const lock = await this.dlock.manager.once(lockContact(contact.value));
   const key = redisKey(userId, USERS_CONTACTS, contact.value);
 
-  if (this.config.contacts.onlyOneVerifiedEmail) {
-    await removeAllEmailContactsOfUser(redis, userId, contact.value);
+  try {
+    const pipe = redis.pipeline();
+    if (this.config.contacts.onlyOneVerifiedEmail) {
+      await removeAllEmailContactsOfUser.call(this, pipe, userId, contact.value);
+    }
+    if (this.config.contacts.updateUsername) {
+      await replaceUserName.call(this, pipe, userId, contact.value);
+    }
+    pipe.hset(key, 'verified', 'true');
+    metadata.contact.verified = true;
+    await pipe.exec().then(handlePipeline);
+
+    return metadata;
+  } finally {
+    if (lock !== undefined) {
+      await lock.release();
+    }
   }
-
-  await redis.hset(key, 'verified', 'true');
-  metadata.contact.verified = true;
-
-  return metadata;
 }
 
 async function verify({ userId, contact, token }) {
@@ -196,6 +240,10 @@ async function remove({ userId, contact }) {
   const pipe = redis.pipeline();
   pipe.del(key);
   pipe.srem(redisKey(userId, USERS_CONTACTS), contact.value);
+
+  if (this.config.contacts.updateUsername) {
+    pipe.hdel(USERS_USERNAME_TO_ID, contact.value);
+  }
 
   return pipe.exec().then(handlePipeline);
 }

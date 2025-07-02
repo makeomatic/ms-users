@@ -1,5 +1,5 @@
 const got = require('got');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { Agent: HttpsAgent } = require('https');
 const { HttpStatusError } = require('common-errors');
 const { pick } = require('lodash');

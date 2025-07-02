@@ -1,4 +1,9 @@
 const { HttpStatusError, NotFoundError } = require('common-errors');
+const moment = require('moment');
+
+const E_USER_ID_NOT_FOUND = 'E_USER_ID_NOT_FOUND';
+const E_USER_LOGIN_LOCKED = 'E_USER_LOGIN_LOCKED';
+const E_USER_LOGIN_LOCKED_FOREVER = 'E_USER_LOGIN_LOCKED_FOREVER';
 
 module.exports = exports = {
   // indices
@@ -76,6 +81,7 @@ module.exports = exports = {
   USER_ALREADY_ACTIVE: new HttpStatusError(417, 'this user is already active'),
   ErrorAccountLocked: new HttpStatusError(423, 'Account has been locked'),
   ErrorConflictUserExists: new HttpStatusError(409, 'user already exists'),
+  ConflictEMailExists: new HttpStatusError(409, 'email already exists'),
   ErrorConflictOrganizationExists: new HttpStatusError(409, 'organization already exists'),
   ErrorOrganizationNotFound: new HttpStatusError(404, 'organization not found'),
   ErrorTotpRequired: Object.defineProperty(
@@ -89,6 +95,29 @@ module.exports = exports = {
   ErrorUserNotMember: new HttpStatusError(404, 'username not member of organization'),
   ErrorInvitationExpiredOrUsed: new HttpStatusError(400, 'Invitation has expired or already been used'),
 
+  ErrorUserIdNotFound: (userId) => {
+    const error = new HttpStatusError(404, `"${userId}" does not exist`);
+    error.code = E_USER_ID_NOT_FOUND;
+    return error;
+  },
+  ErrorUserLoginLocked: (ip, reset) => {
+    const duration = moment().add(reset, 'milliseconds').toNow(true);
+    const error = new HttpStatusError(429, `You are locked from making login attempts for ${duration} from ipaddress '${ip}'`);
+
+    error.code = E_USER_LOGIN_LOCKED;
+    error.detail = { ip, reset };
+
+    return error;
+  },
+  ErrorUserLoginLockedForever: (ip) => {
+    const error = new HttpStatusError(429, `You are locked from making login attempts forever from ipaddress '${ip}'`);
+
+    error.code = E_USER_LOGIN_LOCKED_FOREVER;
+    error.detail = { ip };
+
+    return error;
+  },
+
   // Internal errors
   ErrorSearchIndexNotFound: (audience) => new NotFoundError(
     `Search index does not registered for '${audience}'. You need to create it in the config file`
@@ -96,15 +125,16 @@ module.exports = exports = {
 
   // actions
   USERS_ACTION_ACTIVATE: 'activate',
-  USERS_ACTION_VERIFY_CONTACT: 'verify-contact',
   USERS_ACTION_DISPOSABLE_PASSWORD: 'disposable-password',
-  USERS_ACTION_PASSWORD: 'password',
-  USERS_ACTION_RESET: 'reset',
-  USERS_ACTION_REGISTER: 'register',
   USERS_ACTION_INVITE: 'invite',
+  USERS_ACTION_ORGANIZATION_ADD: 'organizationUserAdd',
   USERS_ACTION_ORGANIZATION_INVITE: 'organizationUserInvite',
   USERS_ACTION_ORGANIZATION_REGISTER: 'organizationUserRegister',
-  USERS_ACTION_ORGANIZATION_ADD: 'organizationUserAdd',
+  USERS_ACTION_PASSWORD: 'password',
+  USERS_ACTION_REGISTER: 'register',
+  USERS_ACTION_RESET: 'reset',
+  USERS_ACTION_UPDATE_USERNAME: 'user-update-username',
+  USERS_ACTION_VERIFY_CONTACT: 'verify-contact',
 
   // invitations constants
   INVITATIONS_INDEX: 'user-invitations',
@@ -141,12 +171,18 @@ exports.ErrorConflictUserExists.code = 'E_USERNAME_CONFLICT';
 exports.ErrorTotpRequired.code = 'E_TOTP_REQUIRED';
 exports.ErrorTotpInvalid.code = 'E_TOTP_INVALID';
 exports.ErrorSecretRequired.code = 'E_TOTP_NOSECRET';
+exports.ErrorUserNotFound.code = E_USER_ID_NOT_FOUND;
 
-exports.USERS_INVALID_TOKEN.code = 'E_TKN_INVALID';
 exports.USERS_AUDIENCE_MISMATCH.code = 'E_TKN_AUDIENCE_MISMATCH';
+exports.USERS_DISPOSABLE_PASSWORD_MIA.code = 'E_PASSWORD_INVALID';
+exports.USERS_INVALID_TOKEN.code = 'E_TKN_INVALID';
 exports.USERS_JWT_ACCESS_REQUIRED.code = 'E_TKN_ACCESS_TOKEN_REQUIRED';
 exports.USERS_JWT_REFRESH_REQUIRED.code = 'E_TKN_REFRESH_TOKEN_REQUIRED';
 exports.USERS_JWT_STATELESS_REQUIRED.code = 'E_STATELESS_NOT_ENABLED';
+
+exports.E_USER_ID_NOT_FOUND = E_USER_ID_NOT_FOUND;
+exports.E_USER_LOGIN_LOCKED = E_USER_LOGIN_LOCKED;
+exports.E_USER_LOGIN_LOCKED_FOREVER = E_USER_LOGIN_LOCKED_FOREVER;
 
 exports.SSO_PROVIDERS = [
   exports.USERS_SSO_FACEBOOK_FIELD,

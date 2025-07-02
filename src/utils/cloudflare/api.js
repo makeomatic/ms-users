@@ -1,4 +1,4 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const pRetry = require('p-retry');
 const { helpers: { generateClass } } = require('common-errors');
 

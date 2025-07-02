@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { omit } = require('lodash');
 const sinon = require('sinon').usingPromise(Promise);
 const { startService, clearRedis } = require('../../config');

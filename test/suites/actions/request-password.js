@@ -1,7 +1,6 @@
-const Promise = require('bluebird');
-const { expect } = require('chai');
-const { strict: assert } = require('assert');
-const sinon = require('sinon').usingPromise(Promise);
+const assert = require('node:assert/strict');
+const { setTimeout } = require('node:timers/promises');
+const sinon = require('sinon');
 const redisKey = require('../../../src/utils/key');
 const { startService, clearRedis } = require('../../config');
 
@@ -32,6 +31,7 @@ describe('#requestPassword', function requestPasswordSuite() {
     await assert.rejects(this.users.dispatch('requestPassword', { params: { username: 'noob' } }), {
       name: 'HttpStatusError',
       statusCode: 404,
+      code: 'E_USER_ID_NOT_FOUND',
     });
   });
 
@@ -64,7 +64,10 @@ describe('#requestPassword', function requestPasswordSuite() {
   describe('account: active', () => {
     it('must send challenge email for an existing user with an active account', async () => {
       const requestPassword = await this.users.dispatch('requestPassword', { params: { username } });
-      expect(requestPassword).to.be.deep.eq({ success: true });
+      assert.deepEqual(requestPassword, { success: true });
+
+      // so that we can send stuff out before amqp is destroyed
+      await setTimeout(10);
     });
 
     it('must send challenge sms for an existing user with an active account', async () => {
@@ -79,7 +82,7 @@ describe('#requestPassword', function requestPasswordSuite() {
           rpass: true,
         },
       };
-      const requestPasswordParams = { username: phoneUsername, challengeType: 'phone', wait: true };
+      const requestPasswordParams = { username: phoneUsername, challengeType: 'phone' };
 
       amqpStub.withArgs('phone.message.predefined')
         .resolves({ queued: true });
@@ -117,6 +120,8 @@ describe('#requestPassword', function requestPasswordSuite() {
     it('must generate password on request', async () => {
       const response = await this.users.dispatch('requestPassword', { params: { username, generateNewPassword: true } });
       assert.deepStrictEqual(response, { success: true });
+      // so that we can send stuff out before amqp is destroyed
+      await setTimeout(10);
     });
   });
 });

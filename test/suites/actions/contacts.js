@@ -1,24 +1,26 @@
-/* eslint-disable no-prototype-builtins */
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
+const { setTimeout } = require('node:timers/promises');
 const { faker } = require('@faker-js/faker');
 const sinon = require('sinon');
 const { createMembers } = require('../../helpers/organization');
 const { startService, clearRedis } = require('../../config');
+const { USERS_USERNAME_TO_ID } = require('../../../src/constants');
 
 describe('#user contacts', function registerSuite() {
+  const audience = '*.localhost';
   before(startService);
   before(async function pretest() {
     this.testUser = {
       username: faker.internet.email(),
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
-      phone: faker.phone.number('#########'),
+      phone: faker.phone.number({ style: 'international' }).replace(/[^\d]/g, ''),
     };
 
     const params = {
       username: this.testUser.username,
       password: '123',
-      audience: '*.localhost',
+      audience,
     };
 
     await this.users.dispatch('register', { params });
@@ -136,7 +138,7 @@ describe('#user contacts', function registerSuite() {
       username: this.testUser.username,
       token: this.testUser.code2,
       contact: {
-        value: faker.phone.number('#########'),
+        value: faker.phone.number({ style: 'international' }).replace(/[^\d]/g, ''),
         type: 'phone',
       },
     };
@@ -200,6 +202,17 @@ describe('#user contacts', function registerSuite() {
     assert.equal(list.data.length, 0);
   });
 
+  it('should throw error on add contact with existing email', async function test() {
+    const params = {
+      username: this.testUser.username,
+      contact: {
+        value: 'this.testUser.username',
+        type: 'email',
+      },
+    };
+    await assert.rejects(this.users.dispatch('contacts.add', { params }));
+  });
+
   it('must be able to add user contact with skipChallenge, onlyOneVerifiedEmail', async function test() {
     const params = {
       username: this.testUser.username,
@@ -233,7 +246,7 @@ describe('#user contacts', function registerSuite() {
     assert.equal(data[0].value, params2.contact.value);
   });
 
-  it('should validate email', async function test() {
+  it('should validate email and replace username', async function test() {
     const sendMailPath = 'mailer.predefined';
     const params = {
       username: this.testUser.username,
@@ -246,23 +259,55 @@ describe('#user contacts', function registerSuite() {
       },
     };
 
+    const { [audience]: { username } } = await this.users
+      .dispatch('getMetadata', { params: { username: this.testUser.username, audience } });
+
+    assert.equal(username, this.testUser.username);
+
     await this.users.dispatch('contacts.add', { params });
 
     const amqpStub = sinon.stub(this.users.amqp, 'publish');
 
-    amqpStub.withArgs(sendMailPath)
-      .resolves({ queued: true });
+    amqpStub.withArgs(sendMailPath).resolves({ queued: true });
 
     await this.users.dispatch('contacts.challenge', { params });
-    const { args: [[path, { ctx: { template: { token: { secret } } } }]] } = amqpStub;
+    await setTimeout(100);
+
+    const [[path, { ctx: { template: { token: { secret } } } }]] = amqpStub.args;
     assert.equal(path, sendMailPath);
 
     const { data: { attributes: { contact: { value, verified }, metadata: { name } } } } = await this.users
       .dispatch('contacts.verify-email', { params: { secret } });
 
+    // get meta of user by updated email
+    const { [audience]: { username: updatedUserName, id } } = await this.users
+      .dispatch('getMetadata', { params: { username: params.contact.value, audience } });
+    this.testUser.id = id;
+    assert.equal(updatedUserName, params.contact.value);
     assert.equal(value, params.contact.value);
     assert.strictEqual(verified, true);
     assert.equal(name, params.metadata.name);
     amqpStub.restore();
+  });
+
+  it('should remove username to userid mapping on contact removal', async function test() {
+    const params = {
+      username: this.testUser.id,
+      contact: {
+        value: 'email@mail.org',
+        type: 'email',
+      },
+    };
+    await this.users.dispatch('contacts.add', { params });
+    const amqpStub = sinon.stub(this.users.amqp, 'publish');
+    amqpStub.withArgs('mailer.predefined').resolves({ queued: true });
+    await this.users.dispatch('contacts.challenge', { params });
+    const { ctx: { template: { token: { secret } } } } = amqpStub.args[0][1];
+    await this.users.dispatch('contacts.verify-email', { params: { secret } });
+    const userid = await this.users.redis.hget(USERS_USERNAME_TO_ID, params.contact.value);
+    assert.notEqual(userid, null);
+    await this.users.dispatch('contacts.remove', { params });
+    const useridRemoved = await this.users.redis.hget(USERS_USERNAME_TO_ID, params.contact.value);
+    assert.equal(useridRemoved, null);
   });
 });

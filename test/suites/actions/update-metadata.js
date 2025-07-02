@@ -1,5 +1,4 @@
-const { expect } = require('chai');
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { startService, clearRedis } = require('../../config');
 
 describe('#updateMetadata', function getMetadataSuite() {
@@ -30,7 +29,7 @@ describe('#updateMetadata', function getMetadataSuite() {
   it('must be able to remove metadata for a single audience of an existing user', async function test() {
     return this.users.dispatch('updateMetadata', { params: { username, audience, metadata: { $remove: ['x'] } } })
       .then((data) => {
-        expect(data.$remove).to.be.eq(0);
+        assert.equal(data.$remove, 0);
       });
   });
 
@@ -71,9 +70,9 @@ describe('#updateMetadata', function getMetadataSuite() {
       .then((data) => {
         const [mainData, extraData] = data;
 
-        expect(mainData.$set).to.be.eq('OK');
-        expect(mainData.$incr.b).to.be.eq(2);
-        expect(extraData.$incr.b).to.be.eq(3);
+        assert.equal(mainData.$set, 'OK');
+        assert.equal(mainData.$incr.b, 2);
+        assert.equal(extraData.$incr.b, 3);
       });
   });
 
@@ -91,7 +90,7 @@ describe('#updateMetadata', function getMetadataSuite() {
 
     return this.users.dispatch('updateMetadata', { params })
       .then((data) => {
-        expect(data.balance).to.be.deep.eq([
+        assert.deepEqual(data.balance, [
           `{ms-users}${this.userId}!metadata!${audience}`,
           `{ms-users}${this.userId}!metadata!${extra}`,
           'nom-nom',

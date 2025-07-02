@@ -1,4 +1,5 @@
 const Promise = require('bluebird');
+const sinon = require('sinon');
 
 function registerUser(username, opts = {}) {
   return async function register() {
@@ -39,8 +40,10 @@ async function startService(testConfig = {}) {
 
     const service = this.users = await prepareUsers(testConfig);
 
+    await this.users.register();
+
     this.users.on('plugin:connect:amqp', () => {
-      this.users._mailer = { send: () => Promise.resolve() };
+      sinon.stub(this.users.mailer, 'send').resolves();
     });
 
     await this.users.connect();
@@ -66,11 +69,13 @@ async function clearRedis(doNotClose = false) {
     } else {
       await service.redis.flushdb();
     }
-  } finally {
-    if (doNotClose === false) {
-      await service.close();
-      this.users = null;
-    }
+  } catch (err) {
+    console.error('could not cleanup redis');
+  }
+
+  if (doNotClose !== true) {
+    await service.close();
+    this.users = null;
   }
 }
 

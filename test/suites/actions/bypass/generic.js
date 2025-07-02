@@ -1,11 +1,14 @@
-const { strict: assert } = require('assert');
+const assert = require('node:assert/strict');
 const { startService, clearRedis } = require('../../../config');
 const { ErrorOrganizationNotFound, USERS_INVALID_TOKEN } = require('../../../../src/constants');
 const { decodeAndVerify } = require('../../../../src/utils/jwt');
 
 describe('/bypass/generic', function bypassGeneric() {
   const genericUser = { userId: '12341234' };
-  const genericUserWithProfile = { profile: { name: 'FooBar' }, userId: '1234123422' };
+  const genericUserWithProfile = {
+    userId: '1234123422',
+    profile: { name: 'FooBar' },
+    newProfile: { name: 'FooBaz2', firstName: 'boo' } };
   const account = 'kz';
   const schema = 'generic';
   const action = 'auth-bypass';
@@ -130,6 +133,26 @@ describe('/bypass/generic', function bypassGeneric() {
     assert(repsonse.user.metadata[audience].id);
     assert.equal(repsonse.user.metadata[audience].id, userId);
     assert.equal(repsonse.user.metadata[audience].username, username);
+  });
+
+  it('[init] should login and update profile', async () => {
+    const repsonse = await this.users.dispatch(action, {
+      params: {
+        schema: `${schema}:${account}`,
+        userKey: genericUser.userId,
+        organizationId,
+        init: true,
+        profile: genericUserWithProfile.newProfile,
+      },
+    });
+
+    assert(repsonse.jwt);
+    assert(repsonse.user.metadata[audience]);
+    assert(repsonse.user.metadata[audience].id);
+    assert.equal(repsonse.user.metadata[audience].id, userId);
+    assert.equal(repsonse.user.metadata[audience].username, username);
+    assert.equal(repsonse.user.metadata[audience].name, genericUserWithProfile.newProfile.name);
+    assert.equal(repsonse.user.metadata[audience].firstName, genericUserWithProfile.newProfile.firstName);
   });
 
   it('should login with JWT', async () => {

@@ -6,6 +6,7 @@ const {
   USERS_ACTION_DISPOSABLE_PASSWORD,
   USERS_ACTION_REGISTER,
   USERS_ACTION_RESET,
+  USERS_ACTION_UPDATE_USERNAME,
   USERS_ACTION_VERIFY_CONTACT,
 } = require('../../../constants');
 
@@ -24,6 +25,7 @@ async function send(tel, action, context = {}) {
     case USERS_ACTION_ACTIVATE:
     case USERS_ACTION_DISPOSABLE_PASSWORD:
     case USERS_ACTION_RESET:
+    case USERS_ACTION_UPDATE_USERNAME:
     case USERS_ACTION_VERIFY_CONTACT:
       message = template.replace('%s', context.token.secret);
       break;

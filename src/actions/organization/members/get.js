@@ -4,7 +4,7 @@ const redisKey = require('../../../utils/key');
 const getUserId = require('../../../utils/userData/get-user-id');
 const { getMemberData } = require('../../../utils/organization/get-organization-members');
 const { checkOrganizationExists } = require('../../../utils/organization');
-const isMFAEnabled = require('../../../utils/mfa');
+const { isMFAEnabled } = require('../../../utils/mfa');
 const {
   ORGANIZATIONS_MEMBERS,
   USERS_METADATA,
@@ -37,7 +37,7 @@ async function getMember({ params }) {
 
   const userDataCalls = [getMemberData.call(this, memberKey)];
   if (showMfa) {
-    userDataCalls.push(isMFAEnabled(userId));
+    userDataCalls.push(isMFAEnabled.call(this, userId));
   }
 
   const [member, mfaEnabled] = await Promise.all(userDataCalls);

@@ -6,7 +6,14 @@ const { createOrganization, createMembers } = require('../../../../helpers/organ
 describe('#get organization member', function registerSuite() {
   this.timeout(50000);
 
-  beforeEach(startService);
+  beforeEach(async function () {
+    await startService.call(this, {
+      organizations: {
+        audience: 'organizations',
+        showMfa: true,
+      },
+    });
+  });
   beforeEach(function pretest() { return createMembers.call(this); });
   beforeEach(function pretest() { return createOrganization.call(this); });
   afterEach(clearRedis);
@@ -30,6 +37,8 @@ describe('#get organization member', function registerSuite() {
       .then((response) => {
         assert(response.data.hasOwnProperty('id'));
         assert(response.data.hasOwnProperty('type'));
+        assert(response.data.hasOwnProperty('attributes'));
+        assert(response.data.attributes.hasOwnProperty('mfaEnabled'));
         assert.deepEqual(response.data.attributes.username, opts.username);
       });
   });

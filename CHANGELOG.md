@@ -1,3 +1,10 @@
+## [17.4.1](https://github.com/makeomatic/ms-users/compare/v17.4.0...v17.4.1) (2025-07-03)
+
+
+### Bug Fixes
+
+* **organization-members:** mfa flag ([#621](https://github.com/makeomatic/ms-users/issues/621)) ([6be2f1a](https://github.com/makeomatic/ms-users/commit/6be2f1abda638295554c5bed82692e49a91df9e6))
+
 # [17.4.0](https://github.com/makeomatic/ms-users/compare/v17.3.2...v17.4.0) (2025-07-01)
 
 

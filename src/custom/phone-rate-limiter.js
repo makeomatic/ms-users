@@ -105,7 +105,9 @@ const checkTotalLimit = async (service) => {
     await createTotalLimiter(service).check(totalRateLimiterKey);
   } catch (error) {
     if (error instanceof KeyIpRateLimiter.RateLimitError) {
-      throw ErrorTotalLimit(error.reset);
+      const responseError = ErrorTotalLimit(error.reset);
+      service.log.error({ err: error }, responseError.code);
+      throw responseError;
     }
 
     throw error;
@@ -117,7 +119,9 @@ const checkLockLimit = async (service, username, remoteIp) => {
     await createLockLimiter(service).check(username, remoteIp);
   } catch (error) {
     if (error instanceof KeyIpRateLimiter.RateLimitError) {
-      throw ErrorLockLimit(error.reset);
+      const responseError = ErrorLockLimit(error.reset);
+      service.log.error({ err: error }, responseError.code);
+      throw responseError;
     }
 
     throw error;
@@ -129,6 +133,7 @@ const checkCaptchaLimit = async (service, username, remoteIp) => {
     await createCaptchaLimiter(service).check(username, remoteIp);
   } catch (error) {
     if (error instanceof KeyIpRateLimiter.RateLimitError) {
+      service.log.error({ err: error }, ErrorCaptchaRequired.code);
       throw ErrorCaptchaRequired;
     }
 

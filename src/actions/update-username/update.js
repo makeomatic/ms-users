@@ -1,6 +1,8 @@
 const { ActionTransport } = require('@microfleet/plugin-router');
 
+const { checkMFA } = require('../../utils/mfa');
 const { updateUsernameWithToken } = require('../../utils/update-username');
+const { MFA_TYPE_OPTIONAL } = require('../../constants');
 
 /**
  * @api {amqp} <prefix>.update-username Update Username
@@ -20,4 +22,6 @@ module.exports = async function updateUsernameAction(request) {
   await updateUsernameWithToken(this, token, username);
 };
 
+module.exports.mfa = MFA_TYPE_OPTIONAL;
+module.exports.allowed = checkMFA;
 module.exports.transports = [ActionTransport.amqp, ActionTransport.internal];

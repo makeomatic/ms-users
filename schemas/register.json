@@ -20,31 +20,7 @@
       "type": "boolean"
     },
     "captcha": {
-      "type": "object",
-      "required": [
-        "response",
-        "remoteip"
-      ],
-      "properties": {
-        "response": {
-          "type": "string",
-          "minLength": 1
-        },
-        "remoteip": {
-          "type": "string",
-          "oneOf": [{
-              "format": "ipv4"
-            },
-            {
-              "format": "ipv6"
-            }
-          ]
-        },
-        "secret": {
-          "type": "string",
-          "minLength": 1
-        }
-      }
+      "$ref": "common.json#/definitions/captcha"
     },
     "metadata": {
       "type": "object",
@@ -59,14 +35,7 @@
       "minLength": 1
     },
     "ipaddress": {
-      "type": "string",
-      "oneOf": [{
-          "format": "ipv4"
-        },
-        {
-          "format": "ipv6"
-        }
-      ]
+      "$ref": "common.json#/definitions/remoteip"
     },
     "skipChallenge": {
       "type": "boolean"

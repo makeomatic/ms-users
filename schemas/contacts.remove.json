@@ -12,6 +12,9 @@
     },
     "contact": {
       "$ref": "common.json#/definitions/contact"
+    },
+    "updateUsername": {
+      "type": "boolean"
     }
   }
 }

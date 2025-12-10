@@ -5,7 +5,6 @@ const challenge = require('../utils/challenges/challenge');
 const { getInternalData } = require('../utils/userData');
 const isActive = require('../utils/is-active');
 const isBanned = require('../utils/is-banned');
-const hasNotPassword = require('../utils/has-no-password');
 const { USERS_ACTION_DISPOSABLE_PASSWORD, USERS_USERNAME_FIELD } = require('../constants');
 
 /**
@@ -14,7 +13,7 @@ const { USERS_ACTION_DISPOSABLE_PASSWORD, USERS_USERNAME_FIELD } = require('../c
  * @apiName DisposablePassword
  * @apiGroup Users
  *
- * @apiDescription This method allowes to get disposable password.
+ * @apiDescription This method allows to get disposable password.
  *
  * @apiSchema {jsonschema=../../schemas/disposable-password.json} apiParam
  */
@@ -27,7 +26,6 @@ module.exports = function disposablePassword(request) {
     .then(getInternalData)
     .tap(isActive)
     .tap(isBanned)
-    .tap(hasNotPassword)
     .then((data) => ([challengeType, {
       id: data[USERS_USERNAME_FIELD],
       action: USERS_ACTION_DISPOSABLE_PASSWORD,

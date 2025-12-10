@@ -13,7 +13,6 @@ RUN \
   && update-ca-certificates \
   && chown node:node /src \
   && su node sh -c "cd /src && pnpm fetch --prod" \
-  && su node sh -c "rm -rf ~/.cache && pnpm store prune" \
   && apk del .buildDeps \
   && rm -rf \
     /tmp/* \
@@ -24,6 +23,8 @@ RUN \
 
 USER node
 COPY --chown=node:node . /src
-RUN pnpm install --offline --prod
+RUN pnpm install --offline --prod \
+  && rm -rf ~/.cache \
+  && pnpm store prune
 
 CMD [ "./node_modules/.bin/mfleet" ]

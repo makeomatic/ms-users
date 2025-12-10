@@ -1,18 +1,16 @@
 const { rejects, strictEqual } = require('node:assert');
 const { stub } = require('sinon');
-const { authenticator } = require('otplib');
 
 const { startService, clearRedis } = require('../../../config');
 
 describe('update-username.request', function suite() {
-  let mfaSecret;
-
   beforeEach(startService.bind(this));
   beforeEach(() => this.users.dispatch('register', {
     params: {
       activate: true,
       audience: '*.localhost',
       challengeType: 'phone',
+      ipaddress: '127.0.0.1',
       skipPassword: true,
       username: '19990000001',
     },
@@ -22,6 +20,7 @@ describe('update-username.request', function suite() {
       activate: true,
       audience: '*.localhost',
       challengeType: 'phone',
+      ipaddress: '127.0.0.1',
       skipPassword: true,
       username: '19990000002',
     },
@@ -43,9 +42,10 @@ describe('update-username.request', function suite() {
     await rejects(
       this.users.dispatch('update-username.request', {
         params: {
+          challengeType: 'phone',
+          remoteip: '127.0.0.1',
           username: '19990000001',
           value: '19990000002',
-          challengeType: 'phone',
         },
       }),
       {
@@ -64,9 +64,10 @@ describe('update-username.request', function suite() {
       .resolves({ queued: true });
 
     const response = await this.users.amqp.publishAndWait('users.update-username.request', {
+      challengeType: 'phone',
+      remoteip: '127.0.0.1',
       username: '19990000001',
       value: '19990000003',
-      challengeType: 'phone',
     });
 
     const args = amqpStub.args[1];
@@ -81,38 +82,5 @@ describe('update-username.request', function suite() {
     strictEqual(typeof response.uid, 'string');
 
     amqpStub.restore();
-  });
-
-  it('should be able to return error if invalid mfa', async () => {
-    const { users } = this;
-
-    const mfaData = await users.dispatch('mfa.generate-key', {
-      params: {
-        username: '19990000001',
-        time: Date.now(),
-      },
-    });
-
-    mfaSecret = mfaData.secret;
-
-    await users.dispatch('mfa.attach', {
-      params: {
-        username: '19990000001',
-        secret: mfaSecret,
-        totp: authenticator.generate(mfaSecret),
-      },
-    });
-
-    await rejects(
-      this.users.amqp.publishAndWait('users.update-username.request', {
-        username: '19990000001',
-        value: '19990000003',
-        challengeType: 'phone',
-      }),
-      {
-        code: 'E_TOTP_REQUIRED',
-        message: 'TOTP required',
-      }
-    );
   });
 });

@@ -74,6 +74,24 @@ describe('#updatePassword', function updatePasswordSuite() {
         });
     });
 
+    it('should not be able to update password without current password', async function test() {
+      const params = { username, newPassword: 'zzz' };
+
+      await assert.rejects(
+        () => this.users.dispatch('updatePassword', { params }),
+        /password arg must be present/
+      );
+    });
+
+    it('should be able to update password without current password with noCurrentPasswordCheck', async function test() {
+      const params = { username, newPassword: 'zzz', noCurrentPasswordCheck: true };
+
+      return this.users.dispatch('updatePassword', { params })
+        .then((updatePassword) => {
+          assert.deepEqual(updatePassword, { success: true });
+        });
+    });
+
     describe('token', function tokenSuite() {
       beforeEach(async function pretest() {
         const data = await challenge.call(this.users, 'email', {

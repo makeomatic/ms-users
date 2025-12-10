@@ -332,7 +332,7 @@ module.exports = async function registerUser({ params }) {
   // 3. create pipeline that adds all the user data into the system atomically to avoid failures
 
   // optional captcha verification
-  if ('captcha' in params) {
+  if ('captcha' in params && params.captcha.response) {
     await checkCaptcha(redis, username, params.captcha, config.captcha);
   }
 

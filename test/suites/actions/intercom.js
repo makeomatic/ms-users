@@ -69,7 +69,7 @@ describe('#intercom', function intercomSuite() {
     it('must reject unknown params', async function test() {
       await assert.rejects(this.users.dispatch('intercom', { params: { username, audience } }), {
         name: 'HttpStatusError',
-        statusCode: 400,
+        statusCode: 417,
       });
     });
 

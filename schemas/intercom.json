@@ -1,0 +1,19 @@
+{
+  "$id": "intercom",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "username"
+  ],
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

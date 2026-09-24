@@ -1,0 +1,13 @@
+{
+  "$id": "intercom",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "username"
+  ],
+  "properties": {
+    "username": {
+      "$ref": "common.json#/definitions/userId"
+    }
+  }
+}

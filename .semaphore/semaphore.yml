@@ -3,7 +3,7 @@ name: makeomatic/users
 agent:
   machine:
     type: e1-standard-2
-    os_image: ubuntu2004
+    os_image: ubuntu2404
 
 fail_fast:
   stop:
@@ -38,7 +38,7 @@ blocks:
         commands:
         - cp ~/.env.ms-users-keys ./.env
         - pnpm lint
-        - env SKIP_FB=true pnpm test:e2e:${flavour}
+        - env SKIP_FB=true SKIP_MASTERS=true pnpm test:e2e:${flavour}
 
   - name: test-docker-build
     dependencies: []

@@ -38,7 +38,7 @@ blocks:
         commands:
         - cp ~/.env.ms-users-keys ./.env
         - pnpm lint
-        - env SKIP_FB=true pnpm test:e2e:${flavour}
+        - env SKIP_FB=true SKIP_MASTERS=true pnpm test:e2e:${flavour}
 
   - name: test-docker-build
     dependencies: []

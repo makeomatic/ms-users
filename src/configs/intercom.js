@@ -6,10 +6,9 @@
 exports.intercom = {
   // when false `intercom` action responds with 501
   enabled: false,
-  // HS256 signing key
+  // HS256 signing key, at least 32 bytes
   secret: '',
-  // token lifetime, jose setExpirationTime() format
-  ttl: '1h',
+  ttl: 3600, // 1 hour - 3600 seconds
   // extra claims added to every token
   attributes: {
     studio_help_center_access: true,

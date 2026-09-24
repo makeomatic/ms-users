@@ -1,9 +1,12 @@
 const { HttpStatusError } = require('common-errors');
-const { SignJWT, decodeJwt } = require('jose');
+const { SignJWT } = require('jose');
 const { ActionTransport } = require('@microfleet/plugin-router');
 
 const getMetadata = require('../utils/get-metadata');
 const { getUserInfo } = require('../utils/userData');
+
+const MIN_SECRET_LENGTH = 32;
+const isEmail = (value) => /^[^@\s]+@[^@\s]+$/.test(value);
 
 /**
  * @api {amqp} <prefix>.intercom Intercom Messenger JWT
@@ -15,7 +18,6 @@ const { getUserInfo } = require('../utils/userData');
  * Must only be reachable over internal transports, `username` is trusted as is
  *
  * @apiParam (Payload) {String} username - authenticated user's username
- * @apiParam (Payload) {String} [audience] - metadata audience, defaults to `jwt.defaultAudience`
  *
  * @apiSuccess (Response) {String} token - signed Intercom Messenger JWT
  * @apiSuccess (Response) {Number} expiresAt - token expiration time in ms
@@ -23,27 +25,31 @@ const { getUserInfo } = require('../utils/userData');
 async function intercomToken({ params }) {
   const { enabled, secret, ttl, attributes } = this.config.intercom;
 
-  if (!enabled || !secret) {
+  if (!enabled || !secret || Buffer.byteLength(secret) < MIN_SECRET_LENGTH) {
     throw new HttpStatusError(501, 'intercom is not enabled');
   }
 
-  const { username, audience = this.config.jwt.defaultAudience } = params;
+  const { username } = params;
+  const { defaultAudience } = this.config.jwt;
   const { userId } = await getUserInfo.call(this, username, true);
-  const { [audience]: metadata } = await getMetadata(this, userId, [audience]);
+  const { [defaultAudience]: metadata } = await getMetadata(this, userId, [defaultAudience]);
+  const { name, username: email } = metadata;
 
-  // identity claims go last so configured attributes can't override them
+  const iat = Math.floor(Date.now() / 1000);
+  const exp = iat + ttl;
+
+  // identity claims go last so configured attributes can't override them,
+  // undefined values are dropped on serialization
   const token = await new SignJWT({
     ...attributes,
-    ...(metadata.name ? { name: metadata.name } : {}),
+    name: typeof name === 'string' && name ? name : undefined,
     user_id: userId,
-    email: metadata.username,
+    email: isEmail(email) ? email : undefined,
   })
     .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime(ttl)
+    .setIssuedAt(iat)
+    .setExpirationTime(exp)
     .sign(Buffer.from(secret));
-
-  const { exp } = decodeJwt(token);
 
   return { token, expiresAt: exp * 1000 };
 }
